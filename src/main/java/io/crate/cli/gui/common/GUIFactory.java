@@ -5,6 +5,7 @@ import javax.swing.table.JTableHeader;
 import javax.swing.table.TableColumnModel;
 import javax.swing.table.TableModel;
 import java.awt.*;
+import java.net.URL;
 
 
 public final class GUIFactory extends JPanel {
@@ -12,7 +13,8 @@ public final class GUIFactory extends JPanel {
     public static final Font TABLE_CELL_FONT = new Font("monospaced", Font.PLAIN, 14);
     public static final Font TABLE_HEADER_FONT = new Font("monospaced", Font.BOLD, 16);
     public static final Color TABLE_HEADER_FONT_COLOR = Color.BLACK;
-    public static final Color TABLE_GRID_COLOR = Color.ORANGE;
+    public static final Color TABLE_GRID_COLOR = new Color(66, 188, 245);
+    public static final String LOGO_FILE_NAME = "/cratedb_logo.png";
 
 
     public static JFrame newFrame(String title,
@@ -32,6 +34,8 @@ public final class GUIFactory extends JPanel {
         frame.setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
         frame.setLayout(new BorderLayout());
         frame.add(mainPanel, BorderLayout.CENTER);
+        ImageIcon logo = new ImageIcon(GUIFactory.class.getResource(LOGO_FILE_NAME));
+        frame.setIconImage(logo.getImage());
 
         Toolkit tk = Toolkit.getDefaultToolkit();
         Dimension screenSize = tk.getScreenSize();
@@ -68,5 +72,10 @@ public final class GUIFactory extends JPanel {
 
     private GUIFactory() {
         throw new IllegalStateException("not meant to me instantiated");
+    }
+
+    public static void main(String [] args) {
+        URL logl = GUIFactory.class.getResource("/logo.png");
+        System.out.println(logl);
     }
 }

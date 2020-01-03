@@ -8,11 +8,11 @@ import java.util.Locale;
 public class StringCellRenderer extends DefaultTableCellRenderer {
 
     private static final Color DEFAULT_BG_COLOR = new Color(230, 236, 255);
-    private static final Color DEFAULT_BG_COLOR_ALTERNATE = new Color(250, 232, 250);
+    private static final Color DEFAULT_BG_COLOR_ALTERNATE = new Color(255, 247, 255);
     private static final Font DEFAULT_FONT = new Font("monospaced", Font.PLAIN, 14);
 
     private static final Color SELECTED_BG_COLOR = new Color(102, 140, 255);
-    private static final Color SELECTED_FG_COLOR = new Color(255, 153, 0);
+    private static final Color SELECTED_FG_COLOR = Color.WHITE;
     private static final Font SELECTED_FONT = new Font("monospaced", Font.BOLD, 14);
 
 

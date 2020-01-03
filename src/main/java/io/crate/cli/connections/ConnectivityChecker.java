@@ -96,7 +96,6 @@ public class ConnectivityChecker implements Closeable {
                     }
                 }
                 if (lostConnections.size() > 0) {
-                    System.out.println("TicTac lostConnections: " + lostConnections);
                     lostConnectionsConsumer.accept(lostConnections);
                 }
             }
