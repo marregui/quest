@@ -1,27 +1,40 @@
-group = 'crate.io'
-version = '1.0-SNAPSHOT'
-description = 'CreateDB SQL'
+plugins {
+    id 'java'
+    id 'idea'
+}
 
-apply plugin: 'java'
-apply plugin: 'idea'
-sourceCompatibility = "11" 
-targetCompatibility = "11" 
+java {
+    sourceCompatibility = JavaVersion.VERSION_11
+    targetCompatibility = JavaVersion.VERSION_11
+}
 
+wrapper {
+    gradleVersion = '6.0.1'
+}
 
 repositories {
     mavenCentral()
     maven {
-        url = 'http://repo1.maven.org/maven2'
+        url = 'https://repo1.maven.org/maven2'
     }
 
     maven {
-        url = 'http://dl.bintray.com/crate/crate'
+        url = 'https://dl.bintray.com/crate/crate'
     }
+}
+
+group = 'crate.io'
+version = '1.0.0-SNAPSHOT'
+description = 'CreateDB SQL'
+
+dependencies {
+    implementation 'io.crate:crate-jdbc:2.1.7'
+    implementation 'org.slf4j:slf4j-simple:1.7.21'
 }
 
 jar {
     manifest {
-        attributes "Main-Class": "io.crate.cli.ConsoleCommandManager"
+        attributes "Main-Class": "io.crate.cli.gui.CratedbSQL"
     }
  
     from {
@@ -29,12 +42,19 @@ jar {
     }
 }
 
-dependencies {
-    compile 'com.google.code.gson:gson:2.5'
-    compile 'org.apache.httpcomponents:httpclient:4.5.6'
-    compile 'io.crate:crate-jdbc:2.1.7'
-    compile 'org.slf4j:slf4j-simple:1.7.21'}
+task fatJar(type: Jar) {
+    manifest.from jar.manifest
+    classifier = 'all'
+    from {
+        configurations.runtimeClasspath.collect { it.isDirectory() ? it : zipTree(it) }
+    } {
+        exclude "META-INF/*.SF"
+        exclude "META-INF/*.DSA"
+        exclude "META-INF/*.RSA"
+    }
+    with jar
+}
 
-wrapper {
-    gradleVersion = '6.0'
+artifacts {
+    archives fatJar
 }
