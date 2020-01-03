@@ -16,40 +16,69 @@ public class ObjectComboBoxModel<ItemType extends HasKey> extends AbstractListMo
     }
 
     public void clear() {
-        elements.clear();
+        synchronized (elements) {
+            elements.clear();
+        }
         fireContentsChanged(this, -1, -1);
     }
 
-    public int size() {
-        return elements.size();
-    }
-
     public List<ItemType> getElements() {
-        return elements;
+        List<ItemType> copy;
+        synchronized (elements) {
+            copy = new ArrayList<>(elements);
+        }
+        return copy;
     }
 
     public void setElements(List<ItemType> newElements) {
-        elements.clear();
-        elements.addAll(newElements);
+        synchronized (elements) {
+            elements.clear();
+            elements.addAll(newElements);
+        }
         fireIntervalAdded(this, 0, elements.size());
     }
 
     @Override
     public void addElement(ItemType item) {
-        elements.add(item);
-        fireIntervalAdded(this, elements.size() - 1, elements.size() - 1);
+        int idx;
+        synchronized (elements) {
+            elements.add(item);
+            idx = elements.size() - 1;
+        }
+        fireIntervalAdded(this, idx, idx);
+    }
+
+    @Override
+    public void insertElementAt(ItemType item, int idx) {
+        synchronized (elements) {
+            checkBounds("insertElementAt", idx, elements.size());
+            elements.add(idx, item);
+        }
+        fireIntervalAdded(this, idx, idx);
     }
 
     @Override
     public void removeElement(Object obj) {
         if (null != obj) {
             ItemType item = (ItemType) obj;
-            int idx = elements.indexOf(item);
-            if (-1 != idx) {
-                elements.remove(idx);
-                fireIntervalRemoved(this, idx, idx);
+            int idx;
+            synchronized (elements) {
+                idx = elements.indexOf(item);
+                removeElementAt(idx);
             }
         }
+    }
+
+    @Override
+    public void removeElementAt(int idx) {
+        synchronized (elements) {
+            checkBounds("removeElementAt", idx, elements.size());
+            ItemType item = elements.remove(idx);
+            if (null != selectedElement && selectedElement.equals(item)) {
+                selectedElement = null;
+            }
+        }
+        fireIntervalRemoved(this, idx, idx);
     }
 
     private static void checkBounds(String descriptor, int idx, int maxExcluded) {
@@ -64,41 +93,42 @@ public class ObjectComboBoxModel<ItemType extends HasKey> extends AbstractListMo
     }
 
     @Override
-    public void insertElementAt(ItemType item, int index) {
-        checkBounds("insertElementAt", index, elements.size());
-        elements.add(index, item);
-        fireIntervalAdded(this, index, index);
-    }
-
-    @Override
-    public void removeElementAt(int index) {
-        checkBounds("removeElementAt", index, elements.size());
-        elements.remove(index);
-        fireIntervalRemoved(this, index, index);
+    public ItemType getElementAt(int index) {
+        ItemType item;
+        synchronized (elements) {
+            checkBounds("getElementAt", index, elements.size());
+            item = elements.get(index);
+        }
+        return item;
     }
 
     @Override
     public void setSelectedItem(Object obj) {
         if (null != obj) {
-            selectedElement = (ItemType) obj;
-            int idx = elements.indexOf(selectedElement);
+            int idx;
+            synchronized (elements) {
+                selectedElement = (ItemType) obj;
+                idx = elements.indexOf(selectedElement);
+            }
             fireContentsChanged(this, idx, idx);
         }
     }
 
     @Override
     public Object getSelectedItem() {
-        return selectedElement;
+        Object selected;
+        synchronized (elements) {
+            selected = selectedElement;
+        }
+        return selected;
     }
 
     @Override
     public int getSize() {
-        return elements.size();
-    }
-
-    @Override
-    public ItemType getElementAt(int index) {
-        checkBounds("getElementAt", index, elements.size());
-        return elements.get(index);
+        int size;
+        synchronized (elements) {
+            size = elements.size();
+        }
+        return size;
     }
 }

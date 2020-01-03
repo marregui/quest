@@ -99,14 +99,11 @@ public class CratedbSQL extends JPanel implements EventListener {
 
     public static void main(String [] args) {
         CratedbSQL cratedbSql = new CratedbSQL();
-        JFrame frame = GUIFactory.newFrame(String.format(
-                Locale.ENGLISH, "CratedbSQL %s", VERSION),
-                80, 80, cratedbSql);
-        frame.setVisible(true);
+        GUIFactory.newFrame(String.format(Locale.ENGLISH, "CratedbSQL %s", VERSION),
+                80, 80,
+                cratedbSql).setVisible(true);
         Runtime.getRuntime().addShutdownHook(new Thread(
-                () -> {
-                    cratedbSql.shutdown();
-                },
+                cratedbSql::shutdown,
                 String.format(
                         Locale.ENGLISH,
                         "%s shutdown tasks",

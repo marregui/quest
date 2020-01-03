@@ -1,6 +1,8 @@
 package io.crate.cli.gui.widgets;
 
+import io.crate.cli.connections.ConnectivityChecker;
 import io.crate.cli.connections.SQLConnection;
+import io.crate.cli.gui.CratedbSQL;
 import io.crate.cli.gui.common.EventListener;
 import io.crate.cli.gui.common.GUIFactory;
 import io.crate.cli.connections.ConnectionDescriptorStore;
@@ -13,8 +15,15 @@ import javax.swing.*;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.io.Closeable;
+import java.lang.reflect.InvocationTargetException;
+import java.sql.SQLException;
 import java.util.List;
 import java.util.Locale;
+import java.util.Set;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.Function;
 
 
@@ -48,6 +57,7 @@ public class SQLConnectionManager extends JPanel implements Closeable {
     private final JButton connectButton;
     private final JPanel connectionSelectionPanel;
     private final SQLConnectionEditor sqlConnectionEditor;
+    private final ConnectivityChecker connectivityChecker;
     private Mode mode;
 
 
@@ -80,6 +90,41 @@ public class SQLConnectionManager extends JPanel implements Closeable {
         setLayout(new BorderLayout());
         add(connectionSelectionPanel, BorderLayout.CENTER);
         onReloadButtonEvent(null);
+
+        connectivityChecker = new ConnectivityChecker(
+                connectionsListModel::getElements,
+                this::onLostConnectionsEvent);
+        connectivityChecker.start();
+    }
+
+    private void onLostConnectionsEvent(Set<SQLConnection> lostConnections) {
+        try {
+            SwingUtilities.invokeAndWait(() -> {
+                toggleComponents(null);
+                StringBuilder finalMsg = new StringBuilder();
+                for (SQLConnection conn : lostConnections) {
+                    String disconnectMessage = String.format(
+                            Locale.ENGLISH,
+                            "Lost connection with [%s] as '%s'",
+                            conn.getUrl(),
+                            conn.getUsername());
+                    LOGGER.error(disconnectMessage);
+                    finalMsg.append(disconnectMessage).append("\n");
+                }
+                JOptionPane.showMessageDialog(
+                        this,
+                        finalMsg.toString(),
+                        "SQLException",
+                        JOptionPane.ERROR_MESSAGE);
+                if (null != eventListener) {
+                    eventListener.onSourceEvent(this, EventType.CONNECTION_LOST, null);
+                }
+            });
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        } catch (InvocationTargetException e) {
+            e.printStackTrace();
+        }
     }
 
     public SQLConnection getSelectedItem() {
@@ -89,7 +134,7 @@ public class SQLConnectionManager extends JPanel implements Closeable {
     public void setSelectedItem(SQLConnection connection) {
         SQLConnection conn = connection;
         if (null == conn) {
-            if (0 == connectionsListModel.size()) {
+            if (0 == connectionsListModel.getSize()) {
                 return;
             }
             conn = connectionsList.getItemAt(0);
@@ -103,6 +148,7 @@ public class SQLConnectionManager extends JPanel implements Closeable {
     private void toggleComponents(ActionEvent event) {
         SQLConnection conn = getSelectedItem();
         connectButton.setText(null != conn && conn.isConnected() ? "Disconnect" : "Connect");
+        sqlConnectionEditor.toggleComponents();
         if (null != event && null != conn) {
             eventListener.onSourceEvent(this, EventType.CONNECTION_SELECTED, conn);
         }
@@ -110,6 +156,7 @@ public class SQLConnectionManager extends JPanel implements Closeable {
 
     @Override
     public void close() {
+        connectivityChecker.close();
         connectionsListModel.getElements().forEach(SQLConnection::close);
         connectionsListModel.clear();
         connectionsList.removeAllItems();
@@ -164,7 +211,7 @@ public class SQLConnectionManager extends JPanel implements Closeable {
         store.load();
         connectionsList.removeAllItems();
         List<SQLConnection> conns = store.values();
-        conns.forEach(this.connectionsList::addItem);
+        connectionsListModel.setElements(conns);
         sqlConnectionEditor.setSQLConnections(conns);
         setSelectedItem(null);
     }
@@ -227,29 +274,9 @@ public class SQLConnectionManager extends JPanel implements Closeable {
         onConnectButtonEvent(getSelectedItem());
     }
 
-    private void onSQLConnectionEvent(SQLConnection source, Enum<?> evenType, SQLConnection conn) {
-        if (SQLConnection.EvenType.CONNECTION_LOST == evenType) {
-            toggleComponents(null);
-            String disconnectMessage = String.format(
-                    Locale.ENGLISH,
-                    "Lost connection with [%s] as '%s'",
-                    conn.getUrl(),
-                    conn.getUsername());
-            LOGGER.error(disconnectMessage);
-            JOptionPane.showMessageDialog(
-                    this,
-                    disconnectMessage,
-                    "SQLException",
-                    JOptionPane.ERROR_MESSAGE);
-            if (null != eventListener) {
-                eventListener.onSourceEvent(this, EventType.CONNECTION_LOST, conn);
-            }
-        }
-    }
-
     private void connect(SQLConnection conn) {
         try {
-            conn.open(this::onSQLConnectionEvent);
+            conn.open();
             if (null != eventListener) {
                 eventListener.onSourceEvent(this, EventType.CONNECTION_ESTABLISHED, conn);
             }
@@ -280,12 +307,25 @@ public class SQLConnectionManager extends JPanel implements Closeable {
         }
     }
 
-
     public static void main(String[] args) {
         SQLConnectionManager mngr = new SQLConnectionManager(((source, eventType, eventData) -> {
-            System.out.println(eventType);
+            System.out.printf(
+                    Locale.ENGLISH,
+                    "from: %s, [%s]: %s\n",
+                    source.getClass().getSimpleName(),
+                    eventType,
+                    eventData);
         }));
-        JFrame frame = GUIFactory.newFrame("Connection Manager", 80, 20, mngr);
-        frame.setVisible(true);
+        GUIFactory.newFrame(
+                "Connection Manager",
+                80, 20,
+                mngr)
+                .setVisible(true);
+        Runtime.getRuntime().addShutdownHook(new Thread(
+                mngr::close,
+                String.format(
+                        Locale.ENGLISH,
+                        "%s shutdown tasks",
+                        CratedbSQL.class.getSimpleName())));
     }
 }

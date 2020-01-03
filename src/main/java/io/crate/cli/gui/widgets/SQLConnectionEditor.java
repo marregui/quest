@@ -67,7 +67,7 @@ class SQLConnectionEditor extends JPanel {
                     case NAME:
                         return conn.getName();
                     case CONNECTED:
-                        return String.valueOf(conn.isConnected());
+                        return conn.isConnected() ? "Yes!" : "No";
                     default:
                         return conn.getAttribute(attrName);
                 }
@@ -86,6 +86,7 @@ class SQLConnectionEditor extends JPanel {
     private final JButton testButton;
     private final JButton connectButton;
     private final JButton addButton;
+    private final JButton cloneButton;
     private final JButton removeButton;
     private final JButton reloadButton;
     private final JButton backButton;
@@ -112,7 +113,7 @@ class SQLConnectionEditor extends JPanel {
         columnModel.getColumn(PORT_IDX).setPreferredWidth(COLUMN_WIDTHS[PORT_IDX]);
         columnModel.getColumn(USERNAME_IDX).setPreferredWidth(COLUMN_WIDTHS[USERNAME_IDX]);
         columnModel.getColumn(PASSWORD_IDX).setPreferredWidth(COLUMN_WIDTHS[PASSWORD_IDX]);
-        columnModel.getColumn(CONNECTED_IDX).setCellRenderer(new PasswordRenderer(GUIFactory.TABLE_CELL_FONT));
+        columnModel.getColumn(PASSWORD_IDX).setCellRenderer(new PasswordRenderer(GUIFactory.TABLE_CELL_FONT));
 
         testButton = new JButton("Test");
         testButton.addActionListener(this::onTestButtonEvent);
@@ -120,9 +121,10 @@ class SQLConnectionEditor extends JPanel {
         connectButton.addActionListener(this::onConnectButtonEvent);
         addButton = new JButton("Add");
         addButton.addActionListener(this::onAddButtonEvent);
+        cloneButton = new JButton("Clone");
+        cloneButton.addActionListener(this::onCloneButtonEvent);
         removeButton = new JButton("Remove");
         removeButton.addActionListener(this::onRemoveButtonEvent);
-
         backButton = new JButton("Back");
         backButton.addActionListener(this::onBackButtonEvent);
         reloadButton = new JButton("Reload");
@@ -132,6 +134,7 @@ class SQLConnectionEditor extends JPanel {
         buttonsPanel.add(connectButton);
         buttonsPanel.add(removeButton);
         buttonsPanel.add(addButton);
+        buttonsPanel.add(cloneButton);
         buttonsPanel.add(reloadButton);
         buttonsPanel.add(backButton);
 
@@ -169,16 +172,18 @@ class SQLConnectionEditor extends JPanel {
         return null;
     }
 
-    private void toggleComponents() {
+    void toggleComponents() {
         if (0 == tableModel.getRowCount()) {
             testButton.setEnabled(false);
             connectButton.setEnabled(false);
+            cloneButton.setEnabled(false);
             removeButton.setEnabled(false);
         } else {
             SQLConnection conn = getSelectedItem();
             connectButton.setText(null != conn && conn.isConnected() ? "Disconnect" : "Connect");
             connectButton.setEnabled(null != conn);
             testButton.setEnabled(null != conn && false == conn.isConnected());
+            cloneButton.setEnabled(null != conn);
             removeButton.setEnabled(null != conn && false == conn.isConnected());
             reloadButton.setEnabled(false == tableModel.getRows().stream().anyMatch(SQLConnection::isConnected));
             validate();
@@ -189,8 +194,8 @@ class SQLConnectionEditor extends JPanel {
     private void onConnectButtonEvent(ActionEvent event) {
         SQLConnection conn = getSelectedItem();
         if (null != conn) {
-            toggleComponents();
             eventListener.onSourceEvent(this, EventType.CONNECT, conn);
+            toggleComponents();
         }
     }
 
@@ -219,24 +224,40 @@ class SQLConnectionEditor extends JPanel {
         }
     }
 
-    private void onAddButtonEvent(ActionEvent event) {
+    private SQLConnection addConnection(SQLConnection template) {
+
         String name = JOptionPane.showInputDialog(
                 this,
                 String.format(Locale.ENGLISH, "%s", NAME),
                 "New Connection",
                 JOptionPane.INFORMATION_MESSAGE);
-        if (null != name && false == name.isEmpty() && false == existingNames.contains(name)) {
-            existingNames.add(name);
-            SQLConnection added = new SQLConnection(name);
-            tableModel.addRow(added);
-            toggleComponents();
-            eventListener.onSourceEvent(this, EventType.ADD_CONNECTION, added);
-        } else if (null != name && existingNames.contains(name)) {
+        if (null == name || name.isEmpty()) {
+            return null;
+        }
+        if (existingNames.contains(name)) {
             JOptionPane.showMessageDialog(this,
                     "Name already exists",
                     "Add Fail",
                     JOptionPane.ERROR_MESSAGE);
+            return null;
         }
+        existingNames.add(name);
+        SQLConnection added = new SQLConnection(name, template);
+        tableModel.addRow(added);
+        toggleComponents();
+        eventListener.onSourceEvent(this, EventType.ADD_CONNECTION, added);
+        return added;
+    }
+
+    private void onCloneButtonEvent(ActionEvent event) {
+        SQLConnection conn = getSelectedItem();
+        if (null != conn) {
+            addConnection(conn);
+        }
+    }
+
+    private void onAddButtonEvent(ActionEvent event) {
+        addConnection(null);
     }
 
     private void onTableModelEvent(TableModelEvent event) {
@@ -262,13 +283,19 @@ class SQLConnectionEditor extends JPanel {
 
     public static void main(String[] args) {
         ConnectionDescriptorStore<SQLConnection> store = new ConnectionDescriptorStore<>(SQLConnection::new);
-        store.load();
-
-        SQLConnectionEditor mngr = new SQLConnectionEditor(((source, eventType, eventData) -> {
-            System.out.println(eventType);
+        SQLConnectionEditor editor = new SQLConnectionEditor(((source, eventType, eventData) -> {
+            System.out.printf(
+                    Locale.ENGLISH,
+                    "from: %s, [%s]: %s\n",
+                    source.getClass().getSimpleName(),
+                    eventType,
+                    eventData);
         }));
-        mngr.setSQLConnections(store.values());
-        JFrame frame = GUIFactory.newFrame("Connection Manager", 80, 20, mngr);
-        frame.setVisible(true);
+        store.load();
+        editor.setSQLConnections(store.values());
+        GUIFactory.newFrame(
+                "Connection Editor",
+                80, 20,
+                editor).setVisible(true);
     }
 }
