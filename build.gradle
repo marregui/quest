@@ -1,11 +1,16 @@
 plugins {
     id 'java'
     id 'idea'
+    id 'application'
 }
 
 java {
     sourceCompatibility = JavaVersion.VERSION_11
     targetCompatibility = JavaVersion.VERSION_11
+}
+
+application {
+    mainClassName = 'io.crate.cli.gui.CratedbSQL'
 }
 
 wrapper {
