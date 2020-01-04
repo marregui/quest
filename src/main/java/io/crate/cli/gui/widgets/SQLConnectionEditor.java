@@ -21,7 +21,6 @@ class SQLConnectionEditor extends JPanel {
 
     enum EventType {
         TEST,
-        CONNECT,
         ADD_CONNECTION,
         REMOVE_CONNECTION,
         UPDATE_CONNECTION_ATTRIBUTES,
@@ -84,7 +83,6 @@ class SQLConnectionEditor extends JPanel {
 
 
     private final JButton testButton;
-    private final JButton connectButton;
     private final JButton addButton;
     private final JButton cloneButton;
     private final JButton removeButton;
@@ -119,8 +117,6 @@ class SQLConnectionEditor extends JPanel {
         reloadButton.addActionListener(this::onReloadButtonEvent);
         testButton = new JButton("Test");
         testButton.addActionListener(this::onTestButtonEvent);
-        connectButton = new JButton("Connect");
-        connectButton.addActionListener(this::onConnectButtonEvent);
         cloneButton = new JButton("Clone");
         cloneButton.addActionListener(this::onCloneButtonEvent);
         addButton = new JButton("Add");
@@ -132,7 +128,6 @@ class SQLConnectionEditor extends JPanel {
         JPanel buttonsPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT));
         buttonsPanel.add(reloadButton);
         buttonsPanel.add(testButton);
-        buttonsPanel.add(connectButton);
         buttonsPanel.add(cloneButton);
         buttonsPanel.add(addButton);
         buttonsPanel.add(removeButton);
@@ -175,13 +170,10 @@ class SQLConnectionEditor extends JPanel {
     private void toggleComponents() {
         if (0 == tableModel.getRowCount()) {
             testButton.setEnabled(false);
-            connectButton.setEnabled(false);
             cloneButton.setEnabled(false);
             removeButton.setEnabled(false);
         } else {
             SQLConnection conn = getSelectedItem();
-            connectButton.setText(null != conn && conn.isConnected() ? "Disconnect" : "Connect");
-            connectButton.setEnabled(null != conn);
             testButton.setEnabled(null != conn && false == conn.isConnected());
             cloneButton.setEnabled(null != conn);
             removeButton.setEnabled(null != conn && false == conn.isConnected());
@@ -189,14 +181,6 @@ class SQLConnectionEditor extends JPanel {
         }
         validate();
         repaint();
-    }
-
-    private void onConnectButtonEvent(ActionEvent event) {
-        SQLConnection conn = getSelectedItem();
-        if (null != conn) {
-            eventListener.onSourceEvent(this, EventType.CONNECT, conn);
-            toggleComponents();
-        }
     }
 
     private void onTestButtonEvent(ActionEvent event) {

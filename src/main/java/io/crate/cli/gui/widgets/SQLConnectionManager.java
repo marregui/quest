@@ -192,10 +192,6 @@ public class SQLConnectionManager extends JPanel implements Closeable {
                 onTestButtonEvent(conn);
                 break;
 
-            case CONNECT:
-                onConnectButtonEvent(conn);
-                break;
-
             case ADD_CONNECTION:
                 store.add(conn);
                 connectionsListModel.addElement(conn);
