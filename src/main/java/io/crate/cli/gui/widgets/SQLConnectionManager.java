@@ -16,7 +16,6 @@ import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.io.Closeable;
 import java.io.File;
-import java.lang.reflect.InvocationTargetException;
 import java.util.List;
 import java.util.Locale;
 import java.util.Set;
@@ -28,7 +27,7 @@ public class SQLConnectionManager extends JPanel implements Closeable {
     public enum EventType {
         CONNECTION_SELECTED,
         CONNECTION_ESTABLISHED,
-        CONNECTION_LOST,
+        CONNECTIONS_LOST,
         CONNECTION_CLOSED,
         REPAINT_REQUIRED
     }
@@ -42,13 +41,13 @@ public class SQLConnectionManager extends JPanel implements Closeable {
     private static final Logger LOGGER = LoggerFactory.getLogger(SQLConnectionManager.class);
     private static final Font LIST_FONT = new Font("monospaced", Font.BOLD, 12);
     private static final Color LIST_COLOR = Color.DARK_GRAY;
-    private static final int LIST_WIDTH = 600;
+    private static final Dimension LIST_DIMENSION = new Dimension(600, 30);
+
 
 
     private final EventListener<SQLConnectionManager, SQLConnection> eventListener;
     private final ConnectionDescriptorStore store;
     private final ObjectComboBoxModel<SQLConnection> connectionsListModel;
-    private final JComboBox<SQLConnection> connectionsList;
     private final JButton manageButton;
     private final JButton connectButton;
     private final JPanel connectionSelectionPanel;
@@ -61,14 +60,13 @@ public class SQLConnectionManager extends JPanel implements Closeable {
         this.eventListener = eventListener;
         store = new ConnectionDescriptorStore((Function<String, SQLConnection>) SQLConnection::new);
         connectionsListModel = new ObjectComboBoxModel<>();
-        connectionsList = new JComboBox<>(connectionsListModel);
-        connectionsList.addActionListener(this::toggleComponents);
+        JComboBox<SQLConnection> connectionsList = new JComboBox<>(connectionsListModel);
+        connectionsList.addActionListener(this::onSelectSQLConnectionEvent);
         connectionsList.setEditable(false);
         connectionsList.setFont(LIST_FONT);
         connectionsList.setForeground(LIST_COLOR);
-        Dimension connectionsListSize = new Dimension(LIST_WIDTH, 30);
-        connectionsList.setSize(connectionsListSize);
-        connectionsList.setPreferredSize(connectionsListSize);
+        connectionsList.setSize(LIST_DIMENSION);
+        connectionsList.setPreferredSize(LIST_DIMENSION);
         manageButton = new JButton("Manage");
         manageButton.addActionListener(this::onManageButtonEvent);
         connectButton = new JButton("Connect");
@@ -87,139 +85,6 @@ public class SQLConnectionManager extends JPanel implements Closeable {
         setBorder(BorderFactory.createTitledBorder("Connections"));
         setLayout(new BorderLayout());
         add(connectionSelectionPanel, BorderLayout.CENTER);
-    }
-
-    private void onLostConnectionsEvent(Set<SQLConnection> lostConnections) {
-        if (lostConnections.isEmpty()) {
-            return;
-        }
-        try {
-            SwingUtilities.invokeAndWait(() -> {
-                toggleComponents(null);
-                StringBuilder finalMsg = new StringBuilder();
-                for (SQLConnection conn : lostConnections) {
-                    String disconnectMessage = String.format(
-                            Locale.ENGLISH,
-                            "Lost connection with [%s] as '%s'",
-                            conn.getUrl(),
-                            conn.getUsername());
-                    LOGGER.error(disconnectMessage);
-                    finalMsg.append(disconnectMessage).append("\n");
-                }
-                JOptionPane.showMessageDialog(
-                        this,
-                        finalMsg.toString(),
-                        "SQLException",
-                        JOptionPane.ERROR_MESSAGE);
-                if (null != eventListener) {
-                    eventListener.onSourceEvent(this, EventType.CONNECTION_LOST, null);
-                }
-            });
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-        } catch (InvocationTargetException e) {
-            e.printStackTrace();
-        }
-    }
-
-    public void start() {
-        if (false == connectivityChecker.isRunning()) {
-            connectivityChecker.start();
-            onReloadButtonEvent(null);
-        }
-    }
-
-    public File getStorePath() {
-        return store.getPath();
-    }
-
-    public SQLConnection getSelectedItem() {
-        return (SQLConnection) connectionsListModel.getSelectedItem();
-    }
-
-    public void setSelectedItem(SQLConnection connection) {
-        SQLConnection conn = connection;
-        if (null == conn) {
-            if (0 == connectionsListModel.getSize()) {
-                return;
-            }
-            conn = connectionsList.getItemAt(0);
-        }
-        connectionsListModel.setSelectedItem(conn);
-        sqlConnectionEditor.setSelectedItem(conn);
-        validate();
-        repaint();
-    }
-
-    private void toggleComponents(ActionEvent event) {
-        SQLConnection conn = getSelectedItem();
-        connectButton.setText(null != conn && conn.isConnected() ? "Disconnect" : "Connect");
-        sqlConnectionEditor.toggleComponents();
-        if (null != event && null != conn) {
-            eventListener.onSourceEvent(this, EventType.CONNECTION_SELECTED, conn);
-        }
-    }
-
-    @Override
-    public void close() {
-        connectivityChecker.close();
-        connectionsListModel.getElements().forEach(SQLConnection::close);
-        connectionsListModel.clear();
-        connectionsList.removeAllItems();
-        sqlConnectionEditor.clear();
-        connectionsList.removeAllItems();
-    }
-
-    private void onSQLConnectionEditorEvent(SQLConnectionEditor source,
-                                            Enum<?> eventType,
-                                            SQLConnection conn) {
-        switch (SQLConnectionEditor.EventType.valueOf(eventType.name())) {
-            case TEST:
-                onTestButtonEvent(conn);
-                break;
-
-            case CONNECT:
-                onConnectButtonEvent(conn);
-                break;
-
-            case ADD_CONNECTION:
-                store.add(conn);
-                connectionsList.addItem(conn);
-                break;
-
-            case REMOVE_CONNECTION:
-                if (conn.isConnected()) {
-                    conn.close();
-                }
-                store.remove(conn);
-                connectionsList.removeItem(conn);
-                break;
-
-            case UPDATE_CONNECTION_ATTRIBUTES:
-                if (conn.isConnected()) {
-                    conn.close();
-                }
-                store.store();
-                onReloadButtonEvent(null);
-                break;
-
-            case RELOAD_CONNECTIONS:
-                onReloadButtonEvent(null);
-                break;
-
-            case BACK:
-                onBackButtonEvent();
-                break;
-        }
-    }
-
-    private void onReloadButtonEvent(ActionEvent event) {
-        store.load();
-        connectionsList.removeAllItems();
-        List<SQLConnection> conns = store.values();
-        connectionsListModel.setElements(conns);
-        sqlConnectionEditor.setSQLConnections(conns);
-        setSelectedItem(null);
     }
 
     private void changeMode(Mode newMode) {
@@ -244,11 +109,141 @@ public class SQLConnectionManager extends JPanel implements Closeable {
         eventListener.onSourceEvent(this, EventType.REPAINT_REQUIRED, null);
     }
 
+    private void onLostConnectionsEvent(Set<SQLConnection> lostConnections) {
+        try {
+            SwingUtilities.invokeAndWait(() -> {
+                toggleConnectButtonText();
+                StringBuilder finalMsg = new StringBuilder();
+                for (SQLConnection conn : lostConnections) {
+                    String disconnectMessage = String.format(
+                            Locale.ENGLISH,
+                            "Lost connection with [%s] as '%s'",
+                            conn.getUrl(),
+                            conn.getUsername());
+                    LOGGER.error(disconnectMessage);
+                    finalMsg.append(disconnectMessage).append("\n");
+                }
+                JOptionPane.showMessageDialog(
+                        this,
+                        finalMsg.toString(),
+                        "SQLException",
+                        JOptionPane.ERROR_MESSAGE);
+                if (null != eventListener) {
+                    eventListener.onSourceEvent(this, EventType.CONNECTIONS_LOST, null);
+                }
+            });
+        } catch (Throwable throwable) {
+            throwable.printStackTrace();
+        }
+    }
+
+    private void onSelectSQLConnectionEvent(ActionEvent event) {
+        SQLConnection conn = getSelectedItem();
+        sqlConnectionEditor.setSelectedItem(conn);
+        toggleConnectButtonText();
+        eventListener.onSourceEvent(this, EventType.CONNECTION_SELECTED, conn);
+    }
+
+    public void start() {
+        if (false == connectivityChecker.isRunning()) {
+            connectivityChecker.start();
+            onReloadButtonEvent(null);
+        }
+    }
+
+    public File getStorePath() {
+        return store.getPath();
+    }
+
+    public SQLConnection getSelectedItem() {
+        return (SQLConnection) connectionsListModel.getSelectedItem();
+    }
+
+    public void setSelectedItem(SQLConnection connection) {
+        SQLConnection conn = connection;
+        if (null == conn) {
+            if (0 == connectionsListModel.getSize()) {
+                return;
+            }
+            conn = connectionsListModel.getElementAt(0);
+        }
+        connectionsListModel.setSelectedItem(conn);
+        sqlConnectionEditor.setSelectedItem(conn);
+    }
+
+    private void toggleConnectButtonText() {
+        SQLConnection conn = getSelectedItem();
+        connectButton.setText(null != conn && conn.isConnected() ? "Disconnect" : "Connect");
+    }
+
+    @Override
+    public void close() {
+        connectivityChecker.close();
+        connectionsListModel.getElements().forEach(SQLConnection::close);
+        connectionsListModel.clear();
+        sqlConnectionEditor.clear();
+    }
+
+    private void onSQLConnectionEditorEvent(SQLConnectionEditor source,
+                                            Enum<?> eventType,
+                                            SQLConnection conn) {
+        switch (SQLConnectionEditor.EventType.valueOf(eventType.name())) {
+            case TEST:
+                onTestButtonEvent(conn);
+                break;
+
+            case CONNECT:
+                onConnectButtonEvent(conn);
+                break;
+
+            case ADD_CONNECTION:
+                store.add(conn);
+                connectionsListModel.addElement(conn);
+                break;
+
+            case REMOVE_CONNECTION:
+                if (conn.isConnected()) {
+                    conn.close();
+                }
+                store.remove(conn);
+                connectionsListModel.addElement(conn);
+                break;
+
+            case UPDATE_CONNECTION_ATTRIBUTES:
+                if (conn.isConnected()) {
+                    conn.close();
+                }
+                store.store();
+                onReloadButtonEvent(null);
+                break;
+
+            case RELOAD_CONNECTIONS:
+                onReloadButtonEvent(null);
+                break;
+
+            case BACK:
+                onBackButtonEvent();
+                break;
+        }
+    }
+
+    private void onReloadButtonEvent(ActionEvent event) {
+        store.load();
+        List<SQLConnection> conns = store.values();
+        connectionsListModel.setElements(conns);
+        sqlConnectionEditor.setSQLConnections(conns);
+        setSelectedItem(null);
+    }
+
     private void onBackButtonEvent() {
         changeMode(Mode.SELECTING);
     }
 
     private void onManageButtonEvent(ActionEvent event) {
+        SQLConnection conn = getSelectedItem();
+        if (null != conn) {
+            sqlConnectionEditor.setSelectedItem(conn);
+        }
         changeMode(Mode.MANAGING);
     }
 
@@ -267,50 +262,42 @@ public class SQLConnectionManager extends JPanel implements Closeable {
         }
     }
 
-    private void onConnectButtonEvent(SQLConnection conn) {
-        if (false == conn.isConnected()) {
-            connect(conn);
-        } else {
-            disconnect(conn);
-        }
-        toggleComponents(null);
-    }
-
     private void onConnectButtonEvent(ActionEvent event) {
         onConnectButtonEvent(getSelectedItem());
     }
 
-    private void connect(SQLConnection conn) {
-        try {
-            conn.open();
-            if (null != eventListener) {
-                eventListener.onSourceEvent(this, EventType.CONNECTION_ESTABLISHED, conn);
+    private void onConnectButtonEvent(SQLConnection conn) {
+        if (false == conn.isConnected()) {
+            try {
+                conn.open();
+                if (null != eventListener) {
+                    eventListener.onSourceEvent(this, EventType.CONNECTION_ESTABLISHED, conn);
+                }
+            } catch (Exception e) {
+                LOGGER.error("Connect", e);
+                JOptionPane.showMessageDialog(
+                        this,
+                        e.getMessage(),
+                        "Connection Failed",
+                        JOptionPane.ERROR_MESSAGE);
             }
-        } catch (Exception e) {
-            LOGGER.error("Connect", e);
-            JOptionPane.showMessageDialog(
-                    this,
-                    e.getMessage(),
-                    "Connection Failed",
-                    JOptionPane.ERROR_MESSAGE);
-        }
-    }
-
-    private void disconnect(SQLConnection conn) {
-        try {
-            conn.close();
-        } catch (RuntimeException e) {
-            JOptionPane.showMessageDialog(
-                    this,
-                    e.getMessage(),
-                    "SQLException",
-                    JOptionPane.ERROR_MESSAGE);
-            LOGGER.error("Disconnect", e);
-        } finally {
-            if (null != eventListener) {
-                eventListener.onSourceEvent(this, EventType.CONNECTION_CLOSED, conn);
+        } else {
+            try {
+                conn.close();
+            } catch (RuntimeException e) {
+                JOptionPane.showMessageDialog(
+                        this,
+                        e.getMessage(),
+                        "SQLException",
+                        JOptionPane.ERROR_MESSAGE);
+                LOGGER.error("Disconnect", e);
+            } finally {
+                if (null != eventListener) {
+                    eventListener.onSourceEvent(this, EventType.CONNECTION_CLOSED, conn);
+                }
             }
         }
+        toggleConnectButtonText();
     }
 
     public static void main(String[] args) {

@@ -172,7 +172,7 @@ class SQLConnectionEditor extends JPanel {
         return null;
     }
 
-    void toggleComponents() {
+    private void toggleComponents() {
         if (0 == tableModel.getRowCount()) {
             testButton.setEnabled(false);
             connectButton.setEnabled(false);
@@ -186,8 +186,8 @@ class SQLConnectionEditor extends JPanel {
             cloneButton.setEnabled(null != conn);
             removeButton.setEnabled(null != conn && false == conn.isConnected());
             reloadButton.setEnabled(false == tableModel.getRows().stream().anyMatch(SQLConnection::isConnected));
-            validate();
-            repaint();
+//            validate();
+//            repaint();
         }
     }
 

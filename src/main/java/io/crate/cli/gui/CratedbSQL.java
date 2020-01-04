@@ -7,7 +7,6 @@ import java.util.List;
 import io.crate.cli.connections.SQLConnection;
 import io.crate.cli.gui.widgets.CommandManager;
 import io.crate.cli.gui.common.*;
-import io.crate.cli.gui.common.EventListener;
 import io.crate.cli.gui.widgets.SQLConnectionManager;
 
 import javax.swing.*;
@@ -66,12 +65,14 @@ public class CratedbSQL {
             switch (SQLConnectionManager.EventType.valueOf(eventType.name())) {
                 case CONNECTION_SELECTED:
                 case CONNECTION_ESTABLISHED:
-                case CONNECTION_LOST:
+                case CONNECTIONS_LOST:
                 case CONNECTION_CLOSED:
                     commandManager.setSQLConnection((SQLConnection) eventData);
                     break;
 
                 case REPAINT_REQUIRED:
+                    commandManager.validate();
+                    commandManager.repaint();
                     frame.validate();
                     frame.repaint();
                     break;

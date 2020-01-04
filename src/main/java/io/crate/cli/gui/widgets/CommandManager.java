@@ -147,8 +147,8 @@ public class CommandManager extends JPanel {
         add(scrollPane, BorderLayout.CENTER);
     }
 
-    public void setSQLConnection(SQLConnection connection) {
-        bufferData.currentSQLConnection(connection);
+    public void setSQLConnection(SQLConnection conn) {
+        bufferData.currentSQLConnection(conn);
         toggleComponents();
     }
 
@@ -183,6 +183,8 @@ public class CommandManager extends JPanel {
                     Locale.ENGLISH,
                     "Command Buffer on [%s]",
                     conn.getKey()));
+            validate();
+            repaint();
         }
         boolean isConnected = null != conn && conn.isConnected();
         bufferButtons[bufferData.currentIdx()].setBorder(isConnected ? CONNECTED_BUFFER_BORDER : DISCONNECTED_BUFFER_BORDER);
