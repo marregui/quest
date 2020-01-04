@@ -186,9 +186,9 @@ class SQLConnectionEditor extends JPanel {
             cloneButton.setEnabled(null != conn);
             removeButton.setEnabled(null != conn && false == conn.isConnected());
             reloadButton.setEnabled(false == tableModel.getRows().stream().anyMatch(SQLConnection::isConnected));
-//            validate();
-//            repaint();
         }
+        validate();
+        repaint();
     }
 
     private void onConnectButtonEvent(ActionEvent event) {

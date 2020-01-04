@@ -62,17 +62,24 @@ public class CratedbSQL {
 
     private void onSourceEvent(Object source, Enum eventType, Object eventData) {
         if (source instanceof SQLConnectionManager) {
+            SQLConnection conn = (SQLConnection) eventData;
             switch (SQLConnectionManager.EventType.valueOf(eventType.name())) {
                 case CONNECTION_SELECTED:
+                    commandManager.setSQLConnection(conn);
+                    break;
+
                 case CONNECTION_ESTABLISHED:
-                case CONNECTIONS_LOST:
                 case CONNECTION_CLOSED:
-                    commandManager.setSQLConnection((SQLConnection) eventData);
+                    SQLConnection current = commandManager.getSQLConnection();
+                    if (null != current && current.equals(conn)) {
+                        commandManager.setSQLConnection(conn);
+                    }
+                    break;
+
+                case CONNECTIONS_LOST:
                     break;
 
                 case REPAINT_REQUIRED:
-                    commandManager.validate();
-                    commandManager.repaint();
                     frame.validate();
                     frame.repaint();
                     break;
