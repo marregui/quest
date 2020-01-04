@@ -40,9 +40,16 @@ public class ConnectivityChecker implements Closeable {
         isChecking = new AtomicBoolean();
     }
 
+    public boolean isRunning() {
+        return null != scheduledES && scheduledES.isTerminated();
+    }
+
+    public boolean isChecking() {
+        return isRunning() && isChecking.get();
+    }
+
     public void start() {
         if (null != scheduledES) {
-            System.out.println("MISSED ONE");
             return;
         }
         scheduledES = Executors.newScheduledThreadPool(numThreads);

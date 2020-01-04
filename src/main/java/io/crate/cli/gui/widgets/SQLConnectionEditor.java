@@ -115,27 +115,27 @@ class SQLConnectionEditor extends JPanel {
         columnModel.getColumn(PASSWORD_IDX).setPreferredWidth(COLUMN_WIDTHS[PASSWORD_IDX]);
         columnModel.getColumn(PASSWORD_IDX).setCellRenderer(new PasswordRenderer(GUIFactory.TABLE_CELL_FONT));
 
+        reloadButton = new JButton("Reload");
+        reloadButton.addActionListener(this::onReloadButtonEvent);
         testButton = new JButton("Test");
         testButton.addActionListener(this::onTestButtonEvent);
         connectButton = new JButton("Connect");
         connectButton.addActionListener(this::onConnectButtonEvent);
-        addButton = new JButton("Add");
-        addButton.addActionListener(this::onAddButtonEvent);
         cloneButton = new JButton("Clone");
         cloneButton.addActionListener(this::onCloneButtonEvent);
+        addButton = new JButton("Add");
+        addButton.addActionListener(this::onAddButtonEvent);
         removeButton = new JButton("Remove");
         removeButton.addActionListener(this::onRemoveButtonEvent);
         backButton = new JButton("Back");
         backButton.addActionListener(this::onBackButtonEvent);
-        reloadButton = new JButton("Reload");
-        reloadButton.addActionListener(this::onReloadButtonEvent);
         JPanel buttonsPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT));
+        buttonsPanel.add(reloadButton);
         buttonsPanel.add(testButton);
         buttonsPanel.add(connectButton);
-        buttonsPanel.add(removeButton);
-        buttonsPanel.add(addButton);
         buttonsPanel.add(cloneButton);
-        buttonsPanel.add(reloadButton);
+        buttonsPanel.add(addButton);
+        buttonsPanel.add(removeButton);
         buttonsPanel.add(backButton);
 
         setLayout(new BorderLayout());

@@ -2,6 +2,7 @@ package io.crate.cli.connections;
 
 import io.crate.cli.gui.common.HasKey;
 
+import java.io.File;
 import java.util.*;
 
 
@@ -10,6 +11,8 @@ public interface Store<EntryType extends HasKey> extends Iterable<EntryType> {
     void load();
 
     void store();
+
+    File getPath();
 
     void add(EntryType value);
 

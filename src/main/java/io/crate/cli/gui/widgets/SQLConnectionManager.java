@@ -15,15 +15,11 @@ import javax.swing.*;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.io.Closeable;
+import java.io.File;
 import java.lang.reflect.InvocationTargetException;
-import java.sql.SQLException;
 import java.util.List;
 import java.util.Locale;
 import java.util.Set;
-import java.util.concurrent.Executors;
-import java.util.concurrent.ScheduledExecutorService;
-import java.util.concurrent.TimeUnit;
-import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.Function;
 
 
@@ -85,19 +81,18 @@ public class SQLConnectionManager extends JPanel implements Closeable {
         sqlConnectionEditor = new SQLConnectionEditor(this::onSQLConnectionEditorEvent);
         sqlConnectionEditor.setPreferredSize(MANAGING_HEIGHT);
         mode = Mode.SELECTING;
-
-        setBorder(BorderFactory.createTitledBorder("Connections"));
-        setLayout(new BorderLayout());
-        add(connectionSelectionPanel, BorderLayout.CENTER);
-        onReloadButtonEvent(null);
-
         connectivityChecker = new ConnectivityChecker(
                 connectionsListModel::getElements,
                 this::onLostConnectionsEvent);
-        connectivityChecker.start();
+        setBorder(BorderFactory.createTitledBorder("Connections"));
+        setLayout(new BorderLayout());
+        add(connectionSelectionPanel, BorderLayout.CENTER);
     }
 
     private void onLostConnectionsEvent(Set<SQLConnection> lostConnections) {
+        if (lostConnections.isEmpty()) {
+            return;
+        }
         try {
             SwingUtilities.invokeAndWait(() -> {
                 toggleComponents(null);
@@ -125,6 +120,17 @@ public class SQLConnectionManager extends JPanel implements Closeable {
         } catch (InvocationTargetException e) {
             e.printStackTrace();
         }
+    }
+
+    public void start() {
+        if (false == connectivityChecker.isRunning()) {
+            connectivityChecker.start();
+            onReloadButtonEvent(null);
+        }
+    }
+
+    public File getStorePath() {
+        return store.getPath();
     }
 
     public SQLConnection getSelectedItem() {

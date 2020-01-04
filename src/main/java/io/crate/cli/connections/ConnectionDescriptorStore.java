@@ -137,6 +137,11 @@ public class ConnectionDescriptorStore<T extends ConnectionDescriptor> implement
     }
 
     @Override
+    public File getPath() {
+        return storeRoot;
+    }
+
+    @Override
     public void store() {
         ensureStoreExists();
         File connectionsFile = getConnectionsFile(true);
