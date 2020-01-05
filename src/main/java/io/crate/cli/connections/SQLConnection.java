@@ -1,7 +1,5 @@
 package io.crate.cli.connections;
 
-import io.crate.cli.gui.common.DefaultRowType;
-import io.crate.shade.org.postgresql.jdbc.PgResultSetMetaData;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -101,27 +99,5 @@ public class SQLConnection extends ConnectionDescriptor implements Closeable {
                 }
             }
         }
-    }
-
-    public List<DefaultRowType> executeQuery(String query) throws SQLException {
-        if (false == checkConnectivity()) {
-            throw new SQLException("Not connected");
-        }
-        logger.info(String.format(Locale.ENGLISH, "Executing query: %s", query));
-        List<DefaultRowType> rows = new ArrayList<>();
-        try (PreparedStatement stmt = sqlConnection.prepareStatement(query);
-             ResultSet rs = stmt.executeQuery()) {
-            int rowId = 0;
-            while (rs.next()) {
-                PgResultSetMetaData metaData = (PgResultSetMetaData) rs.getMetaData();
-                int resultSetSize = metaData.getColumnCount();
-                Map<String, Object> attributes = new LinkedHashMap<>(resultSetSize);
-                for (int i = 1; i <= resultSetSize; i++) {
-                    attributes.put(metaData.getColumnName(i), rs.getObject(i));
-                }
-                rows.add(new DefaultRowType(String.valueOf(rowId++), attributes));
-            }
-        }
-        return rows;
     }
 }

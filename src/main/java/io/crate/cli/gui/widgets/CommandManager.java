@@ -21,7 +21,7 @@ import java.util.Locale;
 public class CommandManager extends JPanel {
 
     public enum EventType {
-        COMMAND_RESULTS,
+        COMMAND_AVAILABLE,
         BUFFER_CHANGE
     }
 
@@ -147,6 +147,10 @@ public class CommandManager extends JPanel {
         add(scrollPane, BorderLayout.CENTER);
     }
 
+    public String getKey() {
+        return BufferData.toButtonLabel(bufferData.currentIdx());
+    }
+
     public void setSQLConnection(SQLConnection conn) {
         bufferData.currentSQLConnection(conn);
         toggleComponents();
@@ -212,12 +216,7 @@ public class CommandManager extends JPanel {
         if (command.isEmpty() || null == conn || false == conn.isConnected()) {
             return;
         }
-        try {
-            List<DefaultRowType> results = conn.executeQuery(command);
-            eventListener.onSourceEvent(this, EventType.COMMAND_RESULTS, results);
-        } catch (SQLException e) {
-            e.printStackTrace();
-        }
+        eventListener.onSourceEvent(this, EventType.COMMAND_AVAILABLE, command);
     }
 
     private JTextPane createTextComponent() {

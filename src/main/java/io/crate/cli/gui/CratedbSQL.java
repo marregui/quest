@@ -1,10 +1,12 @@
 package io.crate.cli.gui;
 
 import java.awt.*;
+import java.lang.reflect.InvocationTargetException;
 import java.util.*;
 import java.util.List;
 
 import io.crate.cli.connections.SQLConnection;
+import io.crate.cli.connections.SQLExecutor;
 import io.crate.cli.gui.widgets.CommandManager;
 import io.crate.cli.gui.common.*;
 import io.crate.cli.gui.widgets.SQLConnectionManager;
@@ -18,6 +20,7 @@ public class CratedbSQL {
     public static final String VERSION = "1.0.0";
 
 
+    private final SQLExecutor sqlExecutor;
     private final SQLConnectionManager sqlConnectionManager;
     private final CommandManager commandManager;
     private final JTable table;
@@ -26,6 +29,8 @@ public class CratedbSQL {
 
 
     private CratedbSQL() {
+        sqlExecutor = new SQLExecutor(this::onSourceEvent);
+        sqlExecutor.start();
         commandManager = new CommandManager(this::onSourceEvent);
         sqlConnectionManager = new SQLConnectionManager(this::onSourceEvent);
         sqlConnectionManager.start();
@@ -77,6 +82,7 @@ public class CratedbSQL {
                     break;
 
                 case CONNECTIONS_LOST:
+                    // TODO
                     break;
 
                 case REPAINT_REQUIRED:
@@ -86,16 +92,12 @@ public class CratedbSQL {
             }
         } else if (source instanceof CommandManager) {
             switch (CommandManager.EventType.valueOf(eventType.name())) {
-                case COMMAND_RESULTS:
-                    List<DefaultRowType> data = (List<DefaultRowType>) eventData;
-                    if (false == data.isEmpty()) {
-                        DefaultRowType firstRow = data.get(0);
-                        String[] columnNames = firstRow.keySet().toArray(new String[0]);
-                        Class<?>[] columnTypes = new Class<?>[data.size()];
-                        Arrays.fill(columnTypes, String.class);
-                        tableModel.reset(columnNames, columnTypes, Map::get, Map::put);
-                        tableModel.setRows(data);
-                    }
+                case COMMAND_AVAILABLE:
+                    String command = (String) eventData;
+                    sqlExecutor.submit(
+                            commandManager.getKey(),
+                            commandManager.getSQLConnection(),
+                            command);
                     break;
 
                 case BUFFER_CHANGE:
@@ -105,10 +107,32 @@ public class CratedbSQL {
                     }
                     break;
             }
+        } else if (source instanceof SQLExecutor) {
+            switch (SQLExecutor.EventType.valueOf(eventType.name())) {
+                case RESULTS_AVAILABLE:
+                    SQLExecutor.SQLExecution data = (SQLExecutor.SQLExecution) eventData;
+                    List<DefaultRowType> results = data.getResults();
+                    if (false == results.isEmpty()) {
+                        DefaultRowType firstRow = results.get(0);
+                        String[] columnNames = firstRow.keySet().toArray(new String[0]);
+                        Class<?>[] columnTypes = new Class<?>[results.size()];
+                        Arrays.fill(columnTypes, String.class);
+                        try {
+                            SwingUtilities.invokeAndWait(() -> {
+                                tableModel.reset(columnNames, columnTypes, Map::get, Map::put);
+                                tableModel.setRows(results);
+                            });
+                        } catch (Throwable throwable) {
+                            throwable.printStackTrace();
+                        }
+                    }
+                    break;
+            }
         }
     }
 
     private void shutdown() {
+        sqlExecutor.close();
         sqlConnectionManager.close();
     }
 
