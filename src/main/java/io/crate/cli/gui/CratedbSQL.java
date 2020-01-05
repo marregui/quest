@@ -43,9 +43,9 @@ public class CratedbSQL {
         JScrollPane centerPane = new JScrollPane(table);
         centerPane.setHorizontalScrollBarPolicy(JScrollPane.HORIZONTAL_SCROLLBAR_AS_NEEDED);
         centerPane.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED);
+        JSplitPane splitPane = new JSplitPane(JSplitPane.VERTICAL_SPLIT, false, topPanel, centerPane);
         JPanel mainManel = new JPanel(new BorderLayout());
-        mainManel.add(topPanel, BorderLayout.NORTH);
-        mainManel.add(centerPane, BorderLayout.CENTER);
+        mainManel.add(splitPane, BorderLayout.CENTER);
         frame = GUIFactory.newFrame(String.format(
                 Locale.ENGLISH,
                 "CratedbSQL %s [store: %s]",
