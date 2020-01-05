@@ -1,11 +1,11 @@
 package io.crate.cli.gui;
 
 import java.awt.*;
-import java.lang.reflect.InvocationTargetException;
 import java.util.*;
 import java.util.List;
 
 import io.crate.cli.connections.SQLConnection;
+import io.crate.cli.connections.SQLExecution;
 import io.crate.cli.connections.SQLExecutor;
 import io.crate.cli.gui.widgets.CommandManager;
 import io.crate.cli.gui.common.*;
@@ -110,7 +110,7 @@ public class CratedbSQL {
         } else if (source instanceof SQLExecutor) {
             switch (SQLExecutor.EventType.valueOf(eventType.name())) {
                 case RESULTS_AVAILABLE:
-                    SQLExecutor.SQLExecution data = (SQLExecutor.SQLExecution) eventData;
+                    SQLExecution data = (SQLExecution) eventData;
                     List<DefaultRowType> results = data.getResults();
                     if (false == results.isEmpty()) {
                         DefaultRowType firstRow = results.get(0);

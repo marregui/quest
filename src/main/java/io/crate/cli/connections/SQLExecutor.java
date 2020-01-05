@@ -9,13 +9,8 @@ import org.slf4j.LoggerFactory;
 import java.io.Closeable;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
-import java.sql.SQLException;
 import java.util.*;
 import java.util.concurrent.*;
-import java.util.concurrent.atomic.AtomicBoolean;
-import java.util.function.Consumer;
-import java.util.function.Supplier;
-import java.util.stream.Collectors;
 
 
 public class SQLExecutor implements Closeable {
@@ -25,38 +20,6 @@ public class SQLExecutor implements Closeable {
     }
 
     private static final Logger LOGGER = LoggerFactory.getLogger(SQLExecutor.class);
-
-
-    public static class SQLExecution {
-
-        private final String key;
-        private final String query;
-        private final SQLConnection conn;
-        private final List<DefaultRowType> results;
-
-        private SQLExecution(String key, String query, SQLConnection conn, List<DefaultRowType> results) {
-            this.key = key;
-            this.query = query;
-            this.conn = conn;
-            this.results = results;
-        }
-
-        public String getKey() {
-            return key;
-        }
-
-        public String getQuery() {
-            return query;
-        }
-
-        public SQLConnection getConn() {
-            return conn;
-        }
-
-        public List<DefaultRowType> getResults() {
-            return results;
-        }
-    }
 
 
     private final EventListener<SQLExecutor, SQLExecution> eventListener;
@@ -69,13 +32,9 @@ public class SQLExecutor implements Closeable {
         runningQueries = new HashMap<>();
     }
 
-    public boolean isRunning() {
-        return null != cachedES && cachedES.isTerminated();
-    }
-
     public void start() {
         if (null != cachedES) {
-            return;
+            throw new IllegalStateException("already started");
         }
         runningQueries.clear();
         cachedES = Executors.newCachedThreadPool(r -> {
@@ -91,7 +50,7 @@ public class SQLExecutor implements Closeable {
 
     public void submit(String key, SQLConnection conn, String query) {
         if (null == cachedES) {
-            return;
+            throw new IllegalStateException("not started");
         }
         Future<?> result = runningQueries.get(key);
         if (null != result) {
@@ -115,7 +74,7 @@ public class SQLExecutor implements Closeable {
                     }
                     rows.add(new DefaultRowType(String.valueOf(rowId++), attributes));
                 }
-            } catch (Throwable throwable) {
+            } catch(Throwable throwable) {
                 throw new RuntimeException(throwable);
             }
             eventListener.onSourceEvent(
@@ -128,17 +87,19 @@ public class SQLExecutor implements Closeable {
     @Override
     public void close() {
         if (null == cachedES) {
-            return;
+            throw new IllegalStateException("already closed");
         }
         cachedES.shutdownNow();
         try {
             cachedES.awaitTermination(200L, TimeUnit.MILLISECONDS);
         } catch (InterruptedException e) {
-            e.printStackTrace();
+            Thread.currentThread().interrupt();
+        } finally {
+            cachedES = null;
+            LOGGER.info(String.format(
+                    Locale.ENGLISH,
+                    "%s has finished",
+                    SQLExecutor.class.getSimpleName()));
         }
-        LOGGER.info(String.format(
-                Locale.ENGLISH,
-                "%s has finished",
-                SQLExecutor.class.getSimpleName()));
     }
 }

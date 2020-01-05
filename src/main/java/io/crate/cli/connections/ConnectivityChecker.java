@@ -15,26 +15,18 @@ import java.util.stream.Collectors;
 public class ConnectivityChecker implements Closeable {
 
     public static final int IS_CONNECTED_CHECK_TIMEOUT_SECS = 10;
-    private static final int DEFAULT_NUM_THREADS = 4;
+    private static final int NUM_THREADS = 2;
     private static final Logger LOGGER = LoggerFactory.getLogger(ConnectivityChecker.class);
 
 
     private volatile ScheduledExecutorService scheduledES;
     private final AtomicBoolean isChecking;
-    private final int numThreads;
     private final Supplier<List<SQLConnection>> connectionsSupplier;
     private final Consumer<Set<SQLConnection>> lostConnectionsConsumer;
 
 
     public ConnectivityChecker(Supplier<List<SQLConnection>> connectionsSupplier,
                                Consumer<Set<SQLConnection>> lostConnectionsConsumer) {
-        this(DEFAULT_NUM_THREADS, connectionsSupplier, lostConnectionsConsumer);
-    }
-
-    public ConnectivityChecker(int numThreads,
-                               Supplier<List<SQLConnection>> connectionsSupplier,
-                               Consumer<Set<SQLConnection>> lostConnectionsConsumer) {
-        this.numThreads = numThreads;
         this.connectionsSupplier = connectionsSupplier;
         this.lostConnectionsConsumer = lostConnectionsConsumer;
         isChecking = new AtomicBoolean();
@@ -44,15 +36,11 @@ public class ConnectivityChecker implements Closeable {
         return null != scheduledES && scheduledES.isTerminated();
     }
 
-    public boolean isChecking() {
-        return isRunning() && isChecking.get();
-    }
-
     public void start() {
         if (null != scheduledES) {
-            return;
+            throw new IllegalStateException("already started");
         }
-        scheduledES = Executors.newScheduledThreadPool(numThreads);
+        scheduledES = Executors.newScheduledThreadPool(NUM_THREADS);
         scheduledES.scheduleAtFixedRate(
                 this::sqlConnectionStatusChecks,
                 IS_CONNECTED_CHECK_TIMEOUT_SECS * 2,
@@ -114,16 +102,18 @@ public class ConnectivityChecker implements Closeable {
     @Override
     public void close() {
         if (null == scheduledES) {
-            return;
+            throw new IllegalStateException("not started");
         }
         scheduledES.shutdownNow();
         try {
             scheduledES.awaitTermination(200L, TimeUnit.MILLISECONDS);
         } catch (InterruptedException e) {
-            e.printStackTrace();
+            Thread.currentThread().interrupt();
+        } finally {
+            scheduledES = null;
+            LOGGER.info(String.format(
+                    Locale.ENGLISH,
+                    "Connectivity check stopped"));
         }
-        LOGGER.info(String.format(
-                Locale.ENGLISH,
-                "Connectivity check stopped"));
     }
 }
