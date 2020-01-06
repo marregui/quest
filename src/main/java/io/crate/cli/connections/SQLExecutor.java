@@ -2,6 +2,7 @@ package io.crate.cli.connections;
 
 import io.crate.cli.gui.common.DefaultRowType;
 import io.crate.cli.gui.common.EventListener;
+import io.crate.cli.gui.common.EventSpeaker;
 import io.crate.shade.org.postgresql.jdbc.PgResultSetMetaData;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -13,7 +14,7 @@ import java.util.*;
 import java.util.concurrent.*;
 
 
-public class SQLExecutor implements Closeable {
+public class SQLExecutor implements EventSpeaker<SQLExecutor.EventType>, Closeable {
 
     public enum EventType {
         RESULTS_AVAILABLE

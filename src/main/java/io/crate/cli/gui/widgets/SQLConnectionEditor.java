@@ -17,7 +17,7 @@ import java.util.Set;
 import java.util.function.BiFunction;
 
 
-class SQLConnectionEditor extends JPanel {
+class SQLConnectionEditor extends JPanel implements EventSpeaker<SQLConnectionEditor.EventType> {
 
     enum EventType {
         TEST,

@@ -4,6 +4,7 @@ import io.crate.cli.connections.ConnectivityChecker;
 import io.crate.cli.connections.SQLConnection;
 import io.crate.cli.gui.CratedbSQL;
 import io.crate.cli.gui.common.EventListener;
+import io.crate.cli.gui.common.EventSpeaker;
 import io.crate.cli.gui.common.GUIFactory;
 import io.crate.cli.connections.ConnectionDescriptorStore;
 
@@ -22,7 +23,7 @@ import java.util.Set;
 import java.util.function.Function;
 
 
-public class SQLConnectionManager extends JPanel implements Closeable {
+public class SQLConnectionManager extends JPanel implements EventSpeaker<SQLConnectionManager.EventType>, Closeable {
 
     public enum EventType {
         CONNECTION_SELECTED,
@@ -42,7 +43,6 @@ public class SQLConnectionManager extends JPanel implements Closeable {
     private static final Font LIST_FONT = new Font("monospaced", Font.BOLD, 12);
     private static final Color LIST_COLOR = Color.DARK_GRAY;
     private static final Dimension LIST_DIMENSION = new Dimension(600, 30);
-
 
 
     private final EventListener<SQLConnectionManager, SQLConnection> eventListener;
@@ -187,7 +187,7 @@ public class SQLConnectionManager extends JPanel implements Closeable {
     private void onSQLConnectionEditorEvent(SQLConnectionEditor source,
                                             Enum<?> eventType,
                                             SQLConnection conn) {
-        switch (SQLConnectionEditor.EventType.valueOf(eventType.name())) {
+        switch (source.eventType(eventType)) {
             case TEST:
                 onTestButtonEvent(conn);
                 break;

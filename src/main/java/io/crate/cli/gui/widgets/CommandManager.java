@@ -3,6 +3,7 @@ package io.crate.cli.gui.widgets;
 import io.crate.cli.connections.SQLConnection;
 import io.crate.cli.gui.common.DefaultRowType;
 import io.crate.cli.gui.common.EventListener;
+import io.crate.cli.gui.common.EventSpeaker;
 
 import java.awt.*;
 import javax.swing.*;
@@ -18,7 +19,7 @@ import java.util.List;
 import java.util.Locale;
 
 
-public class CommandManager extends JPanel {
+public class CommandManager extends JPanel implements EventSpeaker<CommandManager.EventType> {
 
     public enum EventType {
         COMMAND_AVAILABLE,

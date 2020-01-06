@@ -68,7 +68,7 @@ public class CratedbSQL {
     private void onSourceEvent(Object source, Enum eventType, Object eventData) {
         if (source instanceof SQLConnectionManager) {
             SQLConnection conn = (SQLConnection) eventData;
-            switch (SQLConnectionManager.EventType.valueOf(eventType.name())) {
+            switch (sqlConnectionManager.eventType(eventType)) {
                 case CONNECTION_SELECTED:
                     commandManager.setSQLConnection(conn);
                     break;
@@ -91,7 +91,7 @@ public class CratedbSQL {
                     break;
             }
         } else if (source instanceof CommandManager) {
-            switch (CommandManager.EventType.valueOf(eventType.name())) {
+            switch (commandManager.eventType(eventType)) {
                 case COMMAND_AVAILABLE:
                     String command = (String) eventData;
                     sqlExecutor.submit(
@@ -108,7 +108,7 @@ public class CratedbSQL {
                     break;
             }
         } else if (source instanceof SQLExecutor) {
-            switch (SQLExecutor.EventType.valueOf(eventType.name())) {
+            switch (sqlExecutor.eventType(eventType)) {
                 case RESULTS_AVAILABLE:
                     SQLExecution data = (SQLExecution) eventData;
                     List<DefaultRowType> results = data.getResults();
