@@ -1,6 +1,7 @@
 package io.crate.cli.gui.widgets;
 
 import io.crate.cli.connections.SQLConnection;
+import io.crate.cli.connections.SQLExecutionRequest;
 import io.crate.cli.gui.common.EventListener;
 import io.crate.cli.gui.common.EventSpeaker;
 
@@ -39,11 +40,12 @@ public class CommandManager extends JPanel implements EventSpeaker<CommandManage
     private final JButton[] bufferButtons;
     private final TitledBorder titleBorder;
     private final BufferData bufferData;
-    private final EventListener<CommandManager, Object> eventListener;
+    private final EventListener<CommandManager, SQLExecutionRequest> eventListener;
+
 
     private static class BufferData {
 
-        private static String toButtonLabel(int offset) {
+        private static String toKey(int offset) {
             return String.valueOf((char) ('A' + offset));
         }
 
@@ -52,12 +54,17 @@ public class CommandManager extends JPanel implements EventSpeaker<CommandManage
         private int currentIdx;
         private
 
+
         BufferData(int size) {
             buffers = new String[size];
             connections = new SQLConnection[size];
             Arrays.fill(buffers, "");
             Arrays.fill(connections, null);
             currentIdx = 0;
+        }
+
+        String currentKey() {
+            return toKey(currentIdx);
         }
 
         int currentIdx() {
@@ -110,7 +117,7 @@ public class CommandManager extends JPanel implements EventSpeaker<CommandManage
     }
 
 
-    public CommandManager(EventListener<CommandManager, Object> eventListener) {
+    public CommandManager(EventListener<CommandManager, SQLExecutionRequest> eventListener) {
         this.eventListener = eventListener;
         textPane = createTextComponent();
         bufferData = new BufferData(NUM_BUFFERS);
@@ -119,7 +126,7 @@ public class CommandManager extends JPanel implements EventSpeaker<CommandManage
         for (int i = 0; i < NUM_BUFFERS; i++) {
             int offset = i;
             JButton button = new JButton();
-            button.setText(BufferData.toButtonLabel(offset));
+            button.setText(BufferData.toKey(offset));
             button.setBorder(offset == bufferData.currentIdx() ? DISCONNECTED_BUFFER_BORDER : UNSELECTED_BUFFER_BORDER);
             button.addActionListener(e -> onChangeBufferEvent(offset));
             bufferButtons[offset] = button;
@@ -145,17 +152,13 @@ public class CommandManager extends JPanel implements EventSpeaker<CommandManage
         add(scrollPane, BorderLayout.CENTER);
     }
 
-    public String getKey() {
-        return BufferData.toButtonLabel(bufferData.currentIdx());
+    public SQLConnection getSQLConnection() {
+        return bufferData.currentSQLConnection();
     }
 
     public void setSQLConnection(SQLConnection conn) {
         bufferData.currentSQLConnection(conn);
         toggleComponents();
-    }
-
-    public SQLConnection getSQLConnection() {
-        return bufferData.currentSQLConnection();
     }
 
     private String getFullTextContents() {
@@ -189,7 +192,8 @@ public class CommandManager extends JPanel implements EventSpeaker<CommandManage
             repaint();
         }
         boolean isConnected = null != conn && conn.isConnected();
-        bufferButtons[bufferData.currentIdx()].setBorder(isConnected ? CONNECTED_BUFFER_BORDER : DISCONNECTED_BUFFER_BORDER);
+        Border border = isConnected ? CONNECTED_BUFFER_BORDER : DISCONNECTED_BUFFER_BORDER;
+        bufferButtons[bufferData.currentIdx()].setBorder(border);
         runButton.setEnabled(isConnected);
     }
 
@@ -198,9 +202,14 @@ public class CommandManager extends JPanel implements EventSpeaker<CommandManage
         bufferData.currentText(command);
         bufferData.currentIdx(offset);
         textPane.setText(command);
-        SQLConnection conn = bufferData.currentSQLConnection();
         toggleComponents();
-        eventListener.onSourceEvent(this, EventType.BUFFER_CHANGE, conn);
+        eventListener.onSourceEvent(
+                this,
+                EventType.BUFFER_CHANGE,
+                new SQLExecutionRequest(
+                        bufferData.currentKey(),
+                        bufferData.currentSQLConnection(),
+                        bufferData.currentText()));
     }
 
     private void onClearButtonEvent(ActionEvent event) {
@@ -214,7 +223,10 @@ public class CommandManager extends JPanel implements EventSpeaker<CommandManage
         if (command.isEmpty() || null == conn || false == conn.isConnected()) {
             return;
         }
-        eventListener.onSourceEvent(this, EventType.COMMAND_AVAILABLE, command);
+        eventListener.onSourceEvent(
+                this,
+                EventType.COMMAND_AVAILABLE,
+                new SQLExecutionRequest(bufferData.currentKey(), conn, command));
     }
 
     private JTextPane createTextComponent() {

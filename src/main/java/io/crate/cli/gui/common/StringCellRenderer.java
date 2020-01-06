@@ -5,6 +5,7 @@ import javax.swing.table.DefaultTableCellRenderer;
 import java.awt.*;
 import java.util.Locale;
 
+
 public class StringCellRenderer extends DefaultTableCellRenderer {
 
     private static final Color DEFAULT_BG_COLOR = new Color(230, 236, 255);

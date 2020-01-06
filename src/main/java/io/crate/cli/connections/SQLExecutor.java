@@ -20,14 +20,15 @@ public class SQLExecutor implements EventSpeaker<SQLExecutor.EventType>, Closeab
     }
 
     private static final Logger LOGGER = LoggerFactory.getLogger(SQLExecutor.class);
+    private static final long BATCH_SIZE = 100;
 
 
-    private final EventListener<SQLExecutor, SQLExecution> eventListener;
+    private final EventListener<SQLExecutor, SQLExecutionResponse> eventListener;
     private final Map<String, Future<?>> runningQueries;
     private volatile ExecutorService cachedES;
 
 
-    public SQLExecutor(EventListener<SQLExecutor, SQLExecution> eventListener) {
+    public SQLExecutor(EventListener<SQLExecutor, SQLExecutionResponse> eventListener) {
         this.eventListener = eventListener;
         runningQueries = new HashMap<>();
     }
@@ -48,15 +49,18 @@ public class SQLExecutor implements EventSpeaker<SQLExecutor.EventType>, Closeab
                 SQLExecutor.class.getSimpleName()));
     }
 
-    public void submit(String key, SQLConnection conn, String query) {
+    public void submit(SQLExecutionRequest request) {
         if (null == cachedES) {
             throw new IllegalStateException("not started");
         }
-        Future<?> result = runningQueries.get(key);
+        Future<?> result = runningQueries.get(request.getKey());
         if (null != result) {
             result.cancel(true);
         }
-        runningQueries.put(key, cachedES.submit(() -> {
+        runningQueries.put(request.getKey(), cachedES.submit(() -> {
+            String key = request.getKey();
+            SQLConnection conn = request.getSQLConnection();
+            String query = request.getCommand();
             if (false == conn.checkConnectivity()) {
                 return;
             }
@@ -64,7 +68,7 @@ public class SQLExecutor implements EventSpeaker<SQLExecutor.EventType>, Closeab
             List<SQLRowType> rows = new ArrayList<>();
             try (PreparedStatement stmt = conn.open().prepareStatement(query);
                  ResultSet rs = stmt.executeQuery()) {
-                int rowId = 0;
+                long rowId = 0;
                 while (rs.next()) {
                     PgResultSetMetaData metaData = (PgResultSetMetaData) rs.getMetaData();
                     int resultSetSize = metaData.getColumnCount();
@@ -73,14 +77,23 @@ public class SQLExecutor implements EventSpeaker<SQLExecutor.EventType>, Closeab
                         attributes.put(metaData.getColumnName(i), rs.getObject(i));
                     }
                     rows.add(new SQLRowType(String.valueOf(rowId++), attributes));
+                    if (0 == rowId % BATCH_SIZE) {
+                        eventListener.onSourceEvent(
+                                SQLExecutor.this,
+                                EventType.RESULTS_AVAILABLE,
+                                new SQLExecutionResponse(key, conn, query, rows));
+                        rows.clear();
+                    }
                 }
             } catch(Throwable throwable) {
                 throw new RuntimeException(throwable);
             }
-            eventListener.onSourceEvent(
-                    SQLExecutor.this,
-                    EventType.RESULTS_AVAILABLE,
-                    new SQLExecution(key, query, conn, rows));
+            if (rows.size() > 0) {
+                eventListener.onSourceEvent(
+                        SQLExecutor.this,
+                        EventType.RESULTS_AVAILABLE,
+                        new SQLExecutionResponse(key, conn, query, rows));
+            }
         }));
     }
 

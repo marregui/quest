@@ -28,8 +28,8 @@ public class SQLConnectionManager extends JPanel implements EventSpeaker<SQLConn
     public enum EventType {
         CONNECTION_SELECTED,
         CONNECTION_ESTABLISHED,
-        CONNECTIONS_LOST,
         CONNECTION_CLOSED,
+        CONNECTIONS_LOST,
         REPAINT_REQUIRED
     }
 
@@ -45,7 +45,7 @@ public class SQLConnectionManager extends JPanel implements EventSpeaker<SQLConn
     private static final Dimension LIST_DIMENSION = new Dimension(600, 30);
 
 
-    private final EventListener<SQLConnectionManager, SQLConnection> eventListener;
+    private final EventListener<SQLConnectionManager, Object> eventListener;
     private final ConnectionDescriptorStore store;
     private final ObjectComboBoxModel<SQLConnection> connectionsListModel;
     private final JButton manageButton;
@@ -56,7 +56,7 @@ public class SQLConnectionManager extends JPanel implements EventSpeaker<SQLConn
     private Mode mode;
 
 
-    public SQLConnectionManager(EventListener<SQLConnectionManager, SQLConnection> eventListener) {
+    public SQLConnectionManager(EventListener<SQLConnectionManager, Object> eventListener) {
         this.eventListener = eventListener;
         store = new ConnectionDescriptorStore((Function<String, SQLConnection>) SQLConnection::new);
         connectionsListModel = new ObjectComboBoxModel<>();
@@ -129,7 +129,10 @@ public class SQLConnectionManager extends JPanel implements EventSpeaker<SQLConn
                         "SQLException",
                         JOptionPane.ERROR_MESSAGE);
                 if (null != eventListener) {
-                    eventListener.onSourceEvent(this, EventType.CONNECTIONS_LOST, null);
+                    eventListener.onSourceEvent(
+                            this,
+                            EventType.CONNECTIONS_LOST,
+                            lostConnections);
                 }
             });
         } catch (Throwable throwable) {

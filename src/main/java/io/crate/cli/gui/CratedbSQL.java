@@ -6,14 +6,15 @@ import java.util.List;
 
 import io.crate.cli.connections.SQLRowType;
 import io.crate.cli.connections.SQLConnection;
-import io.crate.cli.connections.SQLExecution;
+import io.crate.cli.connections.SQLExecutionResponse;
 import io.crate.cli.connections.SQLExecutor;
 import io.crate.cli.gui.widgets.CommandManager;
 import io.crate.cli.gui.common.*;
 import io.crate.cli.gui.widgets.SQLConnectionManager;
+import io.crate.cli.connections.SQLExecutionRequest;
+import io.crate.cli.gui.widgets.SQLResultsTable;
 
 import javax.swing.*;
-import javax.swing.event.TableModelEvent;
 
 
 public class CratedbSQL {
@@ -24,8 +25,7 @@ public class CratedbSQL {
     private final SQLExecutor sqlExecutor;
     private final SQLConnectionManager sqlConnectionManager;
     private final CommandManager commandManager;
-    private final JTable table;
-    private final ObjectTableModel<SQLRowType> tableModel;
+    private final SQLResultsTable sqlResultsTable;
     private final JFrame frame;
 
 
@@ -35,21 +35,15 @@ public class CratedbSQL {
         commandManager = new CommandManager(this::onSourceEvent);
         sqlConnectionManager = new SQLConnectionManager(this::onSourceEvent);
         sqlConnectionManager.start();
-        tableModel = new ObjectTableModel<>(new String[]{}, new Class<?>[]{}, Map::get, Map::put) {
-            @Override
-            public boolean isCellEditable(int rowIdx, int colIdx) {
-                return false;
-            }
-        };
-        tableModel.addTableModelListener(this::onTableModelEvent);
-        table = GUIFactory.newTable(tableModel, null);
+        sqlResultsTable = new SQLResultsTable();
         JPanel topPanel = new JPanel(new BorderLayout());
         topPanel.add(sqlConnectionManager, BorderLayout.NORTH);
         topPanel.add(commandManager, BorderLayout.CENTER);
-        JScrollPane centerPane = new JScrollPane(table);
-        centerPane.setHorizontalScrollBarPolicy(JScrollPane.HORIZONTAL_SCROLLBAR_AS_NEEDED);
-        centerPane.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED);
-        JSplitPane splitPane = new JSplitPane(JSplitPane.VERTICAL_SPLIT, false, topPanel, centerPane);
+        JSplitPane splitPane = new JSplitPane(JSplitPane.VERTICAL_SPLIT,
+                false,
+                topPanel,
+                sqlResultsTable
+        );
         JPanel mainManel = new JPanel(new BorderLayout());
         mainManel.add(splitPane, BorderLayout.CENTER);
         frame = GUIFactory.newFrame(String.format(
@@ -61,80 +55,77 @@ public class CratedbSQL {
                 mainManel);
     }
 
-
-    private void onTableModelEvent(TableModelEvent event) {
-        System.out.println(event);
+    private void onSourceEvent(EventSpeaker source, Enum eventType, Object eventData) {
+        if (source instanceof SQLConnectionManager) {
+            onSQLConnectionManagerEvent(sqlConnectionManager.eventType(eventType), (SQLConnection) eventData);
+        } else if (source instanceof CommandManager) {
+            onCommandManagerEvent(commandManager.eventType(eventType), (SQLExecutionRequest) eventData);
+        } else if (source instanceof SQLExecutor) {
+            onSQLExecutorEvent(sqlExecutor.eventType(eventType), (SQLExecutionResponse) eventData);
+        }
     }
 
-    private void onSourceEvent(Object source, Enum eventType, Object eventData) {
-        if (source instanceof SQLConnectionManager) {
-            SQLConnection conn = (SQLConnection) eventData;
-            switch (sqlConnectionManager.eventType(eventType)) {
-                case CONNECTION_SELECTED:
+    private void onSQLConnectionManagerEvent(SQLConnectionManager.EventType event, SQLConnection conn) {
+        switch (event) {
+            case CONNECTION_SELECTED:
+                commandManager.setSQLConnection(conn);
+                break;
+
+            case CONNECTION_ESTABLISHED:
+            case CONNECTION_CLOSED:
+                SQLConnection current = commandManager.getSQLConnection();
+                if (null != current && current.equals(conn)) {
                     commandManager.setSQLConnection(conn);
-                    break;
+                }
+                break;
 
-                case CONNECTION_ESTABLISHED:
-                case CONNECTION_CLOSED:
-                    SQLConnection current = commandManager.getSQLConnection();
-                    if (null != current && current.equals(conn)) {
-                        commandManager.setSQLConnection(conn);
+            case CONNECTIONS_LOST:
+                // TODO
+                break;
+
+            case REPAINT_REQUIRED:
+                frame.validate();
+                frame.repaint();
+                break;
+        }
+    }
+
+    private void onCommandManagerEvent(CommandManager.EventType event, SQLExecutionRequest request) {
+        switch (event) {
+            case COMMAND_AVAILABLE:
+                sqlExecutor.submit(request);
+                break;
+
+            case BUFFER_CHANGE:
+                SQLConnection conn = request.getSQLConnection();
+                if (null != conn) {
+                    sqlConnectionManager.setSelectedItem(conn);
+                }
+                break;
+        }
+    }
+
+    private void onSQLExecutorEvent(SQLExecutor.EventType event, SQLExecutionResponse response) {
+        switch (event) {
+            case RESULTS_AVAILABLE:
+                List<SQLRowType> results = response.getResults();
+                if (false == results.isEmpty()) {
+                    try {
+                        SwingUtilities.invokeAndWait(() -> {
+                            sqlResultsTable.addRows(results);
+                        });
+                    } catch (Throwable throwable) {
+                        throwable.printStackTrace();
                     }
-                    break;
-
-                case CONNECTIONS_LOST:
-                    // TODO
-                    break;
-
-                case REPAINT_REQUIRED:
-                    frame.validate();
-                    frame.repaint();
-                    break;
-            }
-        } else if (source instanceof CommandManager) {
-            switch (commandManager.eventType(eventType)) {
-                case COMMAND_AVAILABLE:
-                    String command = (String) eventData;
-                    sqlExecutor.submit(
-                            commandManager.getKey(),
-                            commandManager.getSQLConnection(),
-                            command);
-                    break;
-
-                case BUFFER_CHANGE:
-                    SQLConnection conn = commandManager.getSQLConnection();
-                    if (null != conn) {
-                        sqlConnectionManager.setSelectedItem(conn);
-                    }
-                    break;
-            }
-        } else if (source instanceof SQLExecutor) {
-            switch (sqlExecutor.eventType(eventType)) {
-                case RESULTS_AVAILABLE:
-                    SQLExecution data = (SQLExecution) eventData;
-                    List<SQLRowType> results = data.getResults();
-                    if (false == results.isEmpty()) {
-                        SQLRowType firstRow = results.get(0);
-                        String[] columnNames = firstRow.keySet().toArray(new String[0]);
-                        Class<?>[] columnTypes = new Class<?>[results.size()];
-                        Arrays.fill(columnTypes, String.class);
-                        try {
-                            SwingUtilities.invokeAndWait(() -> {
-                                tableModel.reset(columnNames, columnTypes, Map::get, Map::put);
-                                tableModel.setRows(results);
-                            });
-                        } catch (Throwable throwable) {
-                            throwable.printStackTrace();
-                        }
-                    }
-                    break;
-            }
+                }
+                break;
         }
     }
 
     private void shutdown() {
         sqlExecutor.close();
         sqlConnectionManager.close();
+        sqlResultsTable.close();
     }
 
     private void setVisible(boolean isVisible) {

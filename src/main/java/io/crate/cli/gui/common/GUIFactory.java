@@ -8,7 +8,7 @@ import java.awt.*;
 import java.net.URL;
 
 
-public final class GUIFactory extends JPanel {
+public final class GUIFactory {
 
     public static final Font TABLE_CELL_FONT = new Font("monospaced", Font.PLAIN, 14);
     public static final Font TABLE_HEADER_FONT = new Font("monospaced", Font.BOLD, 16);
@@ -72,10 +72,5 @@ public final class GUIFactory extends JPanel {
 
     private GUIFactory() {
         throw new IllegalStateException("not meant to me instantiated");
-    }
-
-    public static void main(String [] args) {
-        URL logl = GUIFactory.class.getResource("/logo.png");
-        System.out.println(logl);
     }
 }
