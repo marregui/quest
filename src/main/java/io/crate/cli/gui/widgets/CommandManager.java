@@ -1,7 +1,6 @@
 package io.crate.cli.gui.widgets;
 
 import io.crate.cli.connections.SQLConnection;
-import io.crate.cli.gui.common.DefaultRowType;
 import io.crate.cli.gui.common.EventListener;
 import io.crate.cli.gui.common.EventSpeaker;
 
@@ -13,9 +12,7 @@ import javax.swing.text.BadLocationException;
 import java.awt.event.ActionEvent;
 import java.awt.event.KeyEvent;
 import java.awt.event.KeyListener;
-import java.sql.SQLException;
 import java.util.Arrays;
-import java.util.List;
 import java.util.Locale;
 
 

@@ -4,6 +4,7 @@ import java.awt.*;
 import java.util.*;
 import java.util.List;
 
+import io.crate.cli.connections.SQLRowType;
 import io.crate.cli.connections.SQLConnection;
 import io.crate.cli.connections.SQLExecution;
 import io.crate.cli.connections.SQLExecutor;
@@ -24,7 +25,7 @@ public class CratedbSQL {
     private final SQLConnectionManager sqlConnectionManager;
     private final CommandManager commandManager;
     private final JTable table;
-    private final ObjectTableModel<DefaultRowType> tableModel;
+    private final ObjectTableModel<SQLRowType> tableModel;
     private final JFrame frame;
 
 
@@ -111,9 +112,9 @@ public class CratedbSQL {
             switch (sqlExecutor.eventType(eventType)) {
                 case RESULTS_AVAILABLE:
                     SQLExecution data = (SQLExecution) eventData;
-                    List<DefaultRowType> results = data.getResults();
+                    List<SQLRowType> results = data.getResults();
                     if (false == results.isEmpty()) {
-                        DefaultRowType firstRow = results.get(0);
+                        SQLRowType firstRow = results.get(0);
                         String[] columnNames = firstRow.keySet().toArray(new String[0]);
                         Class<?>[] columnTypes = new Class<?>[results.size()];
                         Arrays.fill(columnTypes, String.class);

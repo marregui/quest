@@ -1,6 +1,5 @@
 package io.crate.cli.connections;
 
-import io.crate.cli.gui.common.DefaultRowType;
 import io.crate.cli.gui.common.EventListener;
 import io.crate.cli.gui.common.EventSpeaker;
 import io.crate.shade.org.postgresql.jdbc.PgResultSetMetaData;
@@ -62,7 +61,7 @@ public class SQLExecutor implements EventSpeaker<SQLExecutor.EventType>, Closeab
                 return;
             }
             LOGGER.info(String.format(Locale.ENGLISH, "Executing query: %s", query));
-            List<DefaultRowType> rows = new ArrayList<>();
+            List<SQLRowType> rows = new ArrayList<>();
             try (PreparedStatement stmt = conn.open().prepareStatement(query);
                  ResultSet rs = stmt.executeQuery()) {
                 int rowId = 0;
@@ -73,7 +72,7 @@ public class SQLExecutor implements EventSpeaker<SQLExecutor.EventType>, Closeab
                     for (int i = 1; i <= resultSetSize; i++) {
                         attributes.put(metaData.getColumnName(i), rs.getObject(i));
                     }
-                    rows.add(new DefaultRowType(String.valueOf(rowId++), attributes));
+                    rows.add(new SQLRowType(String.valueOf(rowId++), attributes));
                 }
             } catch(Throwable throwable) {
                 throw new RuntimeException(throwable);

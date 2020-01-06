@@ -1,7 +1,5 @@
 package io.crate.cli.connections;
 
-import io.crate.cli.gui.common.DefaultRowType;
-
 
 import java.util.List;
 
@@ -10,12 +8,12 @@ public class SQLExecution {
     private final String key;
     private final String query;
     private final SQLConnection conn;
-    private final List<DefaultRowType> results;
+    private final List<SQLRowType> results;
 
     public SQLExecution(String key,
                         String query,
                         SQLConnection conn,
-                        List<DefaultRowType> results) {
+                        List<SQLRowType> results) {
         this.key = key;
         this.query = query;
         this.conn = conn;
@@ -34,7 +32,7 @@ public class SQLExecution {
         return conn;
     }
 
-    public List<DefaultRowType> getResults() {
+    public List<SQLRowType> getResults() {
         return results;
     }
 }
