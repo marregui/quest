@@ -4,6 +4,7 @@ import io.crate.cli.connections.SQLConnection;
 import io.crate.cli.connections.SQLExecutionRequest;
 import io.crate.cli.gui.common.EventListener;
 import io.crate.cli.gui.common.EventSpeaker;
+import io.crate.cli.gui.common.GUIFactory;
 
 import java.awt.*;
 import javax.swing.*;
@@ -24,10 +25,6 @@ public class CommandManager extends JPanel implements EventSpeaker<CommandManage
         BUFFER_CHANGE
     }
 
-    private static final Color TEXT_PANE_FONT_COLOR = Color.WHITE;
-    private static final Color TEXT_PANE_BACKGROUND_COLOR = Color.BLACK;
-    private static final Color TEXT_PANE_CARET_COLOR = Color.GREEN;
-    private static final Font TEXT_PANE_FONT = new Font("monospaced", Font.BOLD, 18);
     private static final Border CONNECTED_BUFFER_BORDER = BorderFactory.createLineBorder(Color.GREEN, 4, true);
     private static final Border DISCONNECTED_BUFFER_BORDER = BorderFactory.createLineBorder(Color.BLACK, 2, true);
     private static final Border UNSELECTED_BUFFER_BORDER = BorderFactory.createLineBorder(Color.LIGHT_GRAY, 1, false);
@@ -119,7 +116,8 @@ public class CommandManager extends JPanel implements EventSpeaker<CommandManage
 
     public CommandManager(EventListener<CommandManager, SQLExecutionRequest> eventListener) {
         this.eventListener = eventListener;
-        textPane = createTextComponent();
+        textPane = GUIFactory.newTextComponent();
+        textPane.addKeyListener(createKeyListener());
         bufferData = new BufferData(NUM_BUFFERS);
         JPanel bufferButtonsPanel = new JPanel(new GridLayout(1, NUM_BUFFERS, 0, 5));
         bufferButtons = new JButton[NUM_BUFFERS];
@@ -219,8 +217,17 @@ public class CommandManager extends JPanel implements EventSpeaker<CommandManage
 
     private void onRunButtonEvent(ActionEvent event) {
         SQLConnection conn = bufferData.currentSQLConnection();
+        if (null == conn || false == conn.isConnected()) {
+            JOptionPane.showMessageDialog(
+                    this,
+                    "Not connected");
+            return;
+        }
         String command = getCommand();
-        if (command.isEmpty() || null == conn || false == conn.isConnected()) {
+        if (command.isEmpty()) {
+            JOptionPane.showMessageDialog(
+                    this,
+                    "Command is empty");
             return;
         }
         eventListener.onSourceEvent(
@@ -229,15 +236,8 @@ public class CommandManager extends JPanel implements EventSpeaker<CommandManage
                 new SQLExecutionRequest(bufferData.currentKey(), conn, command));
     }
 
-    private JTextPane createTextComponent() {
-        JTextPane textPane = new JTextPane();
-        textPane.setCaretPosition(0);
-        textPane.setMargin(new Insets(5, 5, 5, 5));
-        textPane.setFont(TEXT_PANE_FONT);
-        textPane.setForeground(TEXT_PANE_FONT_COLOR);
-        textPane.setBackground(TEXT_PANE_BACKGROUND_COLOR);
-        textPane.setCaretColor(TEXT_PANE_CARET_COLOR);
-        textPane.addKeyListener(new KeyListener() {
+    private KeyListener createKeyListener() {
+        return new KeyListener() {
             @Override
             public void keyTyped(KeyEvent e) {
                 if ((e.isControlDown() || e.isShiftDown()) && 0 == e.getKeyCode() && 0 == e.getExtendedKeyCode()) {
@@ -262,7 +262,6 @@ public class CommandManager extends JPanel implements EventSpeaker<CommandManage
             public void keyReleased(KeyEvent e) {
                 // not interested
             }
-        });
-        return textPane;
+        };
     }
 }

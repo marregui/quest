@@ -8,6 +8,8 @@ import java.util.concurrent.atomic.AtomicLong;
 
 public class SQLRowType extends LinkedHashMap<String, Object> implements HasKey {
 
+    private static final String [] NO_VALUES = {};
+
     private final String key;
 
     public SQLRowType(String key, Map<String, Object> attributes) {
@@ -18,5 +20,13 @@ public class SQLRowType extends LinkedHashMap<String, Object> implements HasKey 
     @Override
     public String getKey() {
         return key;
+    }
+
+    public String [] getColumnNames() {
+        int size = size();
+        if (0 == size) {
+           return NO_VALUES;
+        }
+        return keySet().toArray(new String[size]);
     }
 }

@@ -107,16 +107,19 @@ public class CratedbSQL {
 
     private void onSQLExecutorEvent(SQLExecutor.EventType event, SQLExecutionResponse response) {
         switch (event) {
+            case QUERY_FAILURE:
+                sqlResultsTable.displayError(response.getError());
+                break;
+
             case RESULTS_AVAILABLE:
-                List<SQLRowType> results = response.getResults();
-                if (false == results.isEmpty()) {
-                    try {
-                        SwingUtilities.invokeAndWait(() -> {
-                            sqlResultsTable.addRows(results);
-                        });
-                    } catch (Throwable throwable) {
-                        throwable.printStackTrace();
-                    }
+            case RESULTS_COMPLETED:
+                boolean expectMore = SQLExecutor.EventType.RESULTS_AVAILABLE == event;
+                try {
+                    SwingUtilities.invokeAndWait(() -> {
+                        sqlResultsTable.addRows(response.getResults(), expectMore);
+                    });
+                } catch (Throwable throwable) {
+                    throw new RuntimeException(throwable);
                 }
                 break;
         }

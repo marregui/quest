@@ -52,14 +52,6 @@ class SQLConnectionEditor extends JPanel implements EventSpeaker<SQLConnectionEd
             200,
             100
     };
-    private static final Class<?>[] COLUMN_CLASSES = {
-            String.class,
-            String.class,
-            String.class,
-            String.class,
-            String.class,
-            String.class
-    };
     private static final BiFunction<SQLConnection, String, Object> ATTR_GETTER =
             (conn, attrName) -> {
                 switch (attrName) {
@@ -97,7 +89,7 @@ class SQLConnectionEditor extends JPanel implements EventSpeaker<SQLConnectionEd
     SQLConnectionEditor(EventListener<SQLConnectionEditor, SQLConnection> eventListener) {
         this.eventListener = eventListener;
         existingNames = new HashSet<>();
-        tableModel = new ObjectTableModel<>(COLUMN_NAMES, COLUMN_CLASSES, ATTR_GETTER, ATTR_SETTER) {
+        tableModel = new ObjectTableModel<>(COLUMN_NAMES, ATTR_GETTER, ATTR_SETTER) {
             @Override
             public boolean isCellEditable(int rowIdx, int colIdx) {
                 return CONNECTED_IDX != colIdx;

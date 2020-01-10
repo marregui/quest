@@ -7,8 +7,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.Closeable;
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
+import java.sql.*;
 import java.util.*;
 import java.util.concurrent.*;
 
@@ -16,7 +15,9 @@ import java.util.concurrent.*;
 public class SQLExecutor implements EventSpeaker<SQLExecutor.EventType>, Closeable {
 
     public enum EventType {
-        RESULTS_AVAILABLE
+        RESULTS_AVAILABLE,
+        RESULTS_COMPLETED,
+        QUERY_FAILURE
     }
 
     private static final Logger LOGGER = LoggerFactory.getLogger(SQLExecutor.class);
@@ -53,48 +54,63 @@ public class SQLExecutor implements EventSpeaker<SQLExecutor.EventType>, Closeab
         if (null == cachedES) {
             throw new IllegalStateException("not started");
         }
-        Future<?> result = runningQueries.get(request.getKey());
-        if (null != result) {
+        String key = request.getKey();
+        Future<?> result = runningQueries.get(key);
+        if (null != result && false == result.isDone() && false == result.isCancelled()) {
+            LOGGER.info("cancelling pre-existing query for key: {}", key);
             result.cancel(true);
         }
-        runningQueries.put(request.getKey(), cachedES.submit(() -> {
-            String key = request.getKey();
+        runningQueries.put(key, cachedES.submit(() -> {
             SQLConnection conn = request.getSQLConnection();
-            String query = request.getCommand();
             if (false == conn.checkConnectivity()) {
                 return;
             }
-            LOGGER.info(String.format(Locale.ENGLISH, "Executing query: %s", query));
+            String query = request.getCommand();
+            LOGGER.info("Executing query: {}", query);
+            long rowId = 0;
             List<SQLRowType> rows = new ArrayList<>();
-            try (PreparedStatement stmt = conn.open().prepareStatement(query);
-                 ResultSet rs = stmt.executeQuery()) {
-                long rowId = 0;
-                while (rs.next()) {
-                    PgResultSetMetaData metaData = (PgResultSetMetaData) rs.getMetaData();
-                    int resultSetSize = metaData.getColumnCount();
-                    Map<String, Object> attributes = new LinkedHashMap<>(resultSetSize);
-                    for (int i = 1; i <= resultSetSize; i++) {
-                        attributes.put(metaData.getColumnName(i), rs.getObject(i));
+            try (Statement stmt = conn.getConnection().createStatement()) {
+                boolean checkResults = stmt.execute(query);
+                if (checkResults) {
+                    ResultSet rs = stmt.getResultSet();
+                    while (rs.next()) {
+                        rows.add(new SQLRowType(String.valueOf(rowId++), extractColumns(rs)));
+                        if (0 == rowId % BATCH_SIZE) {
+                            eventListener.onSourceEvent(
+                                    SQLExecutor.this,
+                                    EventType.RESULTS_AVAILABLE,
+                                    new SQLExecutionResponse(key, conn, query, rows));
+                            rows.clear();
+                        }
                     }
-                    rows.add(new SQLRowType(String.valueOf(rowId++), attributes));
-                    if (0 == rowId % BATCH_SIZE) {
-                        eventListener.onSourceEvent(
-                                SQLExecutor.this,
-                                EventType.RESULTS_AVAILABLE,
-                                new SQLExecutionResponse(key, conn, query, rows));
-                        rows.clear();
-                    }
+                } else {
+                    rows.add(new SQLRowType(String.valueOf(rowId++),
+                            Collections.singletonMap("Status", "OK")));
                 }
-            } catch(Throwable throwable) {
-                throw new RuntimeException(throwable);
-            }
-            if (rows.size() > 0) {
+            } catch (SQLException e) {
+                LOGGER.error("Error query '{}': {}", query, e.getMessage());
                 eventListener.onSourceEvent(
                         SQLExecutor.this,
-                        EventType.RESULTS_AVAILABLE,
-                        new SQLExecutionResponse(key, conn, query, rows));
+                        EventType.QUERY_FAILURE,
+                        new SQLExecutionResponse(key, conn, query, e));
+                return;
             }
+            LOGGER.info("{} results", rowId);
+            eventListener.onSourceEvent(
+                    SQLExecutor.this,
+                    EventType.RESULTS_COMPLETED,
+                    new SQLExecutionResponse(key, conn, query, rows));
         }));
+    }
+
+    private static Map<String, Object> extractColumns(ResultSet rs) throws SQLException {
+        PgResultSetMetaData metaData = (PgResultSetMetaData) rs.getMetaData();
+        int columnCount = metaData.getColumnCount();
+        Map<String, Object> attributes = new LinkedHashMap<>(columnCount);
+        for (int i = 1; i <= columnCount; i++) {
+            attributes.put(metaData.getColumnName(i), rs.getObject(i));
+        }
+        return attributes;
     }
 
     @Override

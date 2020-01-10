@@ -7,35 +7,23 @@ import java.util.function.BiFunction;
 
 public class ObjectTableModel<RowType extends HasKey> extends AbstractTableModel {
 
-    private final List<RowType> rows;
     private String[] attributeNames;
-    private Class<?>[] attributeClasses;
-    private BiFunction<RowType, String, Object> attributeGetter;
-    private TriFunction<RowType, String, Object, Object> attributeSetter;
+    private final BiFunction<RowType, String, Object> attributeGetter;
+    private final TriFunction<RowType, String, Object, Object> attributeSetter;
+    private final List<RowType> rows;
 
 
     public ObjectTableModel(String[] attributeNames,
-                            Class<?>[] attributeClasses,
                             BiFunction<RowType, String, Object> attributeGetter,
                             TriFunction<RowType, String, Object, Object> attributeSetter) {
-        if (attributeNames.length != attributeClasses.length) {
-            throw new IllegalArgumentException("lengths of attributeNames and attributeClasses don't match");
-        }
         this.attributeNames = attributeNames;
-        this.attributeClasses = attributeClasses;
         this.attributeGetter = attributeGetter;
         this.attributeSetter = attributeSetter;
         rows = new ArrayList<>();
     }
 
-    public void reset(String[] attributeNames,
-                      Class<?>[] attributeClasses,
-                      BiFunction<RowType, String, Object> attributeGetter,
-                      TriFunction<RowType, String, Object, Object> attributeSetter) {
+    public void reset(String[] attributeNames) {
         this.attributeNames = attributeNames;
-        this.attributeClasses = attributeClasses;
-        this.attributeGetter = attributeGetter;
-        this.attributeSetter = attributeSetter;
         fireTableStructureChanged();
         clear();
     }
@@ -64,6 +52,11 @@ public class ObjectTableModel<RowType extends HasKey> extends AbstractTableModel
 
     public void setRows(List<RowType> newRows) {
         rows.clear();
+        rows.addAll(newRows);
+        fireTableDataChanged();
+    }
+
+    public void addRows(List<RowType> newRows) {
         rows.addAll(newRows);
         fireTableDataChanged();
     }
@@ -116,7 +109,7 @@ public class ObjectTableModel<RowType extends HasKey> extends AbstractTableModel
 
     @Override
     public Class<?> getColumnClass(int colIdx) {
-        return getValueAt(attributeClasses, colIdx);
+        return String.class;
     }
 
     @Override

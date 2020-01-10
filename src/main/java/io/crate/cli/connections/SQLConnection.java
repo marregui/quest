@@ -39,6 +39,10 @@ public class SQLConnection extends ConnectionDescriptor implements Closeable {
     public boolean isConnected() {
         return isConnected.get();
     }
+    
+    public Connection getConnection() {
+        return sqlConnection;
+    }
 
     public boolean checkConnectivity() {
         try {
@@ -56,6 +60,7 @@ public class SQLConnection extends ConnectionDescriptor implements Closeable {
         }
         logger.info("Connecting");
         sqlConnection = DriverManager.getConnection(getUrl(), loginProperties());
+        sqlConnection.setAutoCommit(true);
         isConnected.set(true);
         logger.info("Connected");
         return sqlConnection;

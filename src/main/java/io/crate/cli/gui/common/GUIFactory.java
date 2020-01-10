@@ -5,16 +5,22 @@ import javax.swing.table.JTableHeader;
 import javax.swing.table.TableColumnModel;
 import javax.swing.table.TableModel;
 import java.awt.*;
+import java.awt.event.KeyEvent;
+import java.awt.event.KeyListener;
 import java.net.URL;
 
 
 public final class GUIFactory {
 
-    public static final Font TABLE_CELL_FONT = new Font("monospaced", Font.PLAIN, 14);
-    public static final Font TABLE_HEADER_FONT = new Font("monospaced", Font.BOLD, 16);
+    public static final Font TABLE_CELL_FONT = new Font("monospaced", Font.PLAIN, 16);
+    public static final Font TABLE_HEADER_FONT = new Font("monospaced", Font.BOLD, 18);
     public static final Color TABLE_HEADER_FONT_COLOR = Color.BLACK;
     public static final Color TABLE_GRID_COLOR = new Color(66, 188, 245);
     public static final String LOGO_FILE_NAME = "/cratedb_logo.png";
+    private static final Color TEXT_PANE_FONT_COLOR = Color.WHITE;
+    private static final Color TEXT_PANE_BACKGROUND_COLOR = Color.BLACK;
+    private static final Color TEXT_PANE_CARET_COLOR = Color.GREEN;
+    private static final Font TEXT_PANE_FONT = new Font("monospaced", Font.BOLD, 18);
 
 
     public static JFrame newFrame(String title,
@@ -68,6 +74,17 @@ public final class GUIFactory {
         TableColumnModel columnModel = header.getColumnModel();
         columnModel.setColumnSelectionAllowed(false);
         return table;
+    }
+
+    public static  JTextPane newTextComponent() {
+        JTextPane textPane = new JTextPane();
+        textPane.setCaretPosition(0);
+        textPane.setMargin(new Insets(5, 5, 5, 5));
+        textPane.setFont(TEXT_PANE_FONT);
+        textPane.setForeground(TEXT_PANE_FONT_COLOR);
+        textPane.setBackground(TEXT_PANE_BACKGROUND_COLOR);
+        textPane.setCaretColor(TEXT_PANE_CARET_COLOR);
+        return textPane;
     }
 
     private GUIFactory() {
