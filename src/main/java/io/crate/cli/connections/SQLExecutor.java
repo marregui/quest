@@ -68,6 +68,7 @@ public class SQLExecutor implements EventSpeaker<SQLExecutor.EventType>, Closeab
             String query = request.getCommand();
             LOGGER.info("Executing query: {}", query);
             long rowId = 0;
+            long batchId = 0;
             List<SQLRowType> rows = new ArrayList<>();
             try (Statement stmt = conn.getConnection().createStatement()) {
                 boolean checkResults = stmt.execute(query);
@@ -79,7 +80,7 @@ public class SQLExecutor implements EventSpeaker<SQLExecutor.EventType>, Closeab
                             eventListener.onSourceEvent(
                                     SQLExecutor.this,
                                     EventType.RESULTS_AVAILABLE,
-                                    new SQLExecutionResponse(key, conn, query, rows));
+                                    new SQLExecutionResponse(key, batchId++, conn, query, rows));
                             rows.clear();
                         }
                     }
@@ -92,14 +93,14 @@ public class SQLExecutor implements EventSpeaker<SQLExecutor.EventType>, Closeab
                 eventListener.onSourceEvent(
                         SQLExecutor.this,
                         EventType.QUERY_FAILURE,
-                        new SQLExecutionResponse(key, conn, query, e));
+                        new SQLExecutionResponse(key, batchId++, conn, query, e));
                 return;
             }
             LOGGER.info("{} results", rowId);
             eventListener.onSourceEvent(
                     SQLExecutor.this,
                     EventType.RESULTS_COMPLETED,
-                    new SQLExecutionResponse(key, conn, query, rows));
+                    new SQLExecutionResponse(key, batchId++, conn, query, rows));
         }));
     }
 

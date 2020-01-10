@@ -152,15 +152,14 @@ public class SQLResultsTable extends JPanel implements Closeable {
         // nothing
     }
 
-    public void addRows(List<SQLRowType> rows, boolean expectMore) {
+    public void addRows(List<SQLRowType> rows, boolean expectMore, boolean needsClearing) {
         if (currentPane == errorPane) {
             currentPane = windowTablePane;
             remove(errorPane);
             add(windowTablePane, BorderLayout.CENTER);
         }
-        if (expectMore && hasCompleted) {
-            results.clear();
-            windowedTableModel.clear();
+        if (needsClearing) {
+            clear();
         }
         int newRowsCount = rows.size();
         if (0 == newRowsCount) {
@@ -181,9 +180,17 @@ public class SQLResultsTable extends JPanel implements Closeable {
         toggleComponents();
     }
 
-    @Override
-    public void close() {
+    public int getRowCount() {
+        return windowedTableModel.getRowCount();
+    }
+
+    public void clear() {
         results.clear();
         windowedTableModel.clear();
+    }
+
+    @Override
+    public void close() {
+        clear();
     }
 }

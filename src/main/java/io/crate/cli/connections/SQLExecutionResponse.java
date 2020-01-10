@@ -10,19 +10,21 @@ public class SQLExecutionResponse extends SQLExecutionRequest {
 
 
     public SQLExecutionResponse(String key,
+                                long seqNo,
                                 SQLConnection sqlConnection,
                                 String command,
                                 List<SQLRowType> results) {
-        super(key, sqlConnection, command);
+        super(key, seqNo, sqlConnection, command);
         this.results = results;
         this.error = null;
     }
 
     public SQLExecutionResponse(String key,
+                                long seqNo,
                                 SQLConnection sqlConnection,
                                 String command,
                                 Throwable error) {
-        super(key, sqlConnection, command);
+        super(key, seqNo, sqlConnection, command);
         this.results = null;
         this.error = error;
     }
