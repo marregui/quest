@@ -2,6 +2,7 @@ package io.crate.cli.gui.widgets;
 
 import io.crate.cli.connections.SQLConnection;
 import io.crate.cli.connections.SQLExecutionRequest;
+import io.crate.cli.connections.SQLExecutionResponse;
 import io.crate.cli.gui.common.EventListener;
 import io.crate.cli.gui.common.EventSpeaker;
 import io.crate.cli.gui.common.GUIFactory;
@@ -15,6 +16,7 @@ import java.awt.event.ActionEvent;
 import java.awt.event.KeyEvent;
 import java.awt.event.KeyListener;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.Locale;
 
 
@@ -22,6 +24,7 @@ public class CommandManager extends JPanel implements EventSpeaker<CommandManage
 
     public enum EventType {
         COMMAND_AVAILABLE,
+        CONNECT_KEYBOARD_REQUEST,
         BUFFER_CHANGE
     }
 
@@ -252,7 +255,16 @@ public class CommandManager extends JPanel implements EventSpeaker<CommandManage
                         //case 4: /* ctrl^d */
                         //case 6: /* ctrl^f */
                         //case 12: /* ctrl^l */
-                        //case 15: /* ctrl^o */
+                        case 15: /* ctrl^o */
+                            eventListener.onSourceEvent(
+                                    CommandManager.this,
+                                    EventType.CONNECT_KEYBOARD_REQUEST,
+                                    new SQLExecutionResponse(
+                                            bufferData.currentKey(),
+                                            bufferData.currentSQLConnection(),
+                                            "ctrl^o",
+                                            Collections.emptyList()));
+                            break;
 
                         default:
                             System.out.println("CHAR: " + keyChar);

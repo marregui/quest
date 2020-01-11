@@ -265,7 +265,10 @@ public class SQLConnectionManager extends JPanel implements EventSpeaker<SQLConn
         onConnectButtonEvent(getSelectedItem());
     }
 
-    private void onConnectButtonEvent(SQLConnection conn) {
+    public void onConnectButtonEvent(SQLConnection conn) {
+        if (false == connectionsListModel.contains(conn)) {
+            return;
+        }
         if (false == conn.isConnected()) {
             try {
                 conn.open();

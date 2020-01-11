@@ -94,6 +94,10 @@ public class CratedbSQL {
                 sqlExecutor.submit(request);
                 break;
 
+            case CONNECT_KEYBOARD_REQUEST:
+                sqlConnectionManager.onConnectButtonEvent(request.getSQLConnection());
+                break;
+
             case BUFFER_CHANGE:
                 SQLConnection conn = request.getSQLConnection();
                 if (null != conn) {

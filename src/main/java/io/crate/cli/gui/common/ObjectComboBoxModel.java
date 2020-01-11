@@ -22,6 +22,14 @@ public class ObjectComboBoxModel<ItemType extends HasKey> extends AbstractListMo
         fireContentsChanged(this, -1, -1);
     }
 
+    public boolean contains(ItemType item) {
+        boolean contains;
+        synchronized (elements) {
+            contains = elements.contains(item);
+        }
+        return contains;
+    }
+
     public List<ItemType> getElements() {
         List<ItemType> copy;
         synchronized (elements) {
