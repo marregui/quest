@@ -240,15 +240,25 @@ public class CommandManager extends JPanel implements EventSpeaker<CommandManage
         return new KeyListener() {
             @Override
             public void keyTyped(KeyEvent e) {
-                if ((e.isControlDown() || e.isShiftDown()) && 0 == e.getKeyCode() && 0 == e.getExtendedKeyCode()) {
-                    // Shift + ENTER
-                    onRunButtonEvent(null);
-                }
                 if (e.isControlDown()) {
-                    // Ctrl + [1..NUM_BUFFERS]
-                    int offset = e.getKeyChar() - 49; // 0..NUM_BUFFERS-1
-                    if (offset >= 0 && offset < NUM_BUFFERS && offset != bufferData.currentIdx()) {
-                        onChangeBufferEvent(offset);
+                    int keyChar = e.getKeyChar();
+                    switch (keyChar) {
+                        case 18: /* ctrl^r */
+                            onRunButtonEvent(null);
+                            break;
+
+                        //case 3: /* ctrl^c */
+                        //case 4: /* ctrl^d */
+                        //case 6: /* ctrl^f */
+                        //case 12: /* ctrl^l */
+                        //case 15: /* ctrl^o */
+
+                        default:
+                            // Ctrl + [1..NUM_BUFFERS]
+                            int offset = keyChar - 49; // 0..NUM_BUFFERS-1
+                            if (offset >= 0 && offset < NUM_BUFFERS && offset != bufferData.currentIdx()) {
+                                onChangeBufferEvent(offset);
+                            }
                     }
                 }
             }

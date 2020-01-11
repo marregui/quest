@@ -2,9 +2,7 @@ package io.crate.cli.gui;
 
 import java.awt.*;
 import java.util.*;
-import java.util.List;
 
-import io.crate.cli.connections.SQLRowType;
 import io.crate.cli.connections.SQLConnection;
 import io.crate.cli.connections.SQLExecutionResponse;
 import io.crate.cli.connections.SQLExecutor;
