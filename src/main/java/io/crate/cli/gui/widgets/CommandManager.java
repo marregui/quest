@@ -243,6 +243,7 @@ public class CommandManager extends JPanel implements EventSpeaker<CommandManage
                 if (e.isControlDown()) {
                     int keyChar = e.getKeyChar();
                     switch (keyChar) {
+                        case 13: /* ctrl^enter */
                         case 18: /* ctrl^r */
                             onRunButtonEvent(null);
                             break;
@@ -254,6 +255,7 @@ public class CommandManager extends JPanel implements EventSpeaker<CommandManage
                         //case 15: /* ctrl^o */
 
                         default:
+                            System.out.println("CHAR: " + keyChar);
                             // Ctrl + [1..NUM_BUFFERS]
                             int offset = keyChar - 49; // 0..NUM_BUFFERS-1
                             if (offset >= 0 && offset < NUM_BUFFERS && offset != bufferData.currentIdx()) {
