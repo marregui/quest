@@ -7,6 +7,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.Closeable;
+import java.io.IOException;
 import java.sql.*;
 import java.util.*;
 import java.util.concurrent.*;
@@ -62,10 +63,21 @@ public class SQLExecutor implements EventSpeaker<SQLExecutor.EventType>, Closeab
         }
         runningQueries.put(key, cachedES.submit(() -> {
             SQLConnection conn = request.getSQLConnection();
+            String query = request.getCommand();
             if (false == conn.checkConnectivity()) {
+                eventListener.onSourceEvent(
+                        SQLExecutor.this,
+                        EventType.QUERY_FAILURE,
+                        new SQLExecutionResponse(
+                                key,
+                                conn,
+                                query,
+                                new RuntimeException(String.format(
+                                        Locale.ENGLISH,
+                                        "Connection [%s] is down",
+                                        conn))));
                 return;
             }
-            String query = request.getCommand();
             LOGGER.info("Executing query: {}", query);
             long rowId = 0;
             long batchId = 0;
