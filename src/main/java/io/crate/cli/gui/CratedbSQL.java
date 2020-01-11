@@ -119,7 +119,7 @@ public class CratedbSQL {
                 boolean needsClearing = 0 == seqNo && sqlResultsTable.getRowCount() > 0;
                 boolean expectMore = SQLExecutor.EventType.RESULTS_AVAILABLE == event;
                 try {
-                    SwingUtilities.invokeAndWait(() -> {
+                    SwingUtilities.invokeLater(() -> {
                         sqlResultsTable.addRows(response.getResults(), expectMore, needsClearing);
                     });
                 } catch (Throwable throwable) {

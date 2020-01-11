@@ -26,15 +26,15 @@ public class SQLResultsTable extends JPanel implements Closeable {
     private static final Dimension BUTTON_SIZE = new Dimension(70, 42);
     private static final Dimension LABEL_SIZE = new Dimension(400, 40);
     private static final String ERROR_HEADER = "======= Error =======\n";
-    private static final int ROWS_PER_PAGE = 100;
+    private static final int ROWS_PER_PAGE = 1000;
 
 
-    private final List<SQLRowType> results;
+    private final List<SQLRowType> fullResults;
     private final JTable windowTable;
     private final JTextPane errorPane;
     private JComponent currentPane;
     private final JScrollPane windowTablePane;
-    private final ObjectTableModel<SQLRowType> windowedTableModel;
+    private final ObjectTableModel<SQLRowType> windowedResultsTableModel;
     private int currentPage;
     private boolean hasCompleted;
     private final JLabel offsetLabel;
@@ -43,15 +43,15 @@ public class SQLResultsTable extends JPanel implements Closeable {
 
 
     public SQLResultsTable() {
-        results = new ArrayList<>();
-        windowedTableModel = new ObjectTableModel<>(new String[]{}, Map::get, Map::put) {
+        fullResults = new ArrayList<>();
+        windowedResultsTableModel = new ObjectTableModel<>(new String[]{}, SQLRowType::get, SQLRowType::set) {
             @Override
             public boolean isCellEditable(int rowIdx, int colIdx) {
                 return false;
             }
         };
-        windowedTableModel.addTableModelListener(this::onTableModelEvent);
-        windowTable = GUIFactory.newTable(windowedTableModel, null);
+        windowedResultsTableModel.addTableModelListener(this::onTableModelEvent);
+        windowTable = GUIFactory.newTable(windowedResultsTableModel, null);
         currentPage = 0;
         offsetLabel = new JLabel(NO_RESULTS_LABEL);
         offsetLabel.setFont(CONTROLS_FONT);
@@ -88,7 +88,7 @@ public class SQLResultsTable extends JPanel implements Closeable {
     }
 
     private void toggleComponents() {
-        int currentCount = results.size();
+        int currentCount = fullResults.size();
         prevButton.setEnabled(currentPage > 0);
         int maxPage = (currentCount / ROWS_PER_PAGE) - 1;
         if (currentCount % ROWS_PER_PAGE > 0) {
@@ -130,10 +130,10 @@ public class SQLResultsTable extends JPanel implements Closeable {
     }
 
     private void updateWindowedTableModel() {
-        int currentCount = results.size();
+        int currentCount = fullResults.size();
         int startOffset = ROWS_PER_PAGE * currentPage;
-        int endOffset = startOffset + currentCount % ROWS_PER_PAGE;
-        windowedTableModel.setRows(results.subList(startOffset, endOffset));
+        int endOffset = startOffset + Math.min(currentCount, ROWS_PER_PAGE);
+        windowedResultsTableModel.setRows(fullResults.subList(startOffset, endOffset));
     }
 
     private void onPrevButtonEvent(ActionEvent event) {
@@ -153,44 +153,42 @@ public class SQLResultsTable extends JPanel implements Closeable {
     }
 
     public void addRows(List<SQLRowType> rows, boolean expectMore, boolean needsClearing) {
+        if (needsClearing) {
+            fullResults.clear();
+            windowedResultsTableModel.clear();
+        }
         if (currentPane == errorPane) {
             currentPane = windowTablePane;
             remove(errorPane);
             add(windowTablePane, BorderLayout.CENTER);
+            validate();
+            repaint();
         }
-        if (needsClearing) {
-            clear();
-        }
-        int newRowsCount = rows.size();
-        if (0 == newRowsCount) {
-            return;
-        }
-        int currentCount = results.size();
-        if (0 == currentCount) {
-            windowedTableModel.reset(rows.get(0).getColumnNames());
-        }
-        if (currentCount + newRowsCount <= ROWS_PER_PAGE) {
-            windowedTableModel.addRows(rows);
-        } else {
-            int allowedCount = ROWS_PER_PAGE - currentCount;
-            windowedTableModel.addRows(rows.subList(0, allowedCount));
-        }
-        results.addAll(rows);
         hasCompleted = false == expectMore;
+        int newRowsCount = rows.size();
+        if (newRowsCount > 0) {
+            if (0 == fullResults.size()) {
+                windowedResultsTableModel.reset(rows.get(0).getColumnNames());
+            }
+            fullResults.addAll(rows);
+            int currentCount = windowedResultsTableModel.getRowCount();
+            if (currentCount + newRowsCount <= ROWS_PER_PAGE) {
+                windowedResultsTableModel.addRows(rows);
+            } else {
+                int allowedCount = ROWS_PER_PAGE - currentCount;
+                windowedResultsTableModel.addRows(rows.subList(0, allowedCount));
+            }
+        }
         toggleComponents();
     }
 
     public int getRowCount() {
-        return windowedTableModel.getRowCount();
-    }
-
-    public void clear() {
-        results.clear();
-        windowedTableModel.clear();
+        return windowedResultsTableModel.getRowCount();
     }
 
     @Override
     public void close() {
-        clear();
+        fullResults.clear();
+        windowedResultsTableModel.clear();
     }
 }

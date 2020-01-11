@@ -111,7 +111,7 @@ public class SQLConnectionManager extends JPanel implements EventSpeaker<SQLConn
 
     private void onLostConnectionsEvent(Set<SQLConnection> lostConnections) {
         try {
-            SwingUtilities.invokeAndWait(() -> {
+            EventQueue.invokeAndWait(() -> {
                 toggleConnectButtonText();
                 StringBuilder finalMsg = new StringBuilder();
                 for (SQLConnection conn : lostConnections) {

@@ -32,32 +32,46 @@ public class ObjectTableModel<RowType extends HasKey> extends AbstractTableModel
         if (null == key) {
             return -1;
         }
-        for (int idx=0; idx < rows.size(); idx++) {
-            RowType row = rows.get(idx);
-            if (key.equals(row.getKey())) {
-                return idx;
+        int idx = -1;
+        synchronized (rows) {
+            for (int i=0; i < rows.size(); i++) {
+                RowType row = rows.get(i);
+                if (key.equals(row.getKey())) {
+                    idx = i;
+                    break;
+                }
             }
         }
-        return -1;
+        return idx;
     }
 
     public void clear() {
-        rows.clear();
+        synchronized (rows) {
+            rows.clear();
+        }
         fireTableDataChanged();
     }
 
     public List<RowType> getRows() {
-        return rows;
+        List<RowType> view;
+        synchronized (rows) {
+            view = Collections.unmodifiableList(rows);
+        }
+        return view;
     }
 
     public void setRows(List<RowType> newRows) {
-        rows.clear();
-        rows.addAll(newRows);
+        synchronized (rows) {
+            rows.clear();
+            rows.addAll(newRows);
+        }
         fireTableDataChanged();
     }
 
     public void addRows(List<RowType> newRows) {
-        rows.addAll(newRows);
+        synchronized (rows) {
+            rows.addAll(newRows);
+        }
         fireTableDataChanged();
     }
 
@@ -65,20 +79,31 @@ public class ObjectTableModel<RowType extends HasKey> extends AbstractTableModel
         if (null == row) {
             return;
         }
-        rows.add(row);
-        fireTableRowsInserted(rows.size() - 1, rows.size() - 1);
+        int offset;
+        synchronized (rows) {
+            rows.add(row);
+            offset = rows.size() - 1;
+        }
+        fireTableRowsInserted(offset, offset);
     }
 
     public RowType removeRow(int rowIdx) {
-        checkBounds("removeRow", rowIdx, rows.size());
-        RowType row = rows.remove(rowIdx);
+        RowType row;
+        synchronized (rows) {
+            checkBounds("removeRow", rowIdx, rows.size());
+            row = rows.remove(rowIdx);
+        }
         fireTableRowsDeleted(rowIdx, rowIdx);
         return row;
     }
 
     @Override
     public int getRowCount() {
-        return rows.size();
+        int size;
+        synchronized (rows) {
+            size = rows.size();
+        }
+        return size;
     }
 
     @Override
@@ -114,20 +139,25 @@ public class ObjectTableModel<RowType extends HasKey> extends AbstractTableModel
 
     @Override
     public Object getValueAt(int rowIdx, int colIdx) {
-        checkBounds("getValueAt", rowIdx, rows.size());
-        if (-1 == colIdx) {
-            return rows.get(rowIdx);
+        RowType row;
+        synchronized (rows) {
+            checkBounds("getValueAt", rowIdx, rows.size());
+            if (-1 == colIdx) {
+                return rows.get(rowIdx);
+            }
+            row = rows.get(rowIdx);
         }
-        RowType row = rows.get(rowIdx);
         String attributeName = getValueAt(attributeNames, colIdx);
         return attributeGetter.apply(row, attributeName);
     }
 
     @Override
     public void setValueAt(Object value, int rowIdx, int colIdx) {
-        checkBounds("setValueAt", rowIdx, rows.size());
         String attributeName = getValueAt(attributeNames, colIdx);
-        attributeSetter.apply(rows.get(rowIdx), attributeName, value);
+        synchronized (rows) {
+            checkBounds("setValueAt", rowIdx, rows.size());
+            attributeSetter.apply(rows.get(rowIdx), attributeName, value);
+        }
         fireTableCellUpdated(rowIdx, colIdx);
     }
 

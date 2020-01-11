@@ -4,17 +4,25 @@ import io.crate.cli.gui.common.HasKey;
 
 import java.util.LinkedHashMap;
 import java.util.Map;
-import java.util.concurrent.atomic.AtomicLong;
 
-public class SQLRowType extends LinkedHashMap<String, Object> implements HasKey {
 
-    private static final String [] NO_VALUES = {};
+public class SQLRowType implements HasKey {
 
     private final String key;
+    private final String [] columnNames;
+    private final Map<String, Object> values;
 
-    public SQLRowType(String key, Map<String, Object> attributes) {
-        super(attributes);
+
+    public SQLRowType(String key, String [] columnNames, Object [] values) {
+        if (columnNames.length != values.length) {
+            throw new IllegalArgumentException("columnNames.length != values.length");
+        }
         this.key = key;
+        this.columnNames = columnNames;
+        this.values = new LinkedHashMap<>(columnNames.length);
+        for (int i=0; i < columnNames.length; i++) {
+            this.values.put(columnNames[i], values[i]);
+        }
     }
 
     @Override
@@ -23,10 +31,18 @@ public class SQLRowType extends LinkedHashMap<String, Object> implements HasKey 
     }
 
     public String [] getColumnNames() {
-        int size = size();
-        if (0 == size) {
-           return NO_VALUES;
-        }
-        return keySet().toArray(new String[size]);
+        return columnNames;
+    }
+
+    public Map<String, Object> getValues() {
+        return values;
+    }
+
+    public Object get(String colName) {
+        return values.get(colName);
+    }
+
+    public Object set(String colName, Object value) {
+        throw new UnsupportedOperationException();
     }
 }
