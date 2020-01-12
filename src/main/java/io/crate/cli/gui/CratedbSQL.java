@@ -91,6 +91,7 @@ public class CratedbSQL {
     private void onCommandManagerEvent(CommandManager.EventType event, SQLExecutionRequest request) {
         switch (event) {
             case COMMAND_AVAILABLE:
+                sqlResultsTable.showInfiniteProgressPanel();
                 sqlExecutor.submit(request);
                 break;
 
@@ -108,6 +109,7 @@ public class CratedbSQL {
     }
 
     private void onSQLExecutorEvent(SQLExecutor.EventType event, SQLExecutionResponse response) {
+        sqlResultsTable.removeInfiniteProgressPanel();
         switch (event) {
             case QUERY_FAILURE:
                 sqlResultsTable.displayError(response.getError());

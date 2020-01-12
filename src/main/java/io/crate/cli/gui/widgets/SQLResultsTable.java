@@ -34,9 +34,8 @@ public class SQLResultsTable extends JPanel implements Closeable {
 
 
     private enum Mode {
-        TABLE, ERROR
+        INFINITE, TABLE, ERROR
     }
-
 
     private final List<SQLRowType> fullResults;
     private final JTable windowTable;
@@ -48,6 +47,8 @@ public class SQLResultsTable extends JPanel implements Closeable {
     private final JLabel offsetLabel;
     private final JButton prevButton;
     private final JButton nextButton;
+    private final InfiniteProgressPanel infiniteProgressPanel;
+    private Component currentPanel;
     private Mode mode;
 
 
@@ -90,29 +91,42 @@ public class SQLResultsTable extends JPanel implements Closeable {
         windowTablePane.setHorizontalScrollBarPolicy(JScrollPane.HORIZONTAL_SCROLLBAR_AS_NEEDED);
         windowTablePane.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED);
         mode = Mode.TABLE;
+        currentPanel = windowTablePane;
         setLayout(new BorderLayout());
         add(windowTablePane, BorderLayout.CENTER);
         add(controlsPane, BorderLayout.SOUTH);
+        infiniteProgressPanel = new InfiniteProgressPanel();
         toggleComponents();
+    }
+
+    public void showInfiniteProgressPanel() {
+        changeMode(Mode.INFINITE);
+        infiniteProgressPanel.start();
+    }
+
+    public void removeInfiniteProgressPanel() {
+        infiniteProgressPanel.close();
+        changeMode(Mode.TABLE);
     }
 
     private void changeMode(Mode newMode) {
         mode = newMode;
-        Component toRemove = null;
-        Component toAdd = null;
+        Component toRemove = currentPanel;
         switch (newMode) {
             case TABLE:
-                toRemove = errorPane;
-                toAdd = windowTablePane;
+                currentPanel = windowTablePane;
+                break;
+
+            case INFINITE:
+                currentPanel = infiniteProgressPanel;
                 break;
 
             case ERROR:
-                toRemove = windowTablePane;
-                toAdd = errorPane;
+                currentPanel = errorPane;
                 break;
         }
         remove(toRemove);
-        add(toAdd, BorderLayout.CENTER);
+        add(currentPanel, BorderLayout.CENTER);
         validate();
         repaint();
     }
@@ -260,6 +274,9 @@ public class SQLResultsTable extends JPanel implements Closeable {
                     new Object[]{i, "banana"}),
                     needsClearing,
                     expectMore);
+            if (false == expectMore) {
+                sched.shutdownNow();
+            }
         }, 2000, 10, TimeUnit.MILLISECONDS);
     }
 }
