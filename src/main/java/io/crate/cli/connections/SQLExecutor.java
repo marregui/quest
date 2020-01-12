@@ -10,11 +10,7 @@ import java.io.Closeable;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
-import java.util.Map;
-import java.util.HashMap;
-import java.util.List;
-import java.util.ArrayList;
-import java.util.Locale;
+import java.util.*;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
@@ -26,12 +22,13 @@ public class SQLExecutor implements EventSpeaker<SQLExecutor.EventType>, Closeab
     public enum EventType {
         RESULTS_AVAILABLE,
         RESULTS_COMPLETED,
+        QUERY_CANCELLED,
         QUERY_FAILURE
     }
 
     private static final Logger LOGGER = LoggerFactory.getLogger(SQLExecutor.class);
     private static final int START_BATCH_SIZE = 100;
-    private static final int MAX_BATCH_SIZE = 10000;
+    private static final int MAX_BATCH_SIZE = 20000;
     private static final String [] STATUS_COL_NAME_ONLY = { "Status" };
     private static final Object [] STATUS_OK_VALUE_ONLY = { "OK" };
 
@@ -90,6 +87,15 @@ public class SQLExecutor implements EventSpeaker<SQLExecutor.EventType>, Closeab
         if (null != result && false == result.isDone() && false == result.isCancelled()) {
             LOGGER.info("Cancelling pre-existing query for key: [{}]", key);
             result.cancel(true);
+            eventListener.onSourceEvent(
+                    SQLExecutor.this,
+                    EventType.QUERY_CANCELLED,
+                    new SQLExecutionResponse(
+                            key,
+                            -1,
+                            request.getSQLConnection(),
+                            request.getCommand(),
+                            Collections.emptyList()));
         }
         runningQueries.put(key, cachedES.submit(() -> {
             long startTS = System.nanoTime();
@@ -131,11 +137,13 @@ public class SQLExecutor implements EventSpeaker<SQLExecutor.EventType>, Closeab
                         rows.add(new SQLRowType(
                                 String.valueOf(rowId++),
                                 columnNames,
-                                extractColumns(columnNames, rs)));
+                                extractColumnValues(columnNames, rs)));
                         if (0 == rowId % batchSize) {
-                            LOGGER.debug(
-                                    "Query [{}] rowId:{}, batchId:{}, batchSize:{}, rows:{}",
-                                    key, rowId, batchId, batchSize, rows.size());
+                            if (LOGGER.isDebugEnabled()) {
+                                LOGGER.debug(
+                                        "Query [{}] rowId:{}, batchId:{}, batchSize:{}, batchSleep:{}, rows:{}",
+                                        key, rowId, batchId, batchSize, batchId * 10L, rows.size());
+                            }
                             eventListener.onSourceEvent(
                                     SQLExecutor.this,
                                     EventType.RESULTS_AVAILABLE,
@@ -167,9 +175,11 @@ public class SQLExecutor implements EventSpeaker<SQLExecutor.EventType>, Closeab
                         new SQLExecutionResponse(key, conn, query, e));
                 return;
             }
-            LOGGER.debug(
-                    "Query [{}] Final rowId:{}, Final batchId:{}, batchSize:{}, Total rows:{}",
-                    key, rowId, batchId, batchSize, rowId + 1);
+            if (LOGGER.isDebugEnabled()) {
+                LOGGER.debug(
+                        "Query [{}] Final rowId:{}, Final batchId:{}, batchSize:{}, Total rows:{}",
+                        key, rowId, batchId, batchSize, rowId + 1);
+            }
             eventListener.onSourceEvent(
                     SQLExecutor.this,
                     EventType.RESULTS_COMPLETED,
@@ -197,7 +207,7 @@ public class SQLExecutor implements EventSpeaker<SQLExecutor.EventType>, Closeab
         return columnNames;
     }
 
-    private static Object [] extractColumns(String [] columnNames, ResultSet rs) throws SQLException {
+    private static Object [] extractColumnValues(String [] columnNames, ResultSet rs) throws SQLException {
         Object [] columns = new Object[columnNames.length];
         for (int i = 0; i < columnNames.length; i++) {
             columns[i] = rs.getObject(i + 1);

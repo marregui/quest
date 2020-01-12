@@ -113,6 +113,10 @@ public class CratedbSQL {
                 sqlResultsTable.displayError(response.getError());
                 break;
 
+            case QUERY_CANCELLED:
+                sqlResultsTable.clear();
+                break;
+
             case RESULTS_AVAILABLE:
             case RESULTS_COMPLETED:
                 long seqNo = response.getSeqNo();
@@ -120,7 +124,7 @@ public class CratedbSQL {
                 boolean expectMore = SQLExecutor.EventType.RESULTS_AVAILABLE == event;
                 try {
                     SwingUtilities.invokeLater(() -> {
-                        sqlResultsTable.addRows(response.getResults(), expectMore, needsClearing);
+                        sqlResultsTable.addRows(response.getResults(), needsClearing, expectMore);
                     });
                 } catch (Throwable throwable) {
                     throw new RuntimeException(throwable);
@@ -139,7 +143,7 @@ public class CratedbSQL {
         frame.setVisible(isVisible);
     }
 
-    public static void main(String [] args) {
+    public static void main(String[] args) {
         CratedbSQL cratedbSql = new CratedbSQL();
         cratedbSql.setVisible(true);
         Runtime.getRuntime().addShutdownHook(new Thread(
