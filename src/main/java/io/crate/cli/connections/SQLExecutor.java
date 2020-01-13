@@ -152,11 +152,6 @@ public class SQLExecutor implements EventSpeaker<SQLExecutor.EventType>, Closeab
                                 batchSize *= 2;
                             }
                             rows = new ArrayList<>(batchSize);
-                            try {
-                                TimeUnit.MILLISECONDS.sleep(batchId * 10L);
-                            } catch (InterruptedException e) {
-                                Thread.currentThread().interrupt();
-                            }
                         }
                     }
                 } else {

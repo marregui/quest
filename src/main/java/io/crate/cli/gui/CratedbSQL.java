@@ -18,6 +18,10 @@ import javax.swing.*;
 public class CratedbSQL {
 
     public static final String VERSION = "1.0.0";
+    static {
+        System.setProperty("awt.useSystemAAFontSettings","on");
+        System.setProperty("swing.aatext", "true");
+    }
 
 
     private final SQLExecutor sqlExecutor;

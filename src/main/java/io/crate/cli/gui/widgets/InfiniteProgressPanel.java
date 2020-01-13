@@ -13,10 +13,10 @@ import java.util.concurrent.TimeUnit;
 
 public class InfiniteProgressPanel extends JPanel implements Closeable, Runnable, MouseListener {
 
-    private static final int BAR_HEIGHT = 16;
-    private static final int BAR_WIDTH = 200;
-    private static final int BAR_STRETCH = 50;
-    private static final int BAR_COUNT = 20;
+    private static final int BAR_HEIGHT = 6;
+    private static final int BAR_WIDTH = 50;
+    private static final int BAR_STRETCH = 15;
+    private static final int BAR_COUNT = 16;
     private static final long REFRESH_MILLIS = 120L;
     private static final double FIXED_ANGLE = 2.0 * Math.PI / (1.0 * BAR_COUNT);
     private static final Color BACKGROUND_COLOR = new Color(242, 242, 242, 120);
@@ -63,7 +63,7 @@ public class InfiniteProgressPanel extends JPanel implements Closeable, Runnable
 
     @Override
     public void run() {
-        Point2D.Double center = new Point2D.Double(getWidth() / 2.0, getHeight() / 2.0);
+        Point2D.Double center = updateTicker();
         AffineTransform rotate = AffineTransform.getRotateInstance(FIXED_ANGLE, center.getX(), center.getY());
         while (false == Thread.currentThread().isInterrupted()) {
             for (int i = 0; i < ticker.length; i++) {
@@ -108,16 +108,23 @@ public class InfiniteProgressPanel extends JPanel implements Closeable, Runnable
         Point2D.Double center = new Point2D.Double(getWidth() / 2.0, getHeight() / 2.0);
         Area[] ticker = new Area[BAR_COUNT];
         for (int i = 0; i < BAR_COUNT; i++) {
-            Area primitive = buildPrimitive();
-            AffineTransform toCenter = AffineTransform.getTranslateInstance(center.getX(), center.getY());
-            AffineTransform toBorder = AffineTransform.getTranslateInstance(BAR_STRETCH, -BAR_HEIGHT / 2.0);
+            ticker[i] = buildPrimitive();
+        }
+        return ticker;
+    }
+
+    private Point2D.Double updateTicker() {
+        Point2D.Double center = new Point2D.Double(getWidth() / 2.0, getHeight() / 2.0);
+        AffineTransform toCenter = AffineTransform.getTranslateInstance(center.getX(), center.getY());
+        AffineTransform toBorder = AffineTransform.getTranslateInstance(BAR_STRETCH, -BAR_HEIGHT / 2.0);
+        for (int i = 0; i < BAR_COUNT; i++) {
             AffineTransform rotate = AffineTransform.getRotateInstance(-1.0 * i * FIXED_ANGLE, center.getX(), center.getY());
+            Area primitive = ticker[i];
             primitive.transform(toCenter);
             primitive.transform(toBorder);
             primitive.transform(rotate);
-            ticker[i] = primitive;
         }
-        return ticker;
+        return center;
     }
 
     @Override
