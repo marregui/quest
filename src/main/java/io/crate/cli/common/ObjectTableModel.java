@@ -1,4 +1,6 @@
-package io.crate.cli.gui.common;
+package io.crate.cli.common;
+
+import io.crate.cli.persistence.HasKey;
 
 import javax.swing.table.AbstractTableModel;
 import java.util.*;

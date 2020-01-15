@@ -1,37 +1,46 @@
 package io.crate.cli.connections;
 
-import io.crate.cli.gui.common.HasKey;
+import io.crate.cli.persistence.HasKey;
+import io.crate.cli.persistence.StoreItemDescriptor;
 
 import java.util.*;
 
 
-public class ConnectionDescriptor implements HasKey {
+public class ConnectionDescriptor extends StoreItemDescriptor {
+
+    public enum AttributeName implements HasKey {
+
+        host("localhost"),
+        port("5432"),
+        username("crate"),
+        password("");
+
+
+        private final String defaultValue;
+
+        AttributeName(String defaultValue) {
+            this.defaultValue = defaultValue;
+        }
+
+        @Override
+        public String getKey() {
+            return name();
+        }
+
+        public String getDefaultValue() {
+            return defaultValue;
+        }
+    }
 
     private static final String JDBC_DRIVER_URL_FORMAT = "jdbc:crate://%s:%s/";
 
 
-    private String name;
-    private Map<String, String> attributes;
-
-
     public ConnectionDescriptor(String name) {
-        if (null == name || name.isEmpty()) {
-            throw new IllegalArgumentException("name cannot be null or empty");
-        }
-        this.name = name;
-        attributes = new TreeMap<>();
-        attributes.put(AttributeName.key(name, AttributeName.host), AttributeName.host.getDefaultValue());
-        attributes.put(AttributeName.key(name, AttributeName.port), AttributeName.port.getDefaultValue());
-        attributes.put(AttributeName.key(name, AttributeName.username), AttributeName.username.getDefaultValue());
-        attributes.put(AttributeName.key(name, AttributeName.password), AttributeName.password.getDefaultValue());
-    }
-
-    public String getAttributeKey(AttributeName attr) {
-        return AttributeName.key(name, attr);
-    }
-
-    public Map<String, String> getAttributes() {
-        return attributes;
+        super(name);
+        attributes.put(getStoreItemAttributeKey(AttributeName.host), AttributeName.host.getDefaultValue());
+        attributes.put(getStoreItemAttributeKey(AttributeName.port), AttributeName.port.getDefaultValue());
+        attributes.put(getStoreItemAttributeKey(AttributeName.username), AttributeName.username.getDefaultValue());
+        attributes.put(getStoreItemAttributeKey(AttributeName.password), AttributeName.password.getDefaultValue());
     }
 
     @Override
@@ -40,41 +49,9 @@ public class ConnectionDescriptor implements HasKey {
                 Locale.ENGLISH,
                 "%s %s@%s:%s",
                 name,
-                attributes.get(getAttributeKey(AttributeName.username)),
-                attributes.get(getAttributeKey(AttributeName.host)),
-                attributes.get(getAttributeKey(AttributeName.port)));
-    }
-
-    public String getName() {
-        return name;
-    }
-
-    public String setName(String newName) {
-        if (null == newName || newName.isEmpty()) {
-            throw new IllegalArgumentException("newName cannot be null or empty");
-        }
-        if (false == name.equals(newName)) {
-            attributes = getRenamedAttributes(attributes, newName);
-            name = newName;
-        }
-        return name;
-    }
-
-    private Map<String, String> getRenamedAttributes(Map<String, String> attributes, String newName) {
-        Map<String, String> renamed = new HashMap<>();
-        for (Map.Entry<String, String> entry : attributes.entrySet()) {
-            AttributeName.splitKey(entry.getKey(), (uniqueName, attributeName) -> {
-                if (uniqueName.equals(name)) {
-                    String newKey = name.equals(newName) ?
-                            entry.getKey()
-                            :
-                            AttributeName.key(newName, attributeName);
-                    renamed.put(newKey, entry.getValue());
-                }
-            });
-
-        }
-        return renamed;
+                attributes.get(getStoreItemAttributeKey(AttributeName.username)),
+                attributes.get(getStoreItemAttributeKey(AttributeName.host)),
+                attributes.get(getStoreItemAttributeKey(AttributeName.port)));
     }
 
     public String getUrl() {
@@ -86,28 +63,6 @@ public class ConnectionDescriptor implements HasKey {
         props.put("user", getUsername());
         props.put("password", getPassword());
         return props;
-    }
-
-    public String getAttribute(String attributeName) {
-        return getAttribute(AttributeName.valueOf(attributeName));
-    }
-
-    private String getAttribute(AttributeName attributeName) {
-        return attributes.get(getAttributeKey(attributeName));
-    }
-
-    public String setAttribute(String attributeName, String value) {
-        return setAttribute(AttributeName.valueOf(attributeName), value);
-    }
-
-    public String setAttribute(AttributeName attributeName, String value) {
-        return setAttribute(attributeName, value, attributeName.getDefaultValue());
-    }
-
-    public String setAttribute(AttributeName attributeName, String value, String defaultValue) {
-        return attributes.put(
-                getAttributeKey(attributeName),
-                null == value || value.isEmpty() ? defaultValue : value);
     }
 
     public String getHost() {
@@ -156,27 +111,5 @@ public class ConnectionDescriptor implements HasKey {
 
     public void setPassword(String password, String defaultPassword) {
         setAttribute(AttributeName.password, password, defaultPassword);
-    }
-
-    @Override
-    public boolean equals(Object o) {
-        if (this == o) {
-            return true;
-        }
-        if (o == null || getClass() != o.getClass()) {
-            return false;
-        }
-        ConnectionDescriptor that = (ConnectionDescriptor) o;
-        return name.equals(that.name) && attributes.equals(that.attributes);
-    }
-
-    @Override
-    public int hashCode() {
-        return Objects.hash(name, attributes);
-    }
-
-    @Override
-    public String toString() {
-        return getKey();
     }
 }

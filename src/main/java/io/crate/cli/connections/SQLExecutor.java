@@ -1,7 +1,7 @@
 package io.crate.cli.connections;
 
-import io.crate.cli.gui.common.EventListener;
-import io.crate.cli.gui.common.EventSpeaker;
+import io.crate.cli.common.EventListener;
+import io.crate.cli.common.EventSpeaker;
 import io.crate.shade.org.postgresql.jdbc.PgResultSetMetaData;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

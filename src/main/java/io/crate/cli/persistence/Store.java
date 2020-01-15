@@ -1,6 +1,4 @@
-package io.crate.cli.connections;
-
-import io.crate.cli.gui.common.HasKey;
+package io.crate.cli.persistence;
 
 import java.io.File;
 import java.util.*;
@@ -14,7 +12,9 @@ public interface Store<EntryType extends HasKey> extends Iterable<EntryType> {
 
     File getPath();
 
-    void add(EntryType value);
+    void clear();
+
+    void store(EntryType value);
 
     void remove(EntryType value);
 
@@ -23,6 +23,8 @@ public interface Store<EntryType extends HasKey> extends Iterable<EntryType> {
     List<EntryType> values();
 
     EntryType lookup(String key);
+
+    int size();
 
     @Override
     default Iterator<EntryType> iterator() {

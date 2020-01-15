@@ -1,11 +1,10 @@
-package io.crate.cli.gui.widgets;
+package io.crate.cli.widgets;
 
-import io.crate.cli.connections.AttributeName;
+import io.crate.cli.connections.ConnectionDescriptor;
 import io.crate.cli.connections.ConnectivityChecker;
 import io.crate.cli.connections.SQLConnection;
-import io.crate.cli.gui.CratedbSQL;
-import io.crate.cli.gui.common.*;
-import io.crate.cli.connections.ConnectionDescriptorStore;
+import io.crate.cli.common.*;
+import io.crate.cli.persistence.ConnectionDescriptorStore;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -45,10 +44,10 @@ public class SQLConnectionManager extends JPanel implements EventSpeaker<SQLConn
     private static final String CONNECTED = "connected";
     private static final String[] COLUMN_NAMES = {
             NAME,
-            AttributeName.host.name(),
-            AttributeName.port.name(),
-            AttributeName.username.name(),
-            AttributeName.password.name(),
+            ConnectionDescriptor.AttributeName.host.name(),
+            ConnectionDescriptor.AttributeName.port.name(),
+            ConnectionDescriptor.AttributeName.username.name(),
+            ConnectionDescriptor.AttributeName.password.name(),
             CONNECTED
     };
     private static final int[] COLUMN_WIDTHS = {
@@ -77,7 +76,7 @@ public class SQLConnectionManager extends JPanel implements EventSpeaker<SQLConn
                     case NAME:
                         return conn.setName((String) value);
                     default:
-                        return conn.setAttribute(attrName, (String) value);
+                        return conn.setAttribute(attrName, (String) value, "");
                 }
             };
 
@@ -267,7 +266,7 @@ public class SQLConnectionManager extends JPanel implements EventSpeaker<SQLConn
         SQLConnection added = new SQLConnection(name, template);
         int offset = tableModel.addRow(added);
         table.getSelectionModel().addSelectionInterval(offset, offset);
-        store.add(added);
+        store.store(added);
         toggleComponents();
         return added;
     }
@@ -424,28 +423,5 @@ public class SQLConnectionManager extends JPanel implements EventSpeaker<SQLConn
             }
         }
         toggleComponents();
-    }
-
-    public static void main(String[] args) {
-        SQLConnectionManager mngr = new SQLConnectionManager(((source, eventType, eventData) -> {
-            System.out.printf(
-                    Locale.ENGLISH,
-                    "from: %s, [%s]: %s\n",
-                    source.getClass().getSimpleName(),
-                    eventType,
-                    eventData);
-        }));
-        mngr.start();
-        GUIFactory.newFrame(
-                "Connection Manager",
-                80, 20,
-                mngr)
-                .setVisible(true);
-        Runtime.getRuntime().addShutdownHook(new Thread(
-                mngr::close,
-                String.format(
-                        Locale.ENGLISH,
-                        "%s shutdown tasks",
-                        CratedbSQL.class.getSimpleName())));
     }
 }

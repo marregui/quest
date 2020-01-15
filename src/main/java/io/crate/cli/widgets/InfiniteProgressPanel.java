@@ -1,6 +1,6 @@
-package io.crate.cli.gui.widgets;
+package io.crate.cli.widgets;
 
-import io.crate.cli.gui.common.GUIFactory;
+import io.crate.cli.common.GUIFactory;
 
 import javax.swing.*;
 import java.awt.*;

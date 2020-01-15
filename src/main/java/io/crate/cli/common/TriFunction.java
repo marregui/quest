@@ -1,4 +1,4 @@
-package io.crate.cli.gui.common;
+package io.crate.cli.common;
 
 @FunctionalInterface
 public interface TriFunction<T, U, V, R> {

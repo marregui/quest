@@ -1,18 +1,19 @@
-package io.crate.cli.gui;
+package io.crate.cli;
 
-import java.awt.*;
-import java.util.*;
-
+import io.crate.cli.common.EventSpeaker;
+import io.crate.cli.common.GUIFactory;
 import io.crate.cli.connections.SQLConnection;
+import io.crate.cli.connections.SQLExecutionRequest;
 import io.crate.cli.connections.SQLExecutionResponse;
 import io.crate.cli.connections.SQLExecutor;
-import io.crate.cli.gui.widgets.CommandBoardManager;
-import io.crate.cli.gui.common.*;
-import io.crate.cli.gui.widgets.SQLConnectionManager;
-import io.crate.cli.connections.SQLExecutionRequest;
-import io.crate.cli.gui.widgets.SQLResultsManager;
+import io.crate.cli.widgets.CommandBoardManager;
+import io.crate.cli.widgets.SQLConnectionManager;
+import io.crate.cli.widgets.SQLResultsManager;
 
 import javax.swing.*;
+import java.awt.*;
+import java.util.Locale;
+import java.util.Set;
 
 
 public class CratedbSQL {
@@ -151,6 +152,7 @@ public class CratedbSQL {
         sqlExecutor.close();
         sqlConnectionManager.close();
         sqlResultsManager.close();
+        commandBoardManager.close();
     }
 
     private void setVisible(boolean isVisible) {

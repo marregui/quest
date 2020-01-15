@@ -1,4 +1,4 @@
-package io.crate.cli.gui.common;
+package io.crate.cli.common;
 
 import javax.swing.*;
 import javax.swing.table.DefaultTableCellRenderer;

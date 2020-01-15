@@ -1,4 +1,4 @@
-package io.crate.cli.gui.common;
+package io.crate.cli.persistence;
 
 public interface HasKey {
 

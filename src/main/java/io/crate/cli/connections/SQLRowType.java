@@ -1,6 +1,6 @@
 package io.crate.cli.connections;
 
-import io.crate.cli.gui.common.HasKey;
+import io.crate.cli.persistence.HasKey;
 
 import java.util.LinkedHashMap;
 import java.util.Map;

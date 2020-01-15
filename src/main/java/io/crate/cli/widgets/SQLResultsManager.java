@@ -1,10 +1,10 @@
-package io.crate.cli.gui.widgets;
+package io.crate.cli.widgets;
 
 import io.crate.cli.connections.SQLExecutionResponse;
 import io.crate.cli.connections.SQLExecutor;
 import io.crate.cli.connections.SQLRowType;
-import io.crate.cli.gui.common.GUIFactory;
-import io.crate.cli.gui.common.ObjectTableModel;
+import io.crate.cli.common.GUIFactory;
+import io.crate.cli.common.ObjectTableModel;
 
 import javax.swing.*;
 import javax.swing.border.BevelBorder;

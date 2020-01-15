@@ -10,7 +10,7 @@ java {
 }
 
 application {
-    mainClassName = 'io.crate.cli.gui.CratedbSQL'
+    mainClassName = 'io.crate.cli.CratedbSQL'
 }
 
 wrapper {
@@ -39,7 +39,7 @@ dependencies {
 
 jar {
     manifest {
-        attributes "Main-Class": "io.crate.cli.gui.CratedbSQL"
+        attributes "Main-Class": "io.crate.cli.CratedbSQL"
     }
  
     from {
