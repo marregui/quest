@@ -20,17 +20,19 @@ import java.util.concurrent.TimeUnit;
 public class SQLExecutor implements EventSpeaker<SQLExecutor.EventType>, Closeable {
 
     public enum EventType {
-        RESULTS_AVAILABLE,
-        RESULTS_COMPLETED,
+        QUERY_STARTED,
+        QUERY_FETCHING,
+        QUERY_COMPLETED,
         QUERY_CANCELLED,
-        QUERY_FAILURE
+        QUERY_FAILURE,
+        RESULTS_AVAILABLE
     }
 
     private static final Logger LOGGER = LoggerFactory.getLogger(SQLExecutor.class);
     private static final int START_BATCH_SIZE = 100;
     private static final int MAX_BATCH_SIZE = 20000;
-    private static final String [] STATUS_COL_NAME_ONLY = { "Status" };
-    private static final Object [] STATUS_OK_VALUE_ONLY = { "OK" };
+    private static final String[] STATUS_COL_NAME_ONLY = {"Status"};
+    private static final Object[] STATUS_OK_VALUE_ONLY = {"OK"};
 
 
     private final EventListener<SQLExecutor, SQLExecutionResponse> eventListener;
@@ -78,7 +80,7 @@ public class SQLExecutor implements EventSpeaker<SQLExecutor.EventType>, Closeab
         }
     }
 
-    public void submit(SQLExecutionRequest request) {
+    public void cancelSubmittedRequest(SQLExecutionRequest request) {
         if (null == cachedES) {
             throw new IllegalStateException("not started");
         }
@@ -87,123 +89,161 @@ public class SQLExecutor implements EventSpeaker<SQLExecutor.EventType>, Closeab
         if (null != result && false == result.isDone() && false == result.isCancelled()) {
             LOGGER.info("Cancelling pre-existing query for key: [{}]", key);
             result.cancel(true);
+            request.setWasCancelled(true);
             eventListener.onSourceEvent(
                     SQLExecutor.this,
                     EventType.QUERY_CANCELLED,
-                    new SQLExecutionResponse(
-                            key,
-                            -1,
-                            request.getSQLConnection(),
-                            request.getCommand(),
-                            Collections.emptyList()));
+                    new SQLExecutionResponse(request, 0L, 0L, 0L));
         }
-        runningQueries.put(key, cachedES.submit(() -> {
-            long startTS = System.nanoTime();
-            SQLConnection conn = request.getSQLConnection();
-            String query = request.getCommand();
-            if (false == conn.checkConnectivity()) {
-                LOGGER.error("While about to run [{}], lost connectivity with {}", key, conn);
-                eventListener.onSourceEvent(
-                        SQLExecutor.this,
-                        EventType.QUERY_FAILURE,
-                        new SQLExecutionResponse(
-                                key,
-                                conn,
-                                query,
-                                new RuntimeException(String.format(
-                                        Locale.ENGLISH,
-                                        "Connection [%s] is down",
-                                        conn))));
-                return;
-            }
-            long checkedConnectivityTS = System.nanoTime();
-            long queryExecutedTS = checkedConnectivityTS;
-            long resultSetConsumedTS = checkedConnectivityTS;
-            LOGGER.info("Executing query [{}]: {}", key, query);
-            int rowId = 0;
-            int batchId = 0;
-            int batchSize = START_BATCH_SIZE;
-            List<SQLRowType> rows = new ArrayList<>(batchSize);
-            try (Statement stmt = conn.getConnection().createStatement()) {
-                boolean checkResults = stmt.execute(query);
-                queryExecutedTS = System.nanoTime();
-                if (checkResults) {
-                    ResultSet rs = stmt.getResultSet();
-                    String [] columnNames = null;
-                    while (rs.next()) {
-                        if (null == columnNames) {
-                            columnNames = extractColumnNames(rs);
-                        }
-                        rows.add(new SQLRowType(
-                                String.valueOf(rowId++),
-                                columnNames,
-                                extractColumnValues(columnNames, rs)));
-                        if (0 == rowId % batchSize) {
-                            if (LOGGER.isDebugEnabled()) {
-                                LOGGER.debug(
-                                        "Query [{}] rowId:{}, batchId:{}, batchSize:{}, batchSleep:{}, rows:{}",
-                                        key, rowId, batchId, batchSize, batchId * 10L, rows.size());
-                            }
-                            eventListener.onSourceEvent(
-                                    SQLExecutor.this,
-                                    EventType.RESULTS_AVAILABLE,
-                                    new SQLExecutionResponse(key, batchId++, conn, query, rows));
-                            if (batchSize <= MAX_BATCH_SIZE) {
-                                batchSize *= 2;
-                            }
-                            rows = new ArrayList<>(batchSize);
-                        }
-                    }
-                } else {
-                    LOGGER.info("Query [{}]: OK", key);
-                    rows.add(new SQLRowType(
-                            String.valueOf(rowId++),
-                            STATUS_COL_NAME_ONLY,
-                            STATUS_OK_VALUE_ONLY));
-                }
-                resultSetConsumedTS = System.nanoTime();
-            } catch (SQLException e) {
-                LOGGER.error("Error query [{}]: {}", key, e.getMessage());
-                eventListener.onSourceEvent(
-                        SQLExecutor.this,
-                        EventType.QUERY_FAILURE,
-                        new SQLExecutionResponse(key, conn, query, e));
-                return;
-            }
-            if (LOGGER.isDebugEnabled()) {
-                LOGGER.debug(
-                        "Query [{}] Final rowId:{}, Final batchId:{}, batchSize:{}, Total rows:{}",
-                        key, rowId, batchId, batchSize, rowId + 1);
-            }
+    }
+
+    public void submit(SQLExecutionRequest request) {
+        if (null == cachedES) {
+            throw new IllegalStateException("not started");
+        }
+        String key = request.getKey();
+        cancelSubmittedRequest(request);
+        runningQueries.put(key, cachedES.submit(() -> executeQuery(request)));
+        LOGGER.info("Query [{}] submitted", key);
+    }
+
+    private final void executeQuery(SQLExecutionRequest request) {
+        String key = request.getKey();
+        String query = request.getCommand();
+        SQLConnection conn = request.getSQLConnection();
+        if (false == conn.checkConnectivity()) {
+            LOGGER.error("While about to run [{}], lost connectivity with {}", key, conn);
             eventListener.onSourceEvent(
                     SQLExecutor.this,
-                    EventType.RESULTS_COMPLETED,
-                    new SQLExecutionResponse(key, batchId++, conn, query, rows));
-            long totalElapsedMs = toMillis(resultSetConsumedTS - startTS);
-            long queryExecutionElapsedMs = toMillis(queryExecutedTS - checkedConnectivityTS);
-            long fetchResultsElapsedMs = toMillis(resultSetConsumedTS - queryExecutedTS);
-            LOGGER.info("Query [{}] {} results, elapsed ms:{} (query:{}, fetch:{})",
-                    key, rowId, totalElapsedMs, queryExecutionElapsedMs, fetchResultsElapsedMs);
-        }));
-        LOGGER.info("Query [{}] submitted", key);
+                    EventType.QUERY_FAILURE,
+                    new SQLExecutionResponse(
+                            key,
+                            conn,
+                            query,
+                            new RuntimeException(String.format(
+                                    Locale.ENGLISH,
+                                    "Connection [%s] is down",
+                                    conn))));
+            return;
+        }
+        long checkpointTs = System.nanoTime();
+        long startTS = checkpointTs;
+        long queryExecutedTs;
+        long queryExecutedMs;
+        LOGGER.info("Executing query [{}]: {}", key, query);
+        int rowId = 0;
+        int batchId = 0;
+        int batchSize = START_BATCH_SIZE;
+        List<SQLRowType> rows = new ArrayList<>(batchSize);
+        eventListener.onSourceEvent(
+                SQLExecutor.this,
+                EventType.QUERY_STARTED,
+                new SQLExecutionResponse(request, 0L, 0L,0L));
+        try (Statement stmt = conn.getConnection().createStatement()) {
+            boolean checkResults = stmt.execute(query);
+            queryExecutedTs = System.nanoTime();
+            queryExecutedMs = toMillis(queryExecutedTs - startTS);
+            if (checkResults) {
+                eventListener.onSourceEvent(
+                        SQLExecutor.this,
+                        EventType.QUERY_FETCHING,
+                        new SQLExecutionResponse(
+                                request,
+                                queryExecutedMs,
+                                queryExecutedMs,
+                                0L));
+                ResultSet rs = stmt.getResultSet();
+                String[] columnNames = null;
+                while (rs.next()) {
+                    checkpointTs = System.nanoTime();
+                    if (null == columnNames) {
+                        columnNames = extractColumnNames(rs);
+                    }
+                    rows.add(new SQLRowType(
+                            String.valueOf(rowId++),
+                            columnNames,
+                            extractColumnValues(columnNames, rs)));
+                    if (0 == rowId % batchSize) {
+                        if (LOGGER.isDebugEnabled()) {
+                            LOGGER.debug(
+                                    "Query [{}] rowId:{}, batchId:{}, batchSize:{}, batchSleep:{}, rows:{}",
+                                    key, rowId, batchId, batchSize, batchId * 10L, rows.size());
+                        }
+                        eventListener.onSourceEvent(
+                                SQLExecutor.this,
+                                EventType.RESULTS_AVAILABLE,
+                                new SQLExecutionResponse(
+                                        key,
+                                        batchId++,
+                                        conn,
+                                        query,
+                                        toMillis(checkpointTs - startTS),
+                                        queryExecutedMs,
+                                        toMillis(checkpointTs - queryExecutedTs),
+                                        rows));
+                        if (batchSize <= MAX_BATCH_SIZE) {
+                            batchSize *= 2;
+                        }
+                        rows = new ArrayList<>(batchSize);
+                    }
+                }
+            } else {
+                LOGGER.info("Query [{}]: OK", key);
+                rows.add(new SQLRowType(
+                        String.valueOf(rowId++),
+                        STATUS_COL_NAME_ONLY,
+                        STATUS_OK_VALUE_ONLY));
+            }
+        } catch (SQLException e) {
+            LOGGER.error("Error query [{}]: {}", key, e.getMessage());
+            eventListener.onSourceEvent(
+                    SQLExecutor.this,
+                    EventType.QUERY_FAILURE,
+                    new SQLExecutionResponse(key, conn, query, e));
+            return;
+        }
+        if (LOGGER.isDebugEnabled()) {
+            LOGGER.debug(
+                    "Query [{}] Final rowId:{}, Final batchId:{}, batchSize:{}, Total rows:{}",
+                    key, rowId, batchId, batchSize, rowId + 1);
+        }
+        checkpointTs = System.nanoTime();
+        eventListener.onSourceEvent(
+                SQLExecutor.this,
+                EventType.QUERY_COMPLETED,
+                new SQLExecutionResponse(
+                        key,
+                        batchId++,
+                        conn,
+                        query,
+                        toMillis(checkpointTs - startTS),
+                        queryExecutedMs,
+                        toMillis(checkpointTs - queryExecutedTs),
+                        rows));
+        LOGGER.info("Query [{}] {} results, elapsed ms:{} (query:{}, fetch:{})",
+                key,
+                rowId,
+                toMillis(checkpointTs - startTS),
+                queryExecutedMs,
+                toMillis(checkpointTs - queryExecutedTs));
     }
 
     private static final long toMillis(long nanos) {
         return TimeUnit.MILLISECONDS.convert(nanos, TimeUnit.NANOSECONDS);
     }
 
-    private static String [] extractColumnNames(ResultSet rs) throws SQLException {
+    private static String[] extractColumnNames(ResultSet rs) throws SQLException {
         PgResultSetMetaData metaData = (PgResultSetMetaData) rs.getMetaData();
         int columnCount = metaData.getColumnCount();
-        String [] columnNames = new String[columnCount];
+        String[] columnNames = new String[columnCount];
         for (int i = 0; i < columnCount; i++) {
-            columnNames[i] = metaData.getColumnName(i+1);
+            columnNames[i] = metaData.getColumnName(i + 1);
         }
         return columnNames;
     }
 
-    private static Object [] extractColumnValues(String [] columnNames, ResultSet rs) throws SQLException {
-        Object [] columns = new Object[columnNames.length];
+    private static Object[] extractColumnValues(String[] columnNames, ResultSet rs) throws SQLException {
+        Object[] columns = new Object[columnNames.length];
         for (int i = 0; i < columnNames.length; i++) {
             columns[i] = rs.getObject(i + 1);
         }

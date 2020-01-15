@@ -1,5 +1,7 @@
 package io.crate.cli.gui.widgets;
 
+import io.crate.cli.connections.SQLExecutionResponse;
+import io.crate.cli.connections.SQLExecutor;
 import io.crate.cli.connections.SQLRowType;
 import io.crate.cli.gui.common.GUIFactory;
 import io.crate.cli.gui.common.ObjectTableModel;
@@ -21,15 +23,15 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 
 
-public class SQLResultsTable extends JPanel implements Closeable {
+public class SQLResultsManager extends JPanel implements Closeable {
 
-    private static final Font CONTROLS_FONT = new Font("monospaced", Font.BOLD, 14);
-    private static final Color CONTROLS_FONT_COLOR = Color.BLACK;
-    private static final Color ERROR_FONT_COLOR = new Color(189, 4, 4);
-    private static final String NO_RESULTS_LABEL = "No results";
-    private static final Dimension BUTTON_SIZE = new Dimension(70, 42);
-    private static final Dimension LABEL_SIZE = new Dimension(400, 40);
-    private static final String ERROR_HEADER = "======= Error =======\n";
+    private static final String NO_RESULTS_LABEL = "  No results";
+    private static final String NAVIGATION_BUTTON_PREV_TEXT = "PREV";
+    private static final String NAVIGATION_BUTTON_NEXT_TEXT = "NEXT";
+    private static final Dimension NAVIGATION_BUTTON_SIZE = new Dimension(70, 38);
+    private static final Dimension STATUS_LABEL_SIZE = new Dimension(600, 35);
+    private static final Dimension NAVIGATION_OFFSETS_LABEL_SIZE = new Dimension(400, 35);
+
     private static final int ROWS_PER_PAGE = 1000;
 
 
@@ -44,15 +46,16 @@ public class SQLResultsTable extends JPanel implements Closeable {
     private final ObjectTableModel<SQLRowType> windowedResultsTableModel;
     private int currentPage;
     private boolean hasCompleted;
-    private final JLabel offsetLabel;
-    private final JButton prevButton;
-    private final JButton nextButton;
+    private final JLabel navigationLabel;
+    private final JLabel statusLabel;
+    private final JButton leftButton;
+    private final JButton rightButton;
     private final InfiniteProgressPanel infiniteProgressPanel;
     private Component currentPanel;
     private Mode mode;
 
 
-    public SQLResultsTable() {
+    public SQLResultsManager() {
         fullResults = new ArrayList<>();
         windowedResultsTableModel = new ObjectTableModel<>(new String[]{}, SQLRowType::get, SQLRowType::set) {
             @Override
@@ -63,30 +66,39 @@ public class SQLResultsTable extends JPanel implements Closeable {
         windowedResultsTableModel.addTableModelListener(this::onTableModelEvent);
         windowTable = GUIFactory.newTable(windowedResultsTableModel, null);
         currentPage = 0;
-        offsetLabel = new JLabel(NO_RESULTS_LABEL);
-        offsetLabel.setFont(CONTROLS_FONT);
-        offsetLabel.setForeground(CONTROLS_FONT_COLOR);
-        offsetLabel.setBorder(BorderFactory.createBevelBorder(BevelBorder.LOWERED));
-        offsetLabel.setPreferredSize(LABEL_SIZE);
-        offsetLabel.setSize(LABEL_SIZE);
-        offsetLabel.setHorizontalAlignment(JLabel.CENTER);
-        prevButton = new JButton("PREV");
-        prevButton.setFont(CONTROLS_FONT);
-        prevButton.setForeground(CONTROLS_FONT_COLOR);
-        prevButton.setPreferredSize(BUTTON_SIZE);
-        prevButton.addActionListener(this::onPrevButtonEvent);
-        nextButton = new JButton("NEXT");
-        nextButton.setFont(CONTROLS_FONT);
-        nextButton.setForeground(CONTROLS_FONT_COLOR);
-        nextButton.setPreferredSize(BUTTON_SIZE);
-        nextButton.addActionListener(this::onNextButtonEvent);
+        navigationLabel = new JLabel(NO_RESULTS_LABEL);
+        navigationLabel.setFont(GUIFactory.TABLE_FOOTER_FONT);
+        navigationLabel.setForeground(GUIFactory.TABLE_FOOTER_COLOR);
+        navigationLabel.setBorder(BorderFactory.createBevelBorder(BevelBorder.LOWERED));
+        navigationLabel.setPreferredSize(NAVIGATION_OFFSETS_LABEL_SIZE);
+        navigationLabel.setSize(NAVIGATION_OFFSETS_LABEL_SIZE);
+        navigationLabel.setHorizontalAlignment(JLabel.LEADING);
+        statusLabel = new JLabel(NO_RESULTS_LABEL);
+        statusLabel.setFont(GUIFactory.TABLE_FOOTER_FONT);
+        statusLabel.setForeground(GUIFactory.TABLE_FOOTER_COLOR);
+        statusLabel.setBorder(BorderFactory.createBevelBorder(BevelBorder.LOWERED));
+        statusLabel.setPreferredSize(STATUS_LABEL_SIZE);
+        statusLabel.setSize(STATUS_LABEL_SIZE);
+        statusLabel.setHorizontalAlignment(JLabel.LEADING);
+        leftButton = new JButton(NAVIGATION_BUTTON_PREV_TEXT);
+        leftButton.setFont(GUIFactory.TABLE_FOOTER_FONT);
+        leftButton.setForeground(GUIFactory.TABLE_FOOTER_COLOR);
+        leftButton.setPreferredSize(NAVIGATION_BUTTON_SIZE);
+        leftButton.addActionListener(this::onPrevButtonEvent);
+        rightButton = new JButton(NAVIGATION_BUTTON_NEXT_TEXT);
+        rightButton.setFont(GUIFactory.TABLE_FOOTER_FONT);
+        rightButton.setForeground(GUIFactory.TABLE_FOOTER_COLOR);
+        rightButton.setPreferredSize(NAVIGATION_BUTTON_SIZE);
+        rightButton.addActionListener(this::onNextButtonEvent);
         errorPane = GUIFactory.newTextComponent();
-        errorPane.setForeground(ERROR_FONT_COLOR);
+        errorPane.setFont(GUIFactory.ERROR_FONT);
+        errorPane.setForeground(GUIFactory.ERROR_FONT_COLOR);
         errorPane.setEditable(false);
-        JPanel controlsPane = new JPanel(new FlowLayout(FlowLayout.RIGHT, 5, 5));
-        controlsPane.add(offsetLabel);
-        controlsPane.add(prevButton);
-        controlsPane.add(nextButton);
+        JPanel controlsPane = new JPanel(new FlowLayout(FlowLayout.RIGHT, 0, 5));
+        controlsPane.add(statusLabel);
+        controlsPane.add(navigationLabel);
+        controlsPane.add(leftButton);
+        controlsPane.add(rightButton);
         windowTablePane = new JScrollPane(windowTable);
         windowTablePane.setHorizontalScrollBarPolicy(JScrollPane.HORIZONTAL_SCROLLBAR_AS_NEEDED);
         windowTablePane.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED);
@@ -97,6 +109,18 @@ public class SQLResultsTable extends JPanel implements Closeable {
         add(controlsPane, BorderLayout.SOUTH);
         infiniteProgressPanel = new InfiniteProgressPanel();
         toggleComponents();
+    }
+
+    public void updateStatus(SQLExecutor.EventType event, SQLExecutionResponse response) {
+        statusLabel.setText(String.format(
+                Locale.ENGLISH,
+                "  %s Q.Exec: %d, Q.Fetch: %d, Q.Total: %d (ms)",
+                event,
+                response.getQueryExecutionElapsedMs(),
+                response.getFetchResultsElapsedMs(),
+                response.getTotalElapsedMs()));
+        validate();
+        repaint();
     }
 
     public void showInfiniteProgressPanel() {
@@ -110,6 +134,9 @@ public class SQLResultsTable extends JPanel implements Closeable {
     }
 
     private void changeMode(Mode newMode) {
+        if (mode == newMode) {
+            return;
+        }
         mode = newMode;
         Component toRemove = currentPanel;
         switch (newMode) {
@@ -133,12 +160,12 @@ public class SQLResultsTable extends JPanel implements Closeable {
 
     private void toggleComponents() {
         int currentCount = fullResults.size();
-        prevButton.setEnabled(currentPage > 0);
+        leftButton.setEnabled(currentPage > 0);
         int maxPage = (currentCount / ROWS_PER_PAGE) - 1;
         if (currentCount % ROWS_PER_PAGE > 0) {
             maxPage++;
         }
-        nextButton.setEnabled(currentPage < maxPage);
+        rightButton.setEnabled(currentPage < maxPage);
         if (currentCount > 0) {
             int startOffset = 1 + currentPage * ROWS_PER_PAGE;
             int endOffset = startOffset + ROWS_PER_PAGE - 1;
@@ -147,15 +174,19 @@ public class SQLResultsTable extends JPanel implements Closeable {
             }
             String text = String.format(
                     Locale.ENGLISH,
-                    "Showing %d to %d of %d [%s]",
+                    "  Showing %d to %d of %d [%s]",
                     startOffset, endOffset, currentCount, hasCompleted ? "finished" : "ongoing");
-            offsetLabel.setText(text);
+            navigationLabel.setText(text);
+        } else {
+            navigationLabel.setText(String.format(
+                    Locale.ENGLISH,
+                    "  Showing 0 results"));
         }
     }
 
     public void displayError(Throwable error) {
         StringBuilder sb = new StringBuilder();
-        sb.append("\n").append(ERROR_HEADER).append("\n");
+        sb.append("\n").append(GUIFactory.ERROR_HEADER).append("\n");
         try (StringWriter sw = new StringWriter();
              PrintWriter pw = new PrintWriter(sw)) {
             error.printStackTrace(pw);
@@ -164,7 +195,7 @@ public class SQLResultsTable extends JPanel implements Closeable {
             throw new RuntimeException(e);
         }
         errorPane.setText(sb.toString());
-        if (Mode.TABLE == mode) {
+        if (Mode.ERROR != mode) {
             changeMode(Mode.ERROR);
         }
     }
@@ -195,6 +226,8 @@ public class SQLResultsTable extends JPanel implements Closeable {
     public void clear() {
         fullResults.clear();
         windowedResultsTableModel.clear();
+        infiniteProgressPanel.close();
+        toggleComponents();
     }
 
     public void addRow(SQLRowType row, boolean needsClearing, boolean expectMore) {
@@ -255,7 +288,7 @@ public class SQLResultsTable extends JPanel implements Closeable {
 
     public static void main(String[] args) throws Exception {
         int maxRows = 100;
-        SQLResultsTable table = new SQLResultsTable();
+        SQLResultsManager table = new SQLResultsManager();
         GUIFactory.newFrame(
                 "SQLResultsTable",
                 80,

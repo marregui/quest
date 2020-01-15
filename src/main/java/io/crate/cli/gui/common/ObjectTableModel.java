@@ -45,6 +45,14 @@ public class ObjectTableModel<RowType extends HasKey> extends AbstractTableModel
         return idx;
     }
 
+    public boolean contains(RowType item) {
+        boolean contains;
+        synchronized (rows) {
+            contains = rows.contains(item);
+        }
+        return contains;
+    }
+
     public void clear() {
         synchronized (rows) {
             rows.clear();
@@ -69,15 +77,17 @@ public class ObjectTableModel<RowType extends HasKey> extends AbstractTableModel
     }
 
     public void addRows(List<RowType> newRows) {
+        int start;
         synchronized (rows) {
+            start = rows.size();
             rows.addAll(newRows);
         }
         fireTableDataChanged();
     }
 
-    public void addRow(RowType row) {
+    public int addRow(RowType row) {
         if (null == row) {
-            return;
+            return -1;
         }
         int offset;
         synchronized (rows) {
@@ -85,6 +95,7 @@ public class ObjectTableModel<RowType extends HasKey> extends AbstractTableModel
             offset = rows.size() - 1;
         }
         fireTableRowsInserted(offset, offset);
+        return offset;
     }
 
     public RowType removeRow(int rowIdx) {
@@ -164,5 +175,9 @@ public class ObjectTableModel<RowType extends HasKey> extends AbstractTableModel
     @Override
     public boolean isCellEditable(int rowIdx, int colIdx) {
         return true;
+    }
+
+    public RowType getElementAt(int index) {
+        return rows.get(index);
     }
 }

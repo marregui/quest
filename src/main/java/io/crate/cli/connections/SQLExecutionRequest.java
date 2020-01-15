@@ -13,6 +13,12 @@ public class SQLExecutionRequest implements HasKey {
     private final long seqNo;
     private final SQLConnection sqlConnection;
     private final String command;
+    private volatile boolean wasCancelled;
+
+    public SQLExecutionRequest(SQLExecutionRequest request) {
+        this(request.getKey(), request.getSeqNo(), request.getSQLConnection(), request.getCommand());
+        wasCancelled = request.wasCancelled();
+    }
 
     public SQLExecutionRequest(String key, SQLConnection sqlConnection, String command) {
         this(key, MONOTONIC.getAndIncrement(), sqlConnection, command);
@@ -23,6 +29,14 @@ public class SQLExecutionRequest implements HasKey {
         this.seqNo = seqNo;
         this.sqlConnection = sqlConnection;
         this.command = command;
+    }
+
+    public void setWasCancelled(boolean wasCancelled) {
+        this.wasCancelled = wasCancelled;
+    }
+
+    public boolean wasCancelled() {
+        return this.wasCancelled;
     }
 
     public long getSeqNo() {

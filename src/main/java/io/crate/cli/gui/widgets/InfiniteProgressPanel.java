@@ -14,16 +14,16 @@ import java.util.concurrent.TimeUnit;
 public class InfiniteProgressPanel extends JPanel implements Closeable, Runnable, MouseListener {
 
     private static final int BAR_HEIGHT = 6;
-    private static final int BAR_WIDTH = 50;
-    private static final int BAR_STRETCH = 15;
-    private static final int BAR_COUNT = 16;
+    private static final int BAR_WIDTH = BAR_HEIGHT * 6;
+    private static final int BAR_STRETCH = BAR_WIDTH / 3;
+    private static final int BAR_COUNT = 11;
     private static final long REFRESH_MILLIS = 120L;
     private static final double FIXED_ANGLE = 2.0 * Math.PI / (1.0 * BAR_COUNT);
     private static final Color BACKGROUND_COLOR = new Color(242, 242, 242, 120);
     private static final Color [] BAR_COLORS = new Color[BAR_COUNT];
     static {
         for (int i=0; i < BAR_COUNT; i++) {
-            int channel = 224 - 128 / (i + 1);
+            int channel = 242 - 120 / (i + 1);
             BAR_COLORS[i] = new Color(channel, channel, channel);
         }
     }
@@ -129,32 +129,32 @@ public class InfiniteProgressPanel extends JPanel implements Closeable, Runnable
 
     @Override
     public void mouseClicked(MouseEvent e) {
-
+        // nothing
     }
 
     @Override
     public void mousePressed(MouseEvent e) {
-
+        // nothing
     }
 
     @Override
     public void mouseReleased(MouseEvent e) {
-
+        // nothing
     }
 
     @Override
     public void mouseEntered(MouseEvent e) {
-
+        // nothing
     }
 
     @Override
     public void mouseExited(MouseEvent e) {
-
+        // nothing
     }
 
     public static void main(String[] args) {
         InfiniteProgressPanel spinner = new InfiniteProgressPanel();
-        SQLResultsTable table = new SQLResultsTable();
+        SQLResultsManager table = new SQLResultsManager();
         JFrame frame = GUIFactory.newFrame(
                 "Spinner",
                 80,

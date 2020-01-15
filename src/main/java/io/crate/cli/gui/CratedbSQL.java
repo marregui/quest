@@ -6,11 +6,11 @@ import java.util.*;
 import io.crate.cli.connections.SQLConnection;
 import io.crate.cli.connections.SQLExecutionResponse;
 import io.crate.cli.connections.SQLExecutor;
-import io.crate.cli.gui.widgets.CommandManager;
+import io.crate.cli.gui.widgets.CommandBoardManager;
 import io.crate.cli.gui.common.*;
 import io.crate.cli.gui.widgets.SQLConnectionManager;
 import io.crate.cli.connections.SQLExecutionRequest;
-import io.crate.cli.gui.widgets.SQLResultsTable;
+import io.crate.cli.gui.widgets.SQLResultsManager;
 
 import javax.swing.*;
 
@@ -18,92 +18,97 @@ import javax.swing.*;
 public class CratedbSQL {
 
     public static final String VERSION = "1.0.0";
-    static {
-        System.setProperty("awt.useSystemAAFontSettings","on");
-        System.setProperty("swing.aatext", "true");
-    }
 
 
     private final SQLExecutor sqlExecutor;
     private final SQLConnectionManager sqlConnectionManager;
-    private final CommandManager commandManager;
-    private final SQLResultsTable sqlResultsTable;
+    private final CommandBoardManager commandBoardManager;
+    private final SQLResultsManager sqlResultsManager;
     private final JFrame frame;
 
 
     private CratedbSQL() {
         sqlExecutor = new SQLExecutor(this::onSourceEvent);
-        sqlExecutor.start();
-        commandManager = new CommandManager(this::onSourceEvent);
+        commandBoardManager = new CommandBoardManager(this::onSourceEvent);
         sqlConnectionManager = new SQLConnectionManager(this::onSourceEvent);
-        sqlConnectionManager.start();
-        sqlResultsTable = new SQLResultsTable();
+        sqlResultsManager = new SQLResultsManager();
         JPanel topPanel = new JPanel(new BorderLayout());
         topPanel.add(sqlConnectionManager, BorderLayout.NORTH);
-        topPanel.add(commandManager, BorderLayout.CENTER);
-        JSplitPane splitPane = new JSplitPane(JSplitPane.VERTICAL_SPLIT,
-                false,
-                topPanel,
-                sqlResultsTable
-        );
-        JPanel mainManel = new JPanel(new BorderLayout());
-        mainManel.add(splitPane, BorderLayout.CENTER);
-        frame = GUIFactory.newFrame(String.format(
-                Locale.ENGLISH,
-                "CratedbSQL %s [store: %s]",
-                VERSION,
-                sqlConnectionManager.getStorePath().getAbsolutePath()),
-                90, 90,
-                mainManel);
+        topPanel.add(commandBoardManager, BorderLayout.CENTER);
+        JPanel mainPanel = new JPanel(new BorderLayout());
+        mainPanel.add(
+                new JSplitPane(
+                        JSplitPane.VERTICAL_SPLIT,
+                        false,
+                        topPanel,
+                        sqlResultsManager),
+                BorderLayout.CENTER);
+        frame = GUIFactory.newFrame(
+                String.format(
+                        Locale.ENGLISH,
+                        "CratedbSQL %s [store: %s]",
+                        VERSION,
+                        sqlConnectionManager.getStorePath().getAbsolutePath()),
+                GUIFactory.FRAME_WIDTH_AS_PERCENT_OF_SCREEN_WIDTH,
+                GUIFactory.FRAME_HEIGHT_AS_PERCENT_OF_SCREEN_WIDTH,
+                mainPanel);
+        sqlConnectionManager.start();
+        sqlExecutor.start();
     }
 
     private void onSourceEvent(EventSpeaker source, Enum eventType, Object eventData) {
         if (source instanceof SQLConnectionManager) {
-            onSQLConnectionManagerEvent(sqlConnectionManager.eventType(eventType), (SQLConnection) eventData);
-        } else if (source instanceof CommandManager) {
-            onCommandManagerEvent(commandManager.eventType(eventType), (SQLExecutionRequest) eventData);
+            onSQLConnectionManagerEvent(sqlConnectionManager.eventType(eventType), eventData);
+        } else if (source instanceof CommandBoardManager) {
+            onCommandManagerEvent(commandBoardManager.eventType(eventType), (SQLExecutionRequest) eventData);
         } else if (source instanceof SQLExecutor) {
             onSQLExecutorEvent(sqlExecutor.eventType(eventType), (SQLExecutionResponse) eventData);
         }
     }
 
-    private void onSQLConnectionManagerEvent(SQLConnectionManager.EventType event, SQLConnection conn) {
+    private void onSQLConnectionManagerEvent(SQLConnectionManager.EventType event, Object eventData) {
         switch (event) {
             case CONNECTION_SELECTED:
-                commandManager.setSQLConnection(conn);
+                commandBoardManager.setSQLConnection((SQLConnection) eventData);
                 break;
 
             case CONNECTION_ESTABLISHED:
             case CONNECTION_CLOSED:
-                SQLConnection current = commandManager.getSQLConnection();
+                SQLConnection conn = (SQLConnection) eventData;
+                SQLConnection current = commandBoardManager.getSQLConnection();
                 if (null != current && current.equals(conn)) {
-                    commandManager.setSQLConnection(conn);
+                    commandBoardManager.setSQLConnection(conn);
                 }
                 break;
 
             case CONNECTIONS_LOST:
-                // TODO
-                break;
-
-            case REPAINT_REQUIRED:
-                frame.validate();
-                frame.repaint();
+                Set<SQLConnection> lostConnections = (Set<SQLConnection>) eventData;
+                current = commandBoardManager.getSQLConnection();
+                for (SQLConnection c : lostConnections) {
+                    if (null != current && current.equals(c)) {
+                        commandBoardManager.setSQLConnection(c);
+                    }
+                }
                 break;
         }
     }
 
-    private void onCommandManagerEvent(CommandManager.EventType event, SQLExecutionRequest request) {
+    private void onCommandManagerEvent(CommandBoardManager.EventType event, SQLExecutionRequest request) {
         switch (event) {
             case COMMAND_AVAILABLE:
-                sqlResultsTable.showInfiniteProgressPanel();
+                sqlResultsManager.showInfiniteProgressPanel();
                 sqlExecutor.submit(request);
+                break;
+
+            case COMMAND_CANCEL:
+                sqlExecutor.cancelSubmittedRequest(request);
                 break;
 
             case CONNECT_KEYBOARD_REQUEST:
                 sqlConnectionManager.onConnectButtonEvent(request.getSQLConnection());
                 break;
 
-            case BUFFER_CHANGE:
+            case BOARD_CHANGE:
                 SQLConnection conn = request.getSQLConnection();
                 if (null != conn) {
                     sqlConnectionManager.setSelectedItem(conn);
@@ -113,28 +118,31 @@ public class CratedbSQL {
     }
 
     private void onSQLExecutorEvent(SQLExecutor.EventType event, SQLExecutionResponse response) {
-        sqlResultsTable.removeInfiniteProgressPanel();
+        GUIFactory.addToSwingEventQueue(() -> sqlResultsManager.updateStatus(event, response));
         switch (event) {
+            case QUERY_STARTED:
+            case QUERY_FETCHING:
+                break;
+
             case QUERY_FAILURE:
-                sqlResultsTable.displayError(response.getError());
+                GUIFactory.addToSwingEventQueue(sqlResultsManager::removeInfiniteProgressPanel);
+                GUIFactory.addToSwingEventQueue(() -> sqlResultsManager.displayError(response.getError()));
                 break;
 
             case QUERY_CANCELLED:
-                sqlResultsTable.clear();
+                GUIFactory.addToSwingEventQueue(sqlResultsManager::removeInfiniteProgressPanel);
+                GUIFactory.addToSwingEventQueue(sqlResultsManager::clear);
                 break;
 
             case RESULTS_AVAILABLE:
-            case RESULTS_COMPLETED:
+            case QUERY_COMPLETED:
+                GUIFactory.addToSwingEventQueue(sqlResultsManager::removeInfiniteProgressPanel);
                 long seqNo = response.getSeqNo();
-                boolean needsClearing = 0 == seqNo && sqlResultsTable.getRowCount() > 0;
+                boolean needsClearing = 0 == seqNo && sqlResultsManager.getRowCount() > 0;
                 boolean expectMore = SQLExecutor.EventType.RESULTS_AVAILABLE == event;
-                try {
-                    SwingUtilities.invokeLater(() -> {
-                        sqlResultsTable.addRows(response.getResults(), needsClearing, expectMore);
-                    });
-                } catch (Throwable throwable) {
-                    throw new RuntimeException(throwable);
-                }
+                GUIFactory.addToSwingEventQueue(() -> {
+                    sqlResultsManager.addRows(response.getResults(), needsClearing, expectMore);
+                });
                 break;
         }
     }
@@ -142,7 +150,7 @@ public class CratedbSQL {
     private void shutdown() {
         sqlExecutor.close();
         sqlConnectionManager.close();
-        sqlResultsTable.close();
+        sqlResultsManager.close();
     }
 
     private void setVisible(boolean isVisible) {

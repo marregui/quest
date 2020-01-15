@@ -14,7 +14,7 @@ public class StringCellRenderer extends DefaultTableCellRenderer {
 
     private static final Color SELECTED_BG_COLOR = new Color(102, 140, 255);
     private static final Color SELECTED_FG_COLOR = Color.WHITE;
-    private static final Font SELECTED_FONT = new Font("monospaced", Font.BOLD, 14);
+    private static final Font SELECTED_FONT = new Font("monospaced", Font.BOLD, 16);
 
 
     private final Color bgColor;

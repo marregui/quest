@@ -79,7 +79,7 @@ public class ConnectionDescriptorStore<T extends ConnectionDescriptor> implement
         if (null == props) {
             return new TreeMap<>();
         }
-        Map<String, T> elementsByUniqueName = new HashMap<>();
+        Map<String, T> elementsByUniqueName = new LinkedHashMap<>();
         String defaultHost = getAttribute(props, AttributeName.host);
         String defaultPort = getAttribute(props, AttributeName.port);
         String defaultUsername = getAttribute(props, AttributeName.username);
