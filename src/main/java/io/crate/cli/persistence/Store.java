@@ -16,6 +16,8 @@ public interface Store<EntryType extends HasKey> extends Iterable<EntryType> {
 
     void store(EntryType value);
 
+    void addAll(boolean clear, EntryType... value);
+
     void remove(EntryType value);
 
     Set<String> keys();

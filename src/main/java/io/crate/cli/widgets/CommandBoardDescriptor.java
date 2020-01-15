@@ -20,9 +20,8 @@ public class CommandBoardDescriptor extends StoreItemDescriptor {
         }
     }
 
+
     private SQLConnection sqlConnection;
-    private String sqlConnectionName;
-    private String boardContents;
 
 
     public CommandBoardDescriptor(String name) {
@@ -40,19 +39,19 @@ public class CommandBoardDescriptor extends StoreItemDescriptor {
     }
 
     public String getSqlConnectionName() {
-        return sqlConnectionName;
+        return getAttribute(AttributeName.connection_name);
     }
 
     public void setSqlConnectionName(String sqlConnectionName) {
-        this.sqlConnectionName = sqlConnectionName;
+        setAttribute(AttributeName.connection_name, sqlConnectionName, "");
     }
 
     public String getBoardContents() {
-        return boardContents;
+        return getAttribute(AttributeName.board_contents);
     }
 
     public void setBoardContents(String boardContents) {
-        this.boardContents = boardContents;
+        setAttribute(AttributeName.board_contents, boardContents, "");
     }
 
     @Override

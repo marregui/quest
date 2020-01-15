@@ -4,12 +4,30 @@ import io.crate.cli.connections.SQLConnection;
 import io.crate.cli.persistence.CommandBoardStore;
 
 import java.util.Arrays;
+import java.util.Locale;
 
 
 public class CommandBoardManagerData {
 
     public static String toKey(int offset) {
         return String.valueOf((char) ('A' + offset));
+    }
+
+    public static int fromKey(String key, int max) {
+        if (null == key || key.trim().length() < 1) {
+            throw new IllegalArgumentException(String.format(
+                    Locale.ENGLISH,
+                    "key cannot be null, it must contain one non white char: %s",
+                    key));
+        }
+        int offset = key.trim().charAt(0) - 'A';
+        if (offset < 0 || offset >= max) {
+            throw new IndexOutOfBoundsException(String.format(
+                    Locale.ENGLISH,
+                    "Key [%s] -> offset: %d (max: %d)",
+                    key, offset, max));
+        }
+        return offset;
     }
 
     private final CommandBoardStore<CommandBoardDescriptor> store;
@@ -20,22 +38,29 @@ public class CommandBoardManagerData {
     public CommandBoardManagerData(int size) {
         store = new CommandBoardStore<>(CommandBoardDescriptor::new);
         store.load();
-        descriptors = new CommandBoardDescriptor[Math.max(size, store.size())];
+        descriptors = new CommandBoardDescriptor[Math.max(size, store.size() % size)];
         Arrays.fill(descriptors, null);
         currentIdx = 0;
         store.values().toArray(descriptors);
-        Arrays.sort(descriptors);
+        arrangeDescriptorsByKey();
+    }
+
+    private void arrangeDescriptorsByKey() {
+        for (int i=0; i < descriptors.length; i++) {
+            CommandBoardDescriptor di = descriptors[i];
+            if (null != di) {
+                int idx = fromKey(di.getKey(), descriptors.length);
+                if (idx != i) {
+                    CommandBoardDescriptor tmp = descriptors[i];
+                    descriptors[i] = descriptors[idx];
+                    descriptors[idx] = tmp;
+                }
+            }
+        }
     }
 
     public void store() {
-//        store.clear();
-//        for (int i = 0; i < descriptors.length; i++) {
-//            CommandBoardDescriptor descriptor = descriptors[i];
-//            if (null != descriptor) {
-//                store.store(descriptor);
-//            }
-//        }
-//        store.store();
+        store.addAll(true, descriptors);
     }
 
     public String getCurrentKey() {
@@ -75,6 +100,9 @@ public class CommandBoardManagerData {
 
     public void setCurrentSQLConnection(SQLConnection conn) {
         current().setSqlConnection(conn);
+        if (null != conn) {
+            current().setSqlConnectionName(conn.getName());
+        }
     }
 
     public String getCurrentBoardContents() {

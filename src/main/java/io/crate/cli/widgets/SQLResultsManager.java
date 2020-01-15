@@ -25,7 +25,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 public class SQLResultsManager extends JPanel implements Closeable {
 
-    private static final String NO_RESULTS_LABEL = "  No results";
+    private static final String NO_RESULTS_LABEL = "  No timing results";
     private static final String NAVIGATION_BUTTON_PREV_TEXT = "PREV";
     private static final String NAVIGATION_BUTTON_NEXT_TEXT = "NEXT";
     private static final Dimension NAVIGATION_BUTTON_SIZE = new Dimension(70, 38);

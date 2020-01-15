@@ -46,6 +46,8 @@ public class CommandBoardStore<T extends CommandBoardDescriptor> extends BaseSto
 
     @Override
     protected String [] producePropertiesFileContents(CommandBoardDescriptor cb) {
+        System.out.println("UZULO name: " + cb.getSqlConnectionName());
+        System.out.println("UZULO buff: " + cb.getBoardContents());
         return new String[]{
                 toPropertiesFileFormat(cb.getStoreItemAttributeKey(AttributeName.connection_name), cb.getSqlConnectionName()),
                 toPropertiesFileFormat(cb.getStoreItemAttributeKey(AttributeName.board_contents), cb.getBoardContents())

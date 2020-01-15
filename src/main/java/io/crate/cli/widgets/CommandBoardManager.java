@@ -23,7 +23,6 @@ import java.util.function.Supplier;
 
 public class CommandBoardManager extends JPanel implements EventSpeaker<CommandBoardManager.EventType>, Closeable {
 
-
     public enum EventType {
         COMMAND_AVAILABLE,
         COMMAND_CANCEL,
@@ -31,7 +30,7 @@ public class CommandBoardManager extends JPanel implements EventSpeaker<CommandB
         BOARD_CHANGE
     }
 
-    private static final int NUM_BOARDS = 8;
+    public static final int NUM_BOARDS = 8;
     private static final String BORDER_TITLE = "Command Board";
 
 
@@ -48,17 +47,15 @@ public class CommandBoardManager extends JPanel implements EventSpeaker<CommandB
 
     public CommandBoardManager(EventListener<CommandBoardManager, SQLExecutionRequest> eventListener) {
         this.eventListener = eventListener;
+        commandBoardManagerData = new CommandBoardManagerData(NUM_BOARDS);
         textPane = GUIFactory.newTextComponent();
         textPane.addKeyListener(createKeyListener());
-        commandBoardManagerData = new CommandBoardManagerData(NUM_BOARDS);
+        textPane.setText(commandBoardManagerData.getCurrentBoardContents());
         JPanel bufferButtonsPanel = new JPanel(new GridLayout(1, NUM_BOARDS, 0, 5));
         boardHeaderButtons = new JButton[NUM_BOARDS];
         for (int i = 0; i < NUM_BOARDS; i++) {
             int boardIdx = i;
             JButton button = new JButton(CommandBoardManagerData.toKey(boardIdx));
-            button.setBorder(boardIdx == commandBoardManagerData.getCurrentIdx() ?
-                    GUIFactory.COMMAND_BOARD_DISCONNECTED_BORDER :
-                    GUIFactory.COMMAND_BOARD_UNSELECTED_BORDER);
             button.addActionListener(e -> onChangeBufferEvent(boardIdx));
             button.setFont(GUIFactory.COMMAND_BOARD_HEADER_FONT);
             boardHeaderButtons[boardIdx] = button;
@@ -94,6 +91,7 @@ public class CommandBoardManager extends JPanel implements EventSpeaker<CommandB
         add(bufferActionButtonsPanel, BorderLayout.NORTH);
         add(scrollPane, BorderLayout.CENTER);
         setPreferredSize(GUIFactory.COMMAND_BOARD_MANAGER_HEIGHT);
+        toggleComponents();
     }
 
     public SQLConnection getSQLConnection() {
@@ -154,6 +152,7 @@ public class CommandBoardManager extends JPanel implements EventSpeaker<CommandB
                 GUIFactory.COMMAND_BOARD_DISCONNECTED_BORDER;
         boardHeaderButtons[commandBoardManagerData.getCurrentIdx()].setBorder(border);
         runButton.setEnabled(isConnected);
+        runLineButton.setEnabled(isConnected);
         cancelButton.setEnabled(isConnected);
     }
 

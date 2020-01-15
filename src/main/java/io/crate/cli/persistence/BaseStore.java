@@ -53,6 +53,21 @@ public abstract class BaseStore<StoreType extends StoreItemDescriptor> implement
     }
 
     @Override
+    public void addAll(boolean clear, StoreType... entries) {
+        if (clear) {
+            elements.clear();
+            elementsByKey.clear();
+        }
+        for (StoreType e: entries) {
+            if (null != e) {
+                elements.add(e);
+                elementsByKey.put(e.getKey(), e);
+            }
+        }
+        store();
+    }
+
+    @Override
     public void load() {
         ensureStoreExists();
         Map<String, StoreType> elementsByUniqueName = loadFromProperties(loadProperties());
