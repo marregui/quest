@@ -16,17 +16,27 @@ import java.util.regex.Pattern;
 public final class GUIToolkit {
 
     static {
+        // antialiased fonts
         System.setProperty("awt.useSystemAAFontSettings","on");
         System.setProperty("swing.aatext", "true");
     }
 
     public static final String LOGO_FILE_NAME = "/cratedb_logo.png";
+    public static final Color CRATE_COLOR = new Color(66, 188, 245);
     public static final int FRAME_WIDTH_AS_PERCENT_OF_SCREEN_WIDTH = 90;
     public static final int FRAME_HEIGHT_AS_PERCENT_OF_SCREEN_WIDTH = 90;
 
-    public static final int NUM_BOARDS = 6;
+    public static final int NUM_COMMAND_BOARDS = 6;
+
 
     public static String toCommandBoardKey(int offset) {
+        if (offset < 0 || offset >= NUM_COMMAND_BOARDS) {
+            throw new IllegalArgumentException(String.format(
+                    Locale.ENGLISH,
+                    "offset: %d out of range (max: %d)",
+                    offset,
+                    NUM_COMMAND_BOARDS - 1));
+        }
         return String.valueOf((char) ('A' + offset));
     }
 
@@ -34,15 +44,15 @@ public final class GUIToolkit {
         if (null == key || key.trim().length() < 1) {
             throw new IllegalArgumentException(String.format(
                     Locale.ENGLISH,
-                    "key cannot be null, it must contain one non white char: %s",
+                    "key cannot be null, must contain one non white char: %s",
                     key));
         }
         int offset = key.trim().charAt(0) - 'A';
-        if (offset < 0 || offset >= NUM_BOARDS) {
+        if (offset < 0 || offset >= NUM_COMMAND_BOARDS) {
             throw new IndexOutOfBoundsException(String.format(
                     Locale.ENGLISH,
                     "Key [%s] -> offset: %d (max: %d)",
-                    key, offset, NUM_BOARDS));
+                    key, offset, NUM_COMMAND_BOARDS - 1));
         }
         return offset;
     }
@@ -51,13 +61,12 @@ public final class GUIToolkit {
     public static final Dimension SQL_CONNECTION_MANAGER_HEIGHT = new Dimension(0, 200);
     public static final Dimension COMMAND_BOARD_MANAGER_HEIGHT = new Dimension(0, 300);
 
+    public static final String ERROR_HEADER = "======= Error =======\n";
     public static final Font ERROR_FONT = new Font(MAIN_FONT_NAME, Font.BOLD, 14);
     public static final Color ERROR_FONT_COLOR = new Color(189, 4, 4); // blood
-    public static final String ERROR_HEADER = "======= Error =======\n";
-
 
     public static final Color TABLE_HEADER_FONT_COLOR = Color.BLACK;
-    public static final Color TABLE_CELL_COLOR = new Color(66, 188, 245);
+    public static final Color TABLE_CELL_COLOR = CRATE_COLOR;
     public static final Color TABLE_FOOTER_COLOR = Color.BLACK;
     public static final Font TABLE_HEADER_FONT = new Font(MAIN_FONT_NAME, Font.BOLD, 18);
     public static final Font TABLE_CELL_FONT = new Font(MAIN_FONT_NAME, Font.PLAIN, 16);
@@ -71,30 +80,73 @@ public final class GUIToolkit {
     public static final Font TABLE_CELL_SELECTED_FONT = new Font(GUIToolkit.MAIN_FONT_NAME, Font.BOLD, 16);
 
     public static final Color COMMAND_BOARD_FONT_COLOR = Color.WHITE;
-    public static final Color COMMAND_BOARD_KEYWORD_FONT_COLOR = TABLE_CELL_COLOR;
+    public static final Color COMMAND_BOARD_KEYWORD_FONT_COLOR = CRATE_COLOR;
     public static final Color COMMAND_BOARD_BACKGROUND_COLOR = Color.BLACK;
     public static final Color COMMAND_BOARD_CARET_COLOR = Color.GREEN;
     public static final Font COMMAND_BOARD_HEADER_FONT = new Font(MAIN_FONT_NAME, Font.BOLD, 16);
     public static final Font COMMAND_BOARD_BODY_FONT = new Font(MAIN_FONT_NAME, Font.BOLD, 18);
 
-    public static final Border COMMAND_BOARD_CONNECTED_BORDER = BorderFactory.createLineBorder(TABLE_CELL_COLOR, 4, true);
+    public static final Border COMMAND_BOARD_CONNECTED_BORDER = BorderFactory.createLineBorder(CRATE_COLOR, 4, true);
     public static final Border COMMAND_BOARD_DISCONNECTED_BORDER = BorderFactory.createLineBorder(Color.BLACK, 2, true);
     public static final Border COMMAND_BOARD_UNSELECTED_BORDER = BorderFactory.createLineBorder(Color.LIGHT_GRAY, 1, false);
+
+    public static String resolveNameForSqlType(int sqlType) {
+        String type = null;
+        switch (sqlType) {
+            case Types.BOOLEAN:
+                type = "BOOL";
+                break;
+
+            case Types.TINYINT:
+            case Types.SMALLINT:
+            case Types.INTEGER:
+            case Types.BIGINT:
+                type = "INT";
+                break;
+
+            case Types.REAL:
+            case Types.DOUBLE:
+                type = "FLT";
+                break;
+
+            case Types.VARCHAR:
+                type = "STR";
+                break;
+
+            default:
+                System.out.println("No type for java.sql.Types type: " + sqlType);
+        }
+        return type;
+    }
 
     public static Color resolveColorForSqlType(int sqlType) {
         Color color = Color.BLACK;
         switch (sqlType) {
-            case Types.VARCHAR:
+            case Types.BOOLEAN:
+                color = new Color(0, 0, 128); // navy
+                break;
+
+            case Types.TINYINT:
+            case Types.SMALLINT:
+            case Types.INTEGER:
+            case Types.BIGINT:
+                color = new Color(128, 128, 0); // olive
+                break;
+
+            case Types.REAL:
+            case Types.DOUBLE:
                 color = Color.GREEN;
                 break;
 
-            case Types.INTEGER:
-                color = Color.ORANGE;
+            case Types.VARCHAR:
+                color = new Color(0, 128, 128);
                 break;
+
+            default:
+                System.out.println("No color for java.sql.Types type: " + sqlType);
         }
         return color;
     }
-
 
     public static void addToSwingEventQueue(Runnable ... runnables) {
         if (EventQueue.isDispatchThread()) {
@@ -168,7 +220,7 @@ public final class GUIToolkit {
         header.setFont(TABLE_HEADER_FONT);
         header.setForeground(TABLE_HEADER_FONT_COLOR);
         TableColumnModel columnModel = header.getColumnModel();
-        columnModel.setColumnSelectionAllowed(false);
+        columnModel.setColumnSelectionAllowed(true);
         return table;
     }
 

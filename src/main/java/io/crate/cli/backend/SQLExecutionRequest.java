@@ -1,6 +1,6 @@
 package io.crate.cli.backend;
 
-import io.crate.cli.persistence.HasKey;
+import io.crate.cli.store.HasKey;
 
 import java.util.concurrent.atomic.AtomicLong;
 

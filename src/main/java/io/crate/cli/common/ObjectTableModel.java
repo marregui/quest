@@ -1,6 +1,6 @@
 package io.crate.cli.common;
 
-import io.crate.cli.persistence.HasKey;
+import io.crate.cli.store.HasKey;
 
 import javax.swing.table.AbstractTableModel;
 import java.util.*;
@@ -151,7 +151,12 @@ public class ObjectTableModel<RowType extends HasKey> extends AbstractTableModel
 
     @Override
     public String getColumnName(int colIdx) {
-        return getValueAt(attributeNames, colIdx);
+        return String.format(Locale.ENGLISH,
+                "%s%s",
+                getValueAt(attributeNames, colIdx),
+                null == attributeTypes ?
+                        "" :
+                        " [" + GUIToolkit.resolveNameForSqlType(attributeTypes[colIdx]) + "]");
     }
 
     @Override

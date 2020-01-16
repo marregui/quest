@@ -1,4 +1,4 @@
-package io.crate.cli.persistence;
+package io.crate.cli.store;
 
 import java.util.*;
 import java.util.function.BiConsumer;

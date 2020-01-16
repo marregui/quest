@@ -1,6 +1,6 @@
 package io.crate.cli.backend;
 
-import io.crate.cli.persistence.HasKey;
+import io.crate.cli.store.HasKey;
 
 import java.util.LinkedHashMap;
 import java.util.Map;
@@ -18,8 +18,9 @@ public class SQLRowType implements HasKey {
                       String [] columnNames,
                       int [] columnTypes,
                       Object [] values) {
-        if (columnNames.length != values.length) {
-            throw new IllegalArgumentException("columnNames.length != values.length");
+        if (columnNames.length != columnTypes.length && columnNames.length != values.length) {
+            throw new IllegalArgumentException(
+                    "columnNames.length != columnTypes.length != values.length");
         }
         this.key = key;
         this.columnNames = columnNames;

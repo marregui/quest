@@ -1,4 +1,4 @@
-package io.crate.cli.persistence;
+package io.crate.cli.store;
 
 import com.google.gson.Gson;
 import org.slf4j.Logger;

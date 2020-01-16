@@ -1,7 +1,7 @@
 package io.crate.cli.backend;
 
-import io.crate.cli.persistence.HasKey;
-import io.crate.cli.persistence.StoreItemDescriptor;
+import io.crate.cli.store.HasKey;
+import io.crate.cli.store.StoreItemDescriptor;
 
 import java.util.*;
 

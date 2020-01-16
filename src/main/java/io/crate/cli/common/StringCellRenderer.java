@@ -34,10 +34,9 @@ public class StringCellRenderer extends DefaultTableCellRenderer {
                                                    boolean hasFocus,
                                                    int rowIdx,
                                                    int colIdx) {
-
+        super.getTableCellRendererComponent(table, value, isSelected, hasFocus, rowIdx, colIdx);
         ObjectTableModel<SQLRowType> tableModel = (ObjectTableModel<SQLRowType>) table.getModel();
         if (rowIdx >= 0 && rowIdx < tableModel.getRowCount()) {
-            super.getTableCellRendererComponent(table, value, isSelected, hasFocus, rowIdx, colIdx);
             if (isSelected) {
                 setFont(GUIToolkit.TABLE_CELL_SELECTED_FONT);
                 setForeground(GUIToolkit.SELECTED_FG_COLOR);
@@ -45,13 +44,13 @@ public class StringCellRenderer extends DefaultTableCellRenderer {
             } else {
                 setFont(font);
                 Color foreground = Color.BLACK;
-                if (colIdx > 0) {
+                if (colIdx >= 0) {
                     Object maybeSqlRow = tableModel.getValueAt(rowIdx, -1);
                     if (maybeSqlRow instanceof SQLRowType) {
                         SQLRowType row = (SQLRowType) maybeSqlRow;
                         int[] colTypes = row.getColumnTypes();
                         if (null != colTypes) {
-                            foreground = GUIToolkit.resolveColorForSqlType(colTypes[colIdx - 1]);
+                            foreground = GUIToolkit.resolveColorForSqlType(colTypes[colIdx]);
                         }
                     }
                 }

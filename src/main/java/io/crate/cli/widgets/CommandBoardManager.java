@@ -50,9 +50,9 @@ public class CommandBoardManager extends JPanel implements EventSpeaker<CommandB
         textPane = GUIToolkit.newTextComponent();
         textPane.addKeyListener(createKeyListener());
         textPane.setText(commandBoardManagerData.getCurrentBoardContents());
-        JPanel bufferButtonsPanel = new JPanel(new GridLayout(1, GUIToolkit.NUM_BOARDS, 0, 5));
-        boardHeaderButtons = new JButton[GUIToolkit.NUM_BOARDS];
-        for (int i = 0; i < GUIToolkit.NUM_BOARDS; i++) {
+        JPanel bufferButtonsPanel = new JPanel(new GridLayout(1, GUIToolkit.NUM_COMMAND_BOARDS, 0, 5));
+        boardHeaderButtons = new JButton[GUIToolkit.NUM_COMMAND_BOARDS];
+        for (int i = 0; i < GUIToolkit.NUM_COMMAND_BOARDS; i++) {
             int boardIdx = i;
             JButton button = new JButton(GUIToolkit.toCommandBoardKey(boardIdx));
             button.addActionListener(e -> onChangeBufferEvent(boardIdx));
@@ -259,10 +259,9 @@ public class CommandBoardManager extends JPanel implements EventSpeaker<CommandB
                             break;
 
                         default:
-                            System.out.println("CHAR: " + keyChar);
                             // Ctrl + [1..NUM_BUFFERS]
                             int offset = keyChar - 49; // 0..NUM_BUFFERS-1
-                            if (offset >= 0 && offset < GUIToolkit.NUM_BOARDS && offset != commandBoardManagerData.getCurrentIdx()) {
+                            if (offset >= 0 && offset < GUIToolkit.NUM_COMMAND_BOARDS && offset != commandBoardManagerData.getCurrentIdx()) {
                                 onChangeBufferEvent(offset);
                             }
                     }

@@ -2,7 +2,7 @@ package io.crate.cli.widgets;
 
 import io.crate.cli.backend.SQLConnection;
 import io.crate.cli.common.GUIToolkit;
-import io.crate.cli.persistence.CommandBoardStore;
+import io.crate.cli.store.CommandBoardStore;
 
 import java.util.Arrays;
 
@@ -16,7 +16,7 @@ public class CommandBoardManagerData {
 
 
     public CommandBoardManagerData() {
-        int size = GUIToolkit.NUM_BOARDS;
+        int size = GUIToolkit.NUM_COMMAND_BOARDS;
         store = new CommandBoardStore<>(CommandBoardDescriptor::new);
         store.load();
         descriptors = new CommandBoardDescriptor[Math.max(size, store.size() % size)];

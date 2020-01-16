@@ -35,8 +35,8 @@ public class CratedbSQL {
         sqlExecutor = new SQLExecutor(this::onSourceEvent);
         commandBoardManager = new CommandBoardManager(this::onSourceEvent);
         sqlConnectionManager = new SQLConnectionManager(this::onSourceEvent);
-        sqlResultsManager = new SQLResultsManager[GUIToolkit.NUM_BOARDS];
-        for (int i = 0; i < GUIToolkit.NUM_BOARDS; i++) {
+        sqlResultsManager = new SQLResultsManager[GUIToolkit.NUM_COMMAND_BOARDS];
+        for (int i = 0; i < GUIToolkit.NUM_COMMAND_BOARDS; i++) {
             sqlResultsManager[i] = new SQLResultsManager();
         }
         currentSqlConnectionManager = sqlResultsManager[0];

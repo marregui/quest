@@ -1,4 +1,4 @@
-package io.crate.cli.persistence;
+package io.crate.cli.store;
 
 import io.crate.cli.backend.ConnectionDescriptor;
 import io.crate.cli.backend.ConnectionDescriptor.AttributeName;
