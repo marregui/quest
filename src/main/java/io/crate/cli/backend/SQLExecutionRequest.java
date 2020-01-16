@@ -1,4 +1,4 @@
-package io.crate.cli.connections;
+package io.crate.cli.backend;
 
 import io.crate.cli.persistence.HasKey;
 

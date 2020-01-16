@@ -1,4 +1,4 @@
-package io.crate.cli.connections;
+package io.crate.cli.backend;
 
 import java.util.Collections;
 import java.util.List;

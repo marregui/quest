@@ -1,8 +1,8 @@
 package io.crate.cli.widgets;
 
-import io.crate.cli.connections.SQLConnection;
-import io.crate.cli.connections.SQLExecutionRequest;
-import io.crate.cli.connections.SQLExecutionResponse;
+import io.crate.cli.backend.SQLConnection;
+import io.crate.cli.backend.SQLExecutionRequest;
+import io.crate.cli.backend.SQLExecutionResponse;
 import io.crate.cli.common.EventListener;
 import io.crate.cli.common.EventSpeaker;
 import io.crate.cli.common.GUIFactory;
@@ -30,7 +30,7 @@ public class CommandBoardManager extends JPanel implements EventSpeaker<CommandB
         BOARD_CHANGE
     }
 
-    public static final int NUM_BOARDS = 8;
+
     private static final String BORDER_TITLE = "Command Board";
 
 
@@ -47,15 +47,15 @@ public class CommandBoardManager extends JPanel implements EventSpeaker<CommandB
 
     public CommandBoardManager(EventListener<CommandBoardManager, SQLExecutionRequest> eventListener) {
         this.eventListener = eventListener;
-        commandBoardManagerData = new CommandBoardManagerData(NUM_BOARDS);
+        commandBoardManagerData = new CommandBoardManagerData();
         textPane = GUIFactory.newTextComponent();
         textPane.addKeyListener(createKeyListener());
         textPane.setText(commandBoardManagerData.getCurrentBoardContents());
-        JPanel bufferButtonsPanel = new JPanel(new GridLayout(1, NUM_BOARDS, 0, 5));
-        boardHeaderButtons = new JButton[NUM_BOARDS];
-        for (int i = 0; i < NUM_BOARDS; i++) {
+        JPanel bufferButtonsPanel = new JPanel(new GridLayout(1, GUIFactory.NUM_BOARDS, 0, 5));
+        boardHeaderButtons = new JButton[GUIFactory.NUM_BOARDS];
+        for (int i = 0; i < GUIFactory.NUM_BOARDS; i++) {
             int boardIdx = i;
-            JButton button = new JButton(CommandBoardManagerData.toKey(boardIdx));
+            JButton button = new JButton(GUIFactory.toCommandBoardKey(boardIdx));
             button.addActionListener(e -> onChangeBufferEvent(boardIdx));
             button.setFont(GUIFactory.COMMAND_BOARD_HEADER_FONT);
             boardHeaderButtons[boardIdx] = button;
@@ -258,7 +258,7 @@ public class CommandBoardManager extends JPanel implements EventSpeaker<CommandB
                             System.out.println("CHAR: " + keyChar);
                             // Ctrl + [1..NUM_BUFFERS]
                             int offset = keyChar - 49; // 0..NUM_BUFFERS-1
-                            if (offset >= 0 && offset < NUM_BOARDS && offset != commandBoardManagerData.getCurrentIdx()) {
+                            if (offset >= 0 && offset < GUIFactory.NUM_BOARDS && offset != commandBoardManagerData.getCurrentIdx()) {
                                 onChangeBufferEvent(offset);
                             }
                     }

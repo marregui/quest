@@ -6,6 +6,7 @@ import javax.swing.table.JTableHeader;
 import javax.swing.table.TableColumnModel;
 import javax.swing.table.TableModel;
 import java.awt.*;
+import java.util.Locale;
 
 
 public final class GUIFactory {
@@ -18,6 +19,30 @@ public final class GUIFactory {
     public static final String LOGO_FILE_NAME = "/cratedb_logo.png";
     public static final int FRAME_WIDTH_AS_PERCENT_OF_SCREEN_WIDTH = 90;
     public static final int FRAME_HEIGHT_AS_PERCENT_OF_SCREEN_WIDTH = 90;
+
+    public static final int NUM_BOARDS = 8;
+
+    public static String toCommandBoardKey(int offset) {
+        return String.valueOf((char) ('A' + offset));
+    }
+
+    public static int fromCommandBoardKey(String key) {
+        if (null == key || key.trim().length() < 1) {
+            throw new IllegalArgumentException(String.format(
+                    Locale.ENGLISH,
+                    "key cannot be null, it must contain one non white char: %s",
+                    key));
+        }
+        int offset = key.trim().charAt(0) - 'A';
+        if (offset < 0 || offset >= NUM_BOARDS) {
+            throw new IndexOutOfBoundsException(String.format(
+                    Locale.ENGLISH,
+                    "Key [%s] -> offset: %d (max: %d)",
+                    key, offset, NUM_BOARDS));
+        }
+        return offset;
+    }
+
     public static final String MAIN_FONT_NAME = "monospaced";
     public static final Dimension SQL_CONNECTION_MANAGER_HEIGHT = new Dimension(0, 200);
     public static final Dimension COMMAND_BOARD_MANAGER_HEIGHT = new Dimension(0, 300);

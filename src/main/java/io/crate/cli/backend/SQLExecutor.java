@@ -1,4 +1,4 @@
-package io.crate.cli.connections;
+package io.crate.cli.backend;
 
 import io.crate.cli.common.EventListener;
 import io.crate.cli.common.EventSpeaker;

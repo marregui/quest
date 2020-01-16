@@ -2,16 +2,17 @@ package io.crate.cli;
 
 import io.crate.cli.common.EventSpeaker;
 import io.crate.cli.common.GUIFactory;
-import io.crate.cli.connections.SQLConnection;
-import io.crate.cli.connections.SQLExecutionRequest;
-import io.crate.cli.connections.SQLExecutionResponse;
-import io.crate.cli.connections.SQLExecutor;
+import io.crate.cli.backend.SQLConnection;
+import io.crate.cli.backend.SQLExecutionRequest;
+import io.crate.cli.backend.SQLExecutionResponse;
+import io.crate.cli.backend.SQLExecutor;
 import io.crate.cli.widgets.CommandBoardManager;
 import io.crate.cli.widgets.SQLConnectionManager;
 import io.crate.cli.widgets.SQLResultsManager;
 
 import javax.swing.*;
 import java.awt.*;
+import java.util.Arrays;
 import java.util.Locale;
 import java.util.Set;
 
@@ -24,26 +25,31 @@ public class CratedbSQL {
     private final SQLExecutor sqlExecutor;
     private final SQLConnectionManager sqlConnectionManager;
     private final CommandBoardManager commandBoardManager;
-    private final SQLResultsManager sqlResultsManager;
+    private final SQLResultsManager [] sqlResultsManager;
     private final JFrame frame;
+    private final JSplitPane sqlResultsManagerPanel;
+    private Component currentSqlConnectionManager;
 
 
     private CratedbSQL() {
         sqlExecutor = new SQLExecutor(this::onSourceEvent);
         commandBoardManager = new CommandBoardManager(this::onSourceEvent);
         sqlConnectionManager = new SQLConnectionManager(this::onSourceEvent);
-        sqlResultsManager = new SQLResultsManager();
+        sqlResultsManager = new SQLResultsManager[GUIFactory.NUM_BOARDS];
+        for(int i=0; i < GUIFactory.NUM_BOARDS; i++) {
+            sqlResultsManager[i] = new SQLResultsManager();
+        }
+        currentSqlConnectionManager = sqlResultsManager[0];
         JPanel topPanel = new JPanel(new BorderLayout());
         topPanel.add(sqlConnectionManager, BorderLayout.NORTH);
         topPanel.add(commandBoardManager, BorderLayout.CENTER);
+        sqlResultsManagerPanel = new JSplitPane(
+                JSplitPane.VERTICAL_SPLIT,
+                false,
+                topPanel,
+                currentSqlConnectionManager);
         JPanel mainPanel = new JPanel(new BorderLayout());
-        mainPanel.add(
-                new JSplitPane(
-                        JSplitPane.VERTICAL_SPLIT,
-                        false,
-                        topPanel,
-                        sqlResultsManager),
-                BorderLayout.CENTER);
+        mainPanel.add(sqlResultsManagerPanel, BorderLayout.CENTER);
         frame = GUIFactory.newFrame(
                 String.format(
                         Locale.ENGLISH,
@@ -55,6 +61,14 @@ public class CratedbSQL {
                 mainPanel);
         sqlConnectionManager.start();
         sqlExecutor.start();
+    }
+
+    private void switchSQLResultsManager(int offset) {
+        sqlResultsManagerPanel.remove(currentSqlConnectionManager);
+        currentSqlConnectionManager = sqlResultsManager[offset];
+        sqlResultsManagerPanel.add(currentSqlConnectionManager);
+        sqlResultsManagerPanel.validate();
+        sqlResultsManagerPanel.repaint();
     }
 
     private void onSourceEvent(EventSpeaker source, Enum eventType, Object eventData) {
@@ -95,9 +109,11 @@ public class CratedbSQL {
     }
 
     private void onCommandManagerEvent(CommandBoardManager.EventType event, SQLExecutionRequest request) {
+        int offset = GUIFactory.fromCommandBoardKey(request.getKey());
         switch (event) {
             case COMMAND_AVAILABLE:
-                sqlResultsManager.showInfiniteProgressPanel();
+                switchSQLResultsManager(offset);
+                sqlResultsManager[offset].showInfiniteProgressPanel();
                 sqlExecutor.submit(request);
                 break;
 
@@ -113,36 +129,38 @@ public class CratedbSQL {
                 SQLConnection conn = request.getSQLConnection();
                 if (null != conn) {
                     sqlConnectionManager.setSelectedItem(conn);
+                    switchSQLResultsManager(offset);
                 }
                 break;
         }
     }
 
     private void onSQLExecutorEvent(SQLExecutor.EventType event, SQLExecutionResponse response) {
-        GUIFactory.addToSwingEventQueue(() -> sqlResultsManager.updateStatus(event, response));
+        int offset = GUIFactory.fromCommandBoardKey(response.getKey());
+        GUIFactory.addToSwingEventQueue(() -> sqlResultsManager[offset].updateStatus(event, response));
         switch (event) {
             case QUERY_STARTED:
             case QUERY_FETCHING:
                 break;
 
             case QUERY_FAILURE:
-                GUIFactory.addToSwingEventQueue(sqlResultsManager::removeInfiniteProgressPanel);
-                GUIFactory.addToSwingEventQueue(() -> sqlResultsManager.displayError(response.getError()));
+                GUIFactory.addToSwingEventQueue(sqlResultsManager[offset]::removeInfiniteProgressPanel);
+                GUIFactory.addToSwingEventQueue(() -> sqlResultsManager[offset].displayError(response.getError()));
                 break;
 
             case QUERY_CANCELLED:
-                GUIFactory.addToSwingEventQueue(sqlResultsManager::removeInfiniteProgressPanel);
-                GUIFactory.addToSwingEventQueue(sqlResultsManager::clear);
+                GUIFactory.addToSwingEventQueue(sqlResultsManager[offset]::removeInfiniteProgressPanel);
+                GUIFactory.addToSwingEventQueue(sqlResultsManager[offset]::clear);
                 break;
 
             case RESULTS_AVAILABLE:
             case QUERY_COMPLETED:
-                GUIFactory.addToSwingEventQueue(sqlResultsManager::removeInfiniteProgressPanel);
+                GUIFactory.addToSwingEventQueue(sqlResultsManager[offset]::removeInfiniteProgressPanel);
                 long seqNo = response.getSeqNo();
-                boolean needsClearing = 0 == seqNo && sqlResultsManager.getRowCount() > 0;
+                boolean needsClearing = 0 == seqNo && sqlResultsManager[offset].getRowCount() > 0;
                 boolean expectMore = SQLExecutor.EventType.RESULTS_AVAILABLE == event;
                 GUIFactory.addToSwingEventQueue(() -> {
-                    sqlResultsManager.addRows(response.getResults(), needsClearing, expectMore);
+                    sqlResultsManager[offset].addRows(response.getResults(), needsClearing, expectMore);
                 });
                 break;
         }
@@ -151,8 +169,8 @@ public class CratedbSQL {
     private void shutdown() {
         sqlExecutor.close();
         sqlConnectionManager.close();
-        sqlResultsManager.close();
         commandBoardManager.close();
+        Arrays.stream(sqlResultsManager).forEach(SQLResultsManager::close);
     }
 
     private void setVisible(boolean isVisible) {

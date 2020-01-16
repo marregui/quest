@@ -1,9 +1,7 @@
 package io.crate.cli.persistence;
 
-import io.crate.cli.connections.ConnectionDescriptor;
-import io.crate.cli.persistence.BaseStore;
-import io.crate.cli.persistence.StoreItemDescriptor;
-import io.crate.cli.connections.ConnectionDescriptor.AttributeName;
+import io.crate.cli.backend.ConnectionDescriptor;
+import io.crate.cli.backend.ConnectionDescriptor.AttributeName;
 
 import java.util.*;
 import java.util.function.Function;

@@ -1,8 +1,8 @@
 package io.crate.cli.widgets;
 
-import io.crate.cli.connections.SQLExecutionResponse;
-import io.crate.cli.connections.SQLExecutor;
-import io.crate.cli.connections.SQLRowType;
+import io.crate.cli.backend.SQLExecutionResponse;
+import io.crate.cli.backend.SQLExecutor;
+import io.crate.cli.backend.SQLRowType;
 import io.crate.cli.common.GUIFactory;
 import io.crate.cli.common.ObjectTableModel;
 
@@ -38,6 +38,7 @@ public class SQLResultsManager extends JPanel implements Closeable {
     private enum Mode {
         INFINITE, TABLE, ERROR
     }
+
 
     private final List<SQLRowType> fullResults;
     private final JTable windowTable;

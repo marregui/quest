@@ -2,7 +2,7 @@ package io.crate.cli.widgets;
 
 import io.crate.cli.persistence.HasKey;
 import io.crate.cli.persistence.StoreItemDescriptor;
-import io.crate.cli.connections.SQLConnection;
+import io.crate.cli.backend.SQLConnection;
 
 import java.util.*;
 

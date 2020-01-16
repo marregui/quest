@@ -1,8 +1,8 @@
 package io.crate.cli.widgets;
 
-import io.crate.cli.connections.ConnectionDescriptor;
-import io.crate.cli.connections.ConnectivityChecker;
-import io.crate.cli.connections.SQLConnection;
+import io.crate.cli.backend.ConnectionDescriptor;
+import io.crate.cli.backend.ConnectivityChecker;
+import io.crate.cli.backend.SQLConnection;
 import io.crate.cli.common.*;
 import io.crate.cli.persistence.ConnectionDescriptorStore;
 
