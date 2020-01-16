@@ -1,6 +1,6 @@
 package io.crate.cli.widgets;
 
-import io.crate.cli.common.GUIFactory;
+import io.crate.cli.common.GUIToolkit;
 
 import javax.swing.*;
 import java.awt.*;
@@ -155,7 +155,7 @@ public class InfiniteProgressPanel extends JPanel implements Closeable, Runnable
     public static void main(String[] args) {
         InfiniteProgressPanel spinner = new InfiniteProgressPanel();
         SQLResultsManager table = new SQLResultsManager();
-        JFrame frame = GUIFactory.newFrame(
+        JFrame frame = GUIToolkit.newFrame(
                 "Spinner",
                 80,
                 80, table);

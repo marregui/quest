@@ -7,10 +7,6 @@ public class PasswordRenderer extends StringCellRenderer {
 
     private static final String PASSWORD = "*********";
 
-    public PasswordRenderer(Font font){
-        super(font);
-    }
-
     @Override
     public Component getTableCellRendererComponent(JTable table,
                                                    Object value,

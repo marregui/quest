@@ -5,7 +5,7 @@ import io.crate.cli.backend.SQLExecutionRequest;
 import io.crate.cli.backend.SQLExecutionResponse;
 import io.crate.cli.common.EventListener;
 import io.crate.cli.common.EventSpeaker;
-import io.crate.cli.common.GUIFactory;
+import io.crate.cli.common.GUIToolkit;
 
 import java.awt.*;
 import javax.swing.*;
@@ -18,8 +18,6 @@ import java.awt.event.KeyListener;
 import java.io.Closeable;
 import java.util.Locale;
 import java.util.function.Supplier;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 
 public class CommandBoardManager extends JPanel implements EventSpeaker<CommandBoardManager.EventType>, Closeable {
@@ -49,16 +47,16 @@ public class CommandBoardManager extends JPanel implements EventSpeaker<CommandB
     public CommandBoardManager(EventListener<CommandBoardManager, SQLExecutionRequest> eventListener) {
         this.eventListener = eventListener;
         commandBoardManagerData = new CommandBoardManagerData();
-        textPane = GUIFactory.newTextComponent();
+        textPane = GUIToolkit.newTextComponent();
         textPane.addKeyListener(createKeyListener());
         textPane.setText(commandBoardManagerData.getCurrentBoardContents());
-        JPanel bufferButtonsPanel = new JPanel(new GridLayout(1, GUIFactory.NUM_BOARDS, 0, 5));
-        boardHeaderButtons = new JButton[GUIFactory.NUM_BOARDS];
-        for (int i = 0; i < GUIFactory.NUM_BOARDS; i++) {
+        JPanel bufferButtonsPanel = new JPanel(new GridLayout(1, GUIToolkit.NUM_BOARDS, 0, 5));
+        boardHeaderButtons = new JButton[GUIToolkit.NUM_BOARDS];
+        for (int i = 0; i < GUIToolkit.NUM_BOARDS; i++) {
             int boardIdx = i;
-            JButton button = new JButton(GUIFactory.toCommandBoardKey(boardIdx));
+            JButton button = new JButton(GUIToolkit.toCommandBoardKey(boardIdx));
             button.addActionListener(e -> onChangeBufferEvent(boardIdx));
-            button.setFont(GUIFactory.COMMAND_BOARD_HEADER_FONT);
+            button.setFont(GUIToolkit.COMMAND_BOARD_HEADER_FONT);
             boardHeaderButtons[boardIdx] = button;
             bufferButtonsPanel.add(button);
         }
@@ -83,8 +81,8 @@ public class CommandBoardManager extends JPanel implements EventSpeaker<CommandB
         bufferActionButtonsPanel.add(bufferButtonsPanel, BorderLayout.CENTER);
         bufferActionButtonsPanel.add(actionButtonsPanel, BorderLayout.EAST);
         titleBorder = BorderFactory.createTitledBorder(BORDER_TITLE);
-        titleBorder.setTitleFont(GUIFactory.COMMAND_BOARD_HEADER_FONT);
-        titleBorder.setTitleColor(GUIFactory.TABLE_HEADER_FONT_COLOR);
+        titleBorder.setTitleFont(GUIToolkit.COMMAND_BOARD_HEADER_FONT);
+        titleBorder.setTitleColor(GUIToolkit.TABLE_HEADER_FONT_COLOR);
         setBorder(titleBorder);
         JScrollPane scrollPane = new JScrollPane(textPane);
         scrollPane.setHorizontalScrollBarPolicy(JScrollPane.HORIZONTAL_SCROLLBAR_AS_NEEDED);
@@ -92,7 +90,7 @@ public class CommandBoardManager extends JPanel implements EventSpeaker<CommandB
         setLayout(new BorderLayout());
         add(bufferActionButtonsPanel, BorderLayout.NORTH);
         add(scrollPane, BorderLayout.CENTER);
-        setPreferredSize(GUIFactory.COMMAND_BOARD_MANAGER_HEIGHT);
+        setPreferredSize(GUIToolkit.COMMAND_BOARD_MANAGER_HEIGHT);
         toggleComponents();
     }
 
@@ -136,7 +134,7 @@ public class CommandBoardManager extends JPanel implements EventSpeaker<CommandB
 
     private void toggleComponents() {
         for (int i = 0; i < boardHeaderButtons.length; i++) {
-            boardHeaderButtons[i].setBorder(GUIFactory.COMMAND_BOARD_UNSELECTED_BORDER);
+            boardHeaderButtons[i].setBorder(GUIToolkit.COMMAND_BOARD_UNSELECTED_BORDER);
         }
         SQLConnection conn = commandBoardManagerData.getCurrentSQLConnection();
         if (null != conn) {
@@ -150,8 +148,8 @@ public class CommandBoardManager extends JPanel implements EventSpeaker<CommandB
         }
         boolean isConnected = null != conn && conn.isConnected();
         Border border = isConnected ?
-                GUIFactory.COMMAND_BOARD_CONNECTED_BORDER :
-                GUIFactory.COMMAND_BOARD_DISCONNECTED_BORDER;
+                GUIToolkit.COMMAND_BOARD_CONNECTED_BORDER :
+                GUIToolkit.COMMAND_BOARD_DISCONNECTED_BORDER;
         boardHeaderButtons[commandBoardManagerData.getCurrentIdx()].setBorder(border);
         runButton.setEnabled(isConnected);
         runLineButton.setEnabled(isConnected);
@@ -264,7 +262,7 @@ public class CommandBoardManager extends JPanel implements EventSpeaker<CommandB
                             System.out.println("CHAR: " + keyChar);
                             // Ctrl + [1..NUM_BUFFERS]
                             int offset = keyChar - 49; // 0..NUM_BUFFERS-1
-                            if (offset >= 0 && offset < GUIFactory.NUM_BOARDS && offset != commandBoardManagerData.getCurrentIdx()) {
+                            if (offset >= 0 && offset < GUIToolkit.NUM_BOARDS && offset != commandBoardManagerData.getCurrentIdx()) {
                                 onChangeBufferEvent(offset);
                             }
                     }

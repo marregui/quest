@@ -110,14 +110,14 @@ public class SQLConnectionManager extends JPanel implements EventSpeaker<SQLConn
             }
         };
         tableModel.addTableModelListener(this::onTableModelEvent);
-        table = GUIFactory.newTable(tableModel, this::toggleComponents);
+        table = GUIToolkit.newTable(tableModel, this::toggleComponents);
         TableColumnModel columnModel = table.getTableHeader().getColumnModel();
         columnModel.getColumn(NAME_IDX).setPreferredWidth(COLUMN_WIDTHS[NAME_IDX]);
         columnModel.getColumn(HOST_IDX).setPreferredWidth(COLUMN_WIDTHS[HOST_IDX]);
         columnModel.getColumn(PORT_IDX).setPreferredWidth(COLUMN_WIDTHS[PORT_IDX]);
         columnModel.getColumn(USERNAME_IDX).setPreferredWidth(COLUMN_WIDTHS[USERNAME_IDX]);
         columnModel.getColumn(PASSWORD_IDX).setPreferredWidth(COLUMN_WIDTHS[PASSWORD_IDX]);
-        columnModel.getColumn(PASSWORD_IDX).setCellRenderer(new PasswordRenderer(GUIFactory.TABLE_CELL_FONT));
+        columnModel.getColumn(PASSWORD_IDX).setCellRenderer(new PasswordRenderer());
         reloadButton = new JButton("Reload");
         reloadButton.addActionListener(this::onReloadButtonEvent);
         cloneButton = new JButton("Clone");
@@ -147,8 +147,8 @@ public class SQLConnectionManager extends JPanel implements EventSpeaker<SQLConn
         buttonsPanel.add(manageButtonsPanel);
         buttonsPanel.add(connectButtonsPanel);
         TitledBorder titleBorder = BorderFactory.createTitledBorder("Connections");
-        titleBorder.setTitleFont(GUIFactory.COMMAND_BOARD_HEADER_FONT);
-        titleBorder.setTitleColor(GUIFactory.TABLE_HEADER_FONT_COLOR);
+        titleBorder.setTitleFont(GUIToolkit.COMMAND_BOARD_HEADER_FONT);
+        titleBorder.setTitleColor(GUIToolkit.TABLE_HEADER_FONT_COLOR);
         setBorder(titleBorder);
         setLayout(new BorderLayout());
         JScrollPane scrollPane = new JScrollPane(table);
@@ -156,7 +156,7 @@ public class SQLConnectionManager extends JPanel implements EventSpeaker<SQLConn
         scrollPane.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED);
         add(scrollPane, BorderLayout.CENTER);
         add(buttonsPanel, BorderLayout.SOUTH);
-        setPreferredSize(GUIFactory.SQL_CONNECTION_MANAGER_HEIGHT);
+        setPreferredSize(GUIToolkit.SQL_CONNECTION_MANAGER_HEIGHT);
         connectivityChecker = new ConnectivityChecker(
                 tableModel::getRows,
                 this::onLostConnectionsEvent);

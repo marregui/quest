@@ -10,6 +10,7 @@ import java.util.function.BiFunction;
 public class ObjectTableModel<RowType extends HasKey> extends AbstractTableModel {
 
     private String[] attributeNames;
+    private int[] attributeTypes;
     private final BiFunction<RowType, String, Object> attributeGetter;
     private final TriFunction<RowType, String, Object, Object> attributeSetter;
     private final List<RowType> rows;
@@ -26,6 +27,14 @@ public class ObjectTableModel<RowType extends HasKey> extends AbstractTableModel
 
     public void reset(String[] attributeNames) {
         this.attributeNames = attributeNames;
+        this.attributeTypes = null;
+        fireTableStructureChanged();
+        clear();
+    }
+
+    public void reset(String[] attributeNames, int[] attributeTypes) {
+        this.attributeNames = attributeNames;
+        this.attributeTypes = attributeTypes;
         fireTableStructureChanged();
         clear();
     }

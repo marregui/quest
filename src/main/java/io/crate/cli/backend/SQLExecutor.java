@@ -10,6 +10,7 @@ import java.io.Closeable;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
+import java.sql.Types;
 import java.util.*;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -32,6 +33,7 @@ public class SQLExecutor implements EventSpeaker<SQLExecutor.EventType>, Closeab
     private static final int START_BATCH_SIZE = 100;
     private static final int MAX_BATCH_SIZE = 20000;
     private static final String[] STATUS_COL_NAME_ONLY = {"Status"};
+    private static final int[] STATUS_COL_TYPE_ONLY = { Types.VARCHAR };
     private static final Object[] STATUS_OK_VALUE_ONLY = {"OK"};
 
 
@@ -162,14 +164,19 @@ public class SQLExecutor implements EventSpeaker<SQLExecutor.EventType>, Closeab
                                 0L));
                 ResultSet rs = stmt.getResultSet();
                 String[] columnNames = null;
+                int[] columnTypes = null;
                 while (rs.next()) {
                     checkpointTs = System.nanoTime();
                     if (null == columnNames) {
                         columnNames = extractColumnNames(rs);
                     }
+                    if (null == columnTypes) {
+                        columnTypes = extractColumnTypes(rs);
+                    }
                     rows.add(new SQLRowType(
                             String.valueOf(rowId++),
                             columnNames,
+                            columnTypes,
                             extractColumnValues(columnNames, rs)));
                     if (0 == rowId % batchSize) {
                         if (LOGGER.isDebugEnabled()) {
@@ -200,6 +207,7 @@ public class SQLExecutor implements EventSpeaker<SQLExecutor.EventType>, Closeab
                 rows.add(new SQLRowType(
                         String.valueOf(rowId++),
                         STATUS_COL_NAME_ONLY,
+                        STATUS_COL_TYPE_ONLY,
                         STATUS_OK_VALUE_ONLY));
             }
         } catch (SQLException e) {
@@ -246,8 +254,19 @@ public class SQLExecutor implements EventSpeaker<SQLExecutor.EventType>, Closeab
         String[] columnNames = new String[columnCount];
         for (int i = 0; i < columnCount; i++) {
             columnNames[i] = metaData.getColumnName(i + 1);
+            metaData.getColumnType(i + 1);
         }
         return columnNames;
+    }
+
+    private static int[] extractColumnTypes(ResultSet rs) throws SQLException {
+        PgResultSetMetaData metaData = (PgResultSetMetaData) rs.getMetaData();
+        int columnCount = metaData.getColumnCount();
+        int[] columnTypes = new int[columnCount];
+        for (int i = 0; i < columnCount; i++) {
+            columnTypes[i] = metaData.getColumnType(i + 1);
+        }
+        return columnTypes;
     }
 
     private static Object[] extractColumnValues(String[] columnNames, ResultSet rs) throws SQLException {

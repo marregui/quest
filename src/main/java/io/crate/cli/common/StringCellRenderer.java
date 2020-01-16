@@ -1,5 +1,7 @@
 package io.crate.cli.common;
 
+import io.crate.cli.backend.SQLRowType;
+
 import javax.swing.*;
 import javax.swing.table.DefaultTableCellRenderer;
 import java.awt.*;
@@ -8,26 +10,15 @@ import java.util.Locale;
 
 public class StringCellRenderer extends DefaultTableCellRenderer {
 
-    private static final Color DEFAULT_BG_COLOR = new Color(230, 236, 255);
-    private static final Color DEFAULT_BG_COLOR_ALTERNATE = new Color(255, 247, 255);
-    private static final Font DEFAULT_FONT = new Font("monospaced", Font.PLAIN, 14);
-
-    private static final Color SELECTED_BG_COLOR = new Color(102, 140, 255);
-    private static final Color SELECTED_FG_COLOR = Color.WHITE;
-    private static final Font SELECTED_FONT = new Font("monospaced", Font.BOLD, 16);
-
-
     private final Color bgColor;
     private final Color bgColorAlternate;
     private final Font font;
 
 
     public StringCellRenderer() {
-        this(DEFAULT_FONT, DEFAULT_BG_COLOR, DEFAULT_BG_COLOR_ALTERNATE);
-    }
-
-    public StringCellRenderer(Font font) {
-        this(font, DEFAULT_BG_COLOR, DEFAULT_BG_COLOR_ALTERNATE);
+        this(GUIToolkit.TABLE_CELL_FONT,
+                GUIToolkit.TABLE_BG_ROW_COLOR,
+                GUIToolkit.TABLE_BG_ROW_COLOR_ALTERNATE);
     }
 
     public StringCellRenderer(Font font, Color bgColor, Color bgColorAlternate) {
@@ -43,15 +34,28 @@ public class StringCellRenderer extends DefaultTableCellRenderer {
                                                    boolean hasFocus,
                                                    int rowIdx,
                                                    int colIdx) {
-        if (rowIdx >= 0 && rowIdx < table.getModel().getRowCount()) {
+
+        ObjectTableModel<SQLRowType> tableModel = (ObjectTableModel<SQLRowType>) table.getModel();
+        if (rowIdx >= 0 && rowIdx < tableModel.getRowCount()) {
             super.getTableCellRendererComponent(table, value, isSelected, hasFocus, rowIdx, colIdx);
             if (isSelected) {
-                setFont(SELECTED_FONT);
-                setForeground(SELECTED_FG_COLOR);
-                setBackground(SELECTED_BG_COLOR);
+                setFont(GUIToolkit.TABLE_CELL_SELECTED_FONT);
+                setForeground(GUIToolkit.SELECTED_FG_COLOR);
+                setBackground(GUIToolkit.SELECTED_BG_COLOR);
             } else {
                 setFont(font);
-                setForeground(Color.BLACK);
+                Color foreground = Color.BLACK;
+                if (colIdx > 0) {
+                    Object maybeSqlRow = tableModel.getValueAt(rowIdx, -1);
+                    if (maybeSqlRow instanceof SQLRowType) {
+                        SQLRowType row = (SQLRowType) maybeSqlRow;
+                        int[] colTypes = row.getColumnTypes();
+                        if (null != colTypes) {
+                            foreground = GUIToolkit.resolveColorForSqlType(colTypes[colIdx - 1]);
+                        }
+                    }
+                }
+                setForeground(foreground);
                 setBackground(0 == rowIdx % 2 ? bgColor : bgColorAlternate);
             }
             return this;

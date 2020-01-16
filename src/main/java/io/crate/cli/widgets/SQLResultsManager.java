@@ -3,7 +3,7 @@ package io.crate.cli.widgets;
 import io.crate.cli.backend.SQLExecutionResponse;
 import io.crate.cli.backend.SQLExecutor;
 import io.crate.cli.backend.SQLRowType;
-import io.crate.cli.common.GUIFactory;
+import io.crate.cli.common.GUIToolkit;
 import io.crate.cli.common.ObjectTableModel;
 
 import javax.swing.*;
@@ -17,10 +17,6 @@ import java.io.PrintWriter;
 import java.io.StringWriter;
 import java.util.*;
 import java.util.List;
-import java.util.concurrent.Executors;
-import java.util.concurrent.ScheduledExecutorService;
-import java.util.concurrent.TimeUnit;
-import java.util.concurrent.atomic.AtomicInteger;
 
 
 public class SQLResultsManager extends JPanel implements Closeable {
@@ -65,35 +61,35 @@ public class SQLResultsManager extends JPanel implements Closeable {
             }
         };
         windowedResultsTableModel.addTableModelListener(this::onTableModelEvent);
-        windowTable = GUIFactory.newTable(windowedResultsTableModel, null);
+        windowTable = GUIToolkit.newTable(windowedResultsTableModel, null);
         currentPage = 0;
         navigationLabel = new JLabel(NO_RESULTS_LABEL);
-        navigationLabel.setFont(GUIFactory.TABLE_FOOTER_FONT);
-        navigationLabel.setForeground(GUIFactory.TABLE_FOOTER_COLOR);
+        navigationLabel.setFont(GUIToolkit.TABLE_FOOTER_FONT);
+        navigationLabel.setForeground(GUIToolkit.TABLE_FOOTER_COLOR);
         navigationLabel.setBorder(BorderFactory.createBevelBorder(BevelBorder.LOWERED));
         navigationLabel.setPreferredSize(NAVIGATION_OFFSETS_LABEL_SIZE);
         navigationLabel.setSize(NAVIGATION_OFFSETS_LABEL_SIZE);
         navigationLabel.setHorizontalAlignment(JLabel.LEADING);
         statusLabel = new JLabel(NO_RESULTS_LABEL);
-        statusLabel.setFont(GUIFactory.TABLE_FOOTER_FONT);
-        statusLabel.setForeground(GUIFactory.TABLE_FOOTER_COLOR);
+        statusLabel.setFont(GUIToolkit.TABLE_FOOTER_FONT);
+        statusLabel.setForeground(GUIToolkit.TABLE_FOOTER_COLOR);
         statusLabel.setBorder(BorderFactory.createBevelBorder(BevelBorder.LOWERED));
         statusLabel.setPreferredSize(STATUS_LABEL_SIZE);
         statusLabel.setSize(STATUS_LABEL_SIZE);
         statusLabel.setHorizontalAlignment(JLabel.LEADING);
         leftButton = new JButton(NAVIGATION_BUTTON_PREV_TEXT);
-        leftButton.setFont(GUIFactory.TABLE_FOOTER_FONT);
-        leftButton.setForeground(GUIFactory.TABLE_FOOTER_COLOR);
+        leftButton.setFont(GUIToolkit.TABLE_FOOTER_FONT);
+        leftButton.setForeground(GUIToolkit.TABLE_FOOTER_COLOR);
         leftButton.setPreferredSize(NAVIGATION_BUTTON_SIZE);
         leftButton.addActionListener(this::onPrevButtonEvent);
         rightButton = new JButton(NAVIGATION_BUTTON_NEXT_TEXT);
-        rightButton.setFont(GUIFactory.TABLE_FOOTER_FONT);
-        rightButton.setForeground(GUIFactory.TABLE_FOOTER_COLOR);
+        rightButton.setFont(GUIToolkit.TABLE_FOOTER_FONT);
+        rightButton.setForeground(GUIToolkit.TABLE_FOOTER_COLOR);
         rightButton.setPreferredSize(NAVIGATION_BUTTON_SIZE);
         rightButton.addActionListener(this::onNextButtonEvent);
-        errorPane = GUIFactory.newTextComponent();
-        errorPane.setFont(GUIFactory.ERROR_FONT);
-        errorPane.setForeground(GUIFactory.ERROR_FONT_COLOR);
+        errorPane = GUIToolkit.newTextComponent();
+        errorPane.setFont(GUIToolkit.ERROR_FONT);
+        errorPane.setForeground(GUIToolkit.ERROR_FONT_COLOR);
         errorPane.setEditable(false);
         JPanel controlsPane = new JPanel(new FlowLayout(FlowLayout.RIGHT, 0, 5));
         controlsPane.add(statusLabel);
@@ -187,7 +183,7 @@ public class SQLResultsManager extends JPanel implements Closeable {
 
     public void displayError(Throwable error) {
         StringBuilder sb = new StringBuilder();
-        sb.append("\n").append(GUIFactory.ERROR_HEADER).append("\n");
+        sb.append("\n").append(GUIToolkit.ERROR_HEADER).append("\n");
         try (StringWriter sw = new StringWriter();
              PrintWriter pw = new PrintWriter(sw)) {
             error.printStackTrace(pw);
@@ -231,25 +227,6 @@ public class SQLResultsManager extends JPanel implements Closeable {
         toggleComponents();
     }
 
-    public void addRow(SQLRowType row, boolean needsClearing, boolean expectMore) {
-        if (needsClearing) {
-            clear();
-        }
-        if (Mode.ERROR == mode) {
-            changeMode(Mode.TABLE);
-        }
-        hasCompleted = false == expectMore;
-        if (0 == fullResults.size()) {
-            windowedResultsTableModel.reset(row.getColumnNames());
-        }
-        fullResults.add(row);
-        int currentCount = windowedResultsTableModel.getRowCount();
-        if (currentCount + 1 <= ROWS_PER_PAGE) {
-            windowedResultsTableModel.addRow(row);
-        }
-        toggleComponents();
-    }
-
     public void addRows(List<SQLRowType> rows, boolean needsClearing, boolean expectMore) {
         if (needsClearing) {
             clear();
@@ -261,7 +238,10 @@ public class SQLResultsManager extends JPanel implements Closeable {
         int newRowsCount = rows.size();
         if (newRowsCount > 0) {
             if (0 == fullResults.size()) {
-                windowedResultsTableModel.reset(rows.get(0).getColumnNames());
+                SQLRowType firstRow = rows.get(0);
+                windowedResultsTableModel.reset(
+                        firstRow.getColumnNames(),
+                        firstRow.getColumnTypes());
             }
             fullResults.addAll(rows);
             int currentCount = windowedResultsTableModel.getRowCount();
@@ -284,33 +264,5 @@ public class SQLResultsManager extends JPanel implements Closeable {
     @Override
     public void close() {
         clear();
-    }
-
-
-    public static void main(String[] args) throws Exception {
-        int maxRows = 100;
-        SQLResultsManager table = new SQLResultsManager();
-        GUIFactory.newFrame(
-                "SQLResultsTable",
-                80,
-                80, table)
-                .setVisible(true);
-        ScheduledExecutorService sched = Executors.newSingleThreadScheduledExecutor();
-        AtomicInteger ai = new AtomicInteger(0);
-        String[] colNames = {"key", "name"};
-        sched.scheduleAtFixedRate(() -> {
-            int i = ai.getAndIncrement();
-            boolean expectMore = i + 1 < maxRows;
-            boolean needsClearing = 0 == i;
-            table.addRow(new SQLRowType(
-                    String.valueOf(i),
-                    colNames,
-                    new Object[]{i, "banana"}),
-                    needsClearing,
-                    expectMore);
-            if (false == expectMore) {
-                sched.shutdownNow();
-            }
-        }, 2000, 10, TimeUnit.MILLISECONDS);
     }
 }

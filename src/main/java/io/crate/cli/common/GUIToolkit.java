@@ -7,12 +7,13 @@ import javax.swing.table.TableColumnModel;
 import javax.swing.table.TableModel;
 import javax.swing.text.*;
 import java.awt.*;
+import java.sql.Types;
 import java.util.Locale;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 
-public final class GUIFactory {
+public final class GUIToolkit {
 
     static {
         System.setProperty("awt.useSystemAAFontSettings","on");
@@ -61,6 +62,13 @@ public final class GUIFactory {
     public static final Font TABLE_HEADER_FONT = new Font(MAIN_FONT_NAME, Font.BOLD, 18);
     public static final Font TABLE_CELL_FONT = new Font(MAIN_FONT_NAME, Font.PLAIN, 16);
     public static final Font TABLE_FOOTER_FONT = new Font(MAIN_FONT_NAME, Font.PLAIN, 14);
+    public static final int TABLE_ROW_HEIGHT = 20;
+
+    public static final Color TABLE_BG_ROW_COLOR = new Color(230, 236, 255);
+    public static final Color TABLE_BG_ROW_COLOR_ALTERNATE = new Color(255, 247, 255);
+    public static final Color SELECTED_BG_COLOR = new Color(102, 140, 255);
+    public static final Color SELECTED_FG_COLOR = Color.WHITE;
+    public static final Font TABLE_CELL_SELECTED_FONT = new Font(GUIToolkit.MAIN_FONT_NAME, Font.BOLD, 16);
 
     public static final Color COMMAND_BOARD_FONT_COLOR = Color.WHITE;
     public static final Color COMMAND_BOARD_KEYWORD_FONT_COLOR = TABLE_CELL_COLOR;
@@ -72,6 +80,20 @@ public final class GUIFactory {
     public static final Border COMMAND_BOARD_CONNECTED_BORDER = BorderFactory.createLineBorder(TABLE_CELL_COLOR, 4, true);
     public static final Border COMMAND_BOARD_DISCONNECTED_BORDER = BorderFactory.createLineBorder(Color.BLACK, 2, true);
     public static final Border COMMAND_BOARD_UNSELECTED_BORDER = BorderFactory.createLineBorder(Color.LIGHT_GRAY, 1, false);
+
+    public static Color resolveColorForSqlType(int sqlType) {
+        Color color = Color.BLACK;
+        switch (sqlType) {
+            case Types.VARCHAR:
+                color = Color.GREEN;
+                break;
+
+            case Types.INTEGER:
+                color = Color.ORANGE;
+                break;
+        }
+        return color;
+    }
 
 
     public static void addToSwingEventQueue(Runnable ... runnables) {
@@ -113,7 +135,7 @@ public final class GUIFactory {
         frame.setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
         frame.setLayout(new BorderLayout());
         frame.add(mainPanel, BorderLayout.CENTER);
-        ImageIcon logo = new ImageIcon(GUIFactory.class.getResource(LOGO_FILE_NAME));
+        ImageIcon logo = new ImageIcon(GUIToolkit.class.getResource(LOGO_FILE_NAME));
         frame.setIconImage(logo.getImage());
 
         Toolkit tk = Toolkit.getDefaultToolkit();
@@ -130,9 +152,10 @@ public final class GUIFactory {
     public static JTable newTable(TableModel tableModel, Runnable onListSelection) {
         JTable table = new JTable(tableModel);
         table.setAutoCreateRowSorter(true);
+        table.setRowHeight(TABLE_ROW_HEIGHT);
         table.setGridColor(TABLE_CELL_COLOR);
         table.setFont(TABLE_CELL_FONT);
-        table.setDefaultRenderer(String.class, new StringCellRenderer(TABLE_CELL_FONT));
+        table.setDefaultRenderer(String.class, new StringCellRenderer());
         table.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
         table.getSelectionModel().addListSelectionListener(e -> {
             if (false == e.getValueIsAdjusting()) {
@@ -161,18 +184,43 @@ public final class GUIFactory {
         return textPane;
     }
 
+    private final static StyleContext styleContext = StyleContext.getDefaultStyleContext();
+    private final static AttributeSet errorAttributeSet = styleContext.addAttribute(
+            styleContext.getEmptySet(),
+            StyleConstants.Foreground,
+            ERROR_FONT_COLOR);
+    private final static AttributeSet normalAttributeSet = styleContext.addAttribute(
+            styleContext.getEmptySet(),
+            StyleConstants.Foreground,
+            COMMAND_BOARD_FONT_COLOR);
+    private final static AttributeSet keywordAttributeSet = styleContext.addAttribute(
+            styleContext.getEmptySet(),
+            StyleConstants.Foreground,
+            COMMAND_BOARD_KEYWORD_FONT_COLOR);
+
     private static DocumentFilter createDocumentFilter(JTextPane textPane) {
         return new DocumentFilter() {
+
             private final StyledDocument styledDocument = textPane.getStyledDocument();
-            private final StyleContext styleContext = StyleContext.getDefaultStyleContext();
-            private final AttributeSet normalAttributeSet = styleContext.addAttribute(
-                    styleContext.getEmptySet(),
-                    StyleConstants.Foreground,
-                    COMMAND_BOARD_FONT_COLOR);
-            private final AttributeSet keywordAttributeSet = styleContext.addAttribute(
-                    styleContext.getEmptySet(),
-                    StyleConstants.Foreground,
-                    COMMAND_BOARD_KEYWORD_FONT_COLOR);
+
+            private void handleTextChanged() throws BadLocationException {
+                int len = styledDocument.getLength();
+                String text = styledDocument.getText(0, len);
+                boolean isError = text.contains(ERROR_HEADER);
+                if (isError) {
+                    styledDocument.setCharacterAttributes(0, len, errorAttributeSet, true);
+                } else {
+                    styledDocument.setCharacterAttributes(0, len, normalAttributeSet, true);
+                    Matcher matcher = KEYWORDS_PATTERN.matcher(text);
+                    while (matcher.find()) {
+                        styledDocument.setCharacterAttributes(
+                                matcher.start(),
+                                matcher.end() - matcher.start(),
+                                keywordAttributeSet,
+                                false);
+                    }
+                }
+            }
 
             @Override
             public void insertString(FilterBypass fb,
@@ -200,24 +248,10 @@ public final class GUIFactory {
                 super.replace(fb, offset, length, text, attributeSet);
                 handleTextChanged();
             }
-
-            private void handleTextChanged() throws BadLocationException {
-                int len = textPane.getStyledDocument().getLength();
-                String text = textPane.getStyledDocument().getText(0, len);
-                styledDocument.setCharacterAttributes(0, len, normalAttributeSet, true);
-                Matcher matcher = KEYWORDS_PATTERN.matcher(text);
-                while (matcher.find()) {
-                    styledDocument.setCharacterAttributes(
-                            matcher.start(),
-                            matcher.end() - matcher.start(),
-                            keywordAttributeSet,
-                            false);
-                }
-            }
         };
     }
 
-    private GUIFactory() {
+    private GUIToolkit() {
         throw new IllegalStateException("not meant to me instantiated");
     }
 

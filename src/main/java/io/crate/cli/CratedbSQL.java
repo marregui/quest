@@ -1,7 +1,7 @@
 package io.crate.cli;
 
 import io.crate.cli.common.EventSpeaker;
-import io.crate.cli.common.GUIFactory;
+import io.crate.cli.common.GUIToolkit;
 import io.crate.cli.backend.SQLConnection;
 import io.crate.cli.backend.SQLExecutionRequest;
 import io.crate.cli.backend.SQLExecutionResponse;
@@ -35,8 +35,8 @@ public class CratedbSQL {
         sqlExecutor = new SQLExecutor(this::onSourceEvent);
         commandBoardManager = new CommandBoardManager(this::onSourceEvent);
         sqlConnectionManager = new SQLConnectionManager(this::onSourceEvent);
-        sqlResultsManager = new SQLResultsManager[GUIFactory.NUM_BOARDS];
-        for (int i = 0; i < GUIFactory.NUM_BOARDS; i++) {
+        sqlResultsManager = new SQLResultsManager[GUIToolkit.NUM_BOARDS];
+        for (int i = 0; i < GUIToolkit.NUM_BOARDS; i++) {
             sqlResultsManager[i] = new SQLResultsManager();
         }
         currentSqlConnectionManager = sqlResultsManager[0];
@@ -50,14 +50,14 @@ public class CratedbSQL {
                 currentSqlConnectionManager);
         JPanel mainPanel = new JPanel(new BorderLayout());
         mainPanel.add(sqlResultsManagerPanel, BorderLayout.CENTER);
-        frame = GUIFactory.newFrame(
+        frame = GUIToolkit.newFrame(
                 String.format(
                         Locale.ENGLISH,
                         "CratedbSQL %s [store: %s]",
                         VERSION,
                         sqlConnectionManager.getStorePath().getAbsolutePath()),
-                GUIFactory.FRAME_WIDTH_AS_PERCENT_OF_SCREEN_WIDTH,
-                GUIFactory.FRAME_HEIGHT_AS_PERCENT_OF_SCREEN_WIDTH,
+                GUIToolkit.FRAME_WIDTH_AS_PERCENT_OF_SCREEN_WIDTH,
+                GUIToolkit.FRAME_HEIGHT_AS_PERCENT_OF_SCREEN_WIDTH,
                 mainPanel);
         sqlConnectionManager.start();
         sqlExecutor.start();
@@ -109,7 +109,7 @@ public class CratedbSQL {
     }
 
     private void onCommandManagerEvent(CommandBoardManager.EventType event, SQLExecutionRequest request) {
-        int offset = GUIFactory.fromCommandBoardKey(request.getKey());
+        int offset = GUIToolkit.fromCommandBoardKey(request.getKey());
         switch (event) {
             case COMMAND_AVAILABLE:
                 switchSQLResultsManager(offset);
@@ -139,21 +139,21 @@ public class CratedbSQL {
     }
 
     private void onSQLExecutorEvent(SQLExecutor.EventType event, SQLExecutionResponse response) {
-        int offset = GUIFactory.fromCommandBoardKey(response.getKey());
-        GUIFactory.addToSwingEventQueue(() -> sqlResultsManager[offset].updateStatus(event, response));
+        int offset = GUIToolkit.fromCommandBoardKey(response.getKey());
+        GUIToolkit.addToSwingEventQueue(() -> sqlResultsManager[offset].updateStatus(event, response));
         switch (event) {
             case QUERY_STARTED:
             case QUERY_FETCHING:
                 break;
 
             case QUERY_FAILURE:
-                GUIFactory.addToSwingEventQueue(
+                GUIToolkit.addToSwingEventQueue(
                         sqlResultsManager[offset]::removeInfiniteProgressPanel,
                         () -> sqlResultsManager[offset].displayError(response.getError()));
                 break;
 
             case QUERY_CANCELLED:
-                GUIFactory.addToSwingEventQueue(
+                GUIToolkit.addToSwingEventQueue(
                         sqlResultsManager[offset]::removeInfiniteProgressPanel,
                         sqlResultsManager[offset]::clear,
                         () -> sqlResultsManager[offset].displayError(response.getError()));
@@ -161,11 +161,11 @@ public class CratedbSQL {
 
             case RESULTS_AVAILABLE:
             case QUERY_COMPLETED:
-                GUIFactory.addToSwingEventQueue(sqlResultsManager[offset]::removeInfiniteProgressPanel);
+                GUIToolkit.addToSwingEventQueue(sqlResultsManager[offset]::removeInfiniteProgressPanel);
                 long seqNo = response.getSeqNo();
                 boolean needsClearing = 0 == seqNo && sqlResultsManager[offset].getRowCount() > 0;
                 boolean expectMore = SQLExecutor.EventType.RESULTS_AVAILABLE == event;
-                GUIFactory.addToSwingEventQueue(() ->
+                GUIToolkit.addToSwingEventQueue(() ->
                         sqlResultsManager[offset].addRows(response.getResults(), needsClearing, expectMore)
                 );
                 break;

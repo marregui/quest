@@ -1,7 +1,7 @@
 package io.crate.cli.widgets;
 
 import io.crate.cli.backend.SQLConnection;
-import io.crate.cli.common.GUIFactory;
+import io.crate.cli.common.GUIToolkit;
 import io.crate.cli.persistence.CommandBoardStore;
 
 import java.util.Arrays;
@@ -16,7 +16,7 @@ public class CommandBoardManagerData {
 
 
     public CommandBoardManagerData() {
-        int size = GUIFactory.NUM_BOARDS;
+        int size = GUIToolkit.NUM_BOARDS;
         store = new CommandBoardStore<>(CommandBoardDescriptor::new);
         store.load();
         descriptors = new CommandBoardDescriptor[Math.max(size, store.size() % size)];
@@ -30,7 +30,7 @@ public class CommandBoardManagerData {
         for (int i=0; i < descriptors.length; i++) {
             CommandBoardDescriptor di = descriptors[i];
             if (null != di) {
-                int idx = GUIFactory.fromCommandBoardKey(di.getKey());
+                int idx = GUIToolkit.fromCommandBoardKey(di.getKey());
                 if (idx != i) {
                     CommandBoardDescriptor tmp = descriptors[i];
                     descriptors[i] = descriptors[idx];
@@ -45,7 +45,7 @@ public class CommandBoardManagerData {
     }
 
     public String getCurrentKey() {
-        return GUIFactory.toCommandBoardKey(currentIdx);
+        return GUIToolkit.toCommandBoardKey(currentIdx);
     }
 
     public int getCurrentIdx() {
@@ -62,7 +62,7 @@ public class CommandBoardManagerData {
 
     private CommandBoardDescriptor current(int idx) {
         if (null == descriptors[idx]) {
-            descriptors[idx] = new CommandBoardDescriptor(GUIFactory.toCommandBoardKey(idx));
+            descriptors[idx] = new CommandBoardDescriptor(GUIToolkit.toCommandBoardKey(idx));
         }
         return descriptors[idx];
     }

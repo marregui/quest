@@ -1,5 +1,6 @@
 package io.crate.cli.persistence;
 
+import com.google.gson.Gson;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -16,6 +17,7 @@ public abstract class BaseStore<StoreType extends StoreItemDescriptor> implement
     protected static final Logger LOGGER = LoggerFactory.getLogger(BaseStore.class);
     private static final String CRATEDBSQL_STORE_PATH_KEY = "cratedbsql.store.path";
     private static final String DEFAULT_CRATEDBSQL_STORE_PATH = "./store";
+    private static final Gson GSON = new Gson();
 
     protected final File storeRoot;
     protected final String propertiesFileName;
