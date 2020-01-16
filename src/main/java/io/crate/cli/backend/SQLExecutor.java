@@ -85,7 +85,7 @@ public class SQLExecutor implements EventSpeaker<SQLExecutor.EventType>, Closeab
             throw new IllegalStateException("not started");
         }
         String key = request.getKey();
-        Future<?> result = runningQueries.get(key);
+        Future<?> result = runningQueries.remove(key);
         if (null != result && false == result.isDone() && false == result.isCancelled()) {
             LOGGER.info("Cancelling pre-existing query for key: [{}]", key);
             result.cancel(true);
@@ -108,8 +108,15 @@ public class SQLExecutor implements EventSpeaker<SQLExecutor.EventType>, Closeab
     }
 
     private final void executeQuery(SQLExecutionRequest request) {
+        eventListener.onSourceEvent(
+                SQLExecutor.this,
+                EventType.QUERY_STARTED,
+                new SQLExecutionResponse(request, 0L, 0L,0L));
+        long checkpointTs = System.nanoTime();
+        long startTS = checkpointTs;
         String key = request.getKey();
         String query = request.getCommand();
+        LOGGER.info("Executing query [{}]: {}", key, query);
         SQLConnection conn = request.getSQLConnection();
         if (false == conn.checkConnectivity()) {
             LOGGER.error("While about to run [{}], lost connectivity with {}", key, conn);
@@ -126,11 +133,9 @@ public class SQLExecutor implements EventSpeaker<SQLExecutor.EventType>, Closeab
                                     conn))));
             return;
         }
-        long checkpointTs = System.nanoTime();
-        long startTS = checkpointTs;
+        LOGGER.info("Connectivity looks ok [{}]: {}", key, query);
         long queryExecutedTs;
         long queryExecutedMs;
-        LOGGER.info("Executing query [{}]: {}", key, query);
         int rowId = 0;
         int batchId = 0;
         int batchSize = START_BATCH_SIZE;
@@ -138,7 +143,10 @@ public class SQLExecutor implements EventSpeaker<SQLExecutor.EventType>, Closeab
         eventListener.onSourceEvent(
                 SQLExecutor.this,
                 EventType.QUERY_STARTED,
-                new SQLExecutionResponse(request, 0L, 0L,0L));
+                new SQLExecutionResponse(request,
+                        toMillis(System.nanoTime() - startTS),
+                        0L,
+                        0L));
         try (Statement stmt = conn.getConnection().createStatement()) {
             boolean checkResults = stmt.execute(query);
             queryExecutedTs = System.nanoTime();

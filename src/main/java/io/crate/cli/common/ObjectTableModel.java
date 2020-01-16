@@ -79,12 +79,12 @@ public class ObjectTableModel<RowType extends HasKey> extends AbstractTableModel
     }
 
     public void addRows(List<RowType> newRows) {
-        int start;
+        int offset;
         synchronized (rows) {
-            start = rows.size();
+            offset = rows.size();
             rows.addAll(newRows);
         }
-        fireTableDataChanged();
+        fireTableRowsInserted(offset, offset + newRows.size() - 1);
     }
 
     public int addRow(RowType row) {

@@ -70,12 +70,22 @@ public final class GUIFactory {
     public static final Border COMMAND_BOARD_UNSELECTED_BORDER = BorderFactory.createLineBorder(Color.LIGHT_GRAY, 1, false);
 
 
-    public static void addToSwingEventQueue(Runnable runnable) {
+    public static void addToSwingEventQueue(Runnable ... runnables) {
         if (EventQueue.isDispatchThread()) {
-            runnable.run();
+            for (Runnable r : runnables) {
+                if (null != r) {
+                    r.run();
+                }
+            }
         } else {
             try {
-                EventQueue.invokeLater(runnable);
+                EventQueue.invokeLater(() -> {
+                    for (Runnable r : runnables) {
+                        if (null != r) {
+                            r.run();
+                        }
+                    }
+                });
             } catch (Throwable throwable) {
                 throw new RuntimeException(throwable);
             }

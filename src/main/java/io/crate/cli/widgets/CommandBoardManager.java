@@ -77,6 +77,7 @@ public class CommandBoardManager extends JPanel implements EventSpeaker<CommandB
         actionButtonsPanel.add(clearButton);
         actionButtonsPanel.add(runButton);
         actionButtonsPanel.add(runLineButton);
+        actionButtonsPanel.add(cancelButton);
         JPanel bufferActionButtonsPanel = new JPanel(new BorderLayout());
         bufferActionButtonsPanel.add(bufferButtonsPanel, BorderLayout.CENTER);
         bufferActionButtonsPanel.add(actionButtonsPanel, BorderLayout.EAST);
@@ -156,10 +157,14 @@ public class CommandBoardManager extends JPanel implements EventSpeaker<CommandB
         cancelButton.setEnabled(isConnected);
     }
 
-    @Override
-    public void close() {
+    public void store() {
         commandBoardManagerData.setCurrentBoardContents(getFullTextContents());
         commandBoardManagerData.store();
+    }
+
+    @Override
+    public void close() {
+        store();
     }
 
     private void onChangeBufferEvent(int newIdx) {

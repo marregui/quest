@@ -25,7 +25,7 @@ public class CratedbSQL {
     private final SQLExecutor sqlExecutor;
     private final SQLConnectionManager sqlConnectionManager;
     private final CommandBoardManager commandBoardManager;
-    private final SQLResultsManager [] sqlResultsManager;
+    private final SQLResultsManager[] sqlResultsManager;
     private final JFrame frame;
     private final JSplitPane sqlResultsManagerPanel;
     private Component currentSqlConnectionManager;
@@ -36,7 +36,7 @@ public class CratedbSQL {
         commandBoardManager = new CommandBoardManager(this::onSourceEvent);
         sqlConnectionManager = new SQLConnectionManager(this::onSourceEvent);
         sqlResultsManager = new SQLResultsManager[GUIFactory.NUM_BOARDS];
-        for(int i=0; i < GUIFactory.NUM_BOARDS; i++) {
+        for (int i = 0; i < GUIFactory.NUM_BOARDS; i++) {
             sqlResultsManager[i] = new SQLResultsManager();
         }
         currentSqlConnectionManager = sqlResultsManager[0];
@@ -115,10 +115,13 @@ public class CratedbSQL {
                 switchSQLResultsManager(offset);
                 sqlResultsManager[offset].showInfiniteProgressPanel();
                 sqlExecutor.submit(request);
+                commandBoardManager.store();
                 break;
 
             case COMMAND_CANCEL:
                 sqlExecutor.cancelSubmittedRequest(request);
+                sqlResultsManager[offset].removeInfiniteProgressPanel();
+                sqlResultsManager[offset].clear();
                 break;
 
             case CONNECT_KEYBOARD_REQUEST:
@@ -144,13 +147,16 @@ public class CratedbSQL {
                 break;
 
             case QUERY_FAILURE:
-                GUIFactory.addToSwingEventQueue(sqlResultsManager[offset]::removeInfiniteProgressPanel);
-                GUIFactory.addToSwingEventQueue(() -> sqlResultsManager[offset].displayError(response.getError()));
+                GUIFactory.addToSwingEventQueue(
+                        sqlResultsManager[offset]::removeInfiniteProgressPanel,
+                        () -> sqlResultsManager[offset].displayError(response.getError()));
                 break;
 
             case QUERY_CANCELLED:
-                GUIFactory.addToSwingEventQueue(sqlResultsManager[offset]::removeInfiniteProgressPanel);
-                GUIFactory.addToSwingEventQueue(sqlResultsManager[offset]::clear);
+                GUIFactory.addToSwingEventQueue(
+                        sqlResultsManager[offset]::removeInfiniteProgressPanel,
+                        sqlResultsManager[offset]::clear,
+                        () -> sqlResultsManager[offset].displayError(response.getError()));
                 break;
 
             case RESULTS_AVAILABLE:
@@ -159,9 +165,9 @@ public class CratedbSQL {
                 long seqNo = response.getSeqNo();
                 boolean needsClearing = 0 == seqNo && sqlResultsManager[offset].getRowCount() > 0;
                 boolean expectMore = SQLExecutor.EventType.RESULTS_AVAILABLE == event;
-                GUIFactory.addToSwingEventQueue(() -> {
-                    sqlResultsManager[offset].addRows(response.getResults(), needsClearing, expectMore);
-                });
+                GUIFactory.addToSwingEventQueue(() ->
+                        sqlResultsManager[offset].addRows(response.getResults(), needsClearing, expectMore)
+                );
                 break;
         }
     }
