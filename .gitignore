@@ -1,5 +1,7 @@
 .gradle
 build
+out
+store
 cratedbsql.iws
 cratedbsql.iml
 cratedbsql.ipr
