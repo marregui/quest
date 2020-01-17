@@ -110,7 +110,8 @@ public class SQLConnectionManager extends JPanel implements EventSpeaker<SQLConn
             }
         };
         tableModel.addTableModelListener(this::onTableModelEvent);
-        table = GUIToolkit.newTable(tableModel, this::toggleComponents);
+        table = GUIToolkit.newTable(tableModel, new StringCellRenderer(), this::toggleComponents);
+        table.setAutoCreateRowSorter(false);
         TableColumnModel columnModel = table.getTableHeader().getColumnModel();
         columnModel.getColumn(NAME_IDX).setPreferredWidth(COLUMN_WIDTHS[NAME_IDX]);
         columnModel.getColumn(HOST_IDX).setPreferredWidth(COLUMN_WIDTHS[HOST_IDX]);
@@ -128,7 +129,8 @@ public class SQLConnectionManager extends JPanel implements EventSpeaker<SQLConn
         removeButton.addActionListener(this::onRemoveButtonEvent);
         testButton = new JButton("Test");
         testButton.addActionListener(this::onTestButtonEvent);
-        selectButton = new JButton("Select");
+        selectButton = new JButton("USE");
+        selectButton.setFont(GUIToolkit.REMARK_FONT);
         selectButton.addActionListener(this::setSelectedItem);
         connectButton = new JButton("Connect");
         connectButton.addActionListener(this::onConnectButtonEvent);
@@ -140,8 +142,8 @@ public class SQLConnectionManager extends JPanel implements EventSpeaker<SQLConn
         manageButtonsPanel.add(removeButton);
         JPanel connectButtonsPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT));
         connectButtonsPanel.setBorder(BorderFactory.createEtchedBorder());
-        connectButtonsPanel.add(testButton);
         connectButtonsPanel.add(selectButton);
+        connectButtonsPanel.add(testButton);
         connectButtonsPanel.add(connectButton);
         JPanel buttonsPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT));
         buttonsPanel.add(manageButtonsPanel);

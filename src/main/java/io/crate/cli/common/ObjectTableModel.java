@@ -23,13 +23,6 @@ public class ObjectTableModel<RowType extends HasKey> extends AbstractTableModel
         rows = new ArrayList<>();
     }
 
-    public void reset(String[] attributeNames) {
-        this.attributeNames = attributeNames;
-        this.attributeTypes = null;
-        fireTableStructureChanged();
-        clear();
-    }
-
     public void reset(String[] attributeNames, int[] attributeTypes) {
         this.attributeNames = attributeNames;
         this.attributeTypes = attributeTypes;
@@ -154,7 +147,7 @@ public class ObjectTableModel<RowType extends HasKey> extends AbstractTableModel
                 getValueAt(attributeNames, colIdx),
                 null == attributeTypes ?
                         "" :
-                        " [" + GUIToolkit.resolveNameForSqlType(attributeTypes[colIdx]) + "]");
+                        " [" + SqlType.resolveName(attributeTypes[colIdx]) + "]");
     }
 
     @Override

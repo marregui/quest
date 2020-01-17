@@ -3,12 +3,15 @@ package io.crate.cli.widgets;
 import io.crate.cli.backend.SQLExecutionResponse;
 import io.crate.cli.backend.SQLExecutor;
 import io.crate.cli.backend.SQLRowType;
-import io.crate.cli.common.GUIToolkit;
-import io.crate.cli.common.ObjectTableModel;
+import io.crate.cli.common.*;
 
 import javax.swing.*;
 import javax.swing.border.BevelBorder;
 import javax.swing.event.TableModelEvent;
+import javax.swing.table.DefaultTableCellRenderer;
+import javax.swing.table.JTableHeader;
+import javax.swing.table.TableColumn;
+import javax.swing.table.TableColumnModel;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.io.Closeable;
@@ -61,7 +64,9 @@ public class SQLResultsManager extends JPanel implements Closeable {
             }
         };
         windowedResultsTableModel.addTableModelListener(this::onTableModelEvent);
-        windowTable = GUIToolkit.newTable(windowedResultsTableModel, null);
+        windowTable = GUIToolkit.newTable(windowedResultsTableModel, new SQLCellRenderer(), null);
+        windowTable.setAutoCreateRowSorter(false);
+        windowTable.setRowHeight(GUIToolkit.TABLE_ROW_HEIGHT + 5);
         currentPage = 0;
         navigationLabel = new JLabel(NO_RESULTS_LABEL);
         navigationLabel.setFont(GUIToolkit.TABLE_FOOTER_FONT);
@@ -242,6 +247,14 @@ public class SQLResultsManager extends JPanel implements Closeable {
                 windowedResultsTableModel.reset(
                         firstRow.getColumnNames(),
                         firstRow.getColumnTypes());
+                JTableHeader header = windowTable.getTableHeader();
+                header.setForeground(Color.WHITE);
+                header.setBackground(Color.BLACK);
+                header.setPreferredSize(new Dimension(0, 50));
+                TableColumnModel tcm = windowTable.getColumnModel();
+                for (int i=0; i < tcm.getColumnCount(); i++) {
+                    tcm.getColumn(i).setMinWidth(GUIToolkit.TABLE_COLUMN_MIN_WIDTH);
+                }
             }
             fullResults.addAll(rows);
             int currentCount = windowedResultsTableModel.getRowCount();

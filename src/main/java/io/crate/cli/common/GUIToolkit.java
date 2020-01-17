@@ -3,11 +3,11 @@ package io.crate.cli.common;
 import javax.swing.*;
 import javax.swing.border.Border;
 import javax.swing.table.JTableHeader;
+import javax.swing.table.TableCellRenderer;
 import javax.swing.table.TableColumnModel;
 import javax.swing.table.TableModel;
 import javax.swing.text.*;
 import java.awt.*;
-import java.sql.Types;
 import java.util.Locale;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -27,7 +27,6 @@ public final class GUIToolkit {
     public static final int FRAME_HEIGHT_AS_PERCENT_OF_SCREEN_WIDTH = 90;
 
     public static final int NUM_COMMAND_BOARDS = 6;
-
 
     public static String toCommandBoardKey(int offset) {
         if (offset < 0 || offset >= NUM_COMMAND_BOARDS) {
@@ -60,6 +59,7 @@ public final class GUIToolkit {
     public static final String JDBC_DRIVER_URL_FORMAT = "jdbc:crate://%s:%s/";
 
     public static final String MAIN_FONT_NAME = "monospaced";
+    public static final Font REMARK_FONT = new Font(MAIN_FONT_NAME, Font.BOLD, 16);
     public static final Dimension SQL_CONNECTION_MANAGER_HEIGHT = new Dimension(0, 200);
     public static final Dimension COMMAND_BOARD_MANAGER_HEIGHT = new Dimension(0, 300);
     public static final String COMMAND_BOARD_MANAGER_STORE = "command_board.json";
@@ -75,12 +75,13 @@ public final class GUIToolkit {
     public static final Font TABLE_HEADER_FONT = new Font(MAIN_FONT_NAME, Font.BOLD, 18);
     public static final Font TABLE_CELL_FONT = new Font(MAIN_FONT_NAME, Font.PLAIN, 16);
     public static final Font TABLE_FOOTER_FONT = new Font(MAIN_FONT_NAME, Font.PLAIN, 14);
-    public static final int TABLE_ROW_HEIGHT = 20;
+    public static final int TABLE_ROW_HEIGHT = 22;
+    public static final int TABLE_COLUMN_MIN_WIDTH = 150;
 
     public static final Color TABLE_BG_ROW_COLOR = new Color(230, 236, 255);
     public static final Color TABLE_BG_ROW_COLOR_ALTERNATE = new Color(255, 247, 255);
-    public static final Color SELECTED_BG_COLOR = new Color(102, 140, 255);
-    public static final Color SELECTED_FG_COLOR = Color.WHITE;
+    public static final Color TABLE_CELL_SELECTED_BG_COLOR = CRATE_COLOR;
+    public static final Color TABLE_CELL_SELECTED_FG_COLOR = Color.BLACK;
     public static final Font TABLE_CELL_SELECTED_FONT = new Font(GUIToolkit.MAIN_FONT_NAME, Font.BOLD, 16);
 
     public static final Color COMMAND_BOARD_FONT_COLOR = Color.WHITE;
@@ -94,63 +95,6 @@ public final class GUIToolkit {
     public static final Border COMMAND_BOARD_DISCONNECTED_BORDER = BorderFactory.createLineBorder(Color.BLACK, 2, true);
     public static final Border COMMAND_BOARD_UNSELECTED_BORDER = BorderFactory.createLineBorder(Color.LIGHT_GRAY, 1, false);
 
-    public static String resolveNameForSqlType(int sqlType) {
-        String type = null;
-        switch (sqlType) {
-            case Types.BOOLEAN:
-                type = "BOOL";
-                break;
-
-            case Types.TINYINT:
-            case Types.SMALLINT:
-            case Types.INTEGER:
-            case Types.BIGINT:
-                type = "INT";
-                break;
-
-            case Types.REAL:
-            case Types.DOUBLE:
-                type = "FLT";
-                break;
-
-            case Types.VARCHAR:
-                type = "STR";
-                break;
-
-            default:
-                System.out.println("No type for java.sql.Types type: " + sqlType);
-        }
-        return type;
-    }
-
-    public static Color resolveColorForSqlType(int sqlType) {
-        Color color = Color.BLACK;
-        switch (sqlType) {
-            case Types.BOOLEAN:
-                color = new Color(0, 0, 128); // navy
-                break;
-
-            case Types.TINYINT:
-            case Types.SMALLINT:
-            case Types.INTEGER:
-            case Types.BIGINT:
-                color = new Color(128, 128, 0); // olive
-                break;
-
-            case Types.REAL:
-            case Types.DOUBLE:
-                color = Color.GREEN;
-                break;
-
-            case Types.VARCHAR:
-                color = new Color(0, 128, 128);
-                break;
-
-            default:
-                System.out.println("No color for java.sql.Types type: " + sqlType);
-        }
-        return color;
-    }
 
     public static void addToSwingEventQueue(Runnable ... runnables) {
         if (EventQueue.isDispatchThread()) {
@@ -184,7 +128,6 @@ public final class GUIToolkit {
         if (screenHeightPercent <= 0 || screenHeightPercent > 100) {
             throw new IllegalArgumentException("screenHeightPercent must be a value in [1, 100]");
         }
-
         JFrame frame = new JFrame();
         frame.setTitle(title);
         frame.setType(Window.Type.NORMAL);
@@ -193,7 +136,6 @@ public final class GUIToolkit {
         frame.add(mainPanel, BorderLayout.CENTER);
         ImageIcon logo = new ImageIcon(GUIToolkit.class.getResource(LOGO_FILE_NAME));
         frame.setIconImage(logo.getImage());
-
         Toolkit tk = Toolkit.getDefaultToolkit();
         Dimension screenSize = tk.getScreenSize();
         int width = (int) (screenSize.getWidth() * screenWidthPercent / 100);
@@ -205,13 +147,14 @@ public final class GUIToolkit {
         return frame;
     }
 
-    public static JTable newTable(TableModel tableModel, Runnable onListSelection) {
+    public static JTable newTable(TableModel tableModel,
+                                  TableCellRenderer cellRenderer,
+                                  Runnable onListSelection) {
         JTable table = new JTable(tableModel);
-        table.setAutoCreateRowSorter(true);
         table.setRowHeight(TABLE_ROW_HEIGHT);
         table.setGridColor(TABLE_CELL_COLOR);
         table.setFont(TABLE_CELL_FONT);
-        table.setDefaultRenderer(String.class, new StringCellRenderer());
+        table.setDefaultRenderer(String.class, cellRenderer);
         table.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
         table.getSelectionModel().addListSelectionListener(e -> {
             if (false == e.getValueIsAdjusting()) {
