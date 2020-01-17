@@ -162,6 +162,12 @@ public class CommandBoardManager extends JPanel implements EventSpeaker<CommandB
     }
 
     @Override
+    public void requestFocus() {
+        super.requestFocus();
+        textPane.requestFocus();
+    }
+
+    @Override
     public void close() {
         store();
     }

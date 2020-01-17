@@ -4,7 +4,7 @@ import java.io.File;
 import java.util.*;
 
 
-public interface Store<EntryType extends HasKey> extends Iterable<EntryType> {
+public interface Store<StoreType extends StoreItem> extends Iterable<StoreType> {
 
     void load();
 
@@ -14,24 +14,22 @@ public interface Store<EntryType extends HasKey> extends Iterable<EntryType> {
 
     void clear();
 
-    void store(EntryType value);
+    void addAll(boolean clear, StoreType... value);
 
-    void addAll(boolean clear, EntryType... value);
-
-    void remove(EntryType value);
+    void remove(StoreType value);
 
     Set<String> keys();
 
-    List<EntryType> values();
+    List<StoreType> values();
 
-    EntryType lookup(String key);
+    StoreItem lookup(String key);
 
     int size();
 
     @Override
-    default Iterator<EntryType> iterator() {
-        return new Iterator<EntryType>() {
-            private final List<EntryType> values = values();
+    default Iterator<StoreType> iterator() {
+        return new Iterator<StoreType>() {
+            private final List<StoreType> values = values();
             private int offset = 0;
 
             @Override
@@ -40,7 +38,7 @@ public interface Store<EntryType extends HasKey> extends Iterable<EntryType> {
             }
 
             @Override
-            public EntryType next() {
+            public StoreType next() {
                 if (offset >= values.size()) {
                     throw new IndexOutOfBoundsException();
                 }

@@ -122,6 +122,7 @@ public class CratedbSQL {
                 sqlExecutor.cancelSubmittedRequest(request);
                 sqlResultsManager[offset].removeInfiniteProgressPanel();
                 sqlResultsManager[offset].clear();
+                commandBoardManager.requestFocus();
                 break;
 
             case CONNECT_KEYBOARD_REQUEST:
@@ -134,6 +135,7 @@ public class CratedbSQL {
                     sqlConnectionManager.setSelectedItem(conn);
                     switchSQLResultsManager(offset);
                 }
+                commandBoardManager.requestFocus();
                 break;
         }
     }
@@ -156,7 +158,8 @@ public class CratedbSQL {
                 GUIToolkit.addToSwingEventQueue(
                         sqlResultsManager[offset]::removeInfiniteProgressPanel,
                         sqlResultsManager[offset]::clear,
-                        () -> sqlResultsManager[offset].displayError(response.getError()));
+                        () -> sqlResultsManager[offset].displayError(response.getError()),
+                        commandBoardManager::requestFocus);
                 break;
 
             case RESULTS_AVAILABLE:
@@ -166,8 +169,10 @@ public class CratedbSQL {
                 boolean needsClearing = 0 == seqNo && sqlResultsManager[offset].getRowCount() > 0;
                 boolean expectMore = SQLExecutor.EventType.RESULTS_AVAILABLE == event;
                 GUIToolkit.addToSwingEventQueue(() ->
-                        sqlResultsManager[offset].addRows(response.getResults(), needsClearing, expectMore)
+                        sqlResultsManager[offset].addRows(response.getResults(), needsClearing, expectMore),
+                        () -> { if (false == expectMore) commandBoardManager.requestFocus(); }
                 );
+
                 break;
         }
     }

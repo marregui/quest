@@ -1,11 +1,12 @@
 package io.crate.cli.widgets;
 
-import io.crate.cli.backend.ConnectionDescriptor;
+import io.crate.cli.backend.ConnectionItem;
 import io.crate.cli.backend.ConnectivityChecker;
 import io.crate.cli.backend.SQLConnection;
 import io.crate.cli.common.*;
-import io.crate.cli.store.ConnectionDescriptorStore;
 
+import io.crate.cli.store.JsonStore;
+import io.crate.cli.store.Store;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -18,11 +19,10 @@ import java.awt.event.ActionEvent;
 import java.io.Closeable;
 import java.io.File;
 import java.util.HashSet;
-import java.util.List;
 import java.util.Locale;
+import java.util.List;
 import java.util.Set;
 import java.util.function.BiFunction;
-import java.util.function.Function;
 
 
 public class SQLConnectionManager extends JPanel implements EventSpeaker<SQLConnectionManager.EventType>, Closeable {
@@ -44,10 +44,10 @@ public class SQLConnectionManager extends JPanel implements EventSpeaker<SQLConn
     private static final String CONNECTED = "connected";
     private static final String[] COLUMN_NAMES = {
             NAME,
-            ConnectionDescriptor.AttributeName.host.name(),
-            ConnectionDescriptor.AttributeName.port.name(),
-            ConnectionDescriptor.AttributeName.username.name(),
-            ConnectionDescriptor.AttributeName.password.name(),
+            ConnectionItem.AttributeName.host.name(),
+            ConnectionItem.AttributeName.port.name(),
+            ConnectionItem.AttributeName.username.name(),
+            ConnectionItem.AttributeName.password.name(),
             CONNECTED
     };
     private static final int[] COLUMN_WIDTHS = {
@@ -85,7 +85,7 @@ public class SQLConnectionManager extends JPanel implements EventSpeaker<SQLConn
 
 
     private final EventListener<SQLConnectionManager, Object> eventListener;
-    private final ConnectionDescriptorStore store;
+    private final Store<SQLConnection> store;
     private final JButton selectButton;
     private final JButton testButton;
     private final JButton connectButton;
@@ -101,7 +101,7 @@ public class SQLConnectionManager extends JPanel implements EventSpeaker<SQLConn
 
     public SQLConnectionManager(EventListener<SQLConnectionManager, Object> eventListener) {
         this.eventListener = eventListener;
-        store = new ConnectionDescriptorStore((Function<String, SQLConnection>) SQLConnection::new);
+        store = new JsonStore<>(GUIToolkit.SQL_CONNECTION_MANAGER_STORE, SQLConnection.class);
         existingNamesInTableModel = new HashSet<>();
         tableModel = new ObjectTableModel<>(COLUMN_NAMES, ATTR_GETTER, ATTR_SETTER) {
             @Override
@@ -266,7 +266,7 @@ public class SQLConnectionManager extends JPanel implements EventSpeaker<SQLConn
         SQLConnection added = new SQLConnection(name, template);
         int offset = tableModel.addRow(added);
         table.getSelectionModel().addSelectionInterval(offset, offset);
-        store.store(added);
+        store.addAll(false, added);
         toggleComponents();
         return added;
     }
@@ -393,6 +393,14 @@ public class SQLConnectionManager extends JPanel implements EventSpeaker<SQLConn
     }
 
     public void onConnectButtonEvent(SQLConnection conn) {
+        if (null == conn) {
+            JOptionPane.showMessageDialog(
+                    this,
+                    "no connection selected",
+                    "Connection Failed",
+                    JOptionPane.ERROR_MESSAGE);
+            return;
+        }
         if (false == tableModel.contains(conn)) {
             return;
         }

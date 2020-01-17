@@ -1,12 +1,14 @@
 package io.crate.cli.backend;
 
-import io.crate.cli.store.HasKey;
-import io.crate.cli.store.StoreItemDescriptor;
+import io.crate.cli.common.GUIToolkit;
+import io.crate.cli.common.HasKey;
+import io.crate.cli.store.StoreItem;
 
 import java.util.*;
 
 
-public class ConnectionDescriptor extends StoreItemDescriptor {
+public class ConnectionItem extends StoreItem {
+
 
     public enum AttributeName implements HasKey {
 
@@ -32,10 +34,12 @@ public class ConnectionDescriptor extends StoreItemDescriptor {
         }
     }
 
-    private static final String JDBC_DRIVER_URL_FORMAT = "jdbc:crate://%s:%s/";
 
+    public ConnectionItem(StoreItem other) {
+        super(other);
+    }
 
-    public ConnectionDescriptor(String name) {
+    public ConnectionItem(String name) {
         super(name);
         attributes.put(getStoreItemAttributeKey(AttributeName.host), AttributeName.host.getDefaultValue());
         attributes.put(getStoreItemAttributeKey(AttributeName.port), AttributeName.port.getDefaultValue());
@@ -55,7 +59,11 @@ public class ConnectionDescriptor extends StoreItemDescriptor {
     }
 
     public String getUrl() {
-        return String.format(Locale.ENGLISH, JDBC_DRIVER_URL_FORMAT, getHost(), getPort());
+        return String.format(
+                Locale.ENGLISH,
+                GUIToolkit.JDBC_DRIVER_URL_FORMAT,
+                getHost(),
+                getPort());
     }
 
     public Properties loginProperties() {

@@ -1,10 +1,14 @@
 package io.crate.cli.store;
 
+import io.crate.cli.common.HasKey;
+
 import java.util.*;
 import java.util.function.BiConsumer;
 
 
-public class StoreItemDescriptor implements HasKey, Comparable<StoreItemDescriptor> {
+public class StoreItem implements HasKey, Comparable<StoreItem> {
+
+    protected static final Class<?>[] CONSTRUCTOR_SIGNATURE = {StoreItem.class};
 
     public static final Comparator<String> KEY_COMPARATOR = (k1, k2) -> {
         String [] k1Parts = k1.split("\\.");
@@ -25,7 +29,12 @@ public class StoreItemDescriptor implements HasKey, Comparable<StoreItemDescript
     protected Map<String, String> attributes;
 
 
-    public StoreItemDescriptor(String name) {
+    protected StoreItem(StoreItem other) {
+        this.name = other.name;
+        attributes = other.attributes;
+    }
+
+    public StoreItem(String name) {
         if (null == name || name.isEmpty()) {
             throw new IllegalArgumentException("name cannot be null or empty");
         }
@@ -107,6 +116,10 @@ public class StoreItemDescriptor implements HasKey, Comparable<StoreItemDescript
         return attributes.get(getStoreItemAttributeKey(attr));
     }
 
+    public String setAttribute(HasKey attr, String value) {
+        return setAttribute(attr, value, "");
+    }
+
     public String setAttribute(HasKey attr, String value, String defaultValue) {
         return attributes.put(
                 getStoreItemAttributeKey(attr),
@@ -127,7 +140,7 @@ public class StoreItemDescriptor implements HasKey, Comparable<StoreItemDescript
         if (o == null || getClass() != o.getClass()) {
             return false;
         }
-        StoreItemDescriptor that = (StoreItemDescriptor) o;
+        StoreItem that = (StoreItem) o;
         return name.equals(that.name) && attributes.equals(that.attributes);
     }
 
@@ -142,13 +155,13 @@ public class StoreItemDescriptor implements HasKey, Comparable<StoreItemDescript
     }
 
     @Override
-    public int compareTo(StoreItemDescriptor that) {
+    public int compareTo(StoreItem that) {
         if (this == that) {
             return 0;
         }
         if (null == that) {
             return 1;
         }
-        return getKey().compareTo(that.getKey());
+        return KEY_COMPARATOR.compare(getKey(), that.getKey());
     }
 }

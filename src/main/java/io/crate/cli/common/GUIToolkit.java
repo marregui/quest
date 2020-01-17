@@ -57,9 +57,13 @@ public final class GUIToolkit {
         return offset;
     }
 
+    public static final String JDBC_DRIVER_URL_FORMAT = "jdbc:crate://%s:%s/";
+
     public static final String MAIN_FONT_NAME = "monospaced";
     public static final Dimension SQL_CONNECTION_MANAGER_HEIGHT = new Dimension(0, 200);
     public static final Dimension COMMAND_BOARD_MANAGER_HEIGHT = new Dimension(0, 300);
+    public static final String COMMAND_BOARD_MANAGER_STORE = "command_board.json";
+    public static final String SQL_CONNECTION_MANAGER_STORE = "connections.json";
 
     public static final String ERROR_HEADER = "======= Error =======\n";
     public static final Font ERROR_FONT = new Font(MAIN_FONT_NAME, Font.BOLD, 14);
@@ -220,7 +224,7 @@ public final class GUIToolkit {
         header.setFont(TABLE_HEADER_FONT);
         header.setForeground(TABLE_HEADER_FONT_COLOR);
         TableColumnModel columnModel = header.getColumnModel();
-        columnModel.setColumnSelectionAllowed(true);
+        columnModel.setColumnSelectionAllowed(false);
         return table;
     }
 

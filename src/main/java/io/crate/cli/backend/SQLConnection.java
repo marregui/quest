@@ -1,5 +1,6 @@
 package io.crate.cli.backend;
 
+import io.crate.cli.store.StoreItem;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -9,12 +10,22 @@ import java.util.*;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 
-public class SQLConnection extends ConnectionDescriptor implements Closeable {
+public class SQLConnection extends ConnectionItem implements Closeable {
 
-    private final Logger logger;
-    private final AtomicBoolean isConnected;
-    private java.sql.Connection sqlConnection;
+    private final transient Logger logger;
+    private final transient AtomicBoolean isConnected;
+    private transient java.sql.Connection sqlConnection;
 
+
+    public SQLConnection(StoreItem other) {
+        super(other);
+        logger = LoggerFactory.getLogger(String.format(
+                Locale.ENGLISH,
+                "%s [%s]",
+                SQLConnection.class.getSimpleName(),
+                getKey()));
+        isConnected = new AtomicBoolean();
+    }
 
     public SQLConnection(String name, SQLConnection other) {
         this(name);

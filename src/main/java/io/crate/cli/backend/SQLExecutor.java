@@ -129,6 +129,7 @@ public class SQLExecutor implements EventSpeaker<SQLExecutor.EventType>, Closeab
                             key,
                             conn,
                             query,
+                            -1L, -1L, -1L,
                             new RuntimeException(String.format(
                                     Locale.ENGLISH,
                                     "Connection [%s] is down",
@@ -212,10 +213,18 @@ public class SQLExecutor implements EventSpeaker<SQLExecutor.EventType>, Closeab
             }
         } catch (SQLException e) {
             LOGGER.error("Error query [{}]: {}", key, e.getMessage());
+            checkpointTs = System.nanoTime();
             eventListener.onSourceEvent(
                     SQLExecutor.this,
                     EventType.QUERY_FAILURE,
-                    new SQLExecutionResponse(key, conn, query, e));
+                    new SQLExecutionResponse(
+                            key,
+                            conn,
+                            query,
+                            toMillis(checkpointTs - startTS),
+                            -1L,
+                            -1L,
+                            e));
             return;
         }
         if (LOGGER.isDebugEnabled()) {

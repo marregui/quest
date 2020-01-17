@@ -52,13 +52,16 @@ public class SQLExecutionResponse extends SQLExecutionRequest {
     public SQLExecutionResponse(String key,
                                 SQLConnection sqlConnection,
                                 String command,
+                                long totalElapsedMs,
+                                long queryExecutionElapsedMs,
+                                long fetchResultsElapsedMs,
                                 Throwable error) {
         super(key, sqlConnection, command);
         this.error = error;
         this.results = null;
-        totalElapsedMs = -1;
-        queryExecutionElapsedMs = -1;
-        fetchResultsElapsedMs = -1;
+        this.totalElapsedMs = totalElapsedMs;
+        this.queryExecutionElapsedMs = queryExecutionElapsedMs;
+        this.fetchResultsElapsedMs = fetchResultsElapsedMs;
     }
 
     public List<SQLRowType> getResults() {

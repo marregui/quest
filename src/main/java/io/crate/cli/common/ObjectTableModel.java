@@ -1,7 +1,5 @@
 package io.crate.cli.common;
 
-import io.crate.cli.store.HasKey;
-
 import javax.swing.table.AbstractTableModel;
 import java.util.*;
 import java.util.function.BiFunction;

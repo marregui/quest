@@ -1,4 +1,4 @@
-package io.crate.cli.store;
+package io.crate.cli.common;
 
 public interface HasKey {
 
