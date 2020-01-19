@@ -8,10 +8,7 @@ import io.crate.cli.common.*;
 import javax.swing.*;
 import javax.swing.border.BevelBorder;
 import javax.swing.event.TableModelEvent;
-import javax.swing.table.DefaultTableCellRenderer;
 import javax.swing.table.JTableHeader;
-import javax.swing.table.TableColumn;
-import javax.swing.table.TableColumnModel;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.io.Closeable;
@@ -41,6 +38,7 @@ public class SQLResultsManager extends JPanel implements Closeable {
 
     private final List<SQLRowType> fullResults;
     private final JTable windowTable;
+    private final SQLTableColumnAdjuster windowTableColumnAdjuster;
     private final JTextPane errorPane;
     private final JScrollPane windowTablePane;
     private final ObjectTableModel<SQLRowType> windowedResultsTableModel;
@@ -67,7 +65,9 @@ public class SQLResultsManager extends JPanel implements Closeable {
         windowTable = GUIToolkit.newTable(windowedResultsTableModel, new SQLCellRenderer(), null);
         windowTable.setAutoCreateRowSorter(false);
         windowTable.setRowSelectionAllowed(false);
+
         windowTable.setRowHeight(GUIToolkit.TABLE_ROW_HEIGHT + 5);
+        windowTableColumnAdjuster = new SQLTableColumnAdjuster(windowTable);
         currentPage = 0;
         navigationLabel = new JLabel(NO_RESULTS_LABEL);
         navigationLabel.setFont(GUIToolkit.TABLE_FOOTER_FONT);
@@ -103,11 +103,12 @@ public class SQLResultsManager extends JPanel implements Closeable {
         controlsPane.add(leftButton);
         controlsPane.add(rightButton);
         windowTablePane = new JScrollPane(windowTable);
-        windowTablePane.setHorizontalScrollBarPolicy(JScrollPane.HORIZONTAL_SCROLLBAR_AS_NEEDED);
+        windowTablePane.setHorizontalScrollBarPolicy(JScrollPane.HORIZONTAL_SCROLLBAR_ALWAYS);
         windowTablePane.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED);
         mode = Mode.TABLE;
         currentPanel = windowTablePane;
         setLayout(new BorderLayout());
+        setBorder(BorderFactory.createBevelBorder(BevelBorder.RAISED));
         add(windowTablePane, BorderLayout.CENTER);
         add(controlsPane, BorderLayout.SOUTH);
         infiniteProgressPanel = new InfiniteProgressPanel();
@@ -233,6 +234,19 @@ public class SQLResultsManager extends JPanel implements Closeable {
         toggleComponents();
     }
 
+    private void resetTableHeader(SQLRowType firstRow) {
+        JTableHeader header = windowTable.getTableHeader();
+        header.setForeground(Color.WHITE);
+        header.setBackground(Color.BLACK);
+        header.setPreferredSize(new Dimension(0, GUIToolkit.TABLE_HEADER_HEIGHT));
+        windowedResultsTableModel.reset(firstRow.getColumnNames(), firstRow.getColumnTypes());
+        int numCols = firstRow.getColumnNames().length;
+        windowTable.setAutoResizeMode(numCols > 10 ?
+                JTable.AUTO_RESIZE_OFF :
+                JTable.AUTO_RESIZE_ALL_COLUMNS);
+        windowTableColumnAdjuster.adjustColumns();
+    }
+
     public void addRows(List<SQLRowType> rows, boolean needsClearing, boolean expectMore) {
         if (needsClearing) {
             clear();
@@ -244,18 +258,7 @@ public class SQLResultsManager extends JPanel implements Closeable {
         int newRowsCount = rows.size();
         if (newRowsCount > 0) {
             if (0 == fullResults.size()) {
-                SQLRowType firstRow = rows.get(0);
-                windowedResultsTableModel.reset(
-                        firstRow.getColumnNames(),
-                        firstRow.getColumnTypes());
-                JTableHeader header = windowTable.getTableHeader();
-                header.setForeground(Color.WHITE);
-                header.setBackground(Color.BLACK);
-                header.setPreferredSize(new Dimension(0, 50));
-                TableColumnModel tcm = windowTable.getColumnModel();
-                for (int i=0; i < tcm.getColumnCount(); i++) {
-                    tcm.getColumn(i).setMinWidth(GUIToolkit.TABLE_COLUMN_MIN_WIDTH);
-                }
+                resetTableHeader(rows.get(0));
             }
             fullResults.addAll(rows);
             int currentCount = windowedResultsTableModel.getRowCount();

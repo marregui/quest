@@ -129,7 +129,7 @@ public class SQLConnectionManager extends JPanel implements EventSpeaker<SQLConn
         removeButton.addActionListener(this::onRemoveButtonEvent);
         testButton = new JButton("Test");
         testButton.addActionListener(this::onTestButtonEvent);
-        selectButton = new JButton("USE");
+        selectButton = new JButton("ASSIGN");
         selectButton.setFont(GUIToolkit.REMARK_FONT);
         selectButton.addActionListener(this::setSelectedItem);
         connectButton = new JButton("Connect");

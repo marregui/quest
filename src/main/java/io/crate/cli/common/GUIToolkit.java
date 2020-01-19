@@ -75,8 +75,8 @@ public final class GUIToolkit {
     public static final Font TABLE_HEADER_FONT = new Font(MAIN_FONT_NAME, Font.BOLD, 18);
     public static final Font TABLE_CELL_FONT = new Font(MAIN_FONT_NAME, Font.PLAIN, 16);
     public static final Font TABLE_FOOTER_FONT = new Font(MAIN_FONT_NAME, Font.PLAIN, 14);
-    public static final int TABLE_ROW_HEIGHT = 22;
-    public static final int TABLE_COLUMN_MIN_WIDTH = 150;
+    public static final int TABLE_HEADER_HEIGHT = 50;
+    public static final int TABLE_ROW_HEIGHT = 26;
 
     public static final Color TABLE_BG_ROW_COLOR = new Color(230, 236, 255);
     public static final Color TABLE_BG_ROW_COLOR_ALTERNATE = new Color(255, 247, 255);
