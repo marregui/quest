@@ -66,6 +66,7 @@ public class SQLResultsManager extends JPanel implements Closeable {
         windowedResultsTableModel.addTableModelListener(this::onTableModelEvent);
         windowTable = GUIToolkit.newTable(windowedResultsTableModel, new SQLCellRenderer(), null);
         windowTable.setAutoCreateRowSorter(false);
+        windowTable.setRowSelectionAllowed(false);
         windowTable.setRowHeight(GUIToolkit.TABLE_ROW_HEIGHT + 5);
         currentPage = 0;
         navigationLabel = new JLabel(NO_RESULTS_LABEL);
