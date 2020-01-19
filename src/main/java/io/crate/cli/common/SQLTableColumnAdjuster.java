@@ -47,36 +47,23 @@ public class SQLTableColumnAdjuster implements PropertyChangeListener, TableMode
         return c.getPreferredSize().width;
     }
 
-    /*
-     *  Calculate the width based on the widest cell renderer for the
-     *  given column.
-     */
     private int getColumnDataWidth(int column) {
         int preferredWidth = 0;
         int maxWidth = table.getColumnModel().getColumn(column).getMaxWidth();
-
         for (int row = 0; row < table.getRowCount(); row++) {
             preferredWidth = Math.max(preferredWidth, getCellDataWidth(row, column));
-
-            //  We've exceeded the maximum width, no need to check other rows
-
-            if (preferredWidth >= maxWidth)
+            if (preferredWidth >= maxWidth) {
                 break;
+            }
         }
 
         return preferredWidth;
     }
 
-    /*
-     *  Get the preferred width for the specified cell
-     */
     private int getCellDataWidth(int row, int column) {
-        //  Inovke the renderer for the cell to calculate the preferred width
-
         TableCellRenderer cellRenderer = table.getCellRenderer(row, column);
         Component c = table.prepareRenderer(cellRenderer, row, column);
         int width = c.getPreferredSize().width + table.getIntercellSpacing().width;
-
         return width;
     }
 
@@ -102,7 +89,7 @@ public class SQLTableColumnAdjuster implements PropertyChangeListener, TableMode
 
     @Override
     public void tableChanged(TableModelEvent e) {
-        GUIToolkit.addToSwingEventQueue(() -> {
+        GUIToolkit.invokeLater(() -> {
             int columnIdx = table.convertColumnIndexToView(e.getColumn());
             if (e.getType() == TableModelEvent.UPDATE && -1 != columnIdx) {
                 int row = e.getFirstRow();

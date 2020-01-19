@@ -10,15 +10,19 @@ import java.util.Locale;
 
 public class StringCellRenderer extends DefaultTableCellRenderer {
 
+    private static final Color BG_ROW_COLOR = new Color(230, 236, 255);
+    private static final Color BG_ROW_COLOR_ALTERNATE = new Color(255, 247, 255);
+    private static final Color SELECTED_BG_COLOR = GUIToolkit.CRATE_COLOR;
+    private static final Color SELECTED_FG_COLOR = Color.BLACK;
+    private static final Font SELECTED_FONT = GUIToolkit.TABLE_CELL_FONT; //new Font(GUIToolkit.MAIN_FONT_NAME, Font.BOLD, 16);
+
     protected final Color bgColor;
     protected final Color bgColorAlternate;
     protected final Font font;
 
 
     public StringCellRenderer() {
-        this(GUIToolkit.TABLE_CELL_FONT,
-                GUIToolkit.TABLE_BG_ROW_COLOR,
-                GUIToolkit.TABLE_BG_ROW_COLOR_ALTERNATE);
+        this(GUIToolkit.TABLE_CELL_FONT, BG_ROW_COLOR, BG_ROW_COLOR_ALTERNATE);
     }
 
     public StringCellRenderer(Font font, Color bgColor, Color bgColorAlternate) {
@@ -38,9 +42,9 @@ public class StringCellRenderer extends DefaultTableCellRenderer {
         ObjectTableModel<SQLRowType> tableModel = (ObjectTableModel<SQLRowType>) table.getModel();
         if (rowIdx >= 0 && rowIdx < tableModel.getRowCount()) {
             if (isSelected) {
-                setFont(GUIToolkit.TABLE_CELL_SELECTED_FONT);
-                setForeground(GUIToolkit.TABLE_CELL_SELECTED_FG_COLOR);
-                setBackground(GUIToolkit.TABLE_CELL_SELECTED_BG_COLOR);
+                setFont(SELECTED_FONT);
+                setForeground(SELECTED_FG_COLOR);
+                setBackground(SELECTED_BG_COLOR);
             } else {
                 setFont(font);
                 setForeground(Color.BLACK);
@@ -54,6 +58,4 @@ public class StringCellRenderer extends DefaultTableCellRenderer {
                 rowIdx,
                 table.getModel().getRowCount() - 1));
     }
-
-
 }

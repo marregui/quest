@@ -3,9 +3,10 @@ package io.crate.cli.widgets;
 import io.crate.cli.backend.SQLConnection;
 import io.crate.cli.backend.SQLExecutionRequest;
 import io.crate.cli.backend.SQLExecutionResponse;
-import io.crate.cli.common.EventListener;
-import io.crate.cli.common.EventSpeaker;
-import io.crate.cli.common.GUIToolkit;
+import io.crate.cli.common.*;
+import io.crate.cli.store.JsonStore;
+import io.crate.cli.store.Store;
+import io.crate.cli.store.StoreItem;
 
 import java.awt.*;
 import javax.swing.*;
@@ -16,6 +17,7 @@ import java.awt.event.ActionEvent;
 import java.awt.event.KeyEvent;
 import java.awt.event.KeyListener;
 import java.io.Closeable;
+import java.util.Arrays;
 import java.util.Locale;
 import java.util.function.Supplier;
 
@@ -29,8 +31,181 @@ public class CommandBoardManager extends JPanel implements EventSpeaker<CommandB
         BOARD_CHANGE
     }
 
-
     private static final String BORDER_TITLE = "Command Board";
+    public static final int NUM_COMMAND_BOARDS = 6;
+
+    public static int fromCommandBoardKey(String key) {
+        if (null == key || key.trim().length() < 1) {
+            throw new IllegalArgumentException(String.format(
+                    Locale.ENGLISH,
+                    "key cannot be null, must contain one non white char: %s",
+                    key));
+        }
+        int offset = key.trim().charAt(0) - 'A';
+        if (offset < 0 || offset >= NUM_COMMAND_BOARDS) {
+            throw new IndexOutOfBoundsException(String.format(
+                    Locale.ENGLISH,
+                    "Key [%s] -> offset: %d (max: %d)",
+                    key, offset, NUM_COMMAND_BOARDS - 1));
+        }
+        return offset;
+    }
+
+    static String toCommandBoardKey(int offset) {
+        if (offset < 0 || offset >= NUM_COMMAND_BOARDS) {
+            throw new IllegalArgumentException(String.format(
+                    Locale.ENGLISH,
+                    "offset: %d out of range (max: %d)",
+                    offset,
+                    NUM_COMMAND_BOARDS - 1));
+        }
+        return String.valueOf((char) ('A' + offset));
+    }
+
+
+    private static class CommandBoardManagerData {
+
+        private enum AttributeName implements HasKey {
+            connection_name,
+            board_contents;
+
+            @Override
+            public String getKey() {
+                return name();
+            }
+        }
+
+        public static class BoardItem extends StoreItem {
+
+            private transient SQLConnection sqlConnection;
+
+            public BoardItem(StoreItem other) {
+                super(other);
+            }
+
+            public BoardItem(String name) {
+                super(name);
+            }
+
+            public void setSqlConnection(SQLConnection conn) {
+                sqlConnection = conn;
+            }
+
+            public SQLConnection getSqlConnection() {
+                return sqlConnection;
+            }
+
+            @Override
+            public final String getKey() {
+                return String.format(
+                        Locale.ENGLISH,
+                        "%s %s",
+                        name,
+                        attributes.get(getStoreItemAttributeKey(CommandBoardManagerData.AttributeName.connection_name)));
+            }
+        }
+
+
+        private final CommandBoardManagerData.BoardItem[] descriptors;
+        private int currentIdx;
+        private final Store<CommandBoardManagerData.BoardItem> store;
+
+
+        CommandBoardManagerData() {
+            int size = CommandBoardManager.NUM_COMMAND_BOARDS;
+            store = new JsonStore<>(GUIToolkit.COMMAND_BOARD_MANAGER_STORE, CommandBoardManagerData.BoardItem.class);
+            store.load();
+            descriptors = new CommandBoardManagerData.BoardItem[Math.max(size, store.size() % size)];
+            Arrays.fill(descriptors, null);
+            currentIdx = 0;
+            store.values().toArray(descriptors);
+            arrangeDescriptorsByKey();
+        }
+
+        private void arrangeDescriptorsByKey() {
+            for (int i=0; i < descriptors.length; i++) {
+                CommandBoardManagerData.BoardItem di = descriptors[i];
+                if (null != di) {
+                    int idx = CommandBoardManager.fromCommandBoardKey(di.getKey());
+                    if (idx != i) {
+                        CommandBoardManagerData.BoardItem tmp = descriptors[i];
+                        descriptors[i] = descriptors[idx];
+                        descriptors[idx] = tmp;
+                    }
+                }
+            }
+        }
+
+        void store() {
+            store.addAll(true, descriptors);
+        }
+
+        String getCurrentKey() {
+            return CommandBoardManager.toCommandBoardKey(currentIdx);
+        }
+
+        int getCurrentIdx() {
+            return currentIdx;
+        }
+
+        void setCurrentIdx(int idx) {
+            currentIdx = idx;
+        }
+
+        private CommandBoardManagerData.BoardItem current() {
+            return current(currentIdx);
+        }
+
+        private CommandBoardManagerData.BoardItem current(int idx) {
+            if (null == descriptors[idx]) {
+                descriptors[idx] = new CommandBoardManagerData.BoardItem(CommandBoardManager.toCommandBoardKey(idx));
+            }
+            return descriptors[idx];
+        }
+
+        SQLConnection getCurrentSQLConnection() {
+            SQLConnection conn = current().getSqlConnection();
+            if (null == conn) {
+                conn = findFirstConnection(true);
+                if (null == conn) {
+                    conn = findFirstConnection(false);
+                }
+                current().setSqlConnection(conn);
+            }
+            return conn;
+        }
+
+        void setCurrentSQLConnection(SQLConnection conn) {
+            current().setSqlConnection(conn);
+            if (null != conn) {
+                current().setAttribute(CommandBoardManagerData.AttributeName.connection_name, conn.getName());
+            }
+        }
+
+        String getCurrentBoardContents() {
+            return current().getAttribute(CommandBoardManagerData.AttributeName.board_contents);
+        }
+
+        void setCurrentBoardContents(String text) {
+            current().setAttribute(CommandBoardManagerData.AttributeName.board_contents, text);
+        }
+
+        private SQLConnection findFirstConnection(boolean checkIsConnected) {
+            for (int i = 0; i < descriptors.length; i++) {
+                SQLConnection conn = current(i).getSqlConnection();
+                if (null != conn) {
+                    if (checkIsConnected) {
+                        if (conn.isConnected()) {
+                            return conn;
+                        }
+                    } else {
+                        return conn;
+                    }
+                }
+            }
+            return null;
+        }
+    }
 
 
     private final JTextPane textPane;
@@ -47,14 +222,22 @@ public class CommandBoardManager extends JPanel implements EventSpeaker<CommandB
     public CommandBoardManager(EventListener<CommandBoardManager, SQLExecutionRequest> eventListener) {
         this.eventListener = eventListener;
         commandBoardManagerData = new CommandBoardManagerData();
-        textPane = GUIToolkit.newTextComponent();
+        textPane = new JTextPane();
+        textPane.setCaretPosition(0);
+        textPane.setMargin(new Insets(5, 5, 5, 5));
+        textPane.setFont(GUIToolkit.COMMAND_BOARD_BODY_FONT);
+        textPane.setForeground(GUIToolkit.COMMAND_BOARD_FONT_COLOR);
+        textPane.setBackground(GUIToolkit.COMMAND_BOARD_BACKGROUND_COLOR);
+        textPane.setCaretColor(GUIToolkit.COMMAND_BOARD_CARET_COLOR);
         textPane.addKeyListener(createKeyListener());
+        AbstractDocument abstractDocument = (AbstractDocument) textPane.getDocument();
+        abstractDocument.setDocumentFilter(new KeywordDocumentFilter(textPane.getStyledDocument()));
         textPane.setText(commandBoardManagerData.getCurrentBoardContents());
-        JPanel bufferButtonsPanel = new JPanel(new GridLayout(1, GUIToolkit.NUM_COMMAND_BOARDS, 0, 5));
-        boardHeaderButtons = new JButton[GUIToolkit.NUM_COMMAND_BOARDS];
-        for (int i = 0; i < GUIToolkit.NUM_COMMAND_BOARDS; i++) {
+        JPanel bufferButtonsPanel = new JPanel(new GridLayout(1, NUM_COMMAND_BOARDS, 0, 5));
+        boardHeaderButtons = new JButton[NUM_COMMAND_BOARDS];
+        for (int i = 0; i < NUM_COMMAND_BOARDS; i++) {
             int boardIdx = i;
-            JButton button = new JButton(GUIToolkit.toCommandBoardKey(boardIdx));
+            JButton button = new JButton(toCommandBoardKey(boardIdx));
             button.addActionListener(e -> onChangeBufferEvent(boardIdx));
             button.setFont(GUIToolkit.COMMAND_BOARD_HEADER_FONT);
             boardHeaderButtons[boardIdx] = button;
@@ -280,7 +463,7 @@ public class CommandBoardManager extends JPanel implements EventSpeaker<CommandB
                         default:
                             // Ctrl + [1..NUM_BUFFERS]
                             int offset = keyChar - 49; // 0..NUM_BUFFERS-1
-                            if (offset >= 0 && offset < GUIToolkit.NUM_COMMAND_BOARDS && offset != commandBoardManagerData.getCurrentIdx()) {
+                            if (offset >= 0 && offset < NUM_COMMAND_BOARDS && offset != commandBoardManagerData.getCurrentIdx()) {
                                 onChangeBufferEvent(offset);
                             }
                     }

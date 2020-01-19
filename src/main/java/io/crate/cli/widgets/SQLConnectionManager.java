@@ -12,7 +12,9 @@ import org.slf4j.LoggerFactory;
 
 import javax.swing.*;
 import javax.swing.border.TitledBorder;
+import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.TableModelEvent;
+import javax.swing.table.JTableHeader;
 import javax.swing.table.TableColumnModel;
 import java.awt.*;
 import java.awt.event.ActionEvent;
@@ -34,6 +36,7 @@ public class SQLConnectionManager extends JPanel implements EventSpeaker<SQLConn
         CONNECTIONS_LOST
     }
 
+    private static final int ROW_HEIGHT = 22;
     private static final int NAME_IDX = 0;
     private static final int HOST_IDX = 1;
     private static final int PORT_IDX = 2;
@@ -110,9 +113,21 @@ public class SQLConnectionManager extends JPanel implements EventSpeaker<SQLConn
             }
         };
         tableModel.addTableModelListener(this::onTableModelEvent);
-        table = GUIToolkit.newTable(tableModel, new StringCellRenderer(), this::toggleComponents);
+        table = new JTable(tableModel);
+        table.setOpaque(false);
         table.setAutoCreateRowSorter(false);
+        table.setRowHeight(ROW_HEIGHT);
+        table.setGridColor(GUIToolkit.CRATE_COLOR.darker());
+        table.setFont(GUIToolkit.TABLE_CELL_FONT);
+        table.setDefaultRenderer(String.class, new StringCellRenderer());
+        table.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
+        table.getSelectionModel().addListSelectionListener(this::toggleComponents);
+        JTableHeader header = table.getTableHeader();
+        header.setReorderingAllowed(false);
+        header.setFont(GUIToolkit.TABLE_HEADER_FONT);
+        header.setForeground(GUIToolkit.TABLE_HEADER_FONT_COLOR);
         TableColumnModel columnModel = table.getTableHeader().getColumnModel();
+        columnModel.setColumnSelectionAllowed(false);
         columnModel.getColumn(NAME_IDX).setPreferredWidth(COLUMN_WIDTHS[NAME_IDX]);
         columnModel.getColumn(HOST_IDX).setPreferredWidth(COLUMN_WIDTHS[HOST_IDX]);
         columnModel.getColumn(PORT_IDX).setPreferredWidth(COLUMN_WIDTHS[PORT_IDX]);
@@ -162,6 +177,10 @@ public class SQLConnectionManager extends JPanel implements EventSpeaker<SQLConn
         connectivityChecker = new ConnectivityChecker(
                 tableModel::getRows,
                 this::onLostConnectionsEvent);
+    }
+
+    private void toggleComponents(ListSelectionEvent event) {
+        toggleComponents();
     }
 
     private void toggleComponents() {

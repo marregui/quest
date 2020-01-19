@@ -1,7 +1,5 @@
 package io.crate.cli.widgets;
 
-import io.crate.cli.common.GUIToolkit;
-
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.MouseEvent;
@@ -16,7 +14,7 @@ public class InfiniteProgressPanel extends JPanel implements Closeable, Runnable
     private static final int BAR_HEIGHT = 6;
     private static final int BAR_WIDTH = BAR_HEIGHT * 6;
     private static final int BAR_STRETCH = BAR_WIDTH / 3;
-    private static final int BAR_COUNT = 11;
+    private static final int BAR_COUNT = 13;
     private static final long REFRESH_MILLIS = 120L;
     private static final double FIXED_ANGLE = 2.0 * Math.PI / (1.0 * BAR_COUNT);
     private static final Color BACKGROUND_COLOR = new Color(242, 242, 242, 120);
@@ -150,17 +148,5 @@ public class InfiniteProgressPanel extends JPanel implements Closeable, Runnable
     @Override
     public void mouseExited(MouseEvent e) {
         // nothing
-    }
-
-    public static void main(String[] args) {
-        InfiniteProgressPanel spinner = new InfiniteProgressPanel();
-        SQLResultsManager table = new SQLResultsManager();
-        JFrame frame = GUIToolkit.newFrame(
-                "Spinner",
-                80,
-                80, table);
-        frame.setGlassPane(spinner);
-        frame.setVisible(true);
-        spinner.start();
     }
 }
