@@ -9,7 +9,7 @@ import java.io.Closeable;
 import java.util.concurrent.TimeUnit;
 
 
-public class InfiniteProgressPanel extends JPanel implements Closeable, Runnable, MouseListener {
+public class InfiniteSpinnerPanel extends JPanel implements Closeable, Runnable, MouseListener {
 
     private static final int BAR_HEIGHT = 6;
     private static final int BAR_WIDTH = BAR_HEIGHT * 6;
@@ -31,7 +31,7 @@ public class InfiniteProgressPanel extends JPanel implements Closeable, Runnable
     private Area[] ticker;
 
 
-    public InfiniteProgressPanel() {
+    public InfiniteSpinnerPanel() {
         setOpaque(false);
         addMouseListener(this);
     }

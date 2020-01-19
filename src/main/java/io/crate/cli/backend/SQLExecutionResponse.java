@@ -1,12 +1,9 @@
 package io.crate.cli.backend;
 
-import java.util.Collections;
-import java.util.List;
-
 
 public class SQLExecutionResponse extends SQLExecutionRequest {
 
-    private final List<SQLRowType> results;
+    private final SQLTable results;
     private final long totalElapsedMs;
     private final long queryExecutionElapsedMs;
     private final long fetchResultsElapsedMs;
@@ -18,7 +15,7 @@ public class SQLExecutionResponse extends SQLExecutionRequest {
                                 long queryExecutionElapsedMs,
                                 long fetchResultsElapsedMs) {
         super(request);
-        this.results = Collections.emptyList();
+        this.results = SQLTable.emptyTable(request.getKey());
         this.totalElapsedMs = totalElapsedMs;
         this.queryExecutionElapsedMs = queryExecutionElapsedMs;
         this.fetchResultsElapsedMs = fetchResultsElapsedMs;
@@ -28,7 +25,7 @@ public class SQLExecutionResponse extends SQLExecutionRequest {
                                 SQLConnection sqlConnection,
                                 String command) {
         super(key, sqlConnection, command);
-        this.results = Collections.emptyList();
+        this.results = SQLTable.emptyTable(key);
         totalElapsedMs = -1;
         queryExecutionElapsedMs = -1;
         fetchResultsElapsedMs = -1;
@@ -41,7 +38,7 @@ public class SQLExecutionResponse extends SQLExecutionRequest {
                                 long totalElapsedMs,
                                 long queryExecutionElapsedMs,
                                 long fetchResultsElapsedMs,
-                                List<SQLRowType> results) {
+                                SQLTable results) {
         super(key, seqNo, sqlConnection, command);
         this.results = results;
         this.totalElapsedMs = totalElapsedMs;
@@ -64,7 +61,7 @@ public class SQLExecutionResponse extends SQLExecutionRequest {
         this.fetchResultsElapsedMs = fetchResultsElapsedMs;
     }
 
-    public List<SQLRowType> getResults() {
+    public SQLTable getResults() {
         return results;
     }
 

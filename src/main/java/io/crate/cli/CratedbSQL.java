@@ -21,7 +21,6 @@ public class CratedbSQL {
 
     public static final String VERSION = "1.0.0";
 
-
     static {
         // antialiased fonts
         System.setProperty("awt.useSystemAAFontSettings","on");
@@ -30,23 +29,23 @@ public class CratedbSQL {
     private static final String LOGO_FILE_NAME = "/cratedb_logo.png";
 
 
-
-    private final SQLExecutor sqlExecutor;
     private final SQLConnectionManager sqlConnectionManager;
     private final CommandBoardManager commandBoardManager;
-    private final SQLResultsManager[] sqlResultsManager;
     private final JSplitPane sqlResultsManagerPanel;
-    private Component currentSqlConnectionManager;
+    private final SQLResultsManager[] sqlResultsManager;
+    private Component currentsqlResultsManager;
+    private final SQLExecutor sqlExecutor;
+
 
     private CratedbSQL() {
-        sqlExecutor = new SQLExecutor(this::onSourceEvent);
-        commandBoardManager = new CommandBoardManager(this::onSourceEvent);
         sqlConnectionManager = new SQLConnectionManager(this::onSourceEvent);
+        commandBoardManager = new CommandBoardManager(this::onSourceEvent);
         sqlResultsManager = new SQLResultsManager[CommandBoardManager.NUM_COMMAND_BOARDS];
         for (int i = 0; i < sqlResultsManager.length; i++) {
             sqlResultsManager[i] = new SQLResultsManager();
         }
-        currentSqlConnectionManager = sqlResultsManager[0];
+        currentsqlResultsManager = sqlResultsManager[0];
+        sqlExecutor = new SQLExecutor(this::onSourceEvent);
         JPanel topPanel = new JPanel(new BorderLayout());
         topPanel.add(sqlConnectionManager, BorderLayout.NORTH);
         topPanel.add(commandBoardManager, BorderLayout.CENTER);
@@ -54,9 +53,12 @@ public class CratedbSQL {
                 JSplitPane.VERTICAL_SPLIT,
                 false,
                 topPanel,
-                currentSqlConnectionManager);
+                currentsqlResultsManager);
         JFrame frame = new JFrame();
-        frame.setTitle(String.format(Locale.ENGLISH,"CratedbSQL %s [store: %s]", VERSION, sqlConnectionManager.getStorePath().getAbsolutePath()));
+        frame.setTitle(String.format(Locale.ENGLISH,
+                "CratedbSQL %s [store: %s]",
+                VERSION,
+                sqlConnectionManager.getStorePath().getAbsolutePath()));
         frame.setType(Window.Type.NORMAL);
         frame.setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
         frame.setLayout(new BorderLayout());
@@ -74,14 +76,14 @@ public class CratedbSQL {
         frame.setSize(width, height);
         frame.setLocation(x, y);
         frame.setVisible(true);
-        sqlConnectionManager.start();
-        sqlExecutor.start();
         Runtime.getRuntime().addShutdownHook(new Thread(
                 CratedbSQL.this::shutdown,
                 String.format(
                         Locale.ENGLISH,
                         "%s shutdown tasks",
                         CratedbSQL.class.getSimpleName())));
+        sqlConnectionManager.start();
+        sqlExecutor.start();
     }
 
     private void shutdown() {
@@ -92,9 +94,9 @@ public class CratedbSQL {
     }
 
     private void switchSQLResultsManager(int offset) {
-        sqlResultsManagerPanel.remove(currentSqlConnectionManager);
-        currentSqlConnectionManager = sqlResultsManager[offset];
-        sqlResultsManagerPanel.add(currentSqlConnectionManager);
+        sqlResultsManagerPanel.remove(currentsqlResultsManager);
+        currentsqlResultsManager = sqlResultsManager[offset];
+        sqlResultsManagerPanel.add(currentsqlResultsManager);
         sqlResultsManagerPanel.validate();
         sqlResultsManagerPanel.repaint();
     }
@@ -136,13 +138,12 @@ public class CratedbSQL {
         }
     }
 
-
-
     private void onCommandManagerEvent(CommandBoardManager.EventType event, SQLExecutionRequest request) {
         int offset = CommandBoardManager.fromCommandBoardKey(request.getKey());
         switch (event) {
             case COMMAND_AVAILABLE:
                 switchSQLResultsManager(offset);
+                sqlResultsManager[offset].clear();
                 sqlResultsManager[offset].showInfiniteProgressPanel();
                 sqlExecutor.submit(request);
                 commandBoardManager.store();
@@ -152,7 +153,6 @@ public class CratedbSQL {
                 sqlExecutor.cancelSubmittedRequest(request);
                 sqlResultsManager[offset].removeInfiniteProgressPanel();
                 sqlResultsManager[offset].clear();
-                commandBoardManager.requestFocus();
                 break;
 
             case CONNECT_KEYBOARD_REQUEST:
@@ -165,7 +165,6 @@ public class CratedbSQL {
                     sqlConnectionManager.setSelectedItem(conn);
                     switchSQLResultsManager(offset);
                 }
-                commandBoardManager.requestFocus();
                 break;
         }
     }
@@ -179,35 +178,32 @@ public class CratedbSQL {
                 break;
 
             case QUERY_FAILURE:
-                GUIToolkit.invokeLater(
-                        sqlResultsManager[offset]::removeInfiniteProgressPanel,
-                        () -> sqlResultsManager[offset].displayError(response.getError()));
-                break;
-
             case QUERY_CANCELLED:
                 GUIToolkit.invokeLater(
                         sqlResultsManager[offset]::removeInfiniteProgressPanel,
                         sqlResultsManager[offset]::clear,
-                        () -> sqlResultsManager[offset].displayError(response.getError()),
-                        commandBoardManager::requestFocus);
+                        () -> sqlResultsManager[offset].displayError(response.getError()));
                 break;
 
             case RESULTS_AVAILABLE:
             case QUERY_COMPLETED:
-                GUIToolkit.invokeLater(sqlResultsManager[offset]::removeInfiniteProgressPanel);
                 long seqNo = response.getSeqNo();
                 boolean needsClearing = 0 == seqNo && sqlResultsManager[offset].getRowCount() > 0;
                 boolean expectMore = SQLExecutor.EventType.RESULTS_AVAILABLE == event;
-                GUIToolkit.invokeLater(() ->
-                        sqlResultsManager[offset].addRows(response.getResults(), needsClearing, expectMore),
-                        () -> { if (false == expectMore) commandBoardManager.requestFocus(); }
+                GUIToolkit.invokeLater(
+                        () -> {
+                            if (false == expectMore) {
+                                sqlResultsManager[offset].removeInfiniteProgressPanel();
+                            }
+                            sqlResultsManager[offset].addRows(
+                                    response.getResults(), needsClearing, expectMore);
+                        }
                 );
-
                 break;
         }
     }
 
     public static void main(String[] args) {
-        new CratedbSQL();
+        GUIToolkit.invokeLater(CratedbSQL::new);
     }
 }

@@ -2,7 +2,8 @@ package io.crate.cli.widgets;
 
 import io.crate.cli.backend.SQLExecutionResponse;
 import io.crate.cli.backend.SQLExecutor;
-import io.crate.cli.backend.SQLRowType;
+import io.crate.cli.backend.SQLTable;
+import io.crate.cli.backend.SQLTable.SQLTableRow;
 import io.crate.cli.common.*;
 
 import javax.swing.*;
@@ -17,7 +18,6 @@ import java.io.IOException;
 import java.io.PrintWriter;
 import java.io.StringWriter;
 import java.util.*;
-import java.util.List;
 
 
 public class SQLResultsManager extends JPanel implements Closeable {
@@ -36,41 +36,40 @@ public class SQLResultsManager extends JPanel implements Closeable {
         INFINITE, TABLE, ERROR
     }
 
-
-    private final List<SQLRowType> fullResults;
     private final JTable windowTable;
-    private final SQLTableColumnAdjuster windowTableColumnAdjuster;
-    private final JTextPane errorPane;
     private final JScrollPane windowTablePane;
-    private final ObjectTableModel<SQLRowType> windowedResultsTableModel;
+    private final SQLTable results;
+    private final ObjectTableModel<SQLTableRow> windowedTableModel;
     private int currentPage;
+    private final SQLTableColumnWidthAdjuster columnAdjuster;
+    private final JTextPane errorPane;
     private boolean hasCompleted;
     private final JLabel navigationLabel;
     private final JLabel statusLabel;
     private final JButton leftButton;
     private final JButton rightButton;
-    private final InfiniteProgressPanel infiniteProgressPanel;
-    private Component currentPanel;
+    private final InfiniteSpinnerPanel infiniteSpinner;
+    private Component currentModePanel;
     private Mode mode;
 
 
     public SQLResultsManager() {
-        fullResults = new ArrayList<>();
-        windowedResultsTableModel = new ObjectTableModel<>(new String[]{}, SQLRowType::get, SQLRowType::set) {
+        results = SQLTable.emptyTable();
+        windowedTableModel = new ObjectTableModel<>(new String[]{}, SQLTableRow::get, null) {
             @Override
             public boolean isCellEditable(int rowIdx, int colIdx) {
                 return false;
             }
         };
-        windowedResultsTableModel.addTableModelListener(this::onTableModelEvent);
-        windowTable = new JTable(windowedResultsTableModel);
+        windowedTableModel.addTableModelListener(this::onTableModelEvent);
+        windowTable = new JTable(windowedTableModel);
         windowTable.setOpaque(false);
         windowTable.setAutoCreateRowSorter(false);
         windowTable.setRowSelectionAllowed(false);
         windowTable.setRowHeight(GUIToolkit.TABLE_ROW_HEIGHT + 5);
         windowTable.setGridColor(GUIToolkit.TABLE_GRID_COLOR);
         windowTable.setFont(GUIToolkit.TABLE_CELL_FONT);
-        windowTable.setDefaultRenderer(String.class, new SQLCellRenderer());
+        windowTable.setDefaultRenderer(String.class, new SQLCellRenderer(results));
         windowTable.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
         JTableHeader header = windowTable.getTableHeader();
         TableColumnModel columnModel = header.getColumnModel();
@@ -78,7 +77,7 @@ public class SQLResultsManager extends JPanel implements Closeable {
         header.setReorderingAllowed(false);
         header.setFont(GUIToolkit.TABLE_HEADER_FONT);
         header.setForeground(GUIToolkit.TABLE_HEADER_FONT_COLOR);
-        windowTableColumnAdjuster = new SQLTableColumnAdjuster(windowTable);
+        columnAdjuster = new SQLTableColumnWidthAdjuster(windowTable);
         currentPage = 0;
         navigationLabel = new JLabel(NO_RESULTS_LABEL);
         navigationLabel.setFont(GUIToolkit.TABLE_FOOTER_FONT);
@@ -120,12 +119,12 @@ public class SQLResultsManager extends JPanel implements Closeable {
         windowTablePane.setHorizontalScrollBarPolicy(JScrollPane.HORIZONTAL_SCROLLBAR_ALWAYS);
         windowTablePane.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED);
         mode = Mode.TABLE;
-        currentPanel = windowTablePane;
+        currentModePanel = windowTablePane;
         setLayout(new BorderLayout());
         setBorder(BorderFactory.createBevelBorder(BevelBorder.RAISED));
         add(windowTablePane, BorderLayout.CENTER);
         add(controlsPane, BorderLayout.SOUTH);
-        infiniteProgressPanel = new InfiniteProgressPanel();
+        infiniteSpinner = new InfiniteSpinnerPanel();
         toggleComponents();
     }
 
@@ -143,11 +142,11 @@ public class SQLResultsManager extends JPanel implements Closeable {
 
     public void showInfiniteProgressPanel() {
         changeMode(Mode.INFINITE);
-        infiniteProgressPanel.start();
+        infiniteSpinner.start();
     }
 
     public void removeInfiniteProgressPanel() {
-        infiniteProgressPanel.close();
+        infiniteSpinner.close();
         changeMode(Mode.TABLE);
     }
 
@@ -156,28 +155,28 @@ public class SQLResultsManager extends JPanel implements Closeable {
             return;
         }
         mode = newMode;
-        Component toRemove = currentPanel;
+        Component toRemove = currentModePanel;
         switch (newMode) {
             case TABLE:
-                currentPanel = windowTablePane;
+                currentModePanel = windowTablePane;
                 break;
 
             case INFINITE:
-                currentPanel = infiniteProgressPanel;
+                currentModePanel = infiniteSpinner;
                 break;
 
             case ERROR:
-                currentPanel = errorPane;
+                currentModePanel = errorPane;
                 break;
         }
         remove(toRemove);
-        add(currentPanel, BorderLayout.CENTER);
+        add(currentModePanel, BorderLayout.CENTER);
         validate();
         repaint();
     }
 
     private void toggleComponents() {
-        int currentCount = fullResults.size();
+        int currentCount = results.getSize();
         leftButton.setEnabled(currentPage > 0);
         int maxPage = (currentCount / ROWS_PER_PAGE) - 1;
         if (currentCount % ROWS_PER_PAGE > 0) {
@@ -219,10 +218,10 @@ public class SQLResultsManager extends JPanel implements Closeable {
     }
 
     private void updateWindowedTableModel() {
-        int currentCount = fullResults.size();
+        int currentCount = results.getSize();
         int startOffset = ROWS_PER_PAGE * currentPage;
         int endOffset = startOffset + Math.min(currentCount, ROWS_PER_PAGE);
-        windowedResultsTableModel.setRows(fullResults.subList(startOffset, endOffset));
+        windowedTableModel.setRows(results.getRows(startOffset, endOffset));
     }
 
     private void onPrevButtonEvent(ActionEvent event) {
@@ -242,26 +241,26 @@ public class SQLResultsManager extends JPanel implements Closeable {
     }
 
     public void clear() {
-        fullResults.clear();
-        windowedResultsTableModel.clear();
-        infiniteProgressPanel.close();
+        results.clear();
+        windowedTableModel.clear();
+        infiniteSpinner.close();
         toggleComponents();
     }
 
-    private void resetTableHeader(SQLRowType firstRow) {
+    private void resetTableHeader() {
         JTableHeader header = windowTable.getTableHeader();
         header.setForeground(Color.WHITE);
         header.setBackground(Color.BLACK);
         header.setPreferredSize(new Dimension(0, GUIToolkit.TABLE_HEADER_HEIGHT));
-        windowedResultsTableModel.reset(firstRow.getColumnNames(), firstRow.getColumnTypes());
-        int numCols = firstRow.getColumnNames().length;
+        windowedTableModel.reset(results.getColumnNames(), results.getColumnTypes());
+        int numCols = results.getColumnNames().length;
         windowTable.setAutoResizeMode(numCols > 10 ?
                 JTable.AUTO_RESIZE_OFF :
                 JTable.AUTO_RESIZE_ALL_COLUMNS);
-        windowTableColumnAdjuster.adjustColumns();
+        columnAdjuster.adjustColumns();
     }
 
-    public void addRows(List<SQLRowType> rows, boolean needsClearing, boolean expectMore) {
+    public void addRows(SQLTable rows, boolean needsClearing, boolean expectMore) {
         if (needsClearing) {
             clear();
         }
@@ -269,19 +268,20 @@ public class SQLResultsManager extends JPanel implements Closeable {
             changeMode(Mode.TABLE);
         }
         hasCompleted = false == expectMore;
-        int newRowsCount = rows.size();
+        int newRowsCount = rows.getSize();
         if (newRowsCount > 0) {
-            if (0 == fullResults.size()) {
-                resetTableHeader(rows.get(0));
+            boolean needsNewHeader = 0 == results.getSize();
+            results.merge(rows);
+            if (needsNewHeader) {
+                resetTableHeader();
             }
-            fullResults.addAll(rows);
-            int currentCount = windowedResultsTableModel.getRowCount();
+            int currentCount = windowedTableModel.getRowCount();
             if (currentCount + newRowsCount <= ROWS_PER_PAGE) {
-                windowedResultsTableModel.addRows(rows);
+                windowedTableModel.addRows(rows.getRows());
             } else {
                 int allowedCount = ROWS_PER_PAGE - currentCount;
                 if (allowedCount > 0) {
-                    windowedResultsTableModel.addRows(rows.subList(0, allowedCount));
+                    windowedTableModel.addRows(results.getRows(0, allowedCount));
                 }
             }
         }
@@ -289,7 +289,7 @@ public class SQLResultsManager extends JPanel implements Closeable {
     }
 
     public int getRowCount() {
-        return windowedResultsTableModel.getRowCount();
+        return windowedTableModel.getRowCount();
     }
 
     @Override

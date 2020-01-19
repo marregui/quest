@@ -121,6 +121,7 @@ public class ObjectTableModel<RowType extends HasKey> extends AbstractTableModel
 
     @Override
     public int getColumnCount() {
+
         return attributeNames.length;
     }
 

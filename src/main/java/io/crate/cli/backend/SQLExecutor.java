@@ -2,7 +2,6 @@ package io.crate.cli.backend;
 
 import io.crate.cli.common.EventListener;
 import io.crate.cli.common.EventSpeaker;
-import io.crate.shade.org.postgresql.jdbc.PgResultSetMetaData;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -16,6 +15,7 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
+import java.util.stream.Collectors;
 
 
 public class SQLExecutor implements EventSpeaker<SQLExecutor.EventType>, Closeable {
@@ -32,9 +32,9 @@ public class SQLExecutor implements EventSpeaker<SQLExecutor.EventType>, Closeab
     private static final Logger LOGGER = LoggerFactory.getLogger(SQLExecutor.class);
     private static final int START_BATCH_SIZE = 100;
     private static final int MAX_BATCH_SIZE = 20000;
-    private static final String[] STATUS_COL_NAME_ONLY = {"Status"};
-    private static final int[] STATUS_COL_TYPE_ONLY = { Types.VARCHAR };
-    private static final Object[] STATUS_OK_VALUE_ONLY = {"OK"};
+    private static final String[] STATUS_COL_NAME = {"Status"};
+    private static final int[] STATUS_COL_TYPE = { Types.VARCHAR };
+    private static final Object[] STATUS_OK_VALUE = {"OK"};
 
 
     private final EventListener<SQLExecutor, SQLExecutionResponse> eventListener;
@@ -110,16 +110,12 @@ public class SQLExecutor implements EventSpeaker<SQLExecutor.EventType>, Closeab
     }
 
     private final void executeQuery(SQLExecutionRequest request) {
-        eventListener.onSourceEvent(
-                SQLExecutor.this,
-                EventType.QUERY_STARTED,
-                new SQLExecutionResponse(request, 0L, 0L,0L));
         long checkpointTs = System.nanoTime();
         long startTS = checkpointTs;
         String key = request.getKey();
         String query = request.getCommand();
-        LOGGER.info("Executing query [{}]: {}", key, query);
         SQLConnection conn = request.getSQLConnection();
+        LOGGER.info("Executing query [{}]: {}", key, query);
         if (false == conn.checkConnectivity()) {
             LOGGER.error("While about to run [{}], lost connectivity with {}", key, conn);
             eventListener.onSourceEvent(
@@ -142,14 +138,20 @@ public class SQLExecutor implements EventSpeaker<SQLExecutor.EventType>, Closeab
         int rowId = 0;
         int batchId = 0;
         int batchSize = START_BATCH_SIZE;
-        List<SQLRowType> rows = new ArrayList<>(batchSize);
+        SQLTable resultsTable = new SQLTable(key);
+        checkpointTs = System.nanoTime();
         eventListener.onSourceEvent(
                 SQLExecutor.this,
                 EventType.QUERY_STARTED,
-                new SQLExecutionResponse(request,
-                        toMillis(System.nanoTime() - startTS),
+                new SQLExecutionResponse(
+                        key,
+                        batchId++,
+                        conn,
+                        query,
+                        toMillis(checkpointTs - startTS),
                         0L,
-                        0L));
+                        0L,
+                        resultsTable));
         try (Statement stmt = conn.getConnection().createStatement()) {
             boolean checkResults = stmt.execute(query);
             queryExecutedTs = System.nanoTime();
@@ -159,32 +161,24 @@ public class SQLExecutor implements EventSpeaker<SQLExecutor.EventType>, Closeab
                         SQLExecutor.this,
                         EventType.QUERY_FETCHING,
                         new SQLExecutionResponse(
-                                request,
+                                key,
+                                batchId++,
+                                conn,
+                                query,
+                                toMillis(checkpointTs - startTS),
                                 queryExecutedMs,
-                                queryExecutedMs,
-                                0L));
+                                toMillis(checkpointTs - queryExecutedTs),
+                                resultsTable));
                 ResultSet rs = stmt.getResultSet();
-                String[] columnNames = null;
-                int[] columnTypes = null;
+                boolean hasColumnMetadata = false;
                 while (rs.next()) {
                     checkpointTs = System.nanoTime();
-                    if (null == columnNames) {
-                        columnNames = extractColumnNames(rs);
+                    if (false == hasColumnMetadata) {
+                        resultsTable.extractColumnMetadata(rs);
+                        hasColumnMetadata = true;
                     }
-                    if (null == columnTypes) {
-                        columnTypes = extractColumnTypes(rs);
-                    }
-                    rows.add(new SQLRowType(
-                            String.valueOf(rowId++),
-                            columnNames,
-                            columnTypes,
-                            extractColumnValues(columnNames, rs)));
+                    resultsTable.addRow(String.valueOf(rowId++), rs);
                     if (0 == rowId % batchSize) {
-                        if (LOGGER.isDebugEnabled()) {
-                            LOGGER.debug(
-                                    "Query [{}] rowId:{}, batchId:{}, batchSize:{}, batchSleep:{}, rows:{}",
-                                    key, rowId, batchId, batchSize, batchId * 10L, rows.size());
-                        }
                         eventListener.onSourceEvent(
                                 SQLExecutor.this,
                                 EventType.RESULTS_AVAILABLE,
@@ -196,20 +190,18 @@ public class SQLExecutor implements EventSpeaker<SQLExecutor.EventType>, Closeab
                                         toMillis(checkpointTs - startTS),
                                         queryExecutedMs,
                                         toMillis(checkpointTs - queryExecutedTs),
-                                        rows));
+                                        resultsTable));
                         if (batchSize <= MAX_BATCH_SIZE) {
                             batchSize *= 2;
+                            resultsTable = new SQLTable(key);
+                            hasColumnMetadata = false;
                         }
-                        rows = new ArrayList<>(batchSize);
                     }
                 }
             } else {
                 LOGGER.info("Query [{}]: OK", key);
-                rows.add(new SQLRowType(
-                        String.valueOf(rowId++),
-                        STATUS_COL_NAME_ONLY,
-                        STATUS_COL_TYPE_ONLY,
-                        STATUS_OK_VALUE_ONLY));
+                resultsTable.setSingleRow(String.valueOf(rowId++),
+                        STATUS_COL_NAME, STATUS_COL_TYPE, STATUS_OK_VALUE);
             }
         } catch (SQLException e) {
             LOGGER.error("Error query [{}]: {}", key, e.getMessage());
@@ -244,7 +236,7 @@ public class SQLExecutor implements EventSpeaker<SQLExecutor.EventType>, Closeab
                         toMillis(checkpointTs - startTS),
                         queryExecutedMs,
                         toMillis(checkpointTs - queryExecutedTs),
-                        rows));
+                        resultsTable));
         LOGGER.info("Query [{}] {} results, elapsed ms:{} (query:{}, fetch:{})",
                 key,
                 rowId,
@@ -255,34 +247,5 @@ public class SQLExecutor implements EventSpeaker<SQLExecutor.EventType>, Closeab
 
     private static final long toMillis(long nanos) {
         return TimeUnit.MILLISECONDS.convert(nanos, TimeUnit.NANOSECONDS);
-    }
-
-    private static String[] extractColumnNames(ResultSet rs) throws SQLException {
-        PgResultSetMetaData metaData = (PgResultSetMetaData) rs.getMetaData();
-        int columnCount = metaData.getColumnCount();
-        String[] columnNames = new String[columnCount];
-        for (int i = 0; i < columnCount; i++) {
-            columnNames[i] = metaData.getColumnName(i + 1);
-            metaData.getColumnType(i + 1);
-        }
-        return columnNames;
-    }
-
-    private static int[] extractColumnTypes(ResultSet rs) throws SQLException {
-        PgResultSetMetaData metaData = (PgResultSetMetaData) rs.getMetaData();
-        int columnCount = metaData.getColumnCount();
-        int[] columnTypes = new int[columnCount];
-        for (int i = 0; i < columnCount; i++) {
-            columnTypes[i] = metaData.getColumnType(i + 1);
-        }
-        return columnTypes;
-    }
-
-    private static Object[] extractColumnValues(String[] columnNames, ResultSet rs) throws SQLException {
-        Object[] columns = new Object[columnNames.length];
-        for (int i = 0; i < columnNames.length; i++) {
-            columns[i] = rs.getObject(i + 1);
-        }
-        return columns;
     }
 }

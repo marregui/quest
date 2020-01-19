@@ -9,7 +9,7 @@ import javax.swing.event.*;
 import javax.swing.table.*;
 
 
-public class SQLTableColumnAdjuster implements PropertyChangeListener, TableModelListener {
+public class SQLTableColumnWidthAdjuster implements PropertyChangeListener, TableModelListener {
 
     private static final int DEFAULT_SPACING = 6;
 
@@ -18,7 +18,7 @@ public class SQLTableColumnAdjuster implements PropertyChangeListener, TableMode
     private final Map<TableColumn, Integer> columnSizes;
 
 
-    public SQLTableColumnAdjuster(JTable table) {
+    public SQLTableColumnWidthAdjuster(JTable table) {
         this.table = table;
         columnSizes = new HashMap<>();
     }
@@ -89,7 +89,7 @@ public class SQLTableColumnAdjuster implements PropertyChangeListener, TableMode
 
     @Override
     public void tableChanged(TableModelEvent e) {
-        GUIToolkit.invokeLater(() -> {
+//        GUIToolkit.invokeLater(() -> {
             int columnIdx = table.convertColumnIndexToView(e.getColumn());
             if (e.getType() == TableModelEvent.UPDATE && -1 != columnIdx) {
                 int row = e.getFirstRow();
@@ -101,6 +101,6 @@ public class SQLTableColumnAdjuster implements PropertyChangeListener, TableMode
             } else {
                 adjustColumns();
             }
-        });
+//        });
     }
 }
