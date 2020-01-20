@@ -114,7 +114,6 @@ public class SQLConnectionManager extends JPanel implements EventSpeaker<SQLConn
         };
         tableModel.addTableModelListener(this::onTableModelEvent);
         table = new JTable(tableModel);
-        table.setOpaque(false);
         table.setAutoCreateRowSorter(false);
         table.setRowHeight(ROW_HEIGHT);
         table.setGridColor(GUIToolkit.CRATE_COLOR.darker());

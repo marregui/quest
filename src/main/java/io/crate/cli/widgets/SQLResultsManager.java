@@ -48,6 +48,7 @@ public class SQLResultsManager extends JPanel implements Closeable {
     private final JLabel statusLabel;
     private final JButton leftButton;
     private final JButton rightButton;
+
     private final InfiniteSpinnerPanel infiniteSpinner;
     private Component currentModePanel;
     private Mode mode;
@@ -63,7 +64,6 @@ public class SQLResultsManager extends JPanel implements Closeable {
         };
         windowedTableModel.addTableModelListener(this::onTableModelEvent);
         windowTable = new JTable(windowedTableModel);
-        windowTable.setOpaque(false);
         windowTable.setAutoCreateRowSorter(false);
         windowTable.setRowSelectionAllowed(false);
         windowTable.setRowHeight(GUIToolkit.TABLE_ROW_HEIGHT + 5);
@@ -118,13 +118,14 @@ public class SQLResultsManager extends JPanel implements Closeable {
         windowTablePane = new JScrollPane(windowTable);
         windowTablePane.setHorizontalScrollBarPolicy(JScrollPane.HORIZONTAL_SCROLLBAR_ALWAYS);
         windowTablePane.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED);
+        windowTablePane.getViewport().setBackground(Color.BLACK);
+        infiniteSpinner = new InfiniteSpinnerPanel();
         mode = Mode.TABLE;
         currentModePanel = windowTablePane;
         setLayout(new BorderLayout());
         setBorder(BorderFactory.createBevelBorder(BevelBorder.RAISED));
-        add(windowTablePane, BorderLayout.CENTER);
+        add(currentModePanel, BorderLayout.CENTER);
         add(controlsPane, BorderLayout.SOUTH);
-        infiniteSpinner = new InfiniteSpinnerPanel();
         toggleComponents();
     }
 

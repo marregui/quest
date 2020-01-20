@@ -13,7 +13,6 @@ public class StringCellRenderer extends DefaultTableCellRenderer {
     private static final Color BG_ROW_COLOR = new Color(230, 236, 255);
     private static final Color BG_ROW_COLOR_ALTERNATE = new Color(255, 247, 255);
 
-
     protected final Color bgColor;
     protected final Color bgColorAlternate;
     protected final Font font;

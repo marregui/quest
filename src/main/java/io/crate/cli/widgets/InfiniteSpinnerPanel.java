@@ -11,13 +11,13 @@ import java.util.concurrent.TimeUnit;
 
 public class InfiniteSpinnerPanel extends JPanel implements Closeable, Runnable, MouseListener {
 
+    private static final Color BACKGROUND_COLOR = Color.BLACK;
     private static final int BAR_HEIGHT = 6;
     private static final int BAR_WIDTH = BAR_HEIGHT * 6;
     private static final int BAR_STRETCH = BAR_WIDTH / 3;
     private static final int BAR_COUNT = 13;
     private static final long REFRESH_MILLIS = 120L;
     private static final double FIXED_ANGLE = 2.0 * Math.PI / (1.0 * BAR_COUNT);
-    private static final Color BACKGROUND_COLOR = new Color(242, 242, 242, 120);
     private static final Color [] BAR_COLORS = new Color[BAR_COUNT];
     static {
         for (int i=0; i < BAR_COUNT; i++) {
