@@ -167,9 +167,10 @@ public class SQLConnectionManager extends JPanel implements EventSpeaker<SQLConn
         titleBorder.setTitleColor(GUIToolkit.TABLE_HEADER_FONT_COLOR);
         setBorder(titleBorder);
         setLayout(new BorderLayout());
-        JScrollPane scrollPane = new JScrollPane(table);
-        scrollPane.setHorizontalScrollBarPolicy(JScrollPane.HORIZONTAL_SCROLLBAR_AS_NEEDED);
-        scrollPane.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED);
+        JScrollPane scrollPane = new JScrollPane(
+                table,
+                JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED,
+                JScrollPane.HORIZONTAL_SCROLLBAR_AS_NEEDED);
         add(scrollPane, BorderLayout.CENTER);
         add(buttonsPanel, BorderLayout.SOUTH);
         setPreferredSize(GUIToolkit.SQL_CONNECTION_MANAGER_HEIGHT);

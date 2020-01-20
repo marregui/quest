@@ -29,6 +29,8 @@ public final class GUIToolkit {
     public static final Font TABLE_FOOTER_FONT = new Font(MAIN_FONT_NAME, Font.PLAIN, 14);
     public static final int TABLE_HEADER_HEIGHT = 50;
     public static final int TABLE_ROW_HEIGHT = 26;
+    public static final int TABLE_CELL_MIN_WIDTH = 300;
+    public static final int TABLE_CELL_CHAR_WIDTH = 15;
 
     public static final Color COMMAND_BOARD_FONT_COLOR = Color.WHITE;
     public static final Color COMMAND_BOARD_KEYWORD_FONT_COLOR = CRATE_COLOR;

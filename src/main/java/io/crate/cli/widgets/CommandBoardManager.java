@@ -267,9 +267,10 @@ public class CommandBoardManager extends JPanel implements EventSpeaker<CommandB
         titleBorder.setTitleFont(GUIToolkit.COMMAND_BOARD_HEADER_FONT);
         titleBorder.setTitleColor(GUIToolkit.TABLE_HEADER_FONT_COLOR);
         setBorder(titleBorder);
-        JScrollPane scrollPane = new JScrollPane(textPane);
-        scrollPane.setHorizontalScrollBarPolicy(JScrollPane.HORIZONTAL_SCROLLBAR_AS_NEEDED);
-        scrollPane.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED);
+        JScrollPane scrollPane = new JScrollPane(
+                textPane,
+                JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED,
+                JScrollPane.HORIZONTAL_SCROLLBAR_AS_NEEDED);
         setLayout(new BorderLayout());
         add(bufferActionButtonsPanel, BorderLayout.NORTH);
         add(scrollPane, BorderLayout.CENTER);

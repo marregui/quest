@@ -10,6 +10,7 @@ import javax.swing.*;
 import javax.swing.border.BevelBorder;
 import javax.swing.event.TableModelEvent;
 import javax.swing.table.JTableHeader;
+import javax.swing.table.TableColumn;
 import javax.swing.table.TableColumnModel;
 import java.awt.*;
 import java.awt.event.ActionEvent;
@@ -41,7 +42,6 @@ public class SQLResultsManager extends JPanel implements Closeable {
     private final SQLTable results;
     private final ObjectTableModel<SQLTableRow> windowedTableModel;
     private int currentPage;
-    private final SQLTableColumnWidthAdjuster columnAdjuster;
     private final JTextPane errorPane;
     private boolean hasCompleted;
     private final JLabel navigationLabel;
@@ -71,13 +71,13 @@ public class SQLResultsManager extends JPanel implements Closeable {
         windowTable.setFont(GUIToolkit.TABLE_CELL_FONT);
         windowTable.setDefaultRenderer(String.class, new SQLCellRenderer(results));
         windowTable.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
+        windowTable.setAutoResizeMode(JTable.AUTO_RESIZE_OFF);
         JTableHeader header = windowTable.getTableHeader();
         TableColumnModel columnModel = header.getColumnModel();
         columnModel.setColumnSelectionAllowed(false);
         header.setReorderingAllowed(false);
         header.setFont(GUIToolkit.TABLE_HEADER_FONT);
         header.setForeground(GUIToolkit.TABLE_HEADER_FONT_COLOR);
-        columnAdjuster = new SQLTableColumnWidthAdjuster(windowTable);
         currentPage = 0;
         navigationLabel = new JLabel(NO_RESULTS_LABEL);
         navigationLabel.setFont(GUIToolkit.TABLE_FOOTER_FONT);
@@ -115,9 +115,10 @@ public class SQLResultsManager extends JPanel implements Closeable {
         controlsPane.add(navigationLabel);
         controlsPane.add(leftButton);
         controlsPane.add(rightButton);
-        windowTablePane = new JScrollPane(windowTable);
-        windowTablePane.setHorizontalScrollBarPolicy(JScrollPane.HORIZONTAL_SCROLLBAR_ALWAYS);
-        windowTablePane.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED);
+        windowTablePane = new JScrollPane(
+                windowTable,
+                JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED,
+                JScrollPane.HORIZONTAL_SCROLLBAR_AS_NEEDED);
         windowTablePane.getViewport().setBackground(Color.BLACK);
         infiniteSpinner = new InfiniteSpinnerPanel();
         mode = Mode.TABLE;
@@ -137,7 +138,6 @@ public class SQLResultsManager extends JPanel implements Closeable {
                 response.getQueryExecutionElapsedMs(),
                 response.getFetchResultsElapsedMs(),
                 response.getTotalElapsedMs()));
-        validate();
         repaint();
     }
 
@@ -253,12 +253,26 @@ public class SQLResultsManager extends JPanel implements Closeable {
         header.setForeground(Color.WHITE);
         header.setBackground(Color.BLACK);
         header.setPreferredSize(new Dimension(0, GUIToolkit.TABLE_HEADER_HEIGHT));
-        windowedTableModel.reset(results.getColumnNames(), results.getColumnTypes());
-        int numCols = results.getColumnNames().length;
-        windowTable.setAutoResizeMode(numCols > 10 ?
-                JTable.AUTO_RESIZE_OFF :
-                JTable.AUTO_RESIZE_ALL_COLUMNS);
-        columnAdjuster.adjustColumns();
+        String [] colNames = results.getColumnNames();
+        int [] colTypes = results.getColumnTypes();
+        windowedTableModel.reset(colNames, colTypes);
+        TableColumnModel tcm = windowTable.getColumnModel();
+        int numCols = tcm.getColumnCount();
+        int tableWidth = 0;
+        for (int i=0; i < numCols; i++) {
+            TableColumn col = tcm.getColumn(i);
+            int minWidth = resolveColumnWidth(colNames[i], colTypes[i]);
+            tableWidth += minWidth;
+            col.setMinWidth(minWidth);
+        }
+        windowTable.setAutoResizeMode(tableWidth < getWidth() ?
+                JTable.AUTO_RESIZE_ALL_COLUMNS : JTable.AUTO_RESIZE_OFF);
+    }
+
+    private static int resolveColumnWidth(String name, int type) {
+        return Math.max(
+                GUIToolkit.TABLE_CELL_MIN_WIDTH,
+                GUIToolkit.TABLE_CELL_CHAR_WIDTH * (name.length() + SqlType.resolveName(type).length()));
     }
 
     public void addRows(SQLTable rows, boolean expectMore) {

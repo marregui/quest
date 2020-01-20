@@ -107,7 +107,7 @@ public final class SqlType {
         Color color = Color.BLACK;
         switch (sqlType) {
             case Types.BOOLEAN:
-                color = new Color(0, 0, 128); // navy
+                color = Color.MAGENTA;
                 break;
 
             case Types.TINYINT:
