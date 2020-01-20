@@ -1,0 +1,3 @@
+#!/bin/sh
+
+java -Xmx1G -Dstore.path=store  -jar ./build/libs/cratedbsql-1.0.0-SNAPSHOT-all.jar
