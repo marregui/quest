@@ -50,8 +50,8 @@ public class SQLTable implements HasKey {
 
     private String key;
     private boolean hasMetadata;
-    private String [] columnNames;
-    private int [] columnTypes;
+    private String[] columnNames;
+    private int[] columnTypes;
     private final List<SQLTableRow> values;
 
 
@@ -84,9 +84,9 @@ public class SQLTable implements HasKey {
     }
 
     public void setSingleRow(String key,
-                             String [] columnNames,
-                             int [] columnTypes,
-                             Object [] values) {
+                             String[] columnNames,
+                             int[] columnTypes,
+                             Object[] values) {
         if (null == columnNames || null == columnTypes || null == values
                 || columnNames.length != columnTypes.length
                 || columnNames.length != values.length) {
@@ -96,7 +96,7 @@ public class SQLTable implements HasKey {
         this.columnTypes = columnTypes;
         this.values.clear();
         Map<String, Object> finalValues = new LinkedHashMap<>(columnNames.length);
-        for (int i=0; i< columnNames.length; i++) {
+        for (int i = 0; i < columnNames.length; i++) {
             finalValues.put(columnNames[i], values[i]);
         }
         this.values.add(new SQLTableRow(key, finalValues));
@@ -109,6 +109,10 @@ public class SQLTable implements HasKey {
     public void clear() {
         values.forEach(SQLTableRow::clear);
         values.clear();
+        key = null;
+        hasMetadata = false;
+        columnNames = null;
+        columnTypes = null;
     }
 
     public List<SQLTableRow> getRows() {
@@ -141,11 +145,11 @@ public class SQLTable implements HasKey {
         return key;
     }
 
-    public String [] getColumnNames() {
+    public String[] getColumnNames() {
         return columnNames;
     }
 
-    public int [] getColumnTypes() {
+    public int[] getColumnTypes() {
         return columnTypes;
     }
 }

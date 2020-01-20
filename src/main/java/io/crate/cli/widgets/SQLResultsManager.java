@@ -260,10 +260,7 @@ public class SQLResultsManager extends JPanel implements Closeable {
         columnAdjuster.adjustColumns();
     }
 
-    public void addRows(SQLTable rows, boolean needsClearing, boolean expectMore) {
-        if (needsClearing) {
-            clear();
-        }
+    public void addRows(SQLTable rows, boolean expectMore) {
         if (Mode.ERROR == mode) {
             changeMode(Mode.TABLE);
         }
@@ -286,10 +283,6 @@ public class SQLResultsManager extends JPanel implements Closeable {
             }
         }
         toggleComponents();
-    }
-
-    public int getRowCount() {
-        return windowedTableModel.getRowCount();
     }
 
     @Override

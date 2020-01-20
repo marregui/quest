@@ -92,6 +92,14 @@ public class InfiniteSpinnerPanel extends JPanel implements Closeable, Runnable,
         }
     }
 
+    private Area[] buildTicker() {
+        Area[] ticker = new Area[BAR_COUNT];
+        for (int i = 0; i < BAR_COUNT; i++) {
+            ticker[i] = buildPrimitive();
+        }
+        return ticker;
+    }
+
     private static Area buildPrimitive() {
         Rectangle2D.Double body = new Rectangle2D.Double(BAR_HEIGHT / 2.0, 0, BAR_WIDTH, BAR_HEIGHT);
         Ellipse2D.Double head = new Ellipse2D.Double(0, 0, BAR_HEIGHT, BAR_HEIGHT);
@@ -100,15 +108,6 @@ public class InfiniteSpinnerPanel extends JPanel implements Closeable, Runnable,
         tick.add(new Area(head));
         tick.add(new Area(tail));
         return tick;
-    }
-
-    private Area[] buildTicker() {
-        Point2D.Double center = new Point2D.Double(getWidth() / 2.0, getHeight() / 2.0);
-        Area[] ticker = new Area[BAR_COUNT];
-        for (int i = 0; i < BAR_COUNT; i++) {
-            ticker[i] = buildPrimitive();
-        }
-        return ticker;
     }
 
     private Point2D.Double updateTicker() {

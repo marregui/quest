@@ -45,7 +45,7 @@ public class CratedbSQL {
             sqlResultsManager[i] = new SQLResultsManager();
         }
         currentsqlResultsManager = sqlResultsManager[0];
-        sqlExecutor = new SQLExecutor(this::onSourceEvent);
+        sqlExecutor = new SQLExecutor();
         JPanel topPanel = new JPanel(new BorderLayout());
         topPanel.add(sqlConnectionManager, BorderLayout.NORTH);
         topPanel.add(commandBoardManager, BorderLayout.CENTER);
@@ -139,20 +139,18 @@ public class CratedbSQL {
     }
 
     private void onCommandManagerEvent(CommandBoardManager.EventType event, SQLExecutionRequest request) {
-        int offset = CommandBoardManager.fromCommandBoardKey(request.getKey());
+        int offset = CommandBoardManager.fromCommandBoardKey(request.getSourceId());
         switch (event) {
             case COMMAND_AVAILABLE:
                 switchSQLResultsManager(offset);
                 sqlResultsManager[offset].clear();
                 sqlResultsManager[offset].showInfiniteProgressPanel();
-                sqlExecutor.submit(request);
+                sqlExecutor.submit(request, this::onSourceEvent);
                 commandBoardManager.store();
                 break;
 
             case COMMAND_CANCEL:
                 sqlExecutor.cancelSubmittedRequest(request);
-                sqlResultsManager[offset].removeInfiniteProgressPanel();
-                sqlResultsManager[offset].clear();
                 break;
 
             case CONNECT_KEYBOARD_REQUEST:
@@ -170,35 +168,27 @@ public class CratedbSQL {
     }
 
     private void onSQLExecutorEvent(SQLExecutor.EventType event, SQLExecutionResponse response) {
-        int offset = CommandBoardManager.fromCommandBoardKey(response.getKey());
+        int offset = CommandBoardManager.fromCommandBoardKey(response.getSourceId());
         GUIToolkit.invokeLater(() -> sqlResultsManager[offset].updateStatus(event, response));
         switch (event) {
-            case QUERY_STARTED:
-            case QUERY_FETCHING:
-                break;
-
             case QUERY_FAILURE:
             case QUERY_CANCELLED:
                 GUIToolkit.invokeLater(
-                        sqlResultsManager[offset]::removeInfiniteProgressPanel,
                         sqlResultsManager[offset]::clear,
                         () -> sqlResultsManager[offset].displayError(response.getError()));
                 break;
 
             case RESULTS_AVAILABLE:
+                GUIToolkit.invokeLater(() -> {
+                    sqlResultsManager[offset].addRows(response.getResults(),true);
+                });
+                break;
+
             case QUERY_COMPLETED:
-                long seqNo = response.getSeqNo();
-                boolean needsClearing = 0 == seqNo && sqlResultsManager[offset].getRowCount() > 0;
-                boolean expectMore = SQLExecutor.EventType.RESULTS_AVAILABLE == event;
-                GUIToolkit.invokeLater(
-                        () -> {
-                            if (false == expectMore) {
-                                sqlResultsManager[offset].removeInfiniteProgressPanel();
-                            }
-                            sqlResultsManager[offset].addRows(
-                                    response.getResults(), needsClearing, expectMore);
-                        }
-                );
+                GUIToolkit.invokeLater(() -> {
+                    sqlResultsManager[offset].addRows(response.getResults(),false);
+                    sqlResultsManager[offset].removeInfiniteProgressPanel();
+                });
                 break;
         }
     }

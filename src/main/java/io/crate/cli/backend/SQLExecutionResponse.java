@@ -7,28 +7,18 @@ public class SQLExecutionResponse extends SQLExecutionRequest {
     private final long totalElapsedMs;
     private final long queryExecutionElapsedMs;
     private final long fetchResultsElapsedMs;
-    private Throwable error;
+    private final Throwable error;
 
 
     public SQLExecutionResponse(SQLExecutionRequest request,
                                 long totalElapsedMs,
-                                long queryExecutionElapsedMs,
-                                long fetchResultsElapsedMs) {
+                                Throwable error) {
         super(request);
         this.results = SQLTable.emptyTable(request.getKey());
+        this.error = error;
         this.totalElapsedMs = totalElapsedMs;
-        this.queryExecutionElapsedMs = queryExecutionElapsedMs;
-        this.fetchResultsElapsedMs = fetchResultsElapsedMs;
-    }
-
-    public SQLExecutionResponse(String key,
-                                SQLConnection sqlConnection,
-                                String command) {
-        super(key, sqlConnection, command);
-        this.results = SQLTable.emptyTable(key);
-        totalElapsedMs = -1;
-        queryExecutionElapsedMs = -1;
-        fetchResultsElapsedMs = -1;
+        this.queryExecutionElapsedMs = -1L;
+        this.fetchResultsElapsedMs = -1L;
     }
 
     public SQLExecutionResponse(String key,
@@ -41,24 +31,19 @@ public class SQLExecutionResponse extends SQLExecutionRequest {
                                 SQLTable results) {
         super(key, seqNo, sqlConnection, command);
         this.results = results;
+        this.error = null;
         this.totalElapsedMs = totalElapsedMs;
         this.queryExecutionElapsedMs = queryExecutionElapsedMs;
         this.fetchResultsElapsedMs = fetchResultsElapsedMs;
     }
 
-    public SQLExecutionResponse(String key,
-                                SQLConnection sqlConnection,
-                                String command,
-                                long totalElapsedMs,
-                                long queryExecutionElapsedMs,
-                                long fetchResultsElapsedMs,
-                                Throwable error) {
-        super(key, sqlConnection, command);
-        this.error = error;
+    public SQLExecutionResponse(String sourceId, SQLConnection sqlConnection, String command) {
+        super(sourceId,  sqlConnection, command);
         this.results = null;
-        this.totalElapsedMs = totalElapsedMs;
-        this.queryExecutionElapsedMs = queryExecutionElapsedMs;
-        this.fetchResultsElapsedMs = fetchResultsElapsedMs;
+        this.error = null;
+        totalElapsedMs = -1;
+        queryExecutionElapsedMs = -1;
+        fetchResultsElapsedMs = -1;
     }
 
     public SQLTable getResults() {
