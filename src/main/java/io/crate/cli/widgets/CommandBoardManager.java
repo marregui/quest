@@ -51,7 +51,7 @@ public class CommandBoardManager extends JPanel implements EventSpeaker<CommandB
         return offset;
     }
 
-    static String toCommandBoardKey(int offset) {
+    private static String toCommandBoardKey(int offset) {
         if (offset < 0 || offset >= NUM_COMMAND_BOARDS) {
             throw new IllegalArgumentException(String.format(
                     Locale.ENGLISH,
@@ -66,7 +66,6 @@ public class CommandBoardManager extends JPanel implements EventSpeaker<CommandB
     private static class CommandBoardManagerData {
 
         private enum AttributeName implements HasKey {
-            connection_name,
             board_contents;
 
             @Override
@@ -97,18 +96,14 @@ public class CommandBoardManager extends JPanel implements EventSpeaker<CommandB
 
             @Override
             public final String getKey() {
-                return String.format(
-                        Locale.ENGLISH,
-                        "%s %s",
-                        name,
-                        attributes.get(getStoreItemAttributeKey(CommandBoardManagerData.AttributeName.connection_name)));
+                return String.format(Locale.ENGLISH,"%s", name);
             }
         }
 
 
         private final CommandBoardManagerData.BoardItem[] descriptors;
-        private int currentIdx;
         private final Store<CommandBoardManagerData.BoardItem> store;
+        private int currentIdx;
 
 
         CommandBoardManagerData() {
@@ -177,9 +172,6 @@ public class CommandBoardManager extends JPanel implements EventSpeaker<CommandB
 
         void setCurrentSQLConnection(SQLConnection conn) {
             current().setSqlConnection(conn);
-            if (null != conn) {
-                current().setAttribute(CommandBoardManagerData.AttributeName.connection_name, conn.getName());
-            }
         }
 
         String getCurrentBoardContents() {
