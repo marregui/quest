@@ -1,14 +1,14 @@
 package io.crate.cli.backend;
 
-import io.crate.shade.org.postgresql.jdbc.PgResultSetMetaData;
-
 import java.sql.Connection;
 import java.sql.ResultSet;
+//import io.crate.shade.org.postgresql.jdbc.PgResultSetMetaData;
+import java.sql.ResultSetMetaData;
 import java.sql.Statement;
+import java.util.Locale;
 
 
 public class PostgresProtocolWireTests {
-
 
     public static void main(String[] args) throws Exception {
         SQLConnection conn = new SQLConnection("test");
@@ -18,15 +18,24 @@ public class PostgresProtocolWireTests {
         conn.setPassword("");
         try (Connection connection = conn.open()) {
             connection.setAutoCommit(true);
+            if (connection.isClosed()) {
+                System.out.println("Connection is not valid");
+                return;
+            }
             try(Statement stmt = connection.createStatement()) {
                 boolean checkResults = stmt.execute("show tables");
                 if (checkResults) {
                     ResultSet rs = stmt.getResultSet();
                     while(rs.next()) {
-                        PgResultSetMetaData metaData = (PgResultSetMetaData) rs.getMetaData();
+                        ResultSetMetaData metaData = rs.getMetaData();
                         int columnCount = metaData.getColumnCount();
                         for (int i = 1; i <= columnCount; i++) {
-                            System.out.printf(">> %d: %s -> %s\n", i, metaData.getColumnName(i), rs.getObject(i));
+                            System.out.printf(
+                                    Locale.ENGLISH,
+                                    ">> col %d: %s: %s\n",
+                                    i,
+                                    metaData.getColumnName(i),
+                                    rs.getObject(i));
                         }
                     }
                 }

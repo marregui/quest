@@ -3,6 +3,12 @@ A CrateDB desktop client using the postgress wire protocol.
 
 ###### Run
 
-`java -store.path="persistence folder" -jar build/libs/cratedbsql-x.y.z-SNAPSHOT-all.jar
-`
+Either
+ 
+- `./gradlew build`
+- `java -store.path="persistence folder" -jar build/libs/cratedbsql-x.y.z-SNAPSHOT-all.jar`
+
+or
+
+- `./gradlew run`
 

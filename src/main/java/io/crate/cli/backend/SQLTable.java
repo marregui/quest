@@ -1,9 +1,10 @@
 package io.crate.cli.backend;
 
 import io.crate.cli.common.HasKey;
-import io.crate.shade.org.postgresql.jdbc.PgResultSetMetaData;
+//import io.crate.shade.org.postgresql.jdbc.PgResultSetMetaData;
 
 import java.sql.ResultSet;
+import java.sql.ResultSetMetaData;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
@@ -61,7 +62,7 @@ public class SQLTable implements HasKey {
     }
 
     public void extractColumnMetadata(ResultSet rs) throws SQLException {
-        PgResultSetMetaData metaData = (PgResultSetMetaData) rs.getMetaData();
+        ResultSetMetaData metaData = rs.getMetaData();
         int columnCount = metaData.getColumnCount();
         columnNames = new String[columnCount];
         columnTypes = new int[columnCount];

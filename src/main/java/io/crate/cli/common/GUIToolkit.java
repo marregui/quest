@@ -7,7 +7,7 @@ import java.awt.*;
 
 public final class GUIToolkit {
 
-    public static final String JDBC_DRIVER_URL_FORMAT = "jdbc:crate://%s:%s/";
+    public static final String JDBC_DRIVER_URL_FORMAT = "jdbc:postgresql://%s:%s/";
 
     public static final String MAIN_FONT_NAME = "monospaced";
     public static final Color CRATE_COLOR = new Color(66, 188, 245);
