@@ -17,10 +17,9 @@ import java.awt.event.ActionEvent;
 import java.awt.event.KeyEvent;
 import java.awt.event.KeyListener;
 import java.io.Closeable;
+import java.io.IOException;
 import java.util.Arrays;
 import java.util.Locale;
-import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.ExecutionException;
 import java.util.function.Supplier;
 
 
@@ -65,7 +64,9 @@ public class CommandBoardManager extends JPanel implements EventSpeaker<CommandB
     }
 
 
-    private static class CommandBoardManagerData {
+    private static class CommandBoardManagerData implements Closeable {
+
+
 
         private enum AttributeName implements HasKey {
             board_contents;
@@ -120,7 +121,6 @@ public class CommandBoardManager extends JPanel implements EventSpeaker<CommandB
             Arrays.fill(descriptors, null);
             store.values().toArray(descriptors);
             arrangeDescriptorsByKey();
-            System.out.printf("Count down: %s\n", Thread.currentThread().getName());
         }
 
         private void arrangeDescriptorsByKey() {
@@ -186,6 +186,11 @@ public class CommandBoardManager extends JPanel implements EventSpeaker<CommandB
 
         void setCurrentBoardContents(String text) {
             current().setAttribute(CommandBoardManagerData.AttributeName.board_contents, text);
+        }
+
+        @Override
+        public void close() {
+            store.close();
         }
 
         private SQLConnection findFirstConnection(boolean checkIsConnected) {
@@ -351,7 +356,8 @@ public class CommandBoardManager extends JPanel implements EventSpeaker<CommandB
 
     @Override
     public void close() {
-        store();
+        commandBoardManagerData.setCurrentBoardContents(getFullTextContents());
+        commandBoardManagerData.close();
     }
 
     private void onChangeBufferEvent(int newIdx) {

@@ -7,7 +7,7 @@ import java.util.concurrent.CompletableFuture;
 import java.util.function.Consumer;
 
 
-public interface Store<StoreType extends StoreItem> extends Iterable<StoreType> {
+public interface Store<StoreType extends StoreItem> extends Closeable, Iterable<StoreType> {
 
     void load();
 
@@ -28,6 +28,9 @@ public interface Store<StoreType extends StoreItem> extends Iterable<StoreType> 
     StoreItem lookup(String key);
 
     int size();
+
+    @Override
+    void close();
 
     @Override
     default Iterator<StoreType> iterator() {

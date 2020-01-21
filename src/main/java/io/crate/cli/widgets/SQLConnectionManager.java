@@ -388,6 +388,7 @@ public class SQLConnectionManager extends JPanel implements EventSpeaker<SQLConn
 
     @Override
     public void close() {
+        store.close();
         connectivityChecker.close();
         tableModel.clear();
         existingNamesInTableModel.clear();

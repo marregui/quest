@@ -3,6 +3,7 @@ package io.crate.cli.store;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.reflect.TypeToken;
+import io.crate.cli.backend.SQLExecutor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -12,6 +13,9 @@ import java.lang.reflect.Type;
 import java.nio.charset.Charset;
 import java.util.*;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
 
 
 public class JsonStore<StoreType extends StoreItem> implements Store<StoreType> {
@@ -31,6 +35,7 @@ public class JsonStore<StoreType extends StoreItem> implements Store<StoreType> 
     protected final Class<? extends StoreItem> clazz;
     protected final Map<String, StoreType> elementsByKey;
     protected final List<StoreType> elements;
+    protected final ExecutorService executorService;
 
 
     public JsonStore(String storeFileName, Class<? extends StoreItem> clazz) {
@@ -49,6 +54,12 @@ public class JsonStore<StoreType extends StoreItem> implements Store<StoreType> 
         this.storeFileName = storeFileName;
         elementsByKey = new TreeMap<>();
         elements = new ArrayList<>();
+        executorService = Executors.newSingleThreadExecutor(r -> {
+            Thread t = new Thread(r);
+            t.setDaemon(false);
+            t.setName(SQLExecutor.class.getSimpleName());
+            return t;
+        });
     }
 
     @Override
@@ -130,7 +141,7 @@ public class JsonStore<StoreType extends StoreItem> implements Store<StoreType> 
                         file.getAbsolutePath(),
                         e.getMessage());
             }
-        });
+        }, executorService);
     }
 
     private File getStoreFile(boolean deleteIfExists) {
@@ -170,5 +181,16 @@ public class JsonStore<StoreType extends StoreItem> implements Store<StoreType> 
     @Override
     public StoreType lookup(String key) {
         return null != key ? elementsByKey.get(key) : null;
+    }
+
+    @Override
+    public void close() {
+        store();
+        executorService.shutdown();
+        try {
+            executorService.awaitTermination(500L, TimeUnit.MILLISECONDS);
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+        }
     }
 }

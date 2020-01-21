@@ -75,6 +75,25 @@ public class SQLResultsManager extends JPanel implements Closeable {
         windowTable.setDefaultRenderer(String.class, new SQLCellRenderer(results));
         windowTable.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
         windowTable.setAutoResizeMode(JTable.AUTO_RESIZE_OFF);
+        windowTable.addMouseMotionListener(new MouseMotionListener(){
+            @Override
+            public void mouseDragged(MouseEvent e) {
+                // ignore
+            }
+
+            @Override
+            public void mouseMoved(MouseEvent e) {
+                JTable table = (JTable) e.getSource();
+                int rowIdx = table.rowAtPoint(e.getPoint());
+                int colIdx = table.columnAtPoint(e.getPoint());
+                if (rowIdx >= 0 && rowIdx < table.getRowCount()
+                        && colIdx >= 0 && colIdx < table.getColumnCount()) {
+                    SQLTableRow row = (SQLTableRow) table.getValueAt(rowIdx, -1);
+                    System.out.println(row.getKey());
+
+                }
+            }
+        });
         JTableHeader header = windowTable.getTableHeader();
         header.setReorderingAllowed(false);
         header.setFont(GUIToolkit.TABLE_HEADER_FONT);
