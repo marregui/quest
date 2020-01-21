@@ -9,6 +9,10 @@ public final class SqlType {
     public static String resolveName(int sqlType) {
         String type;
         switch (sqlType) {
+            case Types.OTHER:
+                type = "object";
+                break;
+
             case Types.BOOLEAN:
                 type = "boolean";
                 break;
@@ -104,17 +108,21 @@ public final class SqlType {
     }
 
     public static Color resolveColor(int sqlType) {
-        Color color = Color.BLACK;
+        Color color = Color.MAGENTA;
         switch (sqlType) {
+            case Types.OTHER:
+                color = Color.ORANGE;
+                break;
+
             case Types.BOOLEAN:
-                color = Color.MAGENTA;
+                color = new Color(0, 112, 112); // blue-greenish
                 break;
 
             case Types.TINYINT:
             case Types.SMALLINT:
             case Types.INTEGER:
             case Types.BIGINT:
-                color = new Color(128, 128, 0); // olive
+                color = new Color(140, 140, 0); // olive
                 break;
 
             case Types.REAL:
@@ -128,11 +136,8 @@ public final class SqlType {
                 break;
 
             case Types.VARCHAR:
-                color = new Color(0, 128, 128);
+                color = Color.WHITE;
                 break;
-
-            default:
-                System.out.println("No color for java.sql.Types type: " + sqlType);
         }
         return color;
     }
