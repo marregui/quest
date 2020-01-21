@@ -14,8 +14,6 @@ import javax.swing.table.TableColumn;
 import javax.swing.table.TableColumnModel;
 import java.awt.*;
 import java.awt.event.ActionEvent;
-import java.awt.event.MouseEvent;
-import java.awt.event.MouseMotionListener;
 import java.io.Closeable;
 import java.io.IOException;
 import java.io.PrintWriter;
@@ -31,7 +29,6 @@ public class SQLResultsManager extends JPanel implements Closeable {
     private static final Dimension NAVIGATION_BUTTON_SIZE = new Dimension(70, 38);
     private static final Dimension STATUS_LABEL_SIZE = new Dimension(600, 35);
     private static final Dimension NAVIGATION_OFFSETS_LABEL_SIZE = new Dimension(400, 35);
-
     private static final int ROWS_PER_PAGE = 1000;
 
 
@@ -75,25 +72,7 @@ public class SQLResultsManager extends JPanel implements Closeable {
         windowTable.setDefaultRenderer(String.class, new SQLCellRenderer(results));
         windowTable.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
         windowTable.setAutoResizeMode(JTable.AUTO_RESIZE_OFF);
-        windowTable.addMouseMotionListener(new MouseMotionListener(){
-            @Override
-            public void mouseDragged(MouseEvent e) {
-                // ignore
-            }
-
-            @Override
-            public void mouseMoved(MouseEvent e) {
-                JTable table = (JTable) e.getSource();
-                int rowIdx = table.rowAtPoint(e.getPoint());
-                int colIdx = table.columnAtPoint(e.getPoint());
-                if (rowIdx >= 0 && rowIdx < table.getRowCount()
-                        && colIdx >= 0 && colIdx < table.getColumnCount()) {
-                    SQLTableRow row = (SQLTableRow) table.getValueAt(rowIdx, -1);
-                    System.out.println(row.getKey());
-
-                }
-            }
-        });
+        windowTable.addMouseMotionListener(new SQLResultPeeker(this));
         JTableHeader header = windowTable.getTableHeader();
         header.setReorderingAllowed(false);
         header.setFont(GUIToolkit.TABLE_HEADER_FONT);
@@ -273,13 +252,13 @@ public class SQLResultsManager extends JPanel implements Closeable {
         header.setForeground(Color.WHITE);
         header.setBackground(Color.BLACK);
         header.setPreferredSize(new Dimension(0, GUIToolkit.TABLE_HEADER_HEIGHT));
-        String [] colNames = results.getColumnNames();
-        int [] colTypes = results.getColumnTypes();
+        String[] colNames = results.getColumnNames();
+        int[] colTypes = results.getColumnTypes();
         windowedTableModel.reset(colNames, colTypes);
         TableColumnModel tcm = windowTable.getColumnModel();
         int numCols = tcm.getColumnCount();
         int tableWidth = 0;
-        for (int i=0; i < numCols; i++) {
+        for (int i = 0; i < numCols; i++) {
             TableColumn col = tcm.getColumn(i);
             int minWidth = resolveColumnWidth(colNames[i], colTypes[i]);
             tableWidth += minWidth;

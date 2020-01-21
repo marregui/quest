@@ -1,15 +1,12 @@
 package io.crate.cli.backend;
 
 import io.crate.cli.common.HasKey;
-//import io.crate.shade.org.postgresql.jdbc.PgResultSetMetaData;
 
 import java.sql.ResultSet;
 import java.sql.ResultSetMetaData;
 import java.sql.SQLException;
-import java.util.ArrayList;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
+import java.util.concurrent.atomic.AtomicReference;
 
 
 public class SQLTable implements HasKey {
@@ -25,18 +22,26 @@ public class SQLTable implements HasKey {
 
     public static class SQLTableRow implements HasKey {
 
+        private final SQLTable parent;
         private final String key;
         private final Map<String, Object> values;
+        private final AtomicReference<String> toString;
 
 
-        public SQLTableRow(String key, Map<String, Object> values) {
+        private SQLTableRow(SQLTable parent, String key, Map<String, Object> values) {
+            this.parent = parent;
             this.key = key;
             this.values = values;
+            toString = new AtomicReference<>();
         }
 
         @Override
         public String getKey() {
             return key;
+        }
+
+        public SQLTable getParent() {
+            return parent;
         }
 
         public Object get(String colName) {
@@ -46,8 +51,11 @@ public class SQLTable implements HasKey {
         public void clear() {
             values.clear();
         }
-    }
 
+        public Map<String, Object> getValues() {
+            return Collections.unmodifiableMap(values);
+        }
+    }
 
     private String key;
     private boolean hasMetadata;
@@ -81,7 +89,7 @@ public class SQLTable implements HasKey {
         for (int i = 0; i < columnNames.length; i++) {
             values.put(columnNames[i], rs.getObject(i + 1));
         }
-        this.values.add(new SQLTableRow(key, values));
+        this.values.add(new SQLTableRow(this, key, values));
     }
 
     public void setSingleRow(String key,
@@ -100,7 +108,7 @@ public class SQLTable implements HasKey {
         for (int i = 0; i < columnNames.length; i++) {
             finalValues.put(columnNames[i], values[i]);
         }
-        this.values.add(new SQLTableRow(key, finalValues));
+        this.values.add(new SQLTableRow(this, key, finalValues));
     }
 
     public int getSize() {

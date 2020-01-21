@@ -57,7 +57,7 @@ public class JsonStore<StoreType extends StoreItem> implements Store<StoreType> 
         executorService = Executors.newSingleThreadExecutor(r -> {
             Thread t = new Thread(r);
             t.setDaemon(false);
-            t.setName(SQLExecutor.class.getSimpleName());
+            t.setName(JsonStore.class.getSimpleName());
             return t;
         });
     }
