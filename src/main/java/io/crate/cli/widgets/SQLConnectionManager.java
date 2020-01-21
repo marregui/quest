@@ -336,20 +336,22 @@ public class SQLConnectionManager extends JPanel implements EventSpeaker<SQLConn
     private void onReloadButtonEvent(ActionEvent event) {
         int selectedRowIdx = table.getSelectedRow();
         SQLConnection selected = getSelectedItem();
-        store.load();
-        List<SQLConnection> conns = store.values();
-        tableModel.setRows(conns);
-        updateExistingNames();
-        if (conns.size() > 0) {
-            if (selectedRowIdx >= 0 && selectedRowIdx < conns.size()) {
-                SQLConnection conn = tableModel.getElementAt(selectedRowIdx);
-                if (null != selected && conn.equals(selected)) {
-                    table.getSelectionModel().addSelectionInterval(selectedRowIdx, selectedRowIdx);
+        store.load(conns -> {
+            GUIToolkit.invokeLater(() -> {
+                tableModel.setRows(conns);
+                updateExistingNames();
+                if (conns.size() > 0) {
+                    if (selectedRowIdx >= 0 && selectedRowIdx < conns.size()) {
+                        SQLConnection conn = tableModel.getElementAt(selectedRowIdx);
+                        if (null != selected && conn.equals(selected)) {
+                            table.getSelectionModel().addSelectionInterval(selectedRowIdx, selectedRowIdx);
+                        }
+                    } else {
+                        setSelectedItem(tableModel.getElementAt(0));
+                    }
                 }
-            } else {
-                setSelectedItem(tableModel.getElementAt(0));
-            }
-        }
+            });
+        });
     }
 
     public void start() {

@@ -11,6 +11,9 @@ import java.lang.reflect.Constructor;
 import java.lang.reflect.Type;
 import java.nio.charset.Charset;
 import java.util.*;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutionException;
+import java.util.function.Consumer;
 
 
 public class JsonStore<StoreType extends StoreItem> implements Store<StoreType> {
@@ -83,6 +86,13 @@ public class JsonStore<StoreType extends StoreItem> implements Store<StoreType> 
     }
 
     @Override
+    public CompletableFuture<Void> load(Consumer<List<StoreType>> valuesConsumer) {
+        return CompletableFuture.runAsync(() -> {
+            load();
+            valuesConsumer.accept(values());
+        });
+    }
+
     public void load() {
         File file = getStoreFile(false);
         if (false == file.exists()) {
@@ -114,18 +124,20 @@ public class JsonStore<StoreType extends StoreItem> implements Store<StoreType> 
         }
     }
 
-    @Override
-    public void store() {
-        File file = getStoreFile(true);
-        try (FileWriter out = new FileWriter(file, UTF_8, true)) {
-            GSON.toJson(elements, STORE_TYPE, out);
-            LOGGER.info("Stored file [{}]",
-                    getStoreFile(false).getAbsolutePath());
-        } catch (IOException e) {
-            LOGGER.error("Could not store into file [{}]: {}",
-                    file.getAbsolutePath(),
-                    e.getMessage());
-        }
+        @Override
+    public CompletableFuture<Void> store() {
+        return CompletableFuture.runAsync(() -> {
+            File file = getStoreFile(true);
+            try (FileWriter out = new FileWriter(file, UTF_8, true)) {
+                GSON.toJson(elements, STORE_TYPE, out);
+                LOGGER.info("Stored file [{}]",
+                        getStoreFile(false).getAbsolutePath());
+            } catch (IOException e) {
+                LOGGER.error("Could not store into file [{}]: {}",
+                        file.getAbsolutePath(),
+                        e.getMessage());
+            }
+        });
     }
 
     private File getStoreFile(boolean deleteIfExists) {
@@ -165,5 +177,10 @@ public class JsonStore<StoreType extends StoreItem> implements Store<StoreType> 
     @Override
     public StoreType lookup(String key) {
         return null != key ? elementsByKey.get(key) : null;
+    }
+
+    @Override
+    public void close() {
+
     }
 }

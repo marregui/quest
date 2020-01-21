@@ -66,6 +66,7 @@ public class SQLResultsManager extends JPanel implements Closeable {
         windowTable = new JTable(windowedTableModel);
         windowTable.setAutoCreateRowSorter(false);
         windowTable.setRowSelectionAllowed(false);
+        windowTable.setColumnSelectionAllowed(false);
         windowTable.setRowHeight(GUIToolkit.TABLE_ROW_HEIGHT + 5);
         windowTable.setGridColor(GUIToolkit.TABLE_GRID_COLOR);
         windowTable.setFont(GUIToolkit.TABLE_CELL_FONT);
@@ -73,8 +74,6 @@ public class SQLResultsManager extends JPanel implements Closeable {
         windowTable.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
         windowTable.setAutoResizeMode(JTable.AUTO_RESIZE_OFF);
         JTableHeader header = windowTable.getTableHeader();
-        TableColumnModel columnModel = header.getColumnModel();
-        columnModel.setColumnSelectionAllowed(false);
         header.setReorderingAllowed(false);
         header.setFont(GUIToolkit.TABLE_HEADER_FONT);
         header.setForeground(GUIToolkit.TABLE_HEADER_FONT_COLOR);

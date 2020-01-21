@@ -1,14 +1,17 @@
 package io.crate.cli.store;
 
+import java.io.Closeable;
 import java.io.File;
 import java.util.*;
+import java.util.concurrent.CompletableFuture;
+import java.util.function.Consumer;
 
 
-public interface Store<StoreType extends StoreItem> extends Iterable<StoreType> {
+public interface Store<StoreType extends StoreItem> extends Closeable, Iterable<StoreType> {
 
-    void load();
+    CompletableFuture<Void> load(Consumer<List<StoreType>> valuesConsumer);
 
-    void store();
+    CompletableFuture<Void> store();
 
     File getPath();
 
