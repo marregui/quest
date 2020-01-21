@@ -7,9 +7,9 @@ import java.util.concurrent.CompletableFuture;
 import java.util.function.Consumer;
 
 
-public interface Store<StoreType extends StoreItem> extends Closeable, Iterable<StoreType> {
+public interface Store<StoreType extends StoreItem> extends Iterable<StoreType> {
 
-    CompletableFuture<Void> load(Consumer<List<StoreType>> valuesConsumer);
+    void load();
 
     CompletableFuture<Void> store();
 

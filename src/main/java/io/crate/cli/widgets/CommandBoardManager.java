@@ -104,7 +104,6 @@ public class CommandBoardManager extends JPanel implements EventSpeaker<CommandB
 
 
         private final Store<CommandBoardManagerData.BoardItem> store;
-        private final CountDownLatch hasStoreItems;
         private CommandBoardManagerData.BoardItem[] descriptors;
         private int currentIdx;
 
@@ -115,14 +114,13 @@ public class CommandBoardManager extends JPanel implements EventSpeaker<CommandB
                     GUIToolkit.COMMAND_BOARD_MANAGER_STORE,
                     CommandBoardManagerData.BoardItem.class);
             currentIdx = 0;
-            hasStoreItems = new CountDownLatch(1);
-            store.load(boards -> {
-                descriptors = new BoardItem[Math.max(size, store.size() % size)];
-                Arrays.fill(descriptors, null);
-                store.values().toArray(descriptors);
-                arrangeDescriptorsByKey();
-                hasStoreItems.countDown();
-            });
+            System.out.printf("About to LOAD: %s\n", Thread.currentThread().getName());
+            store.load();
+            descriptors = new BoardItem[Math.max(size, store.size() % size)];
+            Arrays.fill(descriptors, null);
+            store.values().toArray(descriptors);
+            arrangeDescriptorsByKey();
+            System.out.printf("Count down: %s\n", Thread.currentThread().getName());
         }
 
         private void arrangeDescriptorsByKey() {
@@ -160,11 +158,6 @@ public class CommandBoardManager extends JPanel implements EventSpeaker<CommandB
         }
 
         private CommandBoardManagerData.BoardItem current(int idx) {
-            try {
-                hasStoreItems.await();
-            } catch (InterruptedException e) {
-                Thread.currentThread().interrupt();
-            }
             if (null == descriptors[idx]) {
                 descriptors[idx] = new CommandBoardManagerData.BoardItem(CommandBoardManager.toCommandBoardKey(idx));
             }

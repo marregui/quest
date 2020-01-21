@@ -12,8 +12,6 @@ import java.lang.reflect.Type;
 import java.nio.charset.Charset;
 import java.util.*;
 import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.ExecutionException;
-import java.util.function.Consumer;
 
 
 public class JsonStore<StoreType extends StoreItem> implements Store<StoreType> {
@@ -86,13 +84,6 @@ public class JsonStore<StoreType extends StoreItem> implements Store<StoreType> 
     }
 
     @Override
-    public CompletableFuture<Void> load(Consumer<List<StoreType>> valuesConsumer) {
-        return CompletableFuture.runAsync(() -> {
-            load();
-            valuesConsumer.accept(values());
-        });
-    }
-
     public void load() {
         File file = getStoreFile(false);
         if (false == file.exists()) {
@@ -108,19 +99,21 @@ public class JsonStore<StoreType extends StoreItem> implements Store<StoreType> 
                     file.getAbsolutePath(), e.getMessage());
             return;
         }
-        try {
-            Constructor<StoreType> constructor = (Constructor<StoreType>) clazz
-                    .getConstructor(StoreItem.CONSTRUCTOR_SIGNATURE);
-            elements.clear();
-            for (StoreItem e : contents) {
-                elements.add(constructor.newInstance(e));
+        if (null != contents) {
+            try {
+                Constructor<StoreType> constructor = (Constructor<StoreType>) clazz
+                        .getConstructor(StoreItem.CONSTRUCTOR_SIGNATURE);
+                elements.clear();
+                for (StoreItem e : contents) {
+                    elements.add(constructor.newInstance(e));
+                }
+                elementsByKey.clear();
+                for (StoreType e : elements) {
+                    elementsByKey.put(e.getKey(), e);
+                }
+            } catch (Throwable e) {
+                throw new RuntimeException(e);
             }
-            elementsByKey.clear();
-            for (StoreType e : elements) {
-                elementsByKey.put(e.getKey(), e);
-            }
-        } catch (Throwable e) {
-            throw new RuntimeException(e);
         }
     }
 
@@ -177,10 +170,5 @@ public class JsonStore<StoreType extends StoreItem> implements Store<StoreType> 
     @Override
     public StoreType lookup(String key) {
         return null != key ? elementsByKey.get(key) : null;
-    }
-
-    @Override
-    public void close() {
-
     }
 }
