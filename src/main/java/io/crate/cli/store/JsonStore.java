@@ -3,7 +3,6 @@ package io.crate.cli.store;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.reflect.TypeToken;
-import io.crate.cli.backend.SQLExecutor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -15,11 +14,11 @@ import java.util.*;
 import java.util.concurrent.*;
 
 
-public class JsonStore<StoreType extends StoreItem> implements Store<StoreType> {
+public abstract class JsonStore<StoreType extends StoreItem> implements Store<StoreType> {
 
-    protected static final Logger LOGGER = LoggerFactory.getLogger(JsonStore.class);
-    protected static final Gson GSON = new GsonBuilder().setPrettyPrinting().create();
-    protected static final Type STORE_TYPE = new TypeToken<ArrayList<StoreItem>>() {
+    private static final Logger LOGGER = LoggerFactory.getLogger(JsonStore.class);
+    private static final Gson GSON = new GsonBuilder().setPrettyPrinting().create();
+    private static final Type STORE_TYPE = new TypeToken<ArrayList<StoreItem>>() {
         // just want the type
     }.getType();
     private static final String STORE_PATH_KEY = "store.path";
@@ -27,12 +26,12 @@ public class JsonStore<StoreType extends StoreItem> implements Store<StoreType> 
     private static final Charset UTF_8 = Charset.forName("UTF-8");
 
 
-    protected final File storeRoot;
-    protected final String storeFileName;
-    protected final Class<? extends StoreItem> clazz;
-    protected final Map<String, StoreType> elementsByKey;
-    protected final List<StoreType> elements;
-    protected final ExecutorService executorService;
+    private final File storeRoot;
+    private final String storeFileName;
+    private final Class<? extends StoreItem> clazz;
+    private final Map<String, StoreType> elementsByKey;
+    private final List<StoreType> elements;
+    private final ExecutorService asyncStorer;
 
 
     public JsonStore(String storeFileName, Class<? extends StoreItem> clazz) {
@@ -51,13 +50,19 @@ public class JsonStore<StoreType extends StoreItem> implements Store<StoreType> 
         this.storeFileName = storeFileName;
         elementsByKey = new TreeMap<>();
         elements = new ArrayList<>();
-        executorService = Executors.newSingleThreadExecutor(r -> {
-            Thread t = new Thread(r);
-            t.setDaemon(false);
-            t.setName(JsonStore.class.getSimpleName());
-            return t;
+        asyncStorer = Executors.newSingleThreadExecutor(task -> {
+            Thread storerThread = new Thread(task);
+            storerThread.setDaemon(false);
+            storerThread.setName(String.format(
+                    Locale.ENGLISH,
+                    "%s-storer",
+                    JsonStore.class.getSimpleName()));
+            return storerThread;
         });
     }
+
+    @Override
+    public abstract StoreType [] defaultStoreEntries();
 
     @Override
     public int size() {
@@ -65,15 +70,8 @@ public class JsonStore<StoreType extends StoreItem> implements Store<StoreType> 
     }
 
     @Override
-    public void clear() {
-        elements.clear();
-        elementsByKey.clear();
-        store();
-    }
-
-    @Override
-    public void addAll(boolean clear, StoreType... entries) {
-        if (clear) {
+    public void addAll(boolean clearFirst, StoreType... entries) {
+        if (clearFirst) {
             elements.clear();
             elementsByKey.clear();
         }
@@ -95,25 +93,34 @@ public class JsonStore<StoreType extends StoreItem> implements Store<StoreType> 
     public void load() {
         File file = getStoreFile(false);
         if (false == file.exists()) {
-            LOGGER.info("Store file [{}] does not exist yet", file.getAbsolutePath());
+            for (StoreType e : defaultStoreEntries()) {
+                if (null != e) {
+                    elements.add(e);
+                    elementsByKey.put(e.getKey(), e);
+                }
+            }
+            storeSync(() -> {
+                LOGGER.info("Created default store [{}]", file.getAbsolutePath());
+            });
             return;
         }
+
         List<StoreItem> contents;
         try (BufferedReader in = new BufferedReader(new FileReader(file, UTF_8))) {
             contents = GSON.fromJson(in, STORE_TYPE);
-            LOGGER.info("Loaded store file [{}]", file.getAbsolutePath());
+            LOGGER.info("Loaded store [{}]", file.getAbsolutePath());
         } catch (Exception e) {
-            LOGGER.error("Could not load properties file [{}]: {}",
+            LOGGER.error("Could not load store [{}]: {}",
                     file.getAbsolutePath(), e.getMessage());
             return;
         }
         if (null != contents) {
             try {
-                Constructor<StoreType> constructor = (Constructor<StoreType>) clazz
-                        .getConstructor(StoreItem.CONSTRUCTOR_SIGNATURE);
+                Constructor<StoreType> eFactory = (Constructor<StoreType>) clazz.getConstructor(
+                        StoreItem.CONSTRUCTOR_SIGNATURE);
                 elements.clear();
                 for (StoreItem e : contents) {
-                    elements.add(constructor.newInstance(e));
+                    elements.add(eFactory.newInstance(e));
                 }
                 elementsByKey.clear();
                 for (StoreType e : elements) {
@@ -125,12 +132,23 @@ public class JsonStore<StoreType extends StoreItem> implements Store<StoreType> 
         }
     }
 
-        @Override
-    public Future<?> store() {
-        return executorService.submit(() -> {
+    @Override
+    public void store() {
+        store(null);
+    }
+
+    private void store(Runnable whenDoneTask) {
+        asyncStorer.submit(() -> {
+            storeSync(whenDoneTask);
+        });
+    }
+
+    private void storeSync(Runnable whenDoneTask) {
+        try {
             File file = getStoreFile(true);
             try (FileWriter out = new FileWriter(file, UTF_8, true)) {
                 GSON.toJson(elements, STORE_TYPE, out);
+                out.flush();
                 LOGGER.info("Stored file [{}]",
                         getStoreFile(false).getAbsolutePath());
             } catch (IOException e) {
@@ -138,7 +156,11 @@ public class JsonStore<StoreType extends StoreItem> implements Store<StoreType> 
                         file.getAbsolutePath(),
                         e.getMessage());
             }
-        });
+        } finally {
+            if (null != whenDoneTask) {
+                whenDoneTask.run();
+            }
+        }
     }
 
     private File getStoreFile(boolean deleteIfExists) {
@@ -182,10 +204,12 @@ public class JsonStore<StoreType extends StoreItem> implements Store<StoreType> 
 
     @Override
     public void close() {
-        store();
-        executorService.shutdown();
+        storeSync(null);
+        elements.clear();
+        elementsByKey.clear();
+        asyncStorer.shutdown();
         try {
-            executorService.awaitTermination(500L, TimeUnit.MILLISECONDS);
+            asyncStorer.awaitTermination(500L, TimeUnit.MILLISECONDS);
         } catch (InterruptedException e) {
             Thread.currentThread().interrupt();
         }

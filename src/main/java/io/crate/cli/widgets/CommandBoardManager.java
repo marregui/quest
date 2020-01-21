@@ -32,7 +32,7 @@ public class CommandBoardManager extends JPanel implements EventSpeaker<CommandB
     }
 
     private static final String BORDER_TITLE = "Command Board";
-    public static final int NUM_COMMAND_BOARDS = 6;
+    public static final int NUM_COMMAND_BOARDS = 8; // A,B,C,D,E,F,G,H
 
     public static int fromCommandBoardKey(String key) {
         if (null == key || key.trim().length() < 1) {
@@ -66,7 +66,6 @@ public class CommandBoardManager extends JPanel implements EventSpeaker<CommandB
     private static class CommandBoardManagerData implements Closeable {
 
 
-
         private enum AttributeName implements HasKey {
             board_contents;
 
@@ -98,13 +97,13 @@ public class CommandBoardManager extends JPanel implements EventSpeaker<CommandB
 
             @Override
             public final String getKey() {
-                return String.format(Locale.ENGLISH,"%s", name);
+                return String.format(Locale.ENGLISH, "%s", name);
             }
         }
 
 
         private final Store<CommandBoardManagerData.BoardItem> store;
-        private CommandBoardManagerData.BoardItem[] descriptors;
+        private CommandBoardManagerData.BoardItem[] boards;
         private int currentIdx;
 
 
@@ -112,31 +111,37 @@ public class CommandBoardManager extends JPanel implements EventSpeaker<CommandB
             int size = CommandBoardManager.NUM_COMMAND_BOARDS;
             store = new JsonStore<>(
                     GUIToolkit.COMMAND_BOARD_MANAGER_STORE,
-                    CommandBoardManagerData.BoardItem.class);
+                    CommandBoardManagerData.BoardItem.class) {
+
+                @Override
+                public BoardItem[] defaultStoreEntries() {
+                    return new BoardItem[0];
+                }
+            };
             currentIdx = 0;
             store.load();
-            descriptors = new BoardItem[Math.max(size, store.size() % size)];
-            Arrays.fill(descriptors, null);
-            store.values().toArray(descriptors);
+            boards = new BoardItem[Math.max(size, store.size() % size)];
+            Arrays.fill(boards, null);
+            store.values().toArray(boards);
             arrangeDescriptorsByKey();
         }
 
         private void arrangeDescriptorsByKey() {
-            for (int i=0; i < descriptors.length; i++) {
-                CommandBoardManagerData.BoardItem di = descriptors[i];
-                if (null != di) {
-                    int idx = CommandBoardManager.fromCommandBoardKey(di.getKey());
+            for (int i = 0; i < boards.length; i++) {
+                CommandBoardManagerData.BoardItem bi = boards[i];
+                if (null != bi) {
+                    int idx = CommandBoardManager.fromCommandBoardKey(bi.getKey());
                     if (idx != i) {
-                        CommandBoardManagerData.BoardItem tmp = descriptors[i];
-                        descriptors[i] = descriptors[idx];
-                        descriptors[idx] = tmp;
+                        CommandBoardManagerData.BoardItem tmp = boards[i];
+                        boards[i] = boards[idx];
+                        boards[idx] = tmp;
                     }
                 }
             }
         }
 
         void store() {
-            store.addAll(true, descriptors);
+            store.addAll(true, boards);
         }
 
         String getCurrentKey() {
@@ -156,10 +161,10 @@ public class CommandBoardManager extends JPanel implements EventSpeaker<CommandB
         }
 
         private CommandBoardManagerData.BoardItem current(int idx) {
-            if (null == descriptors[idx]) {
-                descriptors[idx] = new CommandBoardManagerData.BoardItem(CommandBoardManager.toCommandBoardKey(idx));
+            if (null == boards[idx]) {
+                boards[idx] = new CommandBoardManagerData.BoardItem(CommandBoardManager.toCommandBoardKey(idx));
             }
-            return descriptors[idx];
+            return boards[idx];
         }
 
         SQLConnection getCurrentSQLConnection() {
@@ -178,7 +183,7 @@ public class CommandBoardManager extends JPanel implements EventSpeaker<CommandB
             current().setSqlConnection(conn);
         }
 
-        String getCurrentBoardContents() {
+        String getCurrentBoardContent() {
             return current().getAttribute(CommandBoardManagerData.AttributeName.board_contents);
         }
 
@@ -192,7 +197,7 @@ public class CommandBoardManager extends JPanel implements EventSpeaker<CommandB
         }
 
         private SQLConnection findFirstConnection(boolean checkIsConnected) {
-            for (int i = 0; i < descriptors.length; i++) {
+            for (int i = 0; i < boards.length; i++) {
                 SQLConnection conn = current(i).getSqlConnection();
                 if (null != conn) {
                     if (checkIsConnected) {
@@ -233,7 +238,8 @@ public class CommandBoardManager extends JPanel implements EventSpeaker<CommandB
         textPane.addKeyListener(createKeyListener());
         AbstractDocument abstractDocument = (AbstractDocument) textPane.getDocument();
         abstractDocument.setDocumentFilter(new KeywordDocumentFilter(textPane.getStyledDocument()));
-        textPane.setText(commandBoardManagerData.getCurrentBoardContents());
+        String boardContent = commandBoardManagerData.getCurrentBoardContent();
+        textPane.setText(boardContent);
         JPanel bufferButtonsPanel = new JPanel(new GridLayout(1, NUM_COMMAND_BOARDS, 0, 5));
         boardHeaderButtons = new JButton[NUM_COMMAND_BOARDS];
         for (int i = 0; i < NUM_COMMAND_BOARDS; i++) {
@@ -361,7 +367,7 @@ public class CommandBoardManager extends JPanel implements EventSpeaker<CommandB
     private void onChangeBufferEvent(int newIdx) {
         commandBoardManagerData.setCurrentBoardContents(getFullTextContents());
         commandBoardManagerData.setCurrentIdx(newIdx);
-        textPane.setText(commandBoardManagerData.getCurrentBoardContents());
+        textPane.setText(commandBoardManagerData.getCurrentBoardContent());
         toggleComponents();
         eventListener.onSourceEvent(
                 this,
@@ -369,7 +375,7 @@ public class CommandBoardManager extends JPanel implements EventSpeaker<CommandB
                 new SQLExecutionRequest(
                         commandBoardManagerData.getCurrentKey(),
                         commandBoardManagerData.getCurrentSQLConnection(),
-                        commandBoardManagerData.getCurrentBoardContents()));
+                        commandBoardManagerData.getCurrentBoardContent()));
     }
 
     private void onClearButtonEvent(ActionEvent event) {

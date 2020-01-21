@@ -104,7 +104,12 @@ public class SQLConnectionManager extends JPanel implements EventSpeaker<SQLConn
 
     public SQLConnectionManager(EventListener<SQLConnectionManager, Object> eventListener) {
         this.eventListener = eventListener;
-        store = new JsonStore<>(GUIToolkit.SQL_CONNECTION_MANAGER_STORE, SQLConnection.class);
+        store = new JsonStore<>(GUIToolkit.SQL_CONNECTION_MANAGER_STORE, SQLConnection.class) {
+            @Override
+            public SQLConnection [] defaultStoreEntries() {
+                return new SQLConnection[]{ new SQLConnection("default") };
+            }
+        };
         existingNamesInTableModel = new HashSet<>();
         tableModel = new ObjectTableModel<>(COLUMN_NAMES, ATTR_GETTER, ATTR_SETTER) {
             @Override

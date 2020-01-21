@@ -3,20 +3,17 @@ package io.crate.cli.store;
 import java.io.Closeable;
 import java.io.File;
 import java.util.*;
-import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.Future;
-import java.util.function.Consumer;
 
 
 public interface Store<StoreType extends StoreItem> extends Closeable, Iterable<StoreType> {
 
+    StoreType [] defaultStoreEntries();
+
     void load();
 
-    Future<?> store();
+    void store();
 
     File getPath();
-
-    void clear();
 
     void addAll(boolean clear, StoreType... value);
 
@@ -24,9 +21,9 @@ public interface Store<StoreType extends StoreItem> extends Closeable, Iterable<
 
     Set<String> keys();
 
-    List<StoreType> values();
-
     StoreItem lookup(String key);
+
+    List<StoreType> values();
 
     int size();
 
@@ -35,7 +32,7 @@ public interface Store<StoreType extends StoreItem> extends Closeable, Iterable<
 
     @Override
     default Iterator<StoreType> iterator() {
-        return new Iterator<StoreType>() {
+        return new Iterator<>() {
             private final List<StoreType> values = values();
             private int offset = 0;
 

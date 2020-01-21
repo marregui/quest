@@ -136,7 +136,7 @@ public final class SqlType {
                 break;
 
             case Types.VARCHAR:
-                color = Color.WHITE;
+                color = GUIToolkit.CRATE_COLOR;
                 break;
         }
         return color;
