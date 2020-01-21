@@ -72,7 +72,7 @@ public class SQLResultsManager extends JPanel implements Closeable {
         windowTable.setDefaultRenderer(String.class, new SQLCellRenderer(results));
         windowTable.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
         windowTable.setAutoResizeMode(JTable.AUTO_RESIZE_OFF);
-        windowTable.addMouseMotionListener(new SQLResultPeeker(this));
+        windowTable.addMouseMotionListener(new SQLRowPeeker(this));
         JTableHeader header = windowTable.getTableHeader();
         header.setReorderingAllowed(false);
         header.setFont(GUIToolkit.TABLE_HEADER_FONT);

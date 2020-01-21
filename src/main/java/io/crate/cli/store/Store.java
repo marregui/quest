@@ -4,6 +4,7 @@ import java.io.Closeable;
 import java.io.File;
 import java.util.*;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.Future;
 import java.util.function.Consumer;
 
 
@@ -11,7 +12,7 @@ public interface Store<StoreType extends StoreItem> extends Closeable, Iterable<
 
     void load();
 
-    CompletableFuture<Void> store();
+    Future<?> store();
 
     File getPath();
 

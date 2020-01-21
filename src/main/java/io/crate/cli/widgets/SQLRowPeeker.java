@@ -14,12 +14,11 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicLong;
 
 
-class SQLResultPeeker extends JPanel implements MouseMotionListener {
+class SQLRowPeeker extends JPanel implements MouseMotionListener {
 
     private static final long TIMER_RESET = -1L;
-    private static final long TIMEOUT_MARK_TO_SHOW = 3000L;
-    private static final long TIMEOUT_MARK_TO_HIDE = 1000L;
-    private static final Dimension TOOLTIP_SIZE = new Dimension(400, 300);
+    private static final long TIMEOUT_MARK_TO_SHOW = 3333L;
+    private static final long TIMEOUT_MARK_TO_HIDE = 222L;
     private static final char NEWLINE = '\n';
     private static final int CHAR_WIDTH = 13;
     private static final int CHAR_HEIGHT = GUIToolkit.TABLE_HEADER_HEIGHT;
@@ -27,12 +26,7 @@ class SQLResultPeeker extends JPanel implements MouseMotionListener {
 
     private static String toString(SQLTable.SQLTableRow row) {
         StringBuilder sb = new StringBuilder();
-        sb.append(NEWLINE)
-                .append("  Row ")
-                .append(row.getKey())
-                .append(":")
-                .append(NEWLINE)
-                .append(NEWLINE);
+        sb.append(NEWLINE).append(NEWLINE);
         int colIdx = 0;
         int[] colTypes = row.getParent().getColumnTypes();
         for (Map.Entry<String, Object> entry : row.getValues().entrySet()) {
@@ -57,13 +51,12 @@ class SQLResultPeeker extends JPanel implements MouseMotionListener {
     private volatile Popup toolTipPopup;
 
 
-    SQLResultPeeker(Component owner) {
+    SQLRowPeeker(Component owner) {
         this.owner = owner;
         timer = new AtomicLong(TIMER_RESET);
         isShowing = new AtomicBoolean();
         toolTip = new JTextPane();
         toolTip.setEditable(false);
-        toolTip.setPreferredSize(TOOLTIP_SIZE);
         toolTip.setBorder(BorderFactory.createEtchedBorder());
         toolTip.setBackground(Color.BLACK);
         toolTip.setForeground(GUIToolkit.CRATE_COLOR);
@@ -129,8 +122,8 @@ class SQLResultPeeker extends JPanel implements MouseMotionListener {
                         toolTipPopup = PopupFactory.getSharedInstance().getPopup(
                                 owner,
                                 this,
-                                mouseLocation.x,
-                                mouseLocation.y);
+                                mouseLocation.x - width / 5,
+                                mouseLocation.y - height / 5);
                         toolTipPopup.show();
                     }
                 } else {

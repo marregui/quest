@@ -114,7 +114,6 @@ public class CommandBoardManager extends JPanel implements EventSpeaker<CommandB
                     GUIToolkit.COMMAND_BOARD_MANAGER_STORE,
                     CommandBoardManagerData.BoardItem.class);
             currentIdx = 0;
-            System.out.printf("About to LOAD: %s\n", Thread.currentThread().getName());
             store.load();
             descriptors = new BoardItem[Math.max(size, store.size() % size)];
             Arrays.fill(descriptors, null);

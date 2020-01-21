@@ -12,10 +12,7 @@ import java.lang.reflect.Constructor;
 import java.lang.reflect.Type;
 import java.nio.charset.Charset;
 import java.util.*;
-import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import java.util.concurrent.TimeUnit;
+import java.util.concurrent.*;
 
 
 public class JsonStore<StoreType extends StoreItem> implements Store<StoreType> {
@@ -129,8 +126,8 @@ public class JsonStore<StoreType extends StoreItem> implements Store<StoreType> 
     }
 
         @Override
-    public CompletableFuture<Void> store() {
-        return CompletableFuture.runAsync(() -> {
+    public Future<?> store() {
+        return executorService.submit(() -> {
             File file = getStoreFile(true);
             try (FileWriter out = new FileWriter(file, UTF_8, true)) {
                 GSON.toJson(elements, STORE_TYPE, out);
@@ -141,7 +138,7 @@ public class JsonStore<StoreType extends StoreItem> implements Store<StoreType> 
                         file.getAbsolutePath(),
                         e.getMessage());
             }
-        }, executorService);
+        });
     }
 
     private File getStoreFile(boolean deleteIfExists) {
