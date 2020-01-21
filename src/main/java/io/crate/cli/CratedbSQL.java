@@ -38,8 +38,8 @@ public class CratedbSQL {
 
 
     private CratedbSQL() {
-        sqlConnectionManager = new SQLConnectionManager(this::onSourceEvent);
         commandBoardManager = new CommandBoardManager(this::onSourceEvent);
+        sqlConnectionManager = new SQLConnectionManager(this::onSourceEvent);
         sqlResultsManager = new SQLResultsManager[CommandBoardManager.NUM_COMMAND_BOARDS];
         for (int i = 0; i < sqlResultsManager.length; i++) {
             sqlResultsManager[i] = new SQLResultsManager();

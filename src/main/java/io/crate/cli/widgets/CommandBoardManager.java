@@ -416,7 +416,7 @@ public class CommandBoardManager extends JPanel implements EventSpeaker<CommandB
         if (false == conn.isConnected()) {
             try {
                 conn.open();
-                toggleComponents();
+                toggleComponents(); // TODO TOGGLE connections buttons!
             } catch (Exception e) {
                 JOptionPane.showMessageDialog(
                         this,

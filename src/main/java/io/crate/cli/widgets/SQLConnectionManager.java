@@ -179,9 +179,7 @@ public class SQLConnectionManager extends JPanel implements EventSpeaker<SQLConn
         add(scrollPane, BorderLayout.CENTER);
         add(buttonsPanel, BorderLayout.SOUTH);
         setPreferredSize(GUIToolkit.SQL_CONNECTION_MANAGER_HEIGHT);
-        connectivityChecker = new ConnectivityChecker(
-                tableModel::getRows,
-                this::onLostConnectionsEvent);
+        connectivityChecker = new ConnectivityChecker(tableModel::getRows, this::onLostConnectionsEvent);
     }
 
     private void toggleComponents(ListSelectionEvent event) {
@@ -216,8 +214,6 @@ public class SQLConnectionManager extends JPanel implements EventSpeaker<SQLConn
                         ci >= 0 && ci < tableModel.getColumnCount()) {
                     SQLConnection updated = tableModel.getElementAt(ri);
                     if (0 == ci) {
-                        System.out.printf("existing: %s\n", existingNamesInTableModel);
-                        System.out.printf("updated name: %s\n", existingNamesInTableModel);
                         if (existingNamesInTableModel.contains(updated.getName())) {
                             JOptionPane.showMessageDialog(this,
                                     "Name already exists, they must be unique",
