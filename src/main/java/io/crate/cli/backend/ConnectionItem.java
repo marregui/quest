@@ -71,10 +71,7 @@ public class ConnectionItem extends StoreItem {
         // https://jdbc.postgresql.org/documentation/head/connect.html
         props.put("user", getUsername());
         props.put("password", getPassword());
-        props.put("loggerLevel", "DEBUG"); // also:OFF
         props.put("ssl", false);
-        //props.put("sslkey", "");
-        //props.put("sslpassword", "");
         props.put("recvBufferSize", 1 * 1024 * 1024); // SO_RCVBUF
         props.put("defaultRowFetchSize", SQLExecutor.MAX_BATCH_SIZE);
         props.put("loginTimeout", 10); // seconds, fail fast-ish

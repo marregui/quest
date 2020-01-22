@@ -107,6 +107,11 @@ public final class SqlType {
         return type;
     }
 
+
+    private static final Color BLUE_GREENISH_COLOR = new Color(0, 112, 112); // blue-greenish
+    private static final Color OLIVE_COLOR = new Color(140, 140, 0); // olive
+    private static final Color CYAN_DULL_COLOR = new Color(0, 168, 188); // cyan dull
+
     public static Color resolveColor(int sqlType) {
         Color color = Color.MAGENTA;
         switch (sqlType) {
@@ -115,14 +120,14 @@ public final class SqlType {
                 break;
 
             case Types.BOOLEAN:
-                color = new Color(0, 112, 112); // blue-greenish
+                color = BLUE_GREENISH_COLOR;
                 break;
 
             case Types.TINYINT:
             case Types.SMALLINT:
             case Types.INTEGER:
             case Types.BIGINT:
-                color = new Color(140, 140, 0); // olive
+                color = OLIVE_COLOR;
                 break;
 
             case Types.REAL:
@@ -132,7 +137,7 @@ public final class SqlType {
 
             case Types.TIMESTAMP:
             case Types.TIMESTAMP_WITH_TIMEZONE:
-                color = new Color(0, 168, 188); // cyan dull
+                color = CYAN_DULL_COLOR;
                 break;
 
             case Types.VARCHAR:

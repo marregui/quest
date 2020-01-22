@@ -47,7 +47,7 @@ public class SQLResultsManager extends JPanel implements Closeable {
     private final JLabel statusLabel;
     private final JButton leftButton;
     private final JButton rightButton;
-
+    private final SQLRowPeeker rowPeeker;
     private final InfiniteSpinnerPanel infiniteSpinner;
     private Component currentModePanel;
     private Mode mode;
@@ -72,7 +72,9 @@ public class SQLResultsManager extends JPanel implements Closeable {
         windowTable.setDefaultRenderer(String.class, new SQLCellRenderer(results));
         windowTable.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
         windowTable.setAutoResizeMode(JTable.AUTO_RESIZE_OFF);
-        windowTable.addMouseMotionListener(new SQLRowPeeker(this));
+        rowPeeker = new SQLRowPeeker(this);
+        windowTable.addMouseListener(rowPeeker);
+        windowTable.addMouseMotionListener(rowPeeker);
         JTableHeader header = windowTable.getTableHeader();
         header.setReorderingAllowed(false);
         header.setFont(GUIToolkit.TABLE_HEADER_FONT);
@@ -266,6 +268,7 @@ public class SQLResultsManager extends JPanel implements Closeable {
         }
         windowTable.setAutoResizeMode(tableWidth < getWidth() ?
                 JTable.AUTO_RESIZE_ALL_COLUMNS : JTable.AUTO_RESIZE_OFF);
+        rowPeeker.clear();
     }
 
     private static int resolveColumnWidth(String name, int type) {
