@@ -4,4 +4,4 @@
 CRATEDBSQL_JAR=$(find . -name cratedbsql-*-all.jar)
 echo "CRATEDBSQL_JAR: $CRATEDBSQL_JAR"
 
-java -Xmx1G -Dstore.path=store  -jar $CRATEDBSQL_JAR
+java -Xmx3G -Dstore.path=store  -jar $CRATEDBSQL_JAR
