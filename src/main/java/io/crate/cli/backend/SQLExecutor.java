@@ -28,7 +28,7 @@ public class SQLExecutor implements EventSpeaker<SQLExecutor.EventType>, Closeab
 
     private static final Logger LOGGER = LoggerFactory.getLogger(SQLExecutor.class);
     private static final int START_BATCH_SIZE = 100;
-    private static final int MAX_BATCH_SIZE = 20000;
+    public static final int MAX_BATCH_SIZE = 20000;
     private static final String[] STATUS_COL_NAME = {"Status"};
     private static final int[] STATUS_COL_TYPE = { Types.VARCHAR };
     private static final Object[] STATUS_OK_VALUE = {"OK"};
