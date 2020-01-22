@@ -413,19 +413,6 @@ public class CommandBoardManager extends JPanel implements EventSpeaker<CommandB
                     "Connection not selected");
             return;
         }
-        if (false == conn.isConnected()) {
-            try {
-                conn.open();
-                toggleComponents(); // TODO TOGGLE connections buttons!
-            } catch (Exception e) {
-                JOptionPane.showMessageDialog(
-                        this,
-                        e.getMessage(),
-                        "Connection Failed",
-                        JOptionPane.ERROR_MESSAGE);
-                return;
-            }
-        }
         String command = commandSupplier.get();
         if (null == command || command.isEmpty()) {
             JOptionPane.showMessageDialog(

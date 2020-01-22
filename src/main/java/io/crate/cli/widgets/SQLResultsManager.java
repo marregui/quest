@@ -23,7 +23,7 @@ import java.util.*;
 
 public class SQLResultsManager extends JPanel implements Closeable {
 
-    private static final String NO_RESULTS_LABEL = "  No timing results";
+    private static final String NO_TIMING_RESULTS_LABEL = "  No timing results";
     private static final String NAVIGATION_BUTTON_PREV_TEXT = "PREV";
     private static final String NAVIGATION_BUTTON_NEXT_TEXT = "NEXT";
     private static final Dimension NAVIGATION_BUTTON_SIZE = new Dimension(70, 38);
@@ -80,14 +80,14 @@ public class SQLResultsManager extends JPanel implements Closeable {
         header.setFont(GUIToolkit.TABLE_HEADER_FONT);
         header.setForeground(GUIToolkit.TABLE_HEADER_FONT_COLOR);
         currentPage = 0;
-        navigationLabel = new JLabel(NO_RESULTS_LABEL);
+        navigationLabel = new JLabel(NO_TIMING_RESULTS_LABEL);
         navigationLabel.setFont(GUIToolkit.TABLE_FOOTER_FONT);
         navigationLabel.setForeground(GUIToolkit.TABLE_FOOTER_FONT_COLOR);
         navigationLabel.setBorder(BorderFactory.createBevelBorder(BevelBorder.LOWERED));
         navigationLabel.setPreferredSize(NAVIGATION_OFFSETS_LABEL_SIZE);
         navigationLabel.setSize(NAVIGATION_OFFSETS_LABEL_SIZE);
         navigationLabel.setHorizontalAlignment(JLabel.LEADING);
-        statusLabel = new JLabel(NO_RESULTS_LABEL);
+        statusLabel = new JLabel(NO_TIMING_RESULTS_LABEL);
         statusLabel.setFont(GUIToolkit.TABLE_FOOTER_FONT);
         statusLabel.setForeground(GUIToolkit.TABLE_FOOTER_FONT_COLOR);
         statusLabel.setBorder(BorderFactory.createBevelBorder(BevelBorder.LOWERED));
@@ -197,6 +197,7 @@ public class SQLResultsManager extends JPanel implements Closeable {
                     startOffset, endOffset, currentCount, hasCompleted ? "finished" : "ongoing");
             navigationLabel.setText(text);
         } else {
+            statusLabel.setText(NO_TIMING_RESULTS_LABEL);
             navigationLabel.setText(String.format(
                     Locale.ENGLISH,
                     "  Showing 0 results"));
@@ -243,6 +244,7 @@ public class SQLResultsManager extends JPanel implements Closeable {
     }
 
     public void clear() {
+        rowPeeker.clear();
         results.clear();
         windowedTableModel.clear();
         infiniteSpinner.close();
@@ -268,7 +270,6 @@ public class SQLResultsManager extends JPanel implements Closeable {
         }
         windowTable.setAutoResizeMode(tableWidth < getWidth() ?
                 JTable.AUTO_RESIZE_ALL_COLUMNS : JTable.AUTO_RESIZE_OFF);
-        rowPeeker.clear();
     }
 
     private static int resolveColumnWidth(String name, int type) {

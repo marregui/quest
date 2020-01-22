@@ -8,7 +8,7 @@ import java.awt.*;
 public final class GUIToolkit {
 
     public static final String JDBC_DRIVER_URL_FORMAT = "jdbc:postgresql://%s:%s/";
-    public static final String MAIN_FONT_NAME = "Helvetica";
+    public static final String MAIN_FONT_NAME = "Arial";
     public static final Color CRATE_COLOR = new Color(66, 188, 245);
     public static final Font REMARK_FONT = new Font(MAIN_FONT_NAME, Font.BOLD, 16);
     public static final Dimension SQL_CONNECTION_MANAGER_HEIGHT = new Dimension(0, 200);
