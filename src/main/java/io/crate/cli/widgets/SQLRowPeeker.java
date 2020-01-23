@@ -65,17 +65,19 @@ class SQLRowPeeker extends JPanel implements MouseListener, MouseMotionListener 
         toolTipScrollPane.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED);
         toolTipScrollPane.setHorizontalScrollBarPolicy(JScrollPane.HORIZONTAL_SCROLLBAR_AS_NEEDED);
         toStringCache = new WeakHashMap<>();
-        JButton closeButton = new JButton("Close") {
+        JButton closeButton = new JButton() {
             @Override
             public void paintComponent(Graphics g) {
                 super.paintComponent(g);
                 Graphics2D g2 = (Graphics2D) g;
+                g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
                 g2.setColor(Color.BLACK);
                 g2.fillRect(0, 0, getWidth(), getHeight());
-                g2.setColor(GUIToolkit.CRATE_COLOR);
-                g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
-                g2.setFont(GUIToolkit.TABLE_CELL_FONT);
-                g2.drawString("[X]", getWidth() - 40, (int)(getHeight() * 0.7));
+                g2.setFont(GUIToolkit.TABLE_HEADER_FONT);
+                g2.setColor(Color.ORANGE);
+                int y = (int)(getHeight() * 0.7);
+                g2.drawString("Copied to clipboard", 10, y);
+                g2.drawString("[X]", getWidth() - 40, y);
             }
         };
         closeButton.setBorder(BorderFactory.createEtchedBorder());

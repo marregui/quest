@@ -37,7 +37,7 @@ public final class GUIToolkit {
     public static final Color CRATE_COLOR = new Color(66, 188, 245);
     public static final Font REMARK_FONT = new Font(MAIN_FONT_NAME, Font.BOLD, 16);
     public static final Dimension SQL_CONNECTION_MANAGER_HEIGHT = new Dimension(0, 200);
-    public static final Dimension COMMAND_BOARD_MANAGER_HEIGHT = new Dimension(0, 300);
+    public static final Dimension COMMAND_BOARD_MANAGER_HEIGHT = new Dimension(0, 350);
     public static final String COMMAND_BOARD_MANAGER_STORE = "command_board.json";
     public static final String SQL_CONNECTION_MANAGER_STORE = "connections.json";
 

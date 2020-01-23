@@ -33,6 +33,8 @@ import io.crate.cli.widgets.SQLResultsManager;
 
 import javax.swing.*;
 import java.awt.*;
+import java.awt.event.ActionEvent;
+import java.awt.event.KeyEvent;
 import java.util.Arrays;
 import java.util.Locale;
 import java.util.Set;
@@ -44,9 +46,10 @@ public class CratedbSQL {
 
     static {
         // antialiased fonts
-        System.setProperty("awt.useSystemAAFontSettings","on");
+        System.setProperty("awt.useSystemAAFontSettings", "on");
         System.setProperty("swing.aatext", "true");
     }
+
     private static final String LOGO_FILE_NAME = "/cratedb_logo.png";
 
 
@@ -77,7 +80,8 @@ public class CratedbSQL {
                 currentsqlResultsManager);
         JFrame frame = new JFrame();
         frame.setTitle(String.format(Locale.ENGLISH,
-                "CratedbSQL %s [store: %s]",
+                "%s %s [store: %s]",
+                CratedbSQL.class.getSimpleName(),
                 VERSION,
                 sqlConnectionManager.getStorePath().getAbsolutePath()));
         frame.setType(Window.Type.NORMAL);
@@ -97,6 +101,7 @@ public class CratedbSQL {
         frame.setSize(width, height);
         frame.setLocation(x, y);
         frame.setVisible(true);
+        frame.setJMenuBar(createMenuBar());
         Runtime.getRuntime().addShutdownHook(new Thread(
                 CratedbSQL.this::shutdown,
                 String.format(
@@ -105,6 +110,39 @@ public class CratedbSQL {
                         CratedbSQL.class.getSimpleName())));
         sqlConnectionManager.start();
         sqlExecutor.start();
+        frame.revalidate();
+    }
+
+    private JMenuItem toggleConnectionsPannel;
+
+    private JMenuBar createMenuBar() {
+        JMenu cratedbSqlMenu = new JMenu(String.format(Locale.ENGLISH, "%s", CratedbSQL.class.getSimpleName()));
+        cratedbSqlMenu.setFont(GUIToolkit.TABLE_CELL_FONT);
+        JMenu connectionsMenu = new JMenu("Connections");
+        toggleConnectionsPannel = new JMenuItem("Show connections panel");
+        toggleConnectionsPannel.setMnemonic(KeyEvent.VK_T);
+        toggleConnectionsPannel.setAccelerator(KeyStroke.getKeyStroke(
+                KeyEvent.VK_T, ActionEvent.CTRL_MASK));
+        toggleConnectionsPannel.addActionListener(this::onToggleConnectionsPanelEvent);
+        connectionsMenu.add(toggleConnectionsPannel);
+        cratedbSqlMenu.add(connectionsMenu);
+
+        // Menu Bar
+        JMenuBar menuBar = new JMenuBar();
+        menuBar.setBorder(BorderFactory.createEtchedBorder());
+        menuBar.add(cratedbSqlMenu);
+        return menuBar;
+    }
+
+    private void onToggleConnectionsPanelEvent(ActionEvent event) {
+        boolean isVisible = sqlConnectionManager.isVisible();
+        sqlConnectionManager.setVisible(false == isVisible);
+        int location = sqlResultsManagerPanel.getDividerLocation();
+        int deltaY = GUIToolkit.SQL_CONNECTION_MANAGER_HEIGHT.height;
+        int direction = isVisible ? -1 : 1;
+        sqlResultsManagerPanel.setDividerLocation(location + direction * deltaY);
+        toggleConnectionsPannel.setText(isVisible ?
+                "Show connections panel" : "Hide connections panel");
     }
 
     private void shutdown() {
@@ -201,20 +239,20 @@ public class CratedbSQL {
 
             case RESULTS_AVAILABLE:
                 GUIToolkit.invokeLater(() -> {
-                    sqlResultsManager[offset].addRows(response.getResults(),true);
+                    sqlResultsManager[offset].addRows(response.getResults(), true);
                 });
                 break;
 
             case QUERY_COMPLETED:
                 GUIToolkit.invokeLater(() -> {
-                    sqlResultsManager[offset].addRows(response.getResults(),false);
+                    sqlResultsManager[offset].addRows(response.getResults(), false);
                     sqlResultsManager[offset].removeInfiniteProgressPanel();
                 });
                 break;
         }
     }
 
-    public static void main(String[] args){
+    public static void main(String[] args) {
         GUIToolkit.invokeLater(CratedbSQL::new);
     }
 }

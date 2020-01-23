@@ -201,6 +201,7 @@ public class SQLConnectionManager extends JPanel implements EventSpeaker<SQLConn
         add(scrollPane, BorderLayout.CENTER);
         add(buttonsPanel, BorderLayout.SOUTH);
         setPreferredSize(GUIToolkit.SQL_CONNECTION_MANAGER_HEIGHT);
+        setVisible(false);
         connectivityChecker = new ConnectivityChecker(
                 tableModel::getRows, this::onLostConnectionsEvent);
     }
