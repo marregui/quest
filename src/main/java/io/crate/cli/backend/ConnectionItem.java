@@ -72,10 +72,10 @@ public class ConnectionItem extends StoreItem {
         props.put("user", getUsername());
         props.put("password", getPassword());
         props.put("ssl", false);
-        props.put("recvBufferSize", 1 * 1024 * 1024); // SO_RCVBUF
+        props.put("recvBufferSize", SQLExecutor.SO_RCVBUF);
         props.put("defaultRowFetchSize", SQLExecutor.MAX_BATCH_SIZE);
-        props.put("loginTimeout", 10); // seconds, fail fast-ish
-        props.put("socketTimeout", 60); // seconds, no query allowed longer reads than 60 seconds
+        props.put("loginTimeout", 5); // seconds, fail fast-ish
+        props.put("socketTimeout", SQLExecutor.QUERY_EXECUTION_TIMEOUT_SECS);
         props.put("tcpKeepAlive", true);
         return props;
     }

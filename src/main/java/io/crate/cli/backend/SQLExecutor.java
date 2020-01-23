@@ -17,6 +17,12 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 public class SQLExecutor implements EventSpeaker<SQLExecutor.EventType>, Closeable {
 
+    public static final int QUERY_EXECUTION_TIMEOUT_SECS = 60;
+    public static final int SO_RCVBUF = 1 * 1024 * 1024; // 1 MB
+    public static final int MAX_BATCH_SIZE = 20000;
+    private static final int START_BATCH_SIZE = 100;
+
+
     public enum EventType {
         QUERY_STARTED,
         QUERY_FETCHING,
@@ -27,10 +33,8 @@ public class SQLExecutor implements EventSpeaker<SQLExecutor.EventType>, Closeab
     }
 
     private static final Logger LOGGER = LoggerFactory.getLogger(SQLExecutor.class);
-    private static final int START_BATCH_SIZE = 100;
-    public static final int MAX_BATCH_SIZE = 20000;
     private static final String[] STATUS_COL_NAME = {"Status"};
-    private static final int[] STATUS_COL_TYPE = { Types.VARCHAR };
+    private static final int[] STATUS_COL_TYPE = {Types.VARCHAR};
     private static final Object[] STATUS_OK_VALUE = {"OK"};
 
 
@@ -49,16 +53,17 @@ public class SQLExecutor implements EventSpeaker<SQLExecutor.EventType>, Closeab
             throw new IllegalStateException("already started");
         }
         runningQueries.clear();
+        cancelRequests.clear();
         AtomicInteger threadId = new AtomicInteger(0);
         cachedES = Executors.newCachedThreadPool(r -> {
-            Thread t = new Thread(r);
-            t.setDaemon(true);
-            t.setName(String.format(
+            Thread executorThread = new Thread(r);
+            executorThread.setDaemon(true);
+            executorThread.setName(String.format(
                     Locale.ENGLISH,
                     "%s-%d",
                     SQLExecutor.class.getSimpleName(),
                     threadId.incrementAndGet()));
-            return t;
+            return executorThread;
         });
         LOGGER.info("{} is running", SQLExecutor.class.getSimpleName());
     }
@@ -81,6 +86,7 @@ public class SQLExecutor implements EventSpeaker<SQLExecutor.EventType>, Closeab
         } finally {
             cachedES = null;
             runningQueries.clear();
+            cancelRequests.clear();
             LOGGER.info("{} has finished", SQLExecutor.class.getSimpleName());
         }
     }
@@ -98,34 +104,50 @@ public class SQLExecutor implements EventSpeaker<SQLExecutor.EventType>, Closeab
         LOGGER.info("Query [{}] from [{}] submitted", request.getKey(), sourceId);
     }
 
-    private final void executeQuery(SQLExecutionRequest request, EventListener<SQLExecutor, SQLExecutionResponse> eventListener) {
-        long checkpointTs = System.nanoTime();
-        long startTS = checkpointTs;
+    public void cancelSubmittedRequest(SQLExecutionRequest request) {
+        if (null == cachedES) {
+            throw new IllegalStateException("not started");
+        }
         String sourceId = request.getSourceId();
-        String key = request.getKey();
-        String query = request.getCommand();
+        Future<?> runningQuery = runningQueries.remove(sourceId);
+        if (null != runningQuery && false == runningQuery.isDone() && false == runningQuery.isCancelled()) {
+            cancelRequests.put(sourceId, sourceId);
+            LOGGER.info("Cancelling pre-existing query [{}] from [{}]", request.getKey(), sourceId);
+            runningQuery.cancel(true);
+        }
+    }
+
+    private final void executeQuery(SQLExecutionRequest request, EventListener<SQLExecutor, SQLExecutionResponse> eventListener) {
+        long startTS = System.nanoTime();
+        String sourceId = request.getSourceId();
         SQLConnection conn = request.getSQLConnection();
-        LOGGER.info("Executing query [{}]: {}", key, query);
+        String query = request.getCommand();
+        LOGGER.info("Executing query [{}] from [{}] on connection {}: {}",
+                request.getKey(), sourceId, conn, query);
         if (false == conn.checkConnectivity()) {
-            checkpointTs = System.nanoTime();
-            LOGGER.error("While about to run [{}] from [{}], lost connectivity with {}", key, sourceId, conn);
+            LOGGER.error("While about to run [{}] from [{}], lost connectivity with: {}",
+                    request.getKey(), sourceId, conn);
             eventListener.onSourceEvent(
                     SQLExecutor.this,
                     EventType.QUERY_FAILURE,
                     new SQLExecutionResponse(
                             request,
-                            toMillis(checkpointTs - startTS),
-                            new RuntimeException(String.format(Locale.ENGLISH,"Connection [%s] is down", conn))));
+                            0L,
+                            new RuntimeException(String.format(
+                                    Locale.ENGLISH,
+                                    "Connection [%s] is down",
+                                    conn))));
+            cancelRequests.remove(sourceId); // should there be any pending
             return;
         }
-        LOGGER.info("Connectivity looks ok [{}]: {}", key, query);
-        long queryExecutedTs;
+        LOGGER.info("Connectivity looks ok [{}] from [{}]: {}", request.getKey(), sourceId, conn);
+
+        long queryExecutedTs = System.nanoTime();
         long queryExecutedMs;
-        int rowId = 0;
-        int batchId = 0;
-        int batchSize = START_BATCH_SIZE;
         SQLTable resultsTable = SQLTable.emptyTable(request.getKey());
-        checkpointTs = System.nanoTime();
+        int batchSize = START_BATCH_SIZE;
+        int batchId = 0;
+        int rowId = 0;
         eventListener.onSourceEvent(
                 SQLExecutor.this,
                 EventType.QUERY_STARTED,
@@ -134,11 +156,14 @@ public class SQLExecutor implements EventSpeaker<SQLExecutor.EventType>, Closeab
                         batchId++,
                         conn,
                         query,
-                        toMillis(checkpointTs - startTS),
+                        toMillis(queryExecutedTs - startTS),
                         0L,
                         0L,
                         resultsTable));
         try (Statement stmt = conn.getConnection().createStatement()) {
+
+            // execute query, this can take seconds
+            stmt.setQueryTimeout(QUERY_EXECUTION_TIMEOUT_SECS);
             boolean checkResults = stmt.execute(query);
             queryExecutedTs = System.nanoTime();
             queryExecutedMs = toMillis(queryExecutedTs - startTS);
@@ -151,18 +176,17 @@ public class SQLExecutor implements EventSpeaker<SQLExecutor.EventType>, Closeab
                                 batchId++,
                                 conn,
                                 query,
-                                toMillis(checkpointTs - startTS),
                                 queryExecutedMs,
-                                toMillis(checkpointTs - queryExecutedTs),
+                                queryExecutedMs,
+                                0L,
                                 resultsTable));
                 ResultSet rs = stmt.getResultSet();
                 boolean hasColumnMetadata = false;
                 while (rs.next()) {
-                    String cancelSourceId = cancelRequests.get(sourceId);
-                    if (null != cancelSourceId && cancelSourceId.equals(sourceId)) {
+                    if (null != cancelRequests.remove(sourceId)) {
                         break;
                     }
-                    checkpointTs = System.nanoTime();
+                    long checkpointTs = System.nanoTime();
                     if (false == hasColumnMetadata) {
                         resultsTable.extractColumnMetadata(rs);
                         hasColumnMetadata = true;
@@ -183,77 +207,59 @@ public class SQLExecutor implements EventSpeaker<SQLExecutor.EventType>, Closeab
                                         resultsTable));
                         if (batchSize <= MAX_BATCH_SIZE) {
                             batchSize *= 2;
-                            resultsTable = new SQLTable(key);
+                            resultsTable = new SQLTable(request.getKey());
                             hasColumnMetadata = false;
                         }
                     }
                 }
             } else {
-                LOGGER.info("Query [{}] from [{}]: OK", key, sourceId);
+                LOGGER.info("Query [{}] from [{}]: OK", request.getKey(), sourceId);
                 resultsTable.setSingleRow(String.valueOf(rowId++),
                         STATUS_COL_NAME, STATUS_COL_TYPE, STATUS_OK_VALUE);
             }
         } catch (SQLException e) {
-            LOGGER.error("Error query [{}] from [{}]: {}", key, sourceId, e.getMessage());
-            checkpointTs = System.nanoTime();
+            runningQueries.remove(sourceId);
+            cancelRequests.remove(sourceId);
+            LOGGER.error("Error query [{}] from [{}]: {}",
+                    request.getKey(), sourceId, e.getMessage());
             eventListener.onSourceEvent(
                     SQLExecutor.this,
                     EventType.QUERY_FAILURE,
-                    new SQLExecutionResponse(request, toMillis(checkpointTs - startTS), e));
+                    new SQLExecutionResponse(
+                            request,
+                            toMillis(System.nanoTime() - startTS),
+                            e));
             return;
         }
-        checkpointTs = System.nanoTime();
+
+        long checkpointTs = System.nanoTime();
+        runningQueries.remove(sourceId);
         String cancelSourceId = cancelRequests.remove(sourceId);
-        boolean wasCancelled = null != cancelSourceId && cancelSourceId.equals(key);
+        boolean wasCancelled = null != cancelSourceId;
+        EventType eventType = wasCancelled ? EventType.QUERY_CANCELLED : EventType.QUERY_COMPLETED;
         if (wasCancelled) {
             resultsTable.clear();
-            eventListener.onSourceEvent(
-                    SQLExecutor.this,
-                    EventType.QUERY_CANCELLED,
-                    new SQLExecutionResponse(
-                            sourceId,
-                            batchId++,
-                            conn,
-                            query,
-                            toMillis(checkpointTs - startTS),
-                            queryExecutedMs,
-                            toMillis(checkpointTs - queryExecutedTs),
-                            resultsTable));
-        } else {
-            eventListener.onSourceEvent(
-                    SQLExecutor.this,
-                    EventType.QUERY_COMPLETED,
-                    new SQLExecutionResponse(
-                            sourceId,
-                            batchId++,
-                            conn,
-                            query,
-                            toMillis(checkpointTs - startTS),
-                            queryExecutedMs,
-                            toMillis(checkpointTs - queryExecutedTs),
-                            resultsTable));
-            runningQueries.remove(key);
-            LOGGER.info("Query [{}] from [{}] {} results, elapsed ms:{} (query:{}, fetch:{})",
-                    key,
-                    sourceId,
-                    rowId,
-                    toMillis(checkpointTs - startTS),
-                    queryExecutedMs,
-                    toMillis(checkpointTs - queryExecutedTs));
         }
-    }
-
-    public void cancelSubmittedRequest(SQLExecutionRequest request) {
-        if (null == cachedES) {
-            throw new IllegalStateException("not started");
-        }
-        String sourceId = request.getSourceId();
-        Future<?> runningQuery = runningQueries.remove(sourceId);
-        if (null != runningQuery && false == runningQuery.isDone() && false == runningQuery.isCancelled()) {
-            LOGGER.info("Cancelling pre-existing query [{}] from [{}]", request.getKey(), sourceId);
-            runningQuery.cancel(true);
-            cancelRequests.put(sourceId, sourceId);
-        }
+        eventListener.onSourceEvent(
+                SQLExecutor.this,
+                eventType,
+                new SQLExecutionResponse(
+                        sourceId,
+                        batchId++,
+                        conn,
+                        query,
+                        toMillis(checkpointTs - startTS),
+                        queryExecutedMs,
+                        toMillis(checkpointTs - queryExecutedTs),
+                        resultsTable));
+        LOGGER.info("%s [{}] from [{}] {} results, elapsed milliseconds:{} (query:{}, fetch:{})",
+                eventType,
+                request.getKey(),
+                sourceId,
+                rowId,
+                toMillis(checkpointTs - startTS),
+                queryExecutedMs,
+                toMillis(checkpointTs - queryExecutedTs));
     }
 
     private static final long toMillis(long nanos) {

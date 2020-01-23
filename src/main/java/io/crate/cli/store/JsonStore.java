@@ -55,8 +55,9 @@ public abstract class JsonStore<StoreType extends StoreItem> implements Store<St
             storerThread.setDaemon(false);
             storerThread.setName(String.format(
                     Locale.ENGLISH,
-                    "%s-storer",
-                    JsonStore.class.getSimpleName()));
+                    "%s-storer-%s",
+                    JsonStore.class.getSimpleName(),
+                    storeFileName));
             return storerThread;
         });
     }
