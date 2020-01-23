@@ -18,7 +18,6 @@
  * with Crate these terms will supersede the license and you may use the
  * software solely pursuant to the terms of the relevant commercial agreement.
  */
-
 package io.crate.cli.backend;
 
 import io.crate.cli.common.GUIToolkit;
