@@ -6,7 +6,6 @@ import io.crate.cli.common.SqlType;
 
 import javax.swing.*;
 import java.awt.*;
-import java.awt.datatransfer.Clipboard;
 import java.awt.event.ActionEvent;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
@@ -88,14 +87,17 @@ class SQLRowPeeker extends JPanel implements MouseListener, MouseMotionListener 
                 .append(NEWLINE)
                 .append(NEWLINE);
         int colIdx = 0;
-        int[] colTypes = row.getParent().getColumnTypes();
-        for (Map.Entry<String, Object> entry : row.getValues().entrySet()) {
+        SQLTable table = row.getParent();
+        String[] colNames = table.getColumnNames();
+        Object [] values = row.getValues();
+        int[] colTypes = table.getColumnTypes();
+        for (int i=0; i < colNames.length; i++) {
             sb.append("   - ")
-                    .append(entry.getKey())
+                    .append(colNames[i])
                     .append(" [")
                     .append(SqlType.resolveName(colTypes[colIdx++]))
                     .append("]: ")
-                    .append(entry.getValue())
+                    .append(values[i])
                     .append(NEWLINE);
         }
         sb.append(NEWLINE);
@@ -136,10 +138,25 @@ class SQLRowPeeker extends JPanel implements MouseListener, MouseMotionListener 
         toolTip.setText(text);
         toolTip.setCaretPosition(0);
         if (resize) {
-            int width = CHAR_WIDTH * maxLength(text, NEWLINE);
-            int height = CHAR_HEIGHT * (4 + row.getParent().getColumnTypes().length);
+            int width = Math.max(CHAR_WIDTH * maxLength(text, NEWLINE), 400);
+            int height = CHAR_HEIGHT * Math.max(row.getParent().getColumnTypes().length, 4);
             toolTip.setPreferredSize(new Dimension(width, height));
         }
+    }
+
+    private void showToolTipPopup(MouseEvent e) {
+        Dimension screen = Toolkit.getDefaultToolkit().getScreenSize();
+        Dimension size = toolTip.getPreferredSize();
+        int x = e.getXOnScreen();
+        int y = e.getYOnScreen() - size.height / 7;
+        if (x + size.width > screen.width) {
+            x = screen.width - size.width - 20;
+        }
+        if (y + size.height > screen.height) {
+            y = screen.height - size.height - 100;
+        }
+        toolTipPopup = PopupFactory.getSharedInstance().getPopup(owner,this, x, y);
+        toolTipPopup.show();
     }
 
     @Override
@@ -148,12 +165,7 @@ class SQLRowPeeker extends JPanel implements MouseListener, MouseMotionListener 
         if (null != row) {
             setPeekerText(row, true);
             if (isShowing.compareAndSet(false, true)) {
-                toolTipPopup = PopupFactory.getSharedInstance().getPopup(
-                        owner,
-                        this,
-                        e.getXOnScreen() - 10,
-                        e.getYOnScreen() - 10);
-                toolTipPopup.show();
+                showToolTipPopup(e);
             }
         }
     }
@@ -165,12 +177,7 @@ class SQLRowPeeker extends JPanel implements MouseListener, MouseMotionListener 
             if (null != row && false == currentRow.getKey().equals(row.getKey())) {
                 setPeekerText(row, false);
                 toolTipPopup.hide();
-                toolTipPopup = PopupFactory.getSharedInstance().getPopup(
-                        owner,
-                        this,
-                        e.getXOnScreen() - 10,
-                        e.getYOnScreen() - 10);
-                toolTipPopup.show();
+                showToolTipPopup(e);
             }
         }
     }

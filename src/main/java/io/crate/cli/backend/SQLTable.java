@@ -24,11 +24,11 @@ public class SQLTable implements HasKey {
 
         private final SQLTable parent;
         private final String key;
-        private final Map<String, Object> values;
+        private final Object[] values;
         private final AtomicReference<String> toString;
 
 
-        private SQLTableRow(SQLTable parent, String key, Map<String, Object> values) {
+        private SQLTableRow(SQLTable parent, String key, Object[] values) {
             this.parent = parent;
             this.key = key;
             this.values = values;
@@ -45,38 +45,49 @@ public class SQLTable implements HasKey {
         }
 
         public Object get(String colName) {
-            return values.get(colName);
+            Integer idx = parent.columnIdx.get(colName);
+            if (null == idx) {
+                throw new IllegalArgumentException(String.format(
+                        Locale.ENGLISH,
+                        "Unknown column [%s]",
+                        colName));
+            }
+            return values[idx.intValue()];
         }
 
         public void clear() {
-            values.clear();
+            Arrays.fill(values, null);
         }
 
-        public Map<String, Object> getValues() {
-            return Collections.unmodifiableMap(values);
+        public Object[] getValues() {
+            return values;
         }
     }
 
     private String key;
     private boolean hasMetadata;
     private String[] columnNames;
+    private final Map<String, Integer> columnIdx;
     private int[] columnTypes;
     private final List<SQLTableRow> values;
 
 
     public SQLTable(String key) {
         this.key = key;
-        this.values = new ArrayList<>();
+        values = new ArrayList<>();
+        columnIdx = new HashMap<>();
     }
 
     public void extractColumnMetadata(ResultSet rs) throws SQLException {
         ResultSetMetaData metaData = rs.getMetaData();
         int columnCount = metaData.getColumnCount();
+        columnIdx.clear();
         columnNames = new String[columnCount];
         columnTypes = new int[columnCount];
         for (int i = 0; i < columnCount; i++) {
             columnNames[i] = metaData.getColumnName(i + 1);
             columnTypes[i] = metaData.getColumnType(i + 1);
+            columnIdx.put(columnNames[i], i);
         }
         hasMetadata = true;
     }
@@ -85,9 +96,9 @@ public class SQLTable implements HasKey {
         if (false == hasMetadata) {
             throw new SQLException("column metadata has not been set");
         }
-        Map<String, Object> values = new LinkedHashMap<>(columnNames.length);
+        Object[] values = new Object[columnNames.length];
         for (int i = 0; i < columnNames.length; i++) {
-            values.put(columnNames[i], rs.getObject(i + 1));
+            values[i] = rs.getObject(i + 1);
         }
         this.values.add(new SQLTableRow(this, key, values));
     }
@@ -103,12 +114,12 @@ public class SQLTable implements HasKey {
         }
         this.columnNames = columnNames;
         this.columnTypes = columnTypes;
-        this.values.clear();
-        Map<String, Object> finalValues = new LinkedHashMap<>(columnNames.length);
+        columnIdx.clear();
         for (int i = 0; i < columnNames.length; i++) {
-            finalValues.put(columnNames[i], values[i]);
+            columnIdx.put(columnNames[i], i);
         }
-        this.values.add(new SQLTableRow(this, key, finalValues));
+        this.values.clear();
+        this.values.add(new SQLTableRow(this, key, values));
     }
 
     public int getSize() {
@@ -122,6 +133,7 @@ public class SQLTable implements HasKey {
         hasMetadata = false;
         columnNames = null;
         columnTypes = null;
+        columnIdx.clear();
     }
 
     public List<SQLTableRow> getRows() {
