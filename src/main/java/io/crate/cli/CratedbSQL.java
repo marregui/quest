@@ -48,6 +48,8 @@ public class CratedbSQL {
         // antialiased fonts
         System.setProperty("awt.useSystemAAFontSettings", "on");
         System.setProperty("swing.aatext", "true");
+
+        //System.setProperty("apple.laf.useScreenMenuBar", "true");
     }
 
     private static final String LOGO_FILE_NAME = "/cratedb_logo.png";
@@ -57,8 +59,10 @@ public class CratedbSQL {
     private final CommandBoardManager commandBoardManager;
     private final JSplitPane sqlResultsManagerPanel;
     private final SQLResultsManager[] sqlResultsManager;
-    private Component currentsqlResultsManager;
+    private SQLResultsManager currentsqlResultsManager;
     private final SQLExecutor sqlExecutor;
+    private final JMenuItem toggleConnectionsPannelMI;
+    private final JMenuItem toggleConnectionMI;
 
 
     private CratedbSQL() {
@@ -101,6 +105,8 @@ public class CratedbSQL {
         frame.setSize(width, height);
         frame.setLocation(x, y);
         frame.setVisible(true);
+        toggleConnectionsPannelMI = new JMenuItem("Show connections panel");
+        toggleConnectionMI = new JMenuItem("Connect");
         frame.setJMenuBar(createMenuBar());
         Runtime.getRuntime().addShutdownHook(new Thread(
                 CratedbSQL.this::shutdown,
@@ -110,28 +116,95 @@ public class CratedbSQL {
                         CratedbSQL.class.getSimpleName())));
         sqlConnectionManager.start();
         sqlExecutor.start();
-        frame.revalidate();
     }
 
-    private JMenuItem toggleConnectionsPannel;
-
     private JMenuBar createMenuBar() {
-        JMenu cratedbSqlMenu = new JMenu(String.format(Locale.ENGLISH, "%s", CratedbSQL.class.getSimpleName()));
-        cratedbSqlMenu.setFont(GUIToolkit.TABLE_CELL_FONT);
         JMenu connectionsMenu = new JMenu("Connections");
-        toggleConnectionsPannel = new JMenuItem("Show connections panel");
-        toggleConnectionsPannel.setMnemonic(KeyEvent.VK_T);
-        toggleConnectionsPannel.setAccelerator(KeyStroke.getKeyStroke(
+        toggleConnectionsPannelMI.setMnemonic(KeyEvent.VK_T);
+        toggleConnectionsPannelMI.setAccelerator(KeyStroke.getKeyStroke(
                 KeyEvent.VK_T, ActionEvent.CTRL_MASK));
-        toggleConnectionsPannel.addActionListener(this::onToggleConnectionsPanelEvent);
-        connectionsMenu.add(toggleConnectionsPannel);
-        cratedbSqlMenu.add(connectionsMenu);
+        toggleConnectionsPannelMI.addActionListener(this::onToggleConnectionsPanelEvent);
+        connectionsMenu.add(toggleConnectionsPannelMI);
 
-        // Menu Bar
+        toggleConnectionMI.setMnemonic(KeyEvent.VK_O);
+        toggleConnectionMI.setAccelerator(KeyStroke.getKeyStroke(
+                KeyEvent.VK_O, ActionEvent.CTRL_MASK));
+        toggleConnectionMI.addActionListener(this::onToggleConnectionEvent);
+        connectionsMenu.add(toggleConnectionMI);
+
+        JMenu commandMenu = new JMenu("Command board");
+        JMenu switchBoard = new JMenu("Switch to board");
+        int keyEvent = KeyEvent.VK_1;
+        for (int i=0; i < CommandBoardManager.NUM_COMMAND_BOARDS; i++) {
+            int offset = i;
+            JMenuItem board = new JMenuItem(CommandBoardManager.toCommandBoardKey(offset));
+            board.setMnemonic(keyEvent);
+            board.setAccelerator(KeyStroke.getKeyStroke(
+                    keyEvent, ActionEvent.CTRL_MASK));
+            board.addActionListener(e -> {
+                commandBoardManager.onBoardBufferEvent(offset);
+            });
+            switchBoard.add(board);
+            keyEvent++;
+        }
+        commandMenu.add(switchBoard);
+        JMenuItem clearBoard = new JMenuItem("Clear");
+        clearBoard.setMnemonic(KeyEvent.VK_BACK_SPACE);
+        clearBoard.setAccelerator(KeyStroke.getKeyStroke(
+                KeyEvent.VK_BACK_SPACE, ActionEvent.CTRL_MASK));
+        clearBoard.addActionListener(commandBoardManager::onClearButtonEvent);
+        commandMenu.add(clearBoard);
+        JMenuItem runLine = new JMenuItem("Run current line");
+        runLine.setMnemonic(KeyEvent.VK_L);
+        runLine.setAccelerator(KeyStroke.getKeyStroke(
+                KeyEvent.VK_L, ActionEvent.CTRL_MASK));
+        runLine.addActionListener(commandBoardManager::onRunCurrentLineEvent);
+        commandMenu.add(runLine);
+        JMenuItem run = new JMenuItem("Run board contents");
+        run.setMnemonic(KeyEvent.VK_ENTER);
+        run.setAccelerator(KeyStroke.getKeyStroke(
+                KeyEvent.VK_ENTER, ActionEvent.CTRL_MASK));
+        run.addActionListener(commandBoardManager::onRunEvent);
+        commandMenu.add(run);
+        JMenuItem cancel = new JMenuItem("Cancel board execution");
+        cancel.setMnemonic(KeyEvent.VK_C);
+        cancel.setAccelerator(KeyStroke.getKeyStroke(
+                KeyEvent.VK_C, ActionEvent.CTRL_MASK));
+        cancel.addActionListener(commandBoardManager::onCancelButtonEvent);
+        commandMenu.add(cancel);
+        JMenu resultsMenu = new JMenu("Results table");
+        JMenuItem prevPage = new JMenuItem("PREV");
+        prevPage.setMnemonic(KeyEvent.VK_N);
+        prevPage.setAccelerator(KeyStroke.getKeyStroke(
+                KeyEvent.VK_N, ActionEvent.CTRL_MASK));
+        prevPage.addActionListener(currentsqlResultsManager::onPrevButtonEvent);
+        resultsMenu.add(prevPage);
+        JMenuItem nextPage = new JMenuItem("NEXT");
+        nextPage.setMnemonic(KeyEvent.VK_M);
+        nextPage.setAccelerator(KeyStroke.getKeyStroke(
+                KeyEvent.VK_M, ActionEvent.CTRL_MASK));
+        nextPage.addActionListener(currentsqlResultsManager::onNextButtonEvent);
+        resultsMenu.add(nextPage);
+
+        JMenu cratedbSqlMenu = new JMenu(String.format(
+                Locale.ENGLISH,
+                "%s",
+                CratedbSQL.class.getSimpleName()));
+        cratedbSqlMenu.setFont(GUIToolkit.TABLE_CELL_FONT);
+        cratedbSqlMenu.add(connectionsMenu);
+        cratedbSqlMenu.add(commandMenu);
+        cratedbSqlMenu.add(resultsMenu);
         JMenuBar menuBar = new JMenuBar();
         menuBar.setBorder(BorderFactory.createEtchedBorder());
         menuBar.add(cratedbSqlMenu);
         return menuBar;
+    }
+
+    private void onToggleConnectionEvent(ActionEvent event) {
+        SQLConnection conn = commandBoardManager.getSQLConnection();
+        boolean isConnected = null != conn && conn.isConnected();
+        sqlConnectionManager.onConnectButtonEvent(conn);
+        toggleConnectionMI.setText(isConnected ? "Connect" : "Disconnect");
     }
 
     private void onToggleConnectionsPanelEvent(ActionEvent event) {
@@ -141,7 +214,7 @@ public class CratedbSQL {
         int deltaY = GUIToolkit.SQL_CONNECTION_MANAGER_HEIGHT.height;
         int direction = isVisible ? -1 : 1;
         sqlResultsManagerPanel.setDividerLocation(location + direction * deltaY);
-        toggleConnectionsPannel.setText(isVisible ?
+        toggleConnectionsPannelMI.setText(isVisible ?
                 "Show connections panel" : "Hide connections panel");
     }
 
@@ -182,6 +255,8 @@ public class CratedbSQL {
                 SQLConnection current = commandBoardManager.getSQLConnection();
                 if (null != current && current.equals(conn)) {
                     commandBoardManager.setSQLConnection(conn);
+                    toggleConnectionMI.setText(conn.isConnected() ?
+                            "Disconnect" : "Connect");
                 }
                 break;
 
@@ -210,10 +285,6 @@ public class CratedbSQL {
 
             case COMMAND_CANCEL:
                 sqlExecutor.cancelSubmittedRequest(request);
-                break;
-
-            case CONNECT_KEYBOARD_REQUEST:
-                sqlConnectionManager.onConnectButtonEvent(request.getSQLConnection());
                 break;
 
             case BOARD_CHANGE:

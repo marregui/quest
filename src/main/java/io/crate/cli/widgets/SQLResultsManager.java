@@ -248,16 +248,20 @@ public class SQLResultsManager extends JPanel implements Closeable {
         windowedTableModel.setRows(results.getRows(startOffset, endOffset));
     }
 
-    private void onPrevButtonEvent(ActionEvent event) {
-        currentPage--;
-        updateWindowedTableModel();
-        toggleComponents();
+    public void onPrevButtonEvent(ActionEvent event) {
+        if (leftButton.isEnabled()) {
+            currentPage--;
+            updateWindowedTableModel();
+            toggleComponents();
+        }
     }
 
-    private void onNextButtonEvent(ActionEvent event) {
-        currentPage++;
-        updateWindowedTableModel();
-        toggleComponents();
+    public void onNextButtonEvent(ActionEvent event) {
+        if (rightButton.isEnabled()) {
+            currentPage++;
+            updateWindowedTableModel();
+            toggleComponents();
+        }
     }
 
     private void onTableModelEvent(TableModelEvent event) {
