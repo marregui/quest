@@ -176,6 +176,7 @@ public class ObjectTableModel<RowType extends HasKey> extends AbstractTableModel
         synchronized (rows) {
             checkBounds("setValueAt", rowIdx, rows.size());
             attributeSetter.apply(rows.get(rowIdx), attributeName, value);
+            System.out.printf("set %s to %s\n", attributeName, value);
         }
         fireTableCellUpdated(rowIdx, colIdx);
     }

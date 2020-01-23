@@ -101,6 +101,7 @@ public class ConnectionItem extends StoreItem {
     }
 
     public void setPort(String port, String defaultPort) {
+        System.out.println("PORT: " + port);
         setAttribute(AttributeName.port, port, defaultPort);
     }
 
