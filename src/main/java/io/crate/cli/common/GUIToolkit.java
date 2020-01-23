@@ -3,6 +3,10 @@ package io.crate.cli.common;
 import javax.swing.*;
 import javax.swing.border.Border;
 import java.awt.*;
+import java.awt.datatransfer.Clipboard;
+import java.awt.datatransfer.DataFlavor;
+import java.awt.datatransfer.StringSelection;
+import java.awt.event.KeyEvent;
 
 
 public final class GUIToolkit {
@@ -41,6 +45,31 @@ public final class GUIToolkit {
     public static final Border COMMAND_BOARD_DISCONNECTED_BORDER = BorderFactory.createLineBorder(Color.BLACK, 2, true);
     public static final Border COMMAND_BOARD_UNSELECTED_BORDER = BorderFactory.createLineBorder(Color.LIGHT_GRAY, 1, false);
 
+
+    public static void copyToClipboard(String text) {
+        getSystemClipboard().setContents(new StringSelection(text), null);
+    }
+
+    public static void pasteFromClipboard() throws AWTException {
+        Robot robot = new Robot();
+        robot.keyPress(KeyEvent.VK_CONTROL);
+        robot.keyPress(KeyEvent.VK_V);
+        robot.keyRelease(KeyEvent.VK_CONTROL);
+        robot.keyRelease(KeyEvent.VK_V);
+    }
+
+    public static String getFromClipboard() throws Exception {
+        Clipboard systemClipboard = getSystemClipboard();
+        DataFlavor dataFlavor = DataFlavor.stringFlavor;
+        if (systemClipboard.isDataFlavorAvailable(dataFlavor)) {
+            return (String) systemClipboard.getData(dataFlavor);
+        }
+        return null;
+    }
+
+    private static Clipboard getSystemClipboard() {
+        return Toolkit.getDefaultToolkit().getSystemClipboard();
+    }
 
     public static void invokeLater(Runnable ... runnable) {
         if (EventQueue.isDispatchThread()) {

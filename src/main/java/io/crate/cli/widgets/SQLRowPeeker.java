@@ -6,6 +6,7 @@ import io.crate.cli.common.SqlType;
 
 import javax.swing.*;
 import java.awt.*;
+import java.awt.datatransfer.Clipboard;
 import java.awt.event.ActionEvent;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
@@ -20,7 +21,6 @@ class SQLRowPeeker extends JPanel implements MouseListener, MouseMotionListener 
     private static final char NEWLINE = '\n';
     private static final int CHAR_WIDTH = 12;
     private static final int CHAR_HEIGHT = GUIToolkit.TABLE_HEADER_HEIGHT;
-
 
 
     private final Component owner;
@@ -81,7 +81,12 @@ class SQLRowPeeker extends JPanel implements MouseListener, MouseMotionListener 
 
     private static String renderRow(SQLTable.SQLTableRow row) {
         StringBuilder sb = new StringBuilder();
-        sb.append(NEWLINE).append(NEWLINE);
+        sb.append(NEWLINE)
+                .append("Key ")
+                .append(row.getKey())
+                .append(": ")
+                .append(NEWLINE)
+                .append(NEWLINE);
         int colIdx = 0;
         int[] colTypes = row.getParent().getColumnTypes();
         for (Map.Entry<String, Object> entry : row.getValues().entrySet()) {
@@ -123,14 +128,16 @@ class SQLRowPeeker extends JPanel implements MouseListener, MouseMotionListener 
         return row;
     }
 
+
     private void setPeekerText(SQLTable.SQLTableRow row, boolean resize) {
         currentRow = row;
         String text = toStringCache.computeIfAbsent(row.getKey(), key -> renderRow(row));
+        GUIToolkit.copyToClipboard(text);
         toolTip.setText(text);
         toolTip.setCaretPosition(0);
         if (resize) {
             int width = CHAR_WIDTH * maxLength(text, NEWLINE);
-            int height = CHAR_HEIGHT * row.getParent().getColumnTypes().length;
+            int height = CHAR_HEIGHT * (4 + row.getParent().getColumnTypes().length);
             toolTip.setPreferredSize(new Dimension(width, height));
         }
     }
