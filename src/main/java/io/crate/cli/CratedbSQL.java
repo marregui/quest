@@ -34,6 +34,7 @@ import io.crate.cli.widgets.SQLResultsManager;
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 import java.awt.event.KeyEvent;
 import java.util.Arrays;
 import java.util.Locale;
@@ -105,8 +106,8 @@ public class CratedbSQL {
         frame.setSize(width, height);
         frame.setLocation(x, y);
         frame.setVisible(true);
-        toggleConnectionsPannelMI = new JMenuItem("Show connections panel");
-        toggleConnectionMI = new JMenuItem("Connect");
+        toggleConnectionsPannelMI = new JMenuItem();
+        toggleConnectionMI = new JMenuItem();
         frame.setJMenuBar(createMenuBar());
         Runtime.getRuntime().addShutdownHook(new Thread(
                 CratedbSQL.this::shutdown,
@@ -120,84 +121,66 @@ public class CratedbSQL {
 
     private JMenuBar createMenuBar() {
         JMenu connectionsMenu = new JMenu("Connections");
-        toggleConnectionsPannelMI.setMnemonic(KeyEvent.VK_T);
-        toggleConnectionsPannelMI.setAccelerator(KeyStroke.getKeyStroke(
-                KeyEvent.VK_T, ActionEvent.CTRL_MASK));
-        toggleConnectionsPannelMI.addActionListener(this::onToggleConnectionsPanelEvent);
-        connectionsMenu.add(toggleConnectionsPannelMI);
+        connectionsMenu.add(configureMenuItem(
+                toggleConnectionsPannelMI,
+                "Show connections panel",
+                KeyEvent.VK_T,
+                this::onToggleConnectionsPanelEvent));
+        connectionsMenu.add(configureMenuItem(
+                toggleConnectionMI,
+                "Connect",
+                KeyEvent.VK_T,
+                this::onToggleConnectionEvent));
 
-        toggleConnectionMI.setMnemonic(KeyEvent.VK_O);
-        toggleConnectionMI.setAccelerator(KeyStroke.getKeyStroke(
-                KeyEvent.VK_O, ActionEvent.CTRL_MASK));
-        toggleConnectionMI.addActionListener(this::onToggleConnectionEvent);
-        connectionsMenu.add(toggleConnectionMI);
-
-        JMenu commandMenu = new JMenu("Command board");
+        JMenu commandBoardMenu = new JMenu("Command board");
         JMenu switchBoard = new JMenu("Switch to board");
         int keyEvent = KeyEvent.VK_1;
         for (int i=0; i < CommandBoardManager.NUM_COMMAND_BOARDS; i++) {
             int offset = i;
-            JMenuItem board = new JMenuItem(CommandBoardManager.toCommandBoardKey(offset));
-            board.setMnemonic(keyEvent);
-            board.setAccelerator(KeyStroke.getKeyStroke(
-                    keyEvent, ActionEvent.CTRL_MASK));
-            board.addActionListener(e -> {
-                commandBoardManager.onBoardBufferEvent(offset);
-            });
-            switchBoard.add(board);
+            switchBoard.add(configureMenuItem(
+                    CommandBoardManager.toCommandBoardKey(offset),
+                    keyEvent,
+                    e -> commandBoardManager.onBoardBufferEvent(offset)
+            ));
             keyEvent++;
         }
-        commandMenu.add(switchBoard);
-        JMenuItem clearBoard = new JMenuItem("Clear");
-        clearBoard.setMnemonic(KeyEvent.VK_BACK_SPACE);
-        clearBoard.setAccelerator(KeyStroke.getKeyStroke(
-                KeyEvent.VK_BACK_SPACE, ActionEvent.CTRL_MASK));
-        clearBoard.addActionListener(commandBoardManager::onClearButtonEvent);
-        commandMenu.add(clearBoard);
-        JMenuItem runLine = new JMenuItem("Run current line");
-        runLine.setMnemonic(KeyEvent.VK_L);
-        runLine.setAccelerator(KeyStroke.getKeyStroke(
-                KeyEvent.VK_L, ActionEvent.CTRL_MASK));
-        runLine.addActionListener(commandBoardManager::onRunCurrentLineEvent);
-        commandMenu.add(runLine);
-        JMenuItem run = new JMenuItem("Run board contents");
-        run.setMnemonic(KeyEvent.VK_ENTER);
-        run.setAccelerator(KeyStroke.getKeyStroke(
-                KeyEvent.VK_ENTER, ActionEvent.CTRL_MASK));
-        run.addActionListener(commandBoardManager::onRunEvent);
-        commandMenu.add(run);
-        JMenuItem cancel = new JMenuItem("Cancel board execution");
-        cancel.setMnemonic(KeyEvent.VK_C);
-        cancel.setAccelerator(KeyStroke.getKeyStroke(
-                KeyEvent.VK_C, ActionEvent.CTRL_MASK));
-        cancel.addActionListener(commandBoardManager::onCancelButtonEvent);
-        commandMenu.add(cancel);
-        JMenu resultsMenu = new JMenu("Results table");
-        JMenuItem prevPage = new JMenuItem("PREV");
-        prevPage.setMnemonic(KeyEvent.VK_N);
-        prevPage.setAccelerator(KeyStroke.getKeyStroke(
-                KeyEvent.VK_N, ActionEvent.CTRL_MASK));
-        prevPage.addActionListener(currentsqlResultsManager::onPrevButtonEvent);
-        resultsMenu.add(prevPage);
-        JMenuItem nextPage = new JMenuItem("NEXT");
-        nextPage.setMnemonic(KeyEvent.VK_M);
-        nextPage.setAccelerator(KeyStroke.getKeyStroke(
-                KeyEvent.VK_M, ActionEvent.CTRL_MASK));
-        nextPage.addActionListener(currentsqlResultsManager::onNextButtonEvent);
-        resultsMenu.add(nextPage);
+        commandBoardMenu.add(switchBoard);
+        commandBoardMenu.add(configureMenuItem("Clear", KeyEvent.VK_BACK_SPACE, commandBoardManager::onClearButtonEvent));
+        commandBoardMenu.add(configureMenuItem("Run current line", KeyEvent.VK_L, commandBoardManager::onRunCurrentLineEvent));
+        commandBoardMenu.add(configureMenuItem("Run board contents", KeyEvent.VK_ENTER, commandBoardManager::onRunEvent));
+        commandBoardMenu.add(configureMenuItem("Cancel board execution", KeyEvent.VK_C, commandBoardManager::onCancelButtonEvent));
 
-        JMenu cratedbSqlMenu = new JMenu(String.format(
-                Locale.ENGLISH,
-                "%s",
-                CratedbSQL.class.getSimpleName()));
+        JMenu resultsTableMenu = new JMenu("Results table");
+        resultsTableMenu.add(configureMenuItem("PREV", KeyEvent.VK_N, currentsqlResultsManager::onPrevButtonEvent));
+        resultsTableMenu.add(configureMenuItem("NEXT", KeyEvent.VK_M, currentsqlResultsManager::onNextButtonEvent));
+
+        JMenu cratedbSqlMenu = new JMenu(CratedbSQL.class.getSimpleName());
         cratedbSqlMenu.setFont(GUIToolkit.TABLE_CELL_FONT);
         cratedbSqlMenu.add(connectionsMenu);
-        cratedbSqlMenu.add(commandMenu);
-        cratedbSqlMenu.add(resultsMenu);
+        cratedbSqlMenu.add(commandBoardMenu);
+        cratedbSqlMenu.add(resultsTableMenu);
+
         JMenuBar menuBar = new JMenuBar();
         menuBar.setBorder(BorderFactory.createEtchedBorder());
         menuBar.add(cratedbSqlMenu);
         return menuBar;
+    }
+
+    private static JMenuItem configureMenuItem(JMenuItem menuItem,
+                                               String title,
+                                               int keyEvent,
+                                               ActionListener actionListener) {
+        menuItem.setText(title);
+        menuItem.setMnemonic(keyEvent);
+        menuItem.setAccelerator(KeyStroke.getKeyStroke(keyEvent, ActionEvent.CTRL_MASK));
+        menuItem.addActionListener(actionListener);
+        return menuItem;
+    }
+
+    private static JMenuItem configureMenuItem(String title,
+                                               int keyEvent,
+                                               ActionListener actionListener) {
+        return configureMenuItem(new JMenuItem(), title, keyEvent, actionListener);
     }
 
     private void onToggleConnectionEvent(ActionEvent event) {
