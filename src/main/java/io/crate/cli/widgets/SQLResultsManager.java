@@ -172,6 +172,10 @@ public class SQLResultsManager extends JPanel implements Closeable {
         changeMode(Mode.TABLE);
     }
 
+    public void closeRowPeeker() {
+        rowPeeker.onCloseEvent();
+    }
+
     private void changeMode(Mode newMode) {
         if (mode == newMode) {
             return;

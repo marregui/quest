@@ -40,6 +40,8 @@ class SQLRowPeeker extends JPanel implements MouseListener, MouseMotionListener 
     private static final char NEWLINE = '\n';
     private static final int CHAR_WIDTH = 12;
     private static final int CHAR_HEIGHT = GUIToolkit.TABLE_HEADER_HEIGHT;
+    private static final int MAX_POPUP_WIDTH = 400;
+    private static final int MAX_POPUP_HEIGHT = 300;
 
 
     private final Component owner;
@@ -81,7 +83,7 @@ class SQLRowPeeker extends JPanel implements MouseListener, MouseMotionListener 
         };
         closeButton.setBorder(BorderFactory.createEtchedBorder());
         closeButton.setOpaque(true);
-        closeButton.addActionListener(this::onCloseButtonAction);
+        closeButton.addActionListener(this::onCloseEvent);
         closeButton.setPreferredSize(new Dimension(0, 30));
         setOpaque(true);
         setLayout(new BorderLayout());
@@ -94,8 +96,13 @@ class SQLRowPeeker extends JPanel implements MouseListener, MouseMotionListener 
         toStringCache.clear();
     }
 
-    private void onCloseButtonAction(ActionEvent event) {
+    public void onCloseEvent() {
+        onCloseEvent(null);
+    }
+
+    private void onCloseEvent(ActionEvent event) {
         if (isShowing.compareAndSet(true, false)) {
+            toStringCache.clear();
             toolTipPopup.hide();
         }
     }
@@ -152,7 +159,6 @@ class SQLRowPeeker extends JPanel implements MouseListener, MouseMotionListener 
         return row;
     }
 
-
     private void setPeekerText(SQLTable.SQLTableRow row, boolean resize) {
         currentRow = row;
         String text = toStringCache.computeIfAbsent(row.getKey(), key -> renderRow(row));
@@ -160,8 +166,8 @@ class SQLRowPeeker extends JPanel implements MouseListener, MouseMotionListener 
         toolTip.setText(text);
         toolTip.setCaretPosition(0);
         if (resize) {
-            int width = Math.max(CHAR_WIDTH * maxLength(text, NEWLINE), 400);
-            int height = CHAR_HEIGHT * Math.max(row.getParent().getColumnTypes().length, 4);
+            int width = Math.min(CHAR_WIDTH * maxLength(text, NEWLINE), MAX_POPUP_WIDTH);
+            int height = Math.min(CHAR_HEIGHT * Math.max(row.getParent().getColumnTypes().length, 4), MAX_POPUP_HEIGHT);
             toolTip.setPreferredSize(new Dimension(width, height));
         }
     }

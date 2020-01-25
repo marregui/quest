@@ -32,9 +32,7 @@ import io.crate.cli.widgets.SQLResultsManager;
 
 import javax.swing.*;
 import java.awt.*;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
-import java.awt.event.KeyEvent;
+import java.awt.event.*;
 import java.util.Arrays;
 import java.util.Locale;
 import java.util.Set;
@@ -82,6 +80,7 @@ public class CratedbSQL {
                 false,
                 topPanel,
                 currentsqlResultsManager);
+        adjustDividerLocation();
         JFrame frame = new JFrame();
         frame.setTitle(String.format(Locale.ENGLISH,
                 "%s %s [store: %s]",
@@ -90,6 +89,18 @@ public class CratedbSQL {
                 sqlConnectionManager.getStorePath().getAbsolutePath()));
         frame.setType(Window.Type.NORMAL);
         frame.setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
+        frame.addWindowFocusListener(new WindowFocusListener() {
+
+            @Override
+            public void windowGainedFocus(WindowEvent e) {
+                currentsqlResultsManager.closeRowPeeker();
+            }
+
+            @Override
+            public void windowLostFocus(WindowEvent e) {
+                currentsqlResultsManager.closeRowPeeker();
+            }
+        });
         frame.setLayout(new BorderLayout());
         JPanel centerPanel = new JPanel(new BorderLayout());
         centerPanel.add(sqlResultsManagerPanel, BorderLayout.CENTER);
@@ -128,13 +139,13 @@ public class CratedbSQL {
         connectionsMenu.add(configureMenuItem(
                 toggleConnectionMI,
                 "Connect",
-                KeyEvent.VK_T,
+                KeyEvent.VK_O,
                 this::onToggleConnectionEvent));
 
         JMenu commandBoardMenu = new JMenu("Command board");
         JMenu switchBoard = new JMenu("Switch to board");
         int keyEvent = KeyEvent.VK_1;
-        for (int i=0; i < CommandBoardManager.NUM_COMMAND_BOARDS; i++) {
+        for (int i = 0; i < CommandBoardManager.NUM_COMMAND_BOARDS; i++) {
             int offset = i;
             switchBoard.add(configureMenuItem(
                     CommandBoardManager.toCommandBoardKey(offset),
@@ -190,14 +201,17 @@ public class CratedbSQL {
     }
 
     private void onToggleConnectionsPanelEvent(ActionEvent event) {
-        boolean isVisible = sqlConnectionManager.isVisible();
-        sqlConnectionManager.setVisible(false == isVisible);
-        int location = sqlResultsManagerPanel.getDividerLocation();
-        int deltaY = GUIToolkit.SQL_CONNECTION_MANAGER_HEIGHT.height;
-        int direction = isVisible ? -1 : 1;
-        sqlResultsManagerPanel.setDividerLocation(location + direction * deltaY);
-        toggleConnectionsPannelMI.setText(isVisible ?
+        boolean wasVisible = sqlConnectionManager.isVisible();
+        sqlConnectionManager.setVisible(false == wasVisible);
+        toggleConnectionsPannelMI.setText(wasVisible ?
                 "Show connections panel" : "Hide connections panel");
+        if (wasVisible) {
+            sqlResultsManagerPanel.setDividerLocation(
+                    GUIToolkit.COMMAND_BOARD_MANAGER_HEIGHT.height);
+        } else {
+            sqlResultsManagerPanel.setDividerLocation(
+                    GUIToolkit.COMMAND_BOARD_MANAGER_HEIGHT.height + GUIToolkit.SQL_CONNECTION_MANAGER_HEIGHT.height);
+        }
     }
 
     private void shutdown() {
@@ -208,11 +222,22 @@ public class CratedbSQL {
     }
 
     private void switchSQLResultsManager(int offset) {
+        currentsqlResultsManager.closeRowPeeker();
         sqlResultsManagerPanel.remove(currentsqlResultsManager);
         currentsqlResultsManager = sqlResultsManager[offset];
         sqlResultsManagerPanel.add(currentsqlResultsManager);
         sqlResultsManagerPanel.validate();
         sqlResultsManagerPanel.repaint();
+        adjustDividerLocation();
+    }
+
+    private void adjustDividerLocation() {
+        int y = sqlConnectionManager.isVisible() ? GUIToolkit.SQL_CONNECTION_MANAGER_HEIGHT.height : 0;
+        int dividerMinLocation = y + GUIToolkit.COMMAND_BOARD_MANAGER_HEIGHT.height;
+        int dividerLocation = y + sqlResultsManagerPanel.getDividerLocation();
+        if (dividerLocation < dividerMinLocation) {
+            sqlResultsManagerPanel.setDividerLocation(dividerMinLocation);
+        }
     }
 
     private void onSourceEvent(EventSpeaker source, Enum eventType, Object eventData) {

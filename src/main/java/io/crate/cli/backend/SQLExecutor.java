@@ -272,7 +272,7 @@ public class SQLExecutor implements EventSpeaker<SQLExecutor.EventType>, Closeab
                         queryExecutedMs,
                         toMillis(checkpointTs - queryExecutedTs),
                         resultsTable));
-        LOGGER.info("%s [{}] from [{}] {} results, elapsed milliseconds:{} (query:{}, fetch:{})",
+        LOGGER.info("{} [{}] from [{}] {} results, elapsed milliseconds:{} (query:{}, fetch:{})",
                 eventType,
                 request.getKey(),
                 sourceId,
