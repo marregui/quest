@@ -201,6 +201,7 @@ public class CratedbSQL {
     }
 
     private void onToggleConnectionsPanelEvent(ActionEvent event) {
+        currentsqlResultsManager.closeRowPeeker();
         boolean wasVisible = sqlConnectionManager.isVisible();
         sqlConnectionManager.setVisible(false == wasVisible);
         toggleConnectionsPannelMI.setText(wasVisible ?

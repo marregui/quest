@@ -40,8 +40,8 @@ class SQLRowPeeker extends JPanel implements MouseListener, MouseMotionListener 
     private static final char NEWLINE = '\n';
     private static final int CHAR_WIDTH = 12;
     private static final int CHAR_HEIGHT = GUIToolkit.TABLE_HEADER_HEIGHT;
-    private static final int MAX_POPUP_WIDTH = 400;
-    private static final int MAX_POPUP_HEIGHT = 300;
+    private static final int MAX_POPUP_WIDTH = 600;
+    private static final int MAX_POPUP_HEIGHT = 500;
 
 
     private final Component owner;
@@ -159,17 +159,19 @@ class SQLRowPeeker extends JPanel implements MouseListener, MouseMotionListener 
         return row;
     }
 
-    private void setPeekerText(SQLTable.SQLTableRow row, boolean resize) {
+    private void setText(SQLTable.SQLTableRow row) {
         currentRow = row;
         String text = toStringCache.computeIfAbsent(row.getKey(), key -> renderRow(row));
         GUIToolkit.copyToClipboard(text);
         toolTip.setText(text);
         toolTip.setCaretPosition(0);
-        if (resize) {
-            int width = Math.min(CHAR_WIDTH * maxLength(text, NEWLINE), MAX_POPUP_WIDTH);
-            int height = Math.min(CHAR_HEIGHT * Math.max(row.getParent().getColumnTypes().length, 4), MAX_POPUP_HEIGHT);
-            toolTip.setPreferredSize(new Dimension(width, height));
-        }
+        int width = CHAR_WIDTH * maxLength(text, NEWLINE);
+        int height = CHAR_HEIGHT * Math.max(row.getParent().getColumnTypes().length, 4);
+        Dimension size = new Dimension(
+                Math.min(width, MAX_POPUP_WIDTH),
+                Math.min(height, MAX_POPUP_HEIGHT));
+        toolTip.setPreferredSize(size);
+        toolTipScrollPane.setPreferredSize(size);
     }
 
     private void showToolTipPopup(MouseEvent e) {
@@ -191,7 +193,7 @@ class SQLRowPeeker extends JPanel implements MouseListener, MouseMotionListener 
     public void mouseClicked(MouseEvent e) {
         SQLTable.SQLTableRow row = getRow(e);
         if (null != row) {
-            setPeekerText(row, true);
+            setText(row);
             if (isShowing.compareAndSet(false, true)) {
                 showToolTipPopup(e);
             }
@@ -203,7 +205,7 @@ class SQLRowPeeker extends JPanel implements MouseListener, MouseMotionListener 
         if (isShowing.get()) {
             SQLTable.SQLTableRow row = getRow(e);
             if (null != row && false == currentRow.getKey().equals(row.getKey())) {
-                setPeekerText(row, false);
+                setText(row);
                 toolTipPopup.hide();
                 showToolTipPopup(e);
             }
