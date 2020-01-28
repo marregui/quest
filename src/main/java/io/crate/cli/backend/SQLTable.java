@@ -25,11 +25,16 @@ import io.crate.cli.common.HasKey;
 import java.sql.ResultSet;
 import java.sql.ResultSetMetaData;
 import java.sql.SQLException;
+import java.sql.Types;
 import java.util.*;
 import java.util.concurrent.atomic.AtomicReference;
 
 
 public class SQLTable implements HasKey {
+
+    private static final String[] STATUS_COL_NAME = { "Status" };
+    private static final int[] STATUS_COL_TYPE = { Types.VARCHAR };
+    private static final Object[] STATUS_OK_VALUE = { "OK" };
 
     public static SQLTable emptyTable() {
         return new SQLTable(null);
@@ -39,8 +44,8 @@ public class SQLTable implements HasKey {
         return new SQLTable(key);
     }
 
-
     public static class SQLTableRow implements HasKey {
+
 
         private final SQLTable parent;
         private final String key;
@@ -123,23 +128,15 @@ public class SQLTable implements HasKey {
         this.values.add(new SQLTableRow(this, key, values));
     }
 
-    public void setSingleRow(String key,
-                             String[] columnNames,
-                             int[] columnTypes,
-                             Object[] values) {
-        if (null == columnNames || null == columnTypes || null == values
-                || columnNames.length != columnTypes.length
-                || columnNames.length != values.length) {
-            throw new IllegalArgumentException("illegal values");
-        }
-        this.columnNames = columnNames;
-        this.columnTypes = columnTypes;
+    public void setSingleOkRow(String key) {
+        this.columnNames = STATUS_COL_NAME;
+        this.columnTypes = STATUS_COL_TYPE;
         columnIdx.clear();
         for (int i = 0; i < columnNames.length; i++) {
             columnIdx.put(columnNames[i], i);
         }
         this.values.clear();
-        this.values.add(new SQLTableRow(this, key, values));
+        this.values.add(new SQLTableRow(this, key, STATUS_OK_VALUE));
     }
 
     public int getSize() {
@@ -168,7 +165,7 @@ public class SQLTable implements HasKey {
         if (null == key && null != table.key) {
             key = table.key;
         }
-        if (false == key.equals(table.key)) {
+        if (null != key && false == key.equals(table.key)) {
             throw new IllegalArgumentException("keys do not match");
         }
         if (null == columnNames || null == columnTypes) {

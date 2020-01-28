@@ -29,7 +29,6 @@ import java.io.Closeable;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
-import java.sql.Types;
 import java.util.*;
 import java.util.concurrent.*;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -53,9 +52,7 @@ public class SQLExecutor implements EventSpeaker<SQLExecutor.EventType>, Closeab
     }
 
     private static final Logger LOGGER = LoggerFactory.getLogger(SQLExecutor.class);
-    private static final String[] STATUS_COL_NAME = {"Status"};
-    private static final int[] STATUS_COL_TYPE = {Types.VARCHAR};
-    private static final Object[] STATUS_OK_VALUE = {"OK"};
+
 
 
     private final ConcurrentMap<String, Future<?>> runningQueries;
@@ -234,8 +231,7 @@ public class SQLExecutor implements EventSpeaker<SQLExecutor.EventType>, Closeab
                 }
             } else {
                 LOGGER.info("Query [{}] from [{}]: OK", request.getKey(), sourceId);
-                resultsTable.setSingleRow(String.valueOf(rowId++),
-                        STATUS_COL_NAME, STATUS_COL_TYPE, STATUS_OK_VALUE);
+                resultsTable.setSingleOkRow(String.valueOf(rowId++));
             }
         } catch (SQLException e) {
             runningQueries.remove(sourceId);
