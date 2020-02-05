@@ -141,8 +141,7 @@ public class ObjectTableModel<RowType extends HasKey> extends AbstractTableModel
 
     @Override
     public int getColumnCount() {
-
-        return attributeNames.length;
+        return null != attributeNames ? attributeNames.length : 0;
     }
 
     private static void checkBounds(String descriptor, int idx, int maxExcluded) {
@@ -196,7 +195,6 @@ public class ObjectTableModel<RowType extends HasKey> extends AbstractTableModel
         synchronized (rows) {
             checkBounds("setValueAt", rowIdx, rows.size());
             attributeSetter.apply(rows.get(rowIdx), attributeName, value);
-            System.out.printf("set %s to %s\n", attributeName, value);
         }
         fireTableCellUpdated(rowIdx, colIdx);
     }

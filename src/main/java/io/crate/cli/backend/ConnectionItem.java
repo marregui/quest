@@ -20,6 +20,7 @@
  */
 package io.crate.cli.backend;
 
+
 import io.crate.cli.common.GUIToolkit;
 import io.crate.cli.common.HasKey;
 import io.crate.cli.store.StoreItem;
@@ -121,7 +122,6 @@ public class ConnectionItem extends StoreItem {
     }
 
     public void setPort(String port, String defaultPort) {
-        System.out.println("PORT: " + port);
         setAttribute(AttributeName.port, port, defaultPort);
     }
 

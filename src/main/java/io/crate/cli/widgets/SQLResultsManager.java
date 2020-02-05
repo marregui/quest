@@ -327,6 +327,8 @@ public class SQLResultsManager extends JPanel implements Closeable {
                     windowedTableModel.addRows(results.getRows(0, allowedCount));
                 }
             }
+        } else {
+            resetTableHeader();
         }
         toggleComponents();
     }

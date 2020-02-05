@@ -99,7 +99,6 @@ public class SQLConnectionManager extends JPanel implements EventSpeaker<SQLConn
                     case NAME:
                         return conn.setName((String) value);
                     default:
-                        System.out.printf("Setting %s to %s\n", attrName, value);
                         return conn.setAttribute(attrName, (String) value, "");
                 }
             };

@@ -32,10 +32,6 @@ import java.util.concurrent.atomic.AtomicReference;
 
 public class SQLTable implements HasKey {
 
-    private static final String[] STATUS_COL_NAME = { "Status" };
-    private static final int[] STATUS_COL_TYPE = { Types.VARCHAR };
-    private static final Object[] STATUS_OK_VALUE = { "OK" };
-
     public static SQLTable emptyTable() {
         return new SQLTable(null);
     }
@@ -45,7 +41,6 @@ public class SQLTable implements HasKey {
     }
 
     public static class SQLTableRow implements HasKey {
-
 
         private final SQLTable parent;
         private final String key;
@@ -87,6 +82,28 @@ public class SQLTable implements HasKey {
         public Object[] getValues() {
             return values;
         }
+
+        @Override
+        public String toString() {
+            String str = toString.get();
+            if (null == str) {
+                StringBuilder sb = new StringBuilder();
+                sb.append("key: ").append(key).append(", values: ");
+                if (null != values) {
+                    for (Object o: values) {
+                        sb.append(null != o ? o : "null").append(", ");
+                    }
+                    if (values.length > 0) {
+                        sb.setLength(sb.length() - 2);
+                    }
+                }
+                str = sb.toString();
+                if (false == toString.compareAndSet(null, str)) {
+                    str = toString.get();
+                }
+            }
+            return str;
+        }
     }
 
     private String key;
@@ -94,12 +111,12 @@ public class SQLTable implements HasKey {
     private String[] columnNames;
     private final Map<String, Integer> columnIdx;
     private int[] columnTypes;
-    private final List<SQLTableRow> values;
+    private final List<SQLTableRow> rows;
 
 
     public SQLTable(String key) {
         this.key = key;
-        values = new ArrayList<>();
+        rows = new ArrayList<>();
         columnIdx = new HashMap<>();
     }
 
@@ -125,27 +142,25 @@ public class SQLTable implements HasKey {
         for (int i = 0; i < columnNames.length; i++) {
             values[i] = rs.getObject(i + 1);
         }
-        this.values.add(new SQLTableRow(this, key, values));
+        this.rows.add(new SQLTableRow(this, key, values));
     }
 
     public void setSingleOkRow(String key) {
-        this.columnNames = STATUS_COL_NAME;
-        this.columnTypes = STATUS_COL_TYPE;
+        columnNames = new String[]{ "Status" };
+        columnTypes = new int[]{ Types.VARCHAR };
         columnIdx.clear();
-        for (int i = 0; i < columnNames.length; i++) {
-            columnIdx.put(columnNames[i], i);
-        }
-        this.values.clear();
-        this.values.add(new SQLTableRow(this, key, STATUS_OK_VALUE));
+        columnIdx.put(columnNames[0], 0);
+        rows.clear();
+        rows.add(new SQLTableRow(this, key, new Object[]{ "OK" }));
     }
 
     public int getSize() {
-        return values.size();
+        return rows.size();
     }
 
     public void clear() {
-        values.forEach(SQLTableRow::clear);
-        values.clear();
+        rows.forEach(SQLTableRow::clear);
+        rows.clear();
         key = null;
         hasMetadata = false;
         columnNames = null;
@@ -154,11 +169,11 @@ public class SQLTable implements HasKey {
     }
 
     public List<SQLTableRow> getRows() {
-        return values;
+        return rows;
     }
 
     public List<SQLTableRow> getRows(int fromIdx, int toIdx) {
-        return values.subList(fromIdx, toIdx);
+        return rows.subList(fromIdx, toIdx);
     }
 
     public void merge(SQLTable table) {
@@ -171,11 +186,11 @@ public class SQLTable implements HasKey {
         if (null == columnNames || null == columnTypes) {
             columnNames = table.columnNames;
             columnTypes = table.columnTypes;
-            if (columnNames.length != table.columnNames.length) {
+            if (columnNames.length != columnTypes.length) {
                 throw new IllegalArgumentException("number of columns does not match");
             }
         }
-        values.addAll(table.values);
+        rows.addAll(table.rows);
     }
 
     @Override
