@@ -191,11 +191,13 @@ class SQLRowPeeker extends JPanel implements MouseListener, MouseMotionListener 
 
     @Override
     public void mouseClicked(MouseEvent e) {
-        SQLTable.SQLTableRow row = getRow(e);
-        if (null != row) {
-            setText(row);
-            if (isShowing.compareAndSet(false, true)) {
-                showToolTipPopup(e);
+        if (2 == e.getClickCount()) {
+            SQLTable.SQLTableRow row = getRow(e);
+            if (null != row) {
+                setText(row);
+                if (isShowing.compareAndSet(false, true)) {
+                    showToolTipPopup(e);
+                }
             }
         }
     }
