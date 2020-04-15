@@ -39,7 +39,7 @@ class SQLRowPeeker extends JPanel implements MouseListener, MouseMotionListener 
 
     private static final char NEWLINE = '\n';
     private static final int CHAR_WIDTH = 12;
-    private static final int CHAR_HEIGHT = GUIToolkit.TABLE_HEADER_HEIGHT;
+    private static final int CHAR_HEIGHT = 50;
     private static final int MAX_POPUP_WIDTH = 600;
     private static final int MAX_POPUP_HEIGHT = 500;
 
@@ -110,7 +110,7 @@ class SQLRowPeeker extends JPanel implements MouseListener, MouseMotionListener 
     private static String renderRow(SQLTable.SQLTableRow row) {
         StringBuilder sb = new StringBuilder();
         sb.append(NEWLINE)
-                .append("Key ")
+                .append("Row ")
                 .append(row.getKey())
                 .append(": ")
                 .append(NEWLINE)
@@ -133,12 +133,12 @@ class SQLRowPeeker extends JPanel implements MouseListener, MouseMotionListener 
         return sb.toString();
     }
 
-    private static int maxLength(String str, char delimiter) {
+    private static int maxLength(String str) {
         int max = 0;
         int runningMax = 0;
         for (int i = 0; i < str.length(); i++) {
             char c = str.charAt(i);
-            if (c == delimiter) {
+            if (c == NEWLINE) {
                 max = Math.max(max, runningMax);
                 runningMax = 0;
                 continue;
@@ -165,7 +165,7 @@ class SQLRowPeeker extends JPanel implements MouseListener, MouseMotionListener 
         GUIToolkit.copyToClipboard(text);
         toolTip.setText(text);
         toolTip.setCaretPosition(0);
-        int width = CHAR_WIDTH * maxLength(text, NEWLINE);
+        int width = CHAR_WIDTH * maxLength(text);
         int height = CHAR_HEIGHT * Math.max(row.getParent().getColumnTypes().length, 4);
         Dimension size = new Dimension(
                 Math.min(width, MAX_POPUP_WIDTH),
@@ -206,7 +206,7 @@ class SQLRowPeeker extends JPanel implements MouseListener, MouseMotionListener 
     public void mouseMoved(MouseEvent e) {
         if (isShowing.get()) {
             SQLTable.SQLTableRow row = getRow(e);
-            if (null != row && false == currentRow.getKey().equals(row.getKey())) {
+            if (null != row && !currentRow.getKey().equals(row.getKey())) {
                 setText(row);
                 toolTipPopup.hide();
                 showToolTipPopup(e);

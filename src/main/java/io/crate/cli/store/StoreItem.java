@@ -62,23 +62,18 @@ public class StoreItem implements HasKey, Comparable<StoreItem> {
         attributes = new TreeMap<>();
     }
 
-    public Map<String, String> getAttributes() {
-        return attributes;
-    }
-
     public String getName() {
         return name;
     }
 
-    public String setName(String newName) {
+    public void setName(String newName) {
         if (null == newName || newName.isEmpty()) {
             throw new IllegalArgumentException("newName cannot be null or empty");
         }
-        if (false == name.equals(newName)) {
+        if (!name.equals(newName)) {
             attributes = getRenamedAttributes(attributes, newName);
             name = newName;
         }
-        return name;
     }
 
     @Override
@@ -136,18 +131,18 @@ public class StoreItem implements HasKey, Comparable<StoreItem> {
         return attributes.get(getStoreItemAttributeKey(attr));
     }
 
-    public String setAttribute(HasKey attr, String value) {
-        return setAttribute(attr, value, "");
+    public void setAttribute(HasKey attr, String value) {
+        setAttribute(attr, value, "");
     }
 
-    public String setAttribute(HasKey attr, String value, String defaultValue) {
-        return attributes.put(
+    public void setAttribute(HasKey attr, String value, String defaultValue) {
+        attributes.put(
                 getStoreItemAttributeKey(attr),
                 null == value || value.isEmpty() ? defaultValue : value);
     }
 
-    public String setAttribute(String attrName, String value, String defaultValue) {
-        return attributes.put(
+    public void setAttribute(String attrName, String value, String defaultValue) {
+        attributes.put(
                 getStoreItemAttributeKey(attrName),
                 null == value || value.isEmpty() ? defaultValue : value);
     }

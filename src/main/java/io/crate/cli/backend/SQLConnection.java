@@ -30,7 +30,7 @@ import java.util.*;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 
-public class SQLConnection extends ConnectionItem implements Closeable {
+public class SQLConnection extends ConnectionStoreItem implements Closeable {
 
     private final transient Logger logger;
     private final transient AtomicBoolean isConnected;
@@ -100,7 +100,7 @@ public class SQLConnection extends ConnectionItem implements Closeable {
     @Override
     public synchronized void close() {
         try {
-            if (null != sqlConnection && false == sqlConnection.isClosed()) {
+            if (null != sqlConnection && !sqlConnection.isClosed()) {
                 logger.info("Closing");
                 sqlConnection.close();
                 logger.info("Closed");
@@ -117,7 +117,7 @@ public class SQLConnection extends ConnectionItem implements Closeable {
         Connection connection = null;
         try {
             connection = DriverManager.getConnection(getUrl(), loginProperties());
-            if (false == connection.isValid(10)) {
+            if (!connection.isValid(10)) {
                 throw new SQLException(String.format(
                         Locale.ENGLISH,
                         "connection with %s is not valid (tried for %d secs)",
@@ -127,7 +127,7 @@ public class SQLConnection extends ConnectionItem implements Closeable {
         } finally {
             if (null != connection) {
                 try {
-                    if (false == connection.isClosed()) {
+                    if (!connection.isClosed()) {
                         connection.close();
                     }
                 } catch (SQLException e) {

@@ -20,7 +20,7 @@
  */
 package io.crate.cli.widgets;
 
-import io.crate.cli.backend.ConnectionItem;
+import io.crate.cli.backend.ConnectionStoreItem;
 import io.crate.cli.backend.ConnectivityChecker;
 import io.crate.cli.backend.SQLConnection;
 import io.crate.cli.common.*;
@@ -31,13 +31,14 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.swing.*;
-import javax.swing.border.TitledBorder;
 import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.TableModelEvent;
 import javax.swing.table.JTableHeader;
 import javax.swing.table.TableColumnModel;
 import java.awt.*;
 import java.awt.event.ActionEvent;
+import java.awt.event.WindowAdapter;
+import java.awt.event.WindowEvent;
 import java.io.Closeable;
 import java.io.File;
 import java.util.HashSet;
@@ -47,13 +48,14 @@ import java.util.Set;
 import java.util.function.BiFunction;
 
 
-public class SQLConnectionManager extends JPanel implements EventSpeaker<SQLConnectionManager.EventType>, Closeable {
+public class SQLConnectionManager extends JDialog implements EventSpeaker<SQLConnectionManager.EventType>, Closeable {
 
     public enum EventType {
         CONNECTION_SELECTED,
         CONNECTION_ESTABLISHED,
         CONNECTION_CLOSED,
-        CONNECTIONS_LOST
+        CONNECTIONS_LOST,
+        HIDE_REQUEST
     }
 
     private static final int ROW_HEIGHT = 22;
@@ -67,10 +69,10 @@ public class SQLConnectionManager extends JPanel implements EventSpeaker<SQLConn
     private static final String CONNECTED = "connected";
     private static final String[] COLUMN_NAMES = {
             NAME,
-            ConnectionItem.AttributeName.host.name(),
-            ConnectionItem.AttributeName.port.name(),
-            ConnectionItem.AttributeName.username.name(),
-            ConnectionItem.AttributeName.password.name(),
+            ConnectionStoreItem.AttributeName.host.name(),
+            ConnectionStoreItem.AttributeName.port.name(),
+            ConnectionStoreItem.AttributeName.username.name(),
+            ConnectionStoreItem.AttributeName.password.name(),
             CONNECTED
     };
     private static final int[] COLUMN_WIDTHS = {
@@ -93,18 +95,21 @@ public class SQLConnectionManager extends JPanel implements EventSpeaker<SQLConn
                 }
             };
 
-    private static final TriFunction<SQLConnection, String, Object, Object> ATTR_SETTER =
+    private static final TriMethod<SQLConnection, String, Object> ATTR_SETTER =
             (conn, attrName, value) -> {
-                switch (attrName) {
-                    case NAME:
-                        return conn.setName((String) value);
-                    default:
-                        return conn.setAttribute(attrName, (String) value, "");
+                if (NAME.equals(attrName)) {
+                    conn.setName((String) value);
                 }
+                conn.setAttribute(attrName, (String) value, "");
             };
 
-
+    public static final Font REMARK_FONT = new Font(GUIToolkit.MAIN_FONT_NAME, Font.BOLD, 16);
     private static final Logger LOGGER = LoggerFactory.getLogger(SQLConnectionManager.class);
+
+
+    public static SQLConnectionManager create(Frame owner, EventListener<SQLConnectionManager, Object> eventListener) {
+        return new SQLConnectionManager(owner, eventListener);
+    }
 
 
     private final EventListener<SQLConnectionManager, Object> eventListener;
@@ -112,7 +117,6 @@ public class SQLConnectionManager extends JPanel implements EventSpeaker<SQLConn
     private final JButton selectButton;
     private final JButton testButton;
     private final JButton connectButton;
-    private final JButton addButton;
     private final JButton cloneButton;
     private final JButton removeButton;
     private final JButton reloadButton;
@@ -122,9 +126,10 @@ public class SQLConnectionManager extends JPanel implements EventSpeaker<SQLConn
     private final ConnectivityChecker connectivityChecker;
 
 
-    public SQLConnectionManager(EventListener<SQLConnectionManager, Object> eventListener) {
+    public SQLConnectionManager(Frame owner, EventListener<SQLConnectionManager, Object> eventListener) {
+        super(owner, "Connections", false);
         this.eventListener = eventListener;
-        store = new JsonStore<>(GUIToolkit.SQL_CONNECTION_MANAGER_STORE, SQLConnection.class) {
+        store = new JsonStore<>("connections.json", SQLConnection.class) {
             @Override
             public SQLConnection [] defaultStoreEntries() {
                 return new SQLConnection[]{ new SQLConnection("default") };
@@ -162,14 +167,14 @@ public class SQLConnectionManager extends JPanel implements EventSpeaker<SQLConn
         reloadButton.addActionListener(this::onReloadButtonEvent);
         cloneButton = new JButton("Clone");
         cloneButton.addActionListener(this::onCloneButtonEvent);
-        addButton = new JButton("Add");
+        JButton addButton = new JButton("Add");
         addButton.addActionListener(this::onAddButtonEvent);
         removeButton = new JButton("Remove");
         removeButton.addActionListener(this::onRemoveButtonEvent);
         testButton = new JButton("Test");
         testButton.addActionListener(this::onTestButtonEvent);
         selectButton = new JButton("ASSIGN");
-        selectButton.setFont(GUIToolkit.REMARK_FONT);
+        selectButton.setFont(REMARK_FONT);
         selectButton.addActionListener(this::setSelectedItem);
         connectButton = new JButton("Connect");
         connectButton.addActionListener(this::onConnectButtonEvent);
@@ -187,19 +192,35 @@ public class SQLConnectionManager extends JPanel implements EventSpeaker<SQLConn
         JPanel buttonsPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT));
         buttonsPanel.add(manageButtonsPanel);
         buttonsPanel.add(connectButtonsPanel);
-        TitledBorder titleBorder = BorderFactory.createTitledBorder("Connections");
-        titleBorder.setTitleFont(GUIToolkit.COMMAND_BOARD_HEADER_FONT);
-        titleBorder.setTitleColor(GUIToolkit.TABLE_HEADER_FONT_COLOR);
-        setBorder(titleBorder);
-        setLayout(new BorderLayout());
+        JPanel centerPanel = new JPanel(new BorderLayout());
         JScrollPane scrollPane = new JScrollPane(
                 table,
                 JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED,
                 JScrollPane.HORIZONTAL_SCROLLBAR_AS_NEEDED);
-        add(scrollPane, BorderLayout.CENTER);
-        add(buttonsPanel, BorderLayout.SOUTH);
-        setPreferredSize(GUIToolkit.SQL_CONNECTION_MANAGER_HEIGHT);
+        centerPanel.add(scrollPane, BorderLayout.CENTER);
+        centerPanel.add(buttonsPanel, BorderLayout.SOUTH);
+        Container contentPane = getContentPane();
+        contentPane.setLayout(new BorderLayout());
+        contentPane.add(centerPanel, BorderLayout.CENTER);
+        Dimension frameDimension = GUIToolkit.frameDimension();
+        Dimension dimension = new Dimension(
+                (int)(frameDimension.width * 0.8),
+                (int)(frameDimension.height * 0.35));
+        Dimension location = GUIToolkit.frameLocation(dimension);
+        setPreferredSize(dimension);
+        setSize(dimension);
+        setLocation(location.width, location.height);
         setVisible(false);
+        setAlwaysOnTop(true);
+        setModal(false);
+        setDefaultCloseOperation(WindowConstants.DO_NOTHING_ON_CLOSE);
+        addWindowListener(new WindowAdapter() {
+            @Override
+            public void windowClosing(WindowEvent we) {
+                eventListener.onSourceEvent(
+                        SQLConnectionManager.this, EventType.HIDE_REQUEST, null);
+            }
+        });
         connectivityChecker = new ConnectivityChecker(
                 tableModel::getRows, this::onLostConnectionsEvent);
     }
@@ -217,43 +238,41 @@ public class SQLConnectionManager extends JPanel implements EventSpeaker<SQLConn
             removeButton.setEnabled(false);
         } else {
             SQLConnection conn = getSelectedItem();
-            testButton.setEnabled(null != conn && false == conn.isConnected());
+            testButton.setEnabled(null != conn && !conn.isConnected());
             selectButton.setEnabled(null != conn);
             connectButton.setText(null != conn && conn.isConnected() ? "Disconnect" : "Connect");
             cloneButton.setEnabled(null != conn);
-            removeButton.setEnabled(null != conn && false == conn.isConnected());
-            reloadButton.setEnabled(false == tableModel.getRows().stream().anyMatch(SQLConnection::isConnected));
+            removeButton.setEnabled(null != conn && !conn.isConnected());
+            reloadButton.setEnabled(tableModel.getRows().stream().noneMatch(SQLConnection::isConnected));
         }
         table.repaint();
     }
 
     private void onTableModelEvent(TableModelEvent event) {
-        switch (event.getType()) {
-            case TableModelEvent.UPDATE:
-                int ri = event.getFirstRow();
-                int ci = event.getColumn();
-                if (ri >= 0 && ri < tableModel.getRowCount() &&
-                        ci >= 0 && ci < tableModel.getColumnCount()) {
-                    SQLConnection updated = tableModel.getElementAt(ri);
-                    if (0 == ci) {
-                        if (existingNamesInTableModel.contains(updated.getName())) {
-                            JOptionPane.showMessageDialog(this,
-                                    "Name already exists, they must be unique",
-                                    "Update name Fail",
-                                    JOptionPane.ERROR_MESSAGE);
-                            onReloadButtonEvent(null);
-                            table.getSelectionModel().setSelectionInterval(ri, ri);
-                            return;
-                        }
-                        updateExistingNames();
+        if (event.getType() == TableModelEvent.UPDATE) {
+            int ri = event.getFirstRow();
+            int ci = event.getColumn();
+            if (ri >= 0 && ri < tableModel.getRowCount() &&
+                    ci >= 0 && ci < tableModel.getColumnCount()) {
+                SQLConnection updated = tableModel.getElementAt(ri);
+                if (0 == ci) {
+                    if (existingNamesInTableModel.contains(updated.getName())) {
+                        JOptionPane.showMessageDialog(this,
+                                "Name already exists, they must be unique",
+                                "Update name Fail",
+                                JOptionPane.ERROR_MESSAGE);
+                        onReloadButtonEvent(null);
+                        table.getSelectionModel().setSelectionInterval(ri, ri);
+                        return;
                     }
-                    if (updated.isConnected()) {
-                        updated.close();
-                    }
-                    toggleComponents();
-                    store.store();
+                    updateExistingNames();
                 }
-                break;
+                if (updated.isConnected()) {
+                    updated.close();
+                }
+                toggleComponents();
+                store.store();
+            }
         }
     }
 
@@ -282,36 +301,35 @@ public class SQLConnectionManager extends JPanel implements EventSpeaker<SQLConn
         }
     }
 
-    private SQLConnection addConnection(SQLConnection template) {
+    private void addConnection(SQLConnection template) {
         String name = JOptionPane.showInputDialog(
                 this,
                 String.format(Locale.ENGLISH, "%s", NAME),
                 "New Connection",
                 JOptionPane.INFORMATION_MESSAGE);
         if (null == name || name.isEmpty()) {
-            return null;
+            return;
         }
         if (name.contains(" ") || name.contains("\t")) {
             JOptionPane.showMessageDialog(this,
                     "Name cannot contain whites",
                     "Add Fail",
                     JOptionPane.ERROR_MESSAGE);
-            return null;
+            return;
         }
         if (existingNamesInTableModel.contains(name)) {
             JOptionPane.showMessageDialog(this,
                     "Name already exists",
                     "Add Fail",
                     JOptionPane.ERROR_MESSAGE);
-            return null;
+            return;
         }
         existingNamesInTableModel.add(name);
         SQLConnection added = new SQLConnection(name, template);
         int offset = tableModel.addRow(added);
         table.getSelectionModel().addSelectionInterval(offset, offset);
-        store.addAll(false, added);
+        store.add(false, added);
         toggleComponents();
-        return added;
     }
 
     private void onCloneButtonEvent(ActionEvent event) {
@@ -365,7 +383,7 @@ public class SQLConnectionManager extends JPanel implements EventSpeaker<SQLConn
         if (conns.size() > 0) {
             if (selectedRowIdx >= 0 && selectedRowIdx < conns.size()) {
                 SQLConnection conn = tableModel.getElementAt(selectedRowIdx);
-                if (null != selected && conn.equals(selected)) {
+                if (conn.equals(selected)) {
                     table.getSelectionModel().addSelectionInterval(selectedRowIdx, selectedRowIdx);
                 }
             } else {
@@ -375,7 +393,7 @@ public class SQLConnectionManager extends JPanel implements EventSpeaker<SQLConn
     }
 
     public void start() {
-        if (false == connectivityChecker.isRunning()) {
+        if (!connectivityChecker.isRunning()) {
             onReloadButtonEvent(null);
             connectivityChecker.start();
         }
@@ -414,6 +432,7 @@ public class SQLConnectionManager extends JPanel implements EventSpeaker<SQLConn
         connectivityChecker.close();
         tableModel.clear();
         existingNamesInTableModel.clear();
+        dispose();
     }
 
     private void onTestButtonEvent(ActionEvent event) {
@@ -445,15 +464,15 @@ public class SQLConnectionManager extends JPanel implements EventSpeaker<SQLConn
                     JOptionPane.ERROR_MESSAGE);
             return;
         }
-        if (false == tableModel.contains(conn)) {
+        if (!tableModel.contains(conn)) {
             return;
         }
-        if (false == conn.isConnected()) {
+        if (!conn.isConnected()) {
             try {
                 conn.open();
                 eventListener.onSourceEvent(this, EventType.CONNECTION_ESTABLISHED, conn);
             } catch (Exception e) {
-                LOGGER.error("Connect", e);
+                LOGGER.error("Connect: {}", e.getMessage());
                 JOptionPane.showMessageDialog(
                         this,
                         e.getMessage(),

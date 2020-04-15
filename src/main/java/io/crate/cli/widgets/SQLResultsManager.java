@@ -49,6 +49,13 @@ public class SQLResultsManager extends JPanel implements Closeable {
     private static final Dimension NAVIGATION_BUTTON_SIZE = new Dimension(70, 38);
     private static final Dimension STATUS_LABEL_SIZE = new Dimension(600, 35);
     private static final Dimension NAVIGATION_OFFSETS_LABEL_SIZE = new Dimension(400, 35);
+    private static final Color TABLE_GRID_COLOR = GUIToolkit.CRATE_COLOR.darker().darker().darker();
+    private static final Color TABLE_FOOTER_FONT_COLOR = Color.BLACK;
+    private static final Font TABLE_FOOTER_FONT = new Font(GUIToolkit.MAIN_FONT_NAME, Font.PLAIN, 14);
+    private static final int TABLE_ROW_HEIGHT = 26;
+    private static final int TABLE_CELL_MIN_WIDTH = 300;
+    private static final int TABLE_CELL_CHAR_WIDTH = 15;
+    private static final int TABLE_HEADER_HEIGHT = 50;
     private static final int ROWS_PER_PAGE = 1000;
 
 
@@ -87,8 +94,8 @@ public class SQLResultsManager extends JPanel implements Closeable {
         windowTable.setRowSelectionAllowed(false);
         windowTable.setColumnSelectionAllowed(false);
         windowTable.setCellSelectionEnabled(true);
-        windowTable.setRowHeight(GUIToolkit.TABLE_ROW_HEIGHT + 5);
-        windowTable.setGridColor(GUIToolkit.TABLE_GRID_COLOR);
+        windowTable.setRowHeight(TABLE_ROW_HEIGHT + 5);
+        windowTable.setGridColor(TABLE_GRID_COLOR);
         windowTable.setFont(GUIToolkit.TABLE_CELL_FONT);
         windowTable.setDefaultRenderer(String.class, new SQLCellRenderer(results));
         windowTable.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
@@ -102,27 +109,27 @@ public class SQLResultsManager extends JPanel implements Closeable {
         header.setForeground(GUIToolkit.TABLE_HEADER_FONT_COLOR);
         currentPage = 0;
         navigationLabel = new JLabel(NO_TIMING_RESULTS_LABEL);
-        navigationLabel.setFont(GUIToolkit.TABLE_FOOTER_FONT);
-        navigationLabel.setForeground(GUIToolkit.TABLE_FOOTER_FONT_COLOR);
+        navigationLabel.setFont(TABLE_FOOTER_FONT);
+        navigationLabel.setForeground(TABLE_FOOTER_FONT_COLOR);
         navigationLabel.setBorder(BorderFactory.createBevelBorder(BevelBorder.LOWERED));
         navigationLabel.setPreferredSize(NAVIGATION_OFFSETS_LABEL_SIZE);
         navigationLabel.setSize(NAVIGATION_OFFSETS_LABEL_SIZE);
         navigationLabel.setHorizontalAlignment(JLabel.LEADING);
         statusLabel = new JLabel(NO_TIMING_RESULTS_LABEL);
-        statusLabel.setFont(GUIToolkit.TABLE_FOOTER_FONT);
-        statusLabel.setForeground(GUIToolkit.TABLE_FOOTER_FONT_COLOR);
+        statusLabel.setFont(TABLE_FOOTER_FONT);
+        statusLabel.setForeground(TABLE_FOOTER_FONT_COLOR);
         statusLabel.setBorder(BorderFactory.createBevelBorder(BevelBorder.LOWERED));
         statusLabel.setPreferredSize(STATUS_LABEL_SIZE);
         statusLabel.setSize(STATUS_LABEL_SIZE);
         statusLabel.setHorizontalAlignment(JLabel.LEADING);
         leftButton = new JButton(NAVIGATION_BUTTON_PREV_TEXT);
-        leftButton.setFont(GUIToolkit.TABLE_FOOTER_FONT);
-        leftButton.setForeground(GUIToolkit.TABLE_FOOTER_FONT_COLOR);
+        leftButton.setFont(TABLE_FOOTER_FONT);
+        leftButton.setForeground(TABLE_FOOTER_FONT_COLOR);
         leftButton.setPreferredSize(NAVIGATION_BUTTON_SIZE);
         leftButton.addActionListener(this::onPrevButtonEvent);
         rightButton = new JButton(NAVIGATION_BUTTON_NEXT_TEXT);
-        rightButton.setFont(GUIToolkit.TABLE_FOOTER_FONT);
-        rightButton.setForeground(GUIToolkit.TABLE_FOOTER_FONT_COLOR);
+        rightButton.setFont(TABLE_FOOTER_FONT);
+        rightButton.setForeground(TABLE_FOOTER_FONT_COLOR);
         rightButton.setPreferredSize(NAVIGATION_BUTTON_SIZE);
         rightButton.addActionListener(this::onNextButtonEvent);
         errorPane = new JTextPane();
@@ -223,9 +230,7 @@ public class SQLResultsManager extends JPanel implements Closeable {
             navigationLabel.setText(text);
         } else {
             statusLabel.setText(NO_TIMING_RESULTS_LABEL);
-            navigationLabel.setText(String.format(
-                    Locale.ENGLISH,
-                    "  Showing 0 results"));
+            navigationLabel.setText("  Showing 0 results");
         }
     }
 
@@ -284,7 +289,7 @@ public class SQLResultsManager extends JPanel implements Closeable {
         JTableHeader header = windowTable.getTableHeader();
         header.setForeground(Color.WHITE);
         header.setBackground(Color.BLACK);
-        header.setPreferredSize(new Dimension(0, GUIToolkit.TABLE_HEADER_HEIGHT));
+        header.setPreferredSize(new Dimension(0, TABLE_HEADER_HEIGHT));
         String[] colNames = results.getColumnNames();
         int[] colTypes = results.getColumnTypes();
         windowedTableModel.reset(colNames, colTypes);
@@ -303,15 +308,15 @@ public class SQLResultsManager extends JPanel implements Closeable {
 
     private static int resolveColumnWidth(String name, int type) {
         return Math.max(
-                GUIToolkit.TABLE_CELL_MIN_WIDTH,
-                GUIToolkit.TABLE_CELL_CHAR_WIDTH * (name.length() + SqlType.resolveName(type).length()));
+                TABLE_CELL_MIN_WIDTH,
+                TABLE_CELL_CHAR_WIDTH * (name.length() + SqlType.resolveName(type).length()));
     }
 
     public void addRows(SQLTable rows, boolean expectMore) {
         if (Mode.ERROR == mode) {
             changeMode(Mode.TABLE);
         }
-        hasCompleted = false == expectMore;
+        hasCompleted = !expectMore;
         int newRowsCount = rows.getSize();
         if (newRowsCount > 0) {
             boolean needsNewHeader = 0 == results.getSize();

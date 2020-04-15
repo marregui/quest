@@ -30,13 +30,13 @@ public class ObjectTableModel<RowType extends HasKey> extends AbstractTableModel
     private String[] attributeNames;
     private int[] attributeTypes;
     private final BiFunction<RowType, String, Object> attributeGetter;
-    private final TriFunction<RowType, String, Object, Object> attributeSetter;
+    private final TriMethod<RowType, String, Object> attributeSetter;
     private final List<RowType> rows;
 
 
     public ObjectTableModel(String[] attributeNames,
                             BiFunction<RowType, String, Object> attributeGetter,
-                            TriFunction<RowType, String, Object, Object> attributeSetter) {
+                            TriMethod<RowType, String, Object> attributeSetter) {
         this.attributeNames = attributeNames;
         this.attributeGetter = attributeGetter;
         this.attributeSetter = attributeSetter;

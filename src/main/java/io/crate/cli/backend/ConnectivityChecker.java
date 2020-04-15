@@ -49,7 +49,7 @@ public class ConnectivityChecker implements Closeable {
                                Consumer<Set<SQLConnection>> lostConnectionsConsumer) {
         this.connectionsSupplier = connectionsSupplier;
         this.lostConnectionsConsumer = lostConnectionsConsumer;
-        isChecking = new AtomicBoolean();
+        this.isChecking = new AtomicBoolean();
     }
 
     public boolean isRunning() {
@@ -73,7 +73,7 @@ public class ConnectivityChecker implements Closeable {
     }
 
     private void sqlConnectionStatusChecks() {
-        if (false == isChecking.compareAndSet(false, true)) {
+        if (!isChecking.compareAndSet(false, true)) {
             return;
         }
         try {
@@ -83,7 +83,7 @@ public class ConnectivityChecker implements Closeable {
                     .map(conn ->
                             scheduledES.schedule(() -> {
                                         boolean isConnected = conn.checkConnectivity();
-                                        if (false == isConnected) {
+                                        if (!isConnected) {
                                             conn.close();
                                             return conn;
                                         }
@@ -131,9 +131,7 @@ public class ConnectivityChecker implements Closeable {
             Thread.currentThread().interrupt();
         } finally {
             scheduledES = null;
-            LOGGER.info(String.format(
-                    Locale.ENGLISH,
-                    "Connectivity check stopped"));
+            LOGGER.info("Connectivity check stopped");
         }
     }
 }

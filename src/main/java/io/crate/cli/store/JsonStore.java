@@ -30,6 +30,7 @@ import java.io.*;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Type;
 import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
 import java.util.*;
 import java.util.concurrent.*;
 
@@ -43,7 +44,7 @@ public abstract class JsonStore<StoreType extends StoreItem> implements Store<St
     }.getType();
     private static final String STORE_PATH_KEY = "store.path";
     private static final String DEFAULT_CRATEDBSQL_STORE_PATH = "./store";
-    private static final Charset UTF_8 = Charset.forName("UTF-8");
+    private static final Charset UTF_8 = StandardCharsets.UTF_8;
 
 
     private final File storeRoot;
@@ -86,12 +87,7 @@ public abstract class JsonStore<StoreType extends StoreItem> implements Store<St
     public abstract StoreType [] defaultStoreEntries();
 
     @Override
-    public int size() {
-        return elements.size();
-    }
-
-    @Override
-    public void addAll(boolean clearFirst, StoreType... entries) {
+    public void addAll(boolean clearFirst, StoreType [] entries) {
         if (clearFirst) {
             elements.clear();
             elementsByKey.clear();
@@ -106,6 +102,19 @@ public abstract class JsonStore<StoreType extends StoreItem> implements Store<St
     }
 
     @Override
+    public void add(boolean clearFirst, StoreType entry) {
+        if (clearFirst) {
+            elements.clear();
+            elementsByKey.clear();
+        }
+        if (null != entry) {
+            elements.add(entry);
+            elementsByKey.put(entry.getKey(), entry);
+        }
+        store();
+    }
+
+    @Override
     public File getPath() {
         return storeRoot;
     }
@@ -113,16 +122,16 @@ public abstract class JsonStore<StoreType extends StoreItem> implements Store<St
     @Override
     public void load() {
         File file = getStoreFile(false);
-        if (false == file.exists()) {
+        if (!file.exists()) {
             for (StoreType e : defaultStoreEntries()) {
                 if (null != e) {
                     elements.add(e);
                     elementsByKey.put(e.getKey(), e);
                 }
             }
-            storeSync(() -> {
-                LOGGER.info("Created default store [{}]", file.getAbsolutePath());
-            });
+            storeSync(() ->
+                LOGGER.info("Created default store [{}]", file.getAbsolutePath())
+            );
             return;
         }
 
@@ -137,6 +146,7 @@ public abstract class JsonStore<StoreType extends StoreItem> implements Store<St
         }
         if (null != contents) {
             try {
+                @SuppressWarnings("unchecked")
                 Constructor<StoreType> eFactory = (Constructor<StoreType>) clazz.getConstructor(
                         StoreItem.CONSTRUCTOR_SIGNATURE);
                 elements.clear();
@@ -155,13 +165,7 @@ public abstract class JsonStore<StoreType extends StoreItem> implements Store<St
 
     @Override
     public void store() {
-        store(null);
-    }
-
-    private void store(Runnable whenDoneTask) {
-        asyncStorer.submit(() -> {
-            storeSync(whenDoneTask);
-        });
+        asyncStorer.submit(() -> storeSync(null));
     }
 
     private void storeSync(Runnable whenDoneTask) {
@@ -185,13 +189,17 @@ public abstract class JsonStore<StoreType extends StoreItem> implements Store<St
     }
 
     private File getStoreFile(boolean deleteIfExists) {
-        if (false == storeRoot.exists()) {
-            LOGGER.info("Creating Store [{}]", storeRoot.getAbsolutePath());
-            storeRoot.mkdirs();
+        if (!storeRoot.exists()) {
+            boolean created = storeRoot.mkdirs();
+            LOGGER.info("Creating Store [{}]: {}", storeRoot.getAbsolutePath(), created ? "Ok" : "Fail");
         }
         File file = new File(storeRoot, storeFileName);
         if (file.exists() && deleteIfExists) {
-            file.delete();
+            boolean deleted = file.delete();
+            if (!deleted) {
+                throw new RuntimeException(String.format(
+                        Locale.ENGLISH, "Could not delete: %s", file.getAbsolutePath()));
+            }
             file = new File(storeRoot, storeFileName);
         }
         return file;
@@ -209,18 +217,8 @@ public abstract class JsonStore<StoreType extends StoreItem> implements Store<St
     }
 
     @Override
-    public Set<String> keys() {
-        return Collections.unmodifiableSet(elementsByKey.keySet());
-    }
-
-    @Override
     public List<StoreType> values() {
         return Collections.unmodifiableList(elements);
-    }
-
-    @Override
-    public StoreType lookup(String key) {
-        return null != key ? elementsByKey.get(key) : null;
     }
 
     @Override

@@ -52,7 +52,7 @@ public class SQLTable implements HasKey {
             this.parent = parent;
             this.key = key;
             this.values = values;
-            toString = new AtomicReference<>();
+            this.toString = new AtomicReference<>();
         }
 
         @Override
@@ -72,7 +72,7 @@ public class SQLTable implements HasKey {
                         "Unknown column [%s]",
                         colName));
             }
-            return values[idx.intValue()];
+            return values[idx];
         }
 
         public void clear() {
@@ -98,7 +98,7 @@ public class SQLTable implements HasKey {
                     }
                 }
                 str = sb.toString();
-                if (false == toString.compareAndSet(null, str)) {
+                if (!toString.compareAndSet(null, str)) {
                     str = toString.get();
                 }
             }
@@ -135,7 +135,7 @@ public class SQLTable implements HasKey {
     }
 
     public void addRow(String key, ResultSet rs) throws SQLException {
-        if (false == hasMetadata) {
+        if (!hasMetadata) {
             throw new SQLException("column metadata has not been set");
         }
         Object[] values = new Object[columnNames.length];
@@ -180,7 +180,7 @@ public class SQLTable implements HasKey {
         if (null == key && null != table.key) {
             key = table.key;
         }
-        if (null != key && false == key.equals(table.key)) {
+        if (null != key && !key.equals(table.key)) {
             throw new IllegalArgumentException("keys do not match");
         }
         if (null == columnNames || null == columnTypes) {

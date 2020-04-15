@@ -57,15 +57,6 @@ public class SQLExecutionResponse extends SQLExecutionRequest {
         this.fetchResultsElapsedMs = fetchResultsElapsedMs;
     }
 
-    public SQLExecutionResponse(String sourceId, SQLConnection sqlConnection, String command) {
-        super(sourceId,  sqlConnection, command);
-        this.results = null;
-        this.error = null;
-        totalElapsedMs = -1;
-        queryExecutionElapsedMs = -1;
-        fetchResultsElapsedMs = -1;
-    }
-
     public SQLTable getResults() {
         return results;
     }

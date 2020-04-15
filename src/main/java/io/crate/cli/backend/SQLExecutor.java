@@ -37,7 +37,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 public class SQLExecutor implements EventSpeaker<SQLExecutor.EventType>, Closeable {
 
     public static final int QUERY_EXECUTION_TIMEOUT_SECS = 60;
-    public static final int SO_RCVBUF = 1 * 1024 * 1024; // 1 MB
+    public static final int SO_RCVBUF = 1024 * 1024; // 1 MB
     public static final int MAX_BATCH_SIZE = 20000;
     private static final int START_BATCH_SIZE = 100;
 
@@ -52,7 +52,6 @@ public class SQLExecutor implements EventSpeaker<SQLExecutor.EventType>, Closeab
     }
 
     private static final Logger LOGGER = LoggerFactory.getLogger(SQLExecutor.class);
-
 
 
     private final ConcurrentMap<String, Future<?>> runningQueries;
@@ -72,7 +71,7 @@ public class SQLExecutor implements EventSpeaker<SQLExecutor.EventType>, Closeab
         runningQueries.clear();
         cancelRequests.clear();
         AtomicInteger threadId = new AtomicInteger(0);
-        cachedES = Executors.newCachedThreadPool(r -> {
+        cachedES = Executors.newFixedThreadPool(1, r -> {
             Thread executorThread = new Thread(r);
             executorThread.setDaemon(true);
             executorThread.setName(String.format(
@@ -91,7 +90,7 @@ public class SQLExecutor implements EventSpeaker<SQLExecutor.EventType>, Closeab
             throw new IllegalStateException("already closed");
         }
         for (Future<?> query : runningQueries.values()) {
-            if (false == query.isDone() && false == query.isCancelled()) {
+            if (!query.isDone() && !query.isCancelled()) {
                 query.cancel(true);
             }
         }
@@ -127,21 +126,21 @@ public class SQLExecutor implements EventSpeaker<SQLExecutor.EventType>, Closeab
         }
         String sourceId = request.getSourceId();
         Future<?> runningQuery = runningQueries.remove(sourceId);
-        if (null != runningQuery && false == runningQuery.isDone() && false == runningQuery.isCancelled()) {
+        if (null != runningQuery && !runningQuery.isDone() && !runningQuery.isCancelled()) {
             cancelRequests.put(sourceId, sourceId);
             LOGGER.info("Cancelling pre-existing query [{}] from [{}]", request.getKey(), sourceId);
             runningQuery.cancel(true);
         }
     }
 
-    private final void executeQuery(SQLExecutionRequest request, EventListener<SQLExecutor, SQLExecutionResponse> eventListener) {
+    private void executeQuery(SQLExecutionRequest request, EventListener<SQLExecutor, SQLExecutionResponse> eventListener) {
         long startTS = System.nanoTime();
         String sourceId = request.getSourceId();
         SQLConnection conn = request.getSQLConnection();
         String query = request.getCommand();
         LOGGER.info("Executing query [{}] from [{}] on connection {}: {}",
                 request.getKey(), sourceId, conn, query);
-        if (false == conn.checkConnectivity()) {
+        if (!conn.checkConnectivity()) {
             LOGGER.error("While about to run [{}] from [{}], lost connectivity with: {}",
                     request.getKey(), sourceId, conn);
             eventListener.onSourceEvent(
@@ -204,7 +203,7 @@ public class SQLExecutor implements EventSpeaker<SQLExecutor.EventType>, Closeab
                         break;
                     }
                     long checkpointTs = System.nanoTime();
-                    if (false == hasColumnMetadata) {
+                    if (!hasColumnMetadata) {
                         resultsTable.extractColumnMetadata(rs);
                         hasColumnMetadata = true;
                     }
@@ -278,7 +277,7 @@ public class SQLExecutor implements EventSpeaker<SQLExecutor.EventType>, Closeab
                 toMillis(checkpointTs - queryExecutedTs));
     }
 
-    private static final long toMillis(long nanos) {
+    private static long toMillis(long nanos) {
         return TimeUnit.MILLISECONDS.convert(nanos, TimeUnit.NANOSECONDS);
     }
 }

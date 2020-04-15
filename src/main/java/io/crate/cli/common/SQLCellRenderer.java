@@ -44,7 +44,7 @@ public class SQLCellRenderer extends StringCellRenderer {
                                                    int rowIdx,
                                                    int colIdx) {
         super.getTableCellRendererComponent(table, value, isSelected, hasFocus, rowIdx, colIdx);
-        if (false == isSelected && rowIdx >= 0 && rowIdx < table.getModel().getRowCount()) {
+        if (!isSelected && rowIdx >= 0 && rowIdx < table.getModel().getRowCount()) {
             if (colIdx >= 0) {
                 int [] columnTypes = this.table.getColumnTypes();
                 if (null != columnTypes) {

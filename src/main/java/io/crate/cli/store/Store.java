@@ -35,17 +35,13 @@ public interface Store<StoreType extends StoreItem> extends Closeable, Iterable<
 
     File getPath();
 
-    void addAll(boolean clear, StoreType... value);
+    void addAll(boolean clear, StoreType [] value);
+
+    void add(boolean clear, StoreType value);
 
     void remove(StoreType value);
 
-    Set<String> keys();
-
-    StoreItem lookup(String key);
-
     List<StoreType> values();
-
-    int size();
 
     @Override
     void close();

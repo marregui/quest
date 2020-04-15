@@ -22,7 +22,7 @@ package io.crate.cli.common;
 
 
 @FunctionalInterface
-public interface TriFunction<T, U, V, R> {
+public interface TriMethod<T, U, V> {
 
-    R apply(T t, U u, V v);
+    void apply(T t, U u, V v);
 }

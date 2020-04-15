@@ -28,8 +28,7 @@ import io.crate.cli.store.StoreItem;
 import java.util.*;
 
 
-public class ConnectionItem extends StoreItem {
-
+public class ConnectionStoreItem extends StoreItem {
 
     public enum AttributeName implements HasKey {
 
@@ -37,7 +36,6 @@ public class ConnectionItem extends StoreItem {
         port("5432"),
         username("crate"),
         password("");
-
 
         private final String defaultValue;
 
@@ -56,11 +54,11 @@ public class ConnectionItem extends StoreItem {
     }
 
 
-    public ConnectionItem(StoreItem other) {
+    public ConnectionStoreItem(StoreItem other) {
         super(other);
     }
 
-    public ConnectionItem(String name) {
+    public ConnectionStoreItem(String name) {
         super(name);
         attributes.put(getStoreItemAttributeKey(AttributeName.host), AttributeName.host.getDefaultValue());
         attributes.put(getStoreItemAttributeKey(AttributeName.port), AttributeName.port.getDefaultValue());

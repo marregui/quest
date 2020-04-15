@@ -26,6 +26,7 @@ import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
 import java.awt.geom.*;
 import java.io.Closeable;
+import java.util.Arrays;
 import java.util.concurrent.TimeUnit;
 
 
@@ -73,9 +74,7 @@ public class InfiniteSpinnerPanel extends JPanel implements Closeable, Runnable,
             animation.interrupt();
             animation = null;
             setVisible(false);
-            for (int i=0; i < ticker.length; i++) {
-                ticker[i] = null;
-            }
+            Arrays.fill(ticker, null);
         }
     }
 
@@ -83,9 +82,10 @@ public class InfiniteSpinnerPanel extends JPanel implements Closeable, Runnable,
     public void run() {
         Point2D.Double center = updateTicker();
         AffineTransform rotate = AffineTransform.getRotateInstance(FIXED_ANGLE, center.getX(), center.getY());
-        while (false == Thread.currentThread().isInterrupted()) {
-            for (int i = 0; i < ticker.length; i++) {
-                ticker[i].transform(rotate);
+        while (!Thread.currentThread().isInterrupted()) {
+            int i = 0;
+            while (i < ticker.length) {
+                ticker[i++].transform(rotate);
             }
             repaint();
             try {

@@ -56,6 +56,7 @@ public class StringCellRenderer extends DefaultTableCellRenderer {
                                                    int rowIdx,
                                                    int colIdx) {
         super.getTableCellRendererComponent(table, value, isSelected, hasFocus, rowIdx, colIdx);
+        @SuppressWarnings("unchecked")
         ObjectTableModel<SQLTableRow> tableModel = (ObjectTableModel<SQLTableRow>) table.getModel();
         if (rowIdx >= 0 && rowIdx < tableModel.getRowCount()) {
             if (isSelected) {

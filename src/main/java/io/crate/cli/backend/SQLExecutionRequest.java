@@ -28,7 +28,7 @@ import java.util.concurrent.atomic.AtomicLong;
 
 public class SQLExecutionRequest implements HasKey {
 
-    private static final AtomicLong MONOTONIC_SEQNO = new AtomicLong(0L);
+    private static final AtomicLong MONOTONIC_SEQ_NO = new AtomicLong(0L);
 
 
     private final String sourceId;
@@ -43,7 +43,7 @@ public class SQLExecutionRequest implements HasKey {
     }
 
     public SQLExecutionRequest(String sourceId, SQLConnection sqlConnection, String command) {
-        this(sourceId, UUID.randomUUID().toString(), MONOTONIC_SEQNO.getAndIncrement(), sqlConnection, command);
+        this(sourceId, UUID.randomUUID().toString(), MONOTONIC_SEQ_NO.getAndIncrement(), sqlConnection, command);
     }
 
     public SQLExecutionRequest(String sourceId, long seqNo, SQLConnection sqlConnection, String command) {
@@ -60,10 +60,6 @@ public class SQLExecutionRequest implements HasKey {
 
     public String getSourceId() {
         return sourceId;
-    }
-
-    public long getSeqNo() {
-        return seqNo;
     }
 
     public String getCommand() {

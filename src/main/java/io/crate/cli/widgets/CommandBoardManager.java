@@ -29,14 +29,11 @@ import io.crate.cli.store.StoreItem;
 
 import java.awt.*;
 import javax.swing.*;
-import javax.swing.border.Border;
-import javax.swing.border.TitledBorder;
 import javax.swing.text.*;
 import java.awt.event.ActionEvent;
-import java.awt.event.KeyEvent;
-import java.awt.event.KeyListener;
+import java.awt.event.MouseEvent;
+import java.awt.event.MouseListener;
 import java.io.Closeable;
-import java.util.Arrays;
 import java.util.Locale;
 import java.util.function.Supplier;
 
@@ -46,46 +43,23 @@ public class CommandBoardManager extends JPanel implements EventSpeaker<CommandB
     public enum EventType {
         COMMAND_AVAILABLE,
         COMMAND_CANCEL,
-        BOARD_CHANGE
+        CONNECTION_STATUS_CLICKED
     }
 
+    public static final Color FONT_COLOR = Color.WHITE;
+    public static final Color KEYWORD_FONT_COLOR = GUIToolkit.CRATE_COLOR;
+    private static final Color BACKGROUND_COLOR = Color.BLACK;
+    private static final Color CARET_COLOR = Color.GREEN;
+    private static final Font HEADER_FONT = new Font(GUIToolkit.MAIN_FONT_NAME, Font.BOLD, 16);
+    private static final Font BODY_FONT = new Font(GUIToolkit.MAIN_FONT_NAME, Font.BOLD, 18);
+    private static final Cursor HAND_CURSOR = new Cursor(Cursor.HAND_CURSOR);
     private static final String BORDER_TITLE = "Connection";
-    public static final int NUM_COMMAND_BOARDS = 8; // A,B,C,D,E,F,G,H
-
-    public static int fromCommandBoardKey(String key) {
-        if (null == key || key.trim().length() < 1) {
-            throw new IllegalArgumentException(String.format(
-                    Locale.ENGLISH,
-                    "key cannot be null, must contain one non white char: %s",
-                    key));
-        }
-        int offset = key.trim().charAt(0) - 'A';
-        if (offset < 0 || offset >= NUM_COMMAND_BOARDS) {
-            throw new IndexOutOfBoundsException(String.format(
-                    Locale.ENGLISH,
-                    "Key [%s] -> offset: %d (max: %d)",
-                    key, offset, NUM_COMMAND_BOARDS - 1));
-        }
-        return offset;
-    }
-
-    public static String toCommandBoardKey(int offset) {
-        if (offset < 0 || offset >= NUM_COMMAND_BOARDS) {
-            throw new IllegalArgumentException(String.format(
-                    Locale.ENGLISH,
-                    "offset: %d out of range (max: %d)",
-                    offset,
-                    NUM_COMMAND_BOARDS - 1));
-        }
-        return String.valueOf((char) ('A' + offset));
-    }
 
 
-    private static class CommandBoardManagerData implements Closeable {
+    public static class Data extends StoreItem {
 
-
-        private enum AttributeName implements HasKey {
-            board_contents;
+        public enum AttributeName implements HasKey {
+            board_content;
 
             @Override
             public String getKey() {
@@ -93,181 +67,71 @@ public class CommandBoardManager extends JPanel implements EventSpeaker<CommandB
             }
         }
 
-        public static class BoardItem extends StoreItem {
+        private transient SQLConnection sqlConnection;
 
-            private transient SQLConnection sqlConnection;
-
-            public BoardItem(StoreItem other) {
-                super(other);
-            }
-
-            public BoardItem(String name) {
-                super(name);
-            }
-
-            public void setSqlConnection(SQLConnection conn) {
-                sqlConnection = conn;
-            }
-
-            public SQLConnection getSqlConnection() {
-                return sqlConnection;
-            }
-
-            @Override
-            public final String getKey() {
-                return String.format(Locale.ENGLISH, "%s", name);
-            }
+        @SuppressWarnings("unused")
+        public Data(StoreItem other) {
+            super(other);
         }
 
-
-        private final Store<CommandBoardManagerData.BoardItem> store;
-        private CommandBoardManagerData.BoardItem[] boards;
-        private int currentIdx;
-
-
-        CommandBoardManagerData() {
-            int size = CommandBoardManager.NUM_COMMAND_BOARDS;
-            store = new JsonStore<>(
-                    GUIToolkit.COMMAND_BOARD_MANAGER_STORE,
-                    CommandBoardManagerData.BoardItem.class) {
-
-                @Override
-                public BoardItem[] defaultStoreEntries() {
-                    return new BoardItem[0];
-                }
-            };
-            currentIdx = 0;
-            store.load();
-            boards = new BoardItem[Math.max(size, store.size() % size)];
-            Arrays.fill(boards, null);
-            store.values().toArray(boards);
-            arrangeDescriptorsByKey();
-        }
-
-        private void arrangeDescriptorsByKey() {
-            for (int i = 0; i < boards.length; i++) {
-                CommandBoardManagerData.BoardItem bi = boards[i];
-                if (null != bi) {
-                    int idx = CommandBoardManager.fromCommandBoardKey(bi.getKey());
-                    if (idx != i) {
-                        CommandBoardManagerData.BoardItem tmp = boards[i];
-                        boards[i] = boards[idx];
-                        boards[idx] = tmp;
-                    }
-                }
-            }
-        }
-
-        void store() {
-            store.addAll(true, boards);
-        }
-
-        String getCurrentKey() {
-            return CommandBoardManager.toCommandBoardKey(currentIdx);
-        }
-
-        int getCurrentIdx() {
-            return currentIdx;
-        }
-
-        void setCurrentIdx(int idx) {
-            currentIdx = idx;
-        }
-
-        private CommandBoardManagerData.BoardItem current() {
-            return current(currentIdx);
-        }
-
-        private CommandBoardManagerData.BoardItem current(int idx) {
-            if (null == boards[idx]) {
-                boards[idx] = new CommandBoardManagerData.BoardItem(CommandBoardManager.toCommandBoardKey(idx));
-            }
-            return boards[idx];
-        }
-
-        SQLConnection getCurrentSQLConnection() {
-            SQLConnection conn = current().getSqlConnection();
-            if (null == conn) {
-                conn = findFirstConnection(true);
-                if (null == conn) {
-                    conn = findFirstConnection(false);
-                }
-                current().setSqlConnection(conn);
-            }
-            return conn;
-        }
-
-        void setCurrentSQLConnection(SQLConnection conn) {
-            current().setSqlConnection(conn);
-        }
-
-        String getCurrentBoardContent() {
-            return current().getAttribute(CommandBoardManagerData.AttributeName.board_contents);
-        }
-
-        void setCurrentBoardContents(String text) {
-            current().setAttribute(CommandBoardManagerData.AttributeName.board_contents, text);
+        public Data() {
+            super("CommandBoardData");
         }
 
         @Override
-        public void close() {
-            store.close();
+        public final String getKey() {
+            return String.format(Locale.ENGLISH, "%s", name);
         }
 
-        private SQLConnection findFirstConnection(boolean checkIsConnected) {
-            for (int i = 0; i < boards.length; i++) {
-                SQLConnection conn = current(i).getSqlConnection();
-                if (null != conn) {
-                    if (checkIsConnected) {
-                        if (conn.isConnected()) {
-                            return conn;
-                        }
-                    } else {
-                        return conn;
-                    }
-                }
-            }
-            return null;
+        public void setSqlConnection(SQLConnection conn) {
+            sqlConnection = conn;
+        }
+
+        public SQLConnection getSqlConnection() {
+            return sqlConnection;
+        }
+
+        public String getBoardContent() {
+            return getAttribute(Data.AttributeName.board_content);
+        }
+
+        public void setBoardContent(String text) {
+            setAttribute(Data.AttributeName.board_content, text);
         }
     }
 
-
     private final JTextPane textPane;
-    private final JButton clearButton;
     private final JButton runButton;
     private final JButton runLineButton;
     private final JButton cancelButton;
-    private final JButton[] boardHeaderButtons;
-    private final TitledBorder titleBorder;
-    private final CommandBoardManagerData commandBoardManagerData;
+    private final JLabel selectedConnectionTitle;
+    private final Data data;
+    private final Store<Data> store;
     private final EventListener<CommandBoardManager, SQLExecutionRequest> eventListener;
 
 
-    public CommandBoardManager(EventListener<CommandBoardManager, SQLExecutionRequest> eventListener) {
+    public CommandBoardManager(int height, EventListener<CommandBoardManager, SQLExecutionRequest> eventListener) {
         this.eventListener = eventListener;
-        commandBoardManagerData = new CommandBoardManagerData();
+        store = new JsonStore<>("command_board.json", Data.class) {
+            @Override
+            public Data[] defaultStoreEntries() {
+                return new Data[0];
+            }
+        };
+        store.load();
+        data = !store.values().isEmpty() ? store.values().get(0) : new Data();
         textPane = new JTextPane();
         textPane.setCaretPosition(0);
         textPane.setMargin(new Insets(5, 5, 5, 5));
-        textPane.setFont(GUIToolkit.COMMAND_BOARD_BODY_FONT);
-        textPane.setForeground(GUIToolkit.COMMAND_BOARD_FONT_COLOR);
-        textPane.setBackground(GUIToolkit.COMMAND_BOARD_BACKGROUND_COLOR);
-        textPane.setCaretColor(GUIToolkit.COMMAND_BOARD_CARET_COLOR);
+        textPane.setFont(BODY_FONT);
+        textPane.setForeground(FONT_COLOR);
+        textPane.setBackground(BACKGROUND_COLOR);
+        textPane.setCaretColor(CARET_COLOR);
         AbstractDocument abstractDocument = (AbstractDocument) textPane.getDocument();
         abstractDocument.setDocumentFilter(new KeywordDocumentFilter(textPane.getStyledDocument()));
-        String boardContent = commandBoardManagerData.getCurrentBoardContent();
+        String boardContent = data.getBoardContent();
         textPane.setText(boardContent);
-        JPanel bufferButtonsPanel = new JPanel(new GridLayout(1, NUM_COMMAND_BOARDS, 0, 5));
-        boardHeaderButtons = new JButton[NUM_COMMAND_BOARDS];
-        for (int i = 0; i < NUM_COMMAND_BOARDS; i++) {
-            int boardIdx = i;
-            JButton button = new JButton(toCommandBoardKey(boardIdx));
-            button.addActionListener(e -> onBoardBufferEvent(boardIdx));
-            button.setFont(GUIToolkit.COMMAND_BOARD_HEADER_FONT);
-            boardHeaderButtons[boardIdx] = button;
-            bufferButtonsPanel.add(button);
-        }
-        clearButton = new JButton("Clear");
+        JButton clearButton = new JButton("Clear");
         clearButton.addActionListener(this::onClearButtonEvent);
         runLineButton = new JButton("L.Run");
         runLineButton.addActionListener(this::onRunCurrentLineEvent);
@@ -284,30 +148,58 @@ public class CommandBoardManager extends JPanel implements EventSpeaker<CommandB
         actionButtonsPanel.add(runLineButton);
         actionButtonsPanel.add(runButton);
         actionButtonsPanel.add(cancelButton);
+        selectedConnectionTitle = new JLabel();
+        selectedConnectionTitle.setFont(HEADER_FONT);
+        selectedConnectionTitle.setForeground(GUIToolkit.TABLE_HEADER_FONT_COLOR);
+        selectedConnectionTitle.addMouseListener(new MouseListener() {
+            @Override
+            public void mouseClicked(MouseEvent e) {
+                eventListener.onSourceEvent(
+                        CommandBoardManager.this,
+                        EventType.CONNECTION_STATUS_CLICKED,
+                        new SQLExecutionRequest(data.getKey(), data.sqlConnection, data.getBoardContent()));
+            }
+
+            @Override
+            public void mousePressed(MouseEvent e) {
+                // no-op
+            }
+
+            @Override
+            public void mouseReleased(MouseEvent e) {
+                // no-op
+            }
+
+            @Override
+            public void mouseEntered(MouseEvent e) {
+                setCursor(HAND_CURSOR);
+            }
+
+            @Override
+            public void mouseExited(MouseEvent e) {
+                setCursor(Cursor.getDefaultCursor());
+            }
+        });
         JPanel bufferActionButtonsPanel = new JPanel(new BorderLayout());
-        bufferActionButtonsPanel.add(bufferButtonsPanel, BorderLayout.CENTER);
+        bufferActionButtonsPanel.add(selectedConnectionTitle, BorderLayout.WEST);
         bufferActionButtonsPanel.add(actionButtonsPanel, BorderLayout.EAST);
-        titleBorder = BorderFactory.createTitledBorder(BORDER_TITLE);
-        titleBorder.setTitleFont(GUIToolkit.COMMAND_BOARD_HEADER_FONT);
-        titleBorder.setTitleColor(GUIToolkit.TABLE_HEADER_FONT_COLOR);
-        setBorder(titleBorder);
         JScrollPane scrollPane = new JScrollPane(
                 textPane,
                 JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED,
                 JScrollPane.HORIZONTAL_SCROLLBAR_AS_NEEDED);
         setLayout(new BorderLayout());
-        add(bufferActionButtonsPanel, BorderLayout.NORTH);
         add(scrollPane, BorderLayout.CENTER);
-        setPreferredSize(GUIToolkit.COMMAND_BOARD_MANAGER_HEIGHT);
+        add(bufferActionButtonsPanel, BorderLayout.SOUTH);
+        setPreferredSize(new Dimension(0, height));
         toggleComponents();
     }
 
     public SQLConnection getSQLConnection() {
-        return commandBoardManagerData.getCurrentSQLConnection();
+        return data.getSqlConnection();
     }
 
     public void setSQLConnection(SQLConnection conn) {
-        commandBoardManagerData.setCurrentSQLConnection(conn);
+        data.setSqlConnection(conn);
         toggleComponents();
     }
 
@@ -341,32 +233,24 @@ public class CommandBoardManager extends JPanel implements EventSpeaker<CommandB
     }
 
     private void toggleComponents() {
-        for (int i = 0; i < boardHeaderButtons.length; i++) {
-            boardHeaderButtons[i].setBorder(GUIToolkit.COMMAND_BOARD_UNSELECTED_BORDER);
-        }
-        SQLConnection conn = commandBoardManagerData.getCurrentSQLConnection();
+        SQLConnection conn = data.getSqlConnection();
         if (null != conn) {
-            titleBorder.setTitle(String.format(
+            selectedConnectionTitle.setText(String.format(
                     Locale.ENGLISH,
-                    "%s [%s]",
+                    "  %s [%s]",
                     BORDER_TITLE,
                     conn.getKey()));
-            validate();
-            repaint();
         }
         boolean isConnected = null != conn && conn.isConnected();
-        Border border = isConnected ?
-                GUIToolkit.COMMAND_BOARD_CONNECTED_BORDER :
-                GUIToolkit.COMMAND_BOARD_DISCONNECTED_BORDER;
-        boardHeaderButtons[commandBoardManagerData.getCurrentIdx()].setBorder(border);
+        selectedConnectionTitle.setForeground(isConnected ? GUIToolkit.CRATE_COLOR : Color.BLACK);
         runButton.setEnabled(isConnected);
         runLineButton.setEnabled(isConnected);
         cancelButton.setEnabled(isConnected);
     }
 
     public void store() {
-        commandBoardManagerData.setCurrentBoardContents(getFullTextContents());
-        commandBoardManagerData.store();
+        data.setBoardContent(getFullTextContents());
+        store.add(true, data);
     }
 
     @Override
@@ -377,32 +261,18 @@ public class CommandBoardManager extends JPanel implements EventSpeaker<CommandB
 
     @Override
     public void close() {
-        commandBoardManagerData.setCurrentBoardContents(getFullTextContents());
-        commandBoardManagerData.close();
-    }
-
-    public void onBoardBufferEvent(int newIdx) {
-        commandBoardManagerData.setCurrentBoardContents(getFullTextContents());
-        commandBoardManagerData.setCurrentIdx(newIdx);
-        textPane.setText(commandBoardManagerData.getCurrentBoardContent());
-        toggleComponents();
-        eventListener.onSourceEvent(
-                this,
-                EventType.BOARD_CHANGE,
-                new SQLExecutionRequest(
-                        commandBoardManagerData.getCurrentKey(),
-                        commandBoardManagerData.getCurrentSQLConnection(),
-                        commandBoardManagerData.getCurrentBoardContent()));
+        data.setBoardContent(getFullTextContents());
+        store.store();
     }
 
     public void onClearButtonEvent(ActionEvent event) {
-        commandBoardManagerData.setCurrentBoardContents("");
+        data.setBoardContent("");
         textPane.setText("");
     }
 
     public void onCancelButtonEvent(ActionEvent event) {
-        SQLConnection conn = commandBoardManagerData.getCurrentSQLConnection();
-        if (null == conn || false == conn.isConnected()) {
+        SQLConnection conn = data.getSqlConnection();
+        if (null == conn || !conn.isConnected()) {
             JOptionPane.showMessageDialog(
                     this,
                     "Not connected");
@@ -411,7 +281,7 @@ public class CommandBoardManager extends JPanel implements EventSpeaker<CommandB
         eventListener.onSourceEvent(
                 this,
                 EventType.COMMAND_CANCEL,
-                new SQLExecutionRequest(commandBoardManagerData.getCurrentKey(), conn, "CANCEL"));
+                new SQLExecutionRequest(data.getKey(), conn, "CANCEL"));
     }
 
     public void onRunCurrentLineEvent(ActionEvent event) {
@@ -423,7 +293,7 @@ public class CommandBoardManager extends JPanel implements EventSpeaker<CommandB
     }
 
     private void fireCommandEvent(Supplier<String> commandSupplier) {
-        SQLConnection conn = commandBoardManagerData.getCurrentSQLConnection();
+        SQLConnection conn = data.getSqlConnection();
         if (null == conn) {
             JOptionPane.showMessageDialog(
                     this,
@@ -440,6 +310,6 @@ public class CommandBoardManager extends JPanel implements EventSpeaker<CommandB
         eventListener.onSourceEvent(
                 this,
                 EventType.COMMAND_AVAILABLE,
-                new SQLExecutionRequest(commandBoardManagerData.getCurrentKey(), conn, command));
+                new SQLExecutionRequest(data.getKey(), conn, command));
     }
 }
