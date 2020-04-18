@@ -31,7 +31,6 @@ import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.*;
 import java.util.concurrent.*;
-import java.util.concurrent.atomic.AtomicInteger;
 
 
 public class SQLExecutor implements EventSpeaker<SQLExecutor.EventType>, Closeable {
@@ -70,16 +69,11 @@ public class SQLExecutor implements EventSpeaker<SQLExecutor.EventType>, Closeab
         }
         runningQueries.clear();
         cancelRequests.clear();
-        AtomicInteger threadId = new AtomicInteger(0);
         cachedES = Executors.newFixedThreadPool(1, r -> {
-            Thread executorThread = new Thread(r);
-            executorThread.setDaemon(true);
-            executorThread.setName(String.format(
-                    Locale.ENGLISH,
-                    "%s-%d",
-                    SQLExecutor.class.getSimpleName(),
-                    threadId.incrementAndGet()));
-            return executorThread;
+            Thread t = new Thread(r);
+            t.setDaemon(true);
+            t.setName(SQLExecutor.class.getSimpleName());
+            return t;
         });
         LOGGER.info("{} is running", SQLExecutor.class.getSimpleName());
     }
@@ -260,7 +254,7 @@ public class SQLExecutor implements EventSpeaker<SQLExecutor.EventType>, Closeab
                 eventType,
                 new SQLExecutionResponse(
                         sourceId,
-                        batchId++,
+                        -1,
                         conn,
                         query,
                         toMillis(checkpointTs - startTS),

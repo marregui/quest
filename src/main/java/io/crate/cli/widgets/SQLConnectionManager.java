@@ -20,7 +20,7 @@
  */
 package io.crate.cli.widgets;
 
-import io.crate.cli.backend.ConnectionStoreItem;
+import io.crate.cli.backend.ConnectionItem;
 import io.crate.cli.backend.ConnectivityChecker;
 import io.crate.cli.backend.SQLConnection;
 import io.crate.cli.common.*;
@@ -69,10 +69,10 @@ public class SQLConnectionManager extends JDialog implements EventSpeaker<SQLCon
     private static final String CONNECTED = "connected";
     private static final String[] COLUMN_NAMES = {
             NAME,
-            ConnectionStoreItem.AttributeName.host.name(),
-            ConnectionStoreItem.AttributeName.port.name(),
-            ConnectionStoreItem.AttributeName.username.name(),
-            ConnectionStoreItem.AttributeName.password.name(),
+            ConnectionItem.AttributeName.host.name(),
+            ConnectionItem.AttributeName.port.name(),
+            ConnectionItem.AttributeName.username.name(),
+            ConnectionItem.AttributeName.password.name(),
             CONNECTED
     };
     private static final int[] COLUMN_WIDTHS = {
@@ -105,11 +105,6 @@ public class SQLConnectionManager extends JDialog implements EventSpeaker<SQLCon
 
     public static final Font REMARK_FONT = new Font(GUIToolkit.MAIN_FONT_NAME, Font.BOLD, 16);
     private static final Logger LOGGER = LoggerFactory.getLogger(SQLConnectionManager.class);
-
-
-    public static SQLConnectionManager create(Frame owner, EventListener<SQLConnectionManager, Object> eventListener) {
-        return new SQLConnectionManager(owner, eventListener);
-    }
 
 
     private final EventListener<SQLConnectionManager, Object> eventListener;
@@ -432,7 +427,6 @@ public class SQLConnectionManager extends JDialog implements EventSpeaker<SQLCon
         connectivityChecker.close();
         tableModel.clear();
         existingNamesInTableModel.clear();
-        dispose();
     }
 
     private void onTestButtonEvent(ActionEvent event) {

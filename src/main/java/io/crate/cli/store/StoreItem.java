@@ -28,7 +28,7 @@ import java.util.function.BiConsumer;
 
 public class StoreItem implements HasKey, Comparable<StoreItem> {
 
-    protected static final Class<?>[] CONSTRUCTOR_SIGNATURE = {StoreItem.class};
+    protected static final Class<?>[] CONSTRUCTOR_SIGNATURE = { StoreItem.class };
 
     public static final Comparator<String> KEY_COMPARATOR = (k1, k2) -> {
         String [] k1Parts = k1.split("\\.");

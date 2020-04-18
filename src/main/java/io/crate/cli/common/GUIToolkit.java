@@ -63,36 +63,6 @@ public final class GUIToolkit {
         return new Dimension(x, y);
     }
 
-    public static void copyToClipboard(String text) {
-        getSystemClipboard().setContents(new StringSelection(text), null);
-    }
-
-    private static Clipboard getSystemClipboard() {
-        return Toolkit.getDefaultToolkit().getSystemClipboard();
-    }
-
-    public static void invokeLater(Runnable ... runnable) {
-        if (EventQueue.isDispatchThread()) {
-            for (Runnable r : runnable) {
-                if (null != r) {
-                    r.run();
-                }
-            }
-        } else {
-            try {
-                EventQueue.invokeLater(() -> {
-                    for (Runnable r : runnable) {
-                        if (null != r) {
-                            r.run();
-                        }
-                    }
-                });
-            } catch (Throwable throwable) {
-                throw new RuntimeException(throwable);
-            }
-        }
-    }
-
     private GUIToolkit() {
         throw new IllegalStateException("not meant to me instantiated");
     }

@@ -29,7 +29,6 @@ import org.slf4j.LoggerFactory;
 import java.io.*;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Type;
-import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 import java.util.*;
 import java.util.concurrent.*;
@@ -43,8 +42,7 @@ public abstract class JsonStore<StoreType extends StoreItem> implements Store<St
         // just want the type
     }.getType();
     private static final String STORE_PATH_KEY = "store.path";
-    private static final String DEFAULT_CRATEDBSQL_STORE_PATH = "./store";
-    private static final Charset UTF_8 = StandardCharsets.UTF_8;
+    private static final String DEFAULT_STORE_PATH = "./store";
 
 
     private final File storeRoot;
@@ -58,7 +56,7 @@ public abstract class JsonStore<StoreType extends StoreItem> implements Store<St
     public JsonStore(String storeFileName, Class<? extends StoreItem> clazz) {
         this(System.getProperty(
                 STORE_PATH_KEY,
-                DEFAULT_CRATEDBSQL_STORE_PATH),
+                DEFAULT_STORE_PATH),
                 storeFileName,
                 clazz);
     }
@@ -67,39 +65,24 @@ public abstract class JsonStore<StoreType extends StoreItem> implements Store<St
                      String storeFileName,
                      Class<? extends StoreItem> clazz) {
         this.clazz = clazz;
-        storeRoot = new File(storeRootPath);
+        this.storeRoot = new File(storeRootPath);
         this.storeFileName = storeFileName;
-        elementsByKey = new TreeMap<>();
-        elements = new ArrayList<>();
-        asyncStorer = Executors.newSingleThreadExecutor(task -> {
-            Thread storerThread = new Thread(task);
-            storerThread.setDaemon(false);
-            storerThread.setName(String.format(
+        this.elementsByKey = new TreeMap<>();
+        this.elements = new ArrayList<>();
+        this.asyncStorer = Executors.newSingleThreadExecutor(task -> {
+            Thread t = new Thread(task);
+            t.setDaemon(false);
+            t.setName(String.format(
                     Locale.ENGLISH,
-                    "%s-storer-%s",
+                    "%s-store-%s",
                     JsonStore.class.getSimpleName(),
                     storeFileName));
-            return storerThread;
+            return t;
         });
     }
 
     @Override
     public abstract StoreType [] defaultStoreEntries();
-
-    @Override
-    public void addAll(boolean clearFirst, StoreType [] entries) {
-        if (clearFirst) {
-            elements.clear();
-            elementsByKey.clear();
-        }
-        for (StoreType e : entries) {
-            if (null != e) {
-                elements.add(e);
-                elementsByKey.put(e.getKey(), e);
-            }
-        }
-        store();
-    }
 
     @Override
     public void add(boolean clearFirst, StoreType entry) {
@@ -136,7 +119,7 @@ public abstract class JsonStore<StoreType extends StoreItem> implements Store<St
         }
 
         List<StoreItem> contents;
-        try (BufferedReader in = new BufferedReader(new FileReader(file, UTF_8))) {
+        try (BufferedReader in = new BufferedReader(new FileReader(file, StandardCharsets.UTF_8))) {
             contents = GSON.fromJson(in, STORE_TYPE);
             LOGGER.info("Loaded store [{}]", file.getAbsolutePath());
         } catch (Exception e) {
@@ -147,11 +130,11 @@ public abstract class JsonStore<StoreType extends StoreItem> implements Store<St
         if (null != contents) {
             try {
                 @SuppressWarnings("unchecked")
-                Constructor<StoreType> eFactory = (Constructor<StoreType>) clazz.getConstructor(
+                Constructor<StoreType> factory = (Constructor<StoreType>) clazz.getConstructor(
                         StoreItem.CONSTRUCTOR_SIGNATURE);
                 elements.clear();
                 for (StoreItem e : contents) {
-                    elements.add(eFactory.newInstance(e));
+                    elements.add(factory.newInstance(e));
                 }
                 elementsByKey.clear();
                 for (StoreType e : elements) {
@@ -171,7 +154,7 @@ public abstract class JsonStore<StoreType extends StoreItem> implements Store<St
     private void storeSync(Runnable whenDoneTask) {
         try {
             File file = getStoreFile(true);
-            try (FileWriter out = new FileWriter(file, UTF_8, true)) {
+            try (FileWriter out = new FileWriter(file, StandardCharsets.UTF_8, true)) {
                 GSON.toJson(elements, STORE_TYPE, out);
                 out.flush();
                 LOGGER.info("Stored file [{}]",

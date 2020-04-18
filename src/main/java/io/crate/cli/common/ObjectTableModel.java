@@ -27,11 +27,11 @@ import java.util.function.BiFunction;
 
 public class ObjectTableModel<RowType extends HasKey> extends AbstractTableModel {
 
-    private String[] attributeNames;
-    private int[] attributeTypes;
     private final BiFunction<RowType, String, Object> attributeGetter;
     private final TriMethod<RowType, String, Object> attributeSetter;
     private final List<RowType> rows;
+    private String[] attributeNames;
+    private int[] attributeTypes;
 
 
     public ObjectTableModel(String[] attributeNames,
@@ -40,7 +40,7 @@ public class ObjectTableModel<RowType extends HasKey> extends AbstractTableModel
         this.attributeNames = attributeNames;
         this.attributeGetter = attributeGetter;
         this.attributeSetter = attributeSetter;
-        rows = new ArrayList<>();
+        this.rows = new ArrayList<>();
     }
 
     public void reset(String[] attributeNames, int[] attributeTypes) {

@@ -255,23 +255,23 @@ public class CratedbSQL {
     }
 
     private void onSQLExecutorEvent(SQLExecutor.EventType event, SQLExecutionResponse response) {
-        GUIToolkit.invokeLater(() -> sqlResultsManager.updateStatus(event, response));
+        invokeLater(() -> sqlResultsManager.updateStatus(event, response));
         switch (event) {
             case QUERY_FAILURE:
             case QUERY_CANCELLED:
-                GUIToolkit.invokeLater(
+                invokeLater(
                         sqlResultsManager::clear,
                         () -> sqlResultsManager.displayError(response.getError()));
                 break;
 
             case RESULTS_AVAILABLE:
-                GUIToolkit.invokeLater(() ->
+                invokeLater(() ->
                     sqlResultsManager.addRows(response.getResults(), true)
                 );
                 break;
 
             case QUERY_COMPLETED:
-                GUIToolkit.invokeLater(() -> {
+                invokeLater(() -> {
                     sqlResultsManager.addRows(response.getResults(), false);
                     sqlResultsManager.removeInfiniteProgressPanel();
                 });
@@ -279,7 +279,29 @@ public class CratedbSQL {
         }
     }
 
+    private static void invokeLater(Runnable ... runnable) {
+        if (EventQueue.isDispatchThread()) {
+            for (Runnable r : runnable) {
+                if (null != r) {
+                    r.run();
+                }
+            }
+        } else {
+            try {
+                EventQueue.invokeLater(() -> {
+                    for (Runnable r : runnable) {
+                        if (null != r) {
+                            r.run();
+                        }
+                    }
+                });
+            } catch (Throwable throwable) {
+                throw new RuntimeException(throwable);
+            }
+        }
+    }
+
     public static void main(String[] args) {
-        GUIToolkit.invokeLater(CratedbSQL::new);
+        invokeLater(CratedbSQL::new);
     }
 }

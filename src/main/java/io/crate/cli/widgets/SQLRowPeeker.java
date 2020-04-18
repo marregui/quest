@@ -26,6 +26,7 @@ import io.crate.cli.common.SqlType;
 
 import javax.swing.*;
 import java.awt.*;
+import java.awt.datatransfer.StringSelection;
 import java.awt.event.ActionEvent;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
@@ -45,13 +46,13 @@ class SQLRowPeeker extends JPanel implements MouseListener, MouseMotionListener 
 
 
     private final Component owner;
-
     private final AtomicBoolean isShowing;
     private final JScrollPane toolTipScrollPane;
     private final JTextPane toolTip;
     private final Map<String, String> toStringCache;
     private Popup toolTipPopup;
     private SQLTable.SQLTableRow currentRow;
+
 
     SQLRowPeeker(Component owner) {
         this.owner = owner;
@@ -89,7 +90,6 @@ class SQLRowPeeker extends JPanel implements MouseListener, MouseMotionListener 
         setLayout(new BorderLayout());
         add(closeButton, BorderLayout.NORTH);
         add(toolTipScrollPane, BorderLayout.CENTER);
-
     }
 
     public void clear() {
@@ -162,7 +162,9 @@ class SQLRowPeeker extends JPanel implements MouseListener, MouseMotionListener 
     private void setText(SQLTable.SQLTableRow row) {
         currentRow = row;
         String text = toStringCache.computeIfAbsent(row.getKey(), key -> renderRow(row));
-        GUIToolkit.copyToClipboard(text);
+        Toolkit.getDefaultToolkit()
+                .getSystemClipboard()
+                .setContents(new StringSelection(text), null);
         toolTip.setText(text);
         toolTip.setCaretPosition(0);
         int width = CHAR_WIDTH * maxLength(text);

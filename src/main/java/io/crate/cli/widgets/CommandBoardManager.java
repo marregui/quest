@@ -100,14 +100,14 @@ public class CommandBoardManager extends JPanel implements EventSpeaker<CommandB
         }
     }
 
+    private final Data data;
+    private final Store<Data> store;
+    private final EventListener<CommandBoardManager, SQLExecutionRequest> eventListener;
     private final JTextPane textPane;
     private final JButton runButton;
     private final JButton runLineButton;
     private final JButton cancelButton;
     private final JLabel selectedConnectionTitle;
-    private final Data data;
-    private final Store<Data> store;
-    private final EventListener<CommandBoardManager, SQLExecutionRequest> eventListener;
 
 
     public CommandBoardManager(int height, EventListener<CommandBoardManager, SQLExecutionRequest> eventListener) {
