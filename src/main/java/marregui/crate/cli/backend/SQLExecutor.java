@@ -52,7 +52,23 @@ public class SQLExecutor implements EventProducer<SQLExecutor.EventType>, Closea
         /**
          * The connection is valid, execution has started.
          */
-        STARTED, COMPLETED, CANCELLED, FAILURE, RESULTS_AVAILABLE
+        STARTED,
+        /**
+         * Query execution is going well so far, partial results have been collected.
+         */
+        RESULTS_AVAILABLE,
+        /**
+         * Query execution went well, all results have been collected.
+         */
+        COMPLETED,
+        /**
+         * Query execution was cancelled.
+         */
+        CANCELLED,
+        /**
+         * Query execution failed.
+         */
+        FAILURE
     }
 
     private static final Logger LOGGER = LoggerFactory.getLogger(SQLExecutor.class);
@@ -64,9 +80,6 @@ public class SQLExecutor implements EventProducer<SQLExecutor.EventType>, Closea
     private final ConcurrentMap<String, String> cancelRequests;
     private ExecutorService executor;
 
-    /**
-     * Constructor.
-     */
     public SQLExecutor() {
         runningQueries = new ConcurrentHashMap<>();
         cancelRequests = new ConcurrentHashMap<>();
@@ -140,7 +153,7 @@ public class SQLExecutor implements EventProducer<SQLExecutor.EventType>, Closea
         cancelSubmittedRequest(req);
         String sourceId = req.getSourceId();
         runningQueries.put(sourceId, executor.submit(() -> executeRequest(req, eventConsumer)));
-        LOGGER.info("Execution [{}] from [{}] submitted", req.getKey(), sourceId);
+        LOGGER.info("Execution submitted [{}] from [{}]", req.getKey(), sourceId);
     }
 
     /**
@@ -168,7 +181,7 @@ public class SQLExecutor implements EventProducer<SQLExecutor.EventType>, Closea
         if (!conn.isValid()) {
             runningQueries.remove(sourceId);
             cancelRequests.remove(sourceId);
-            LOGGER.error("Failed to execute [{}] from [{}], lost connection: {}", req.getKey(), sourceId, conn);
+            LOGGER.error("Failed [{}] from [{}], lost connection: {}", req.getKey(), sourceId, conn);
             RuntimeException fail = new RuntimeException(String.format("Connection [%s] is not valid", conn));
             eventListener.onSourceEvent(SQLExecutor.this, EventType.FAILURE,
                 new SQLExecResponse(req, ms(System.nanoTime() - start), fail, table));
@@ -198,7 +211,7 @@ public class SQLExecutor implements EventProducer<SQLExecutor.EventType>, Closea
                 if (!returnsResults) {
                     // The query executed successfully, but doesn't return a ResultSet
                     table.setSingleOkStatusRow();
-                    LOGGER.info("Execution [{}] from [{}]: OK", req.getKey(), sourceId);
+                    LOGGER.info("Completed [{}] from [{}]: OK", req.getKey(), sourceId);
                 }
                 else {
                     for (ResultSet rs = stmt.getResultSet(); rs.next();) {
@@ -239,8 +252,7 @@ public class SQLExecutor implements EventProducer<SQLExecutor.EventType>, Closea
                 eventType = EventType.CANCELLED;
             }
             String status = eventType.name().toLowerCase();
-            LOGGER.info("Execution {} [{}] {} rows, {} ms (exec:{}, fetch:{})", status, req.getKey(), rowId, totalMs, execMs,
-                fetchMs);
+            LOGGER.info("{} [{}] {} rows, {} ms (exec:{}, fetch:{})", status, req.getKey(), rowId, totalMs, execMs, fetchMs);
             eventListener.onSourceEvent(SQLExecutor.this, eventType,
                 new SQLExecResponse(req, conn, query, totalMs, execMs, fetchMs, table));
         }
