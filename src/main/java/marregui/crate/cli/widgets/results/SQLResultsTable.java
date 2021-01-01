@@ -130,8 +130,8 @@ public class SQLResultsTable extends JPanel implements Closeable {
 
     public void updateStats(String eventType, SQLExecResponse res) {
         if (res != null) {
-            statusLabel.setText(String.format("[%s] Q.Exec: %5d, Q.Fetch: %5d, Q.Total: %6d (ms)", eventType,
-                res.getExecMs(), res.getFetchMs(), res.getTotalMs()));
+            statusLabel.setText(String.format("[%s]  Exec: %5d,  Fetch: %5d,  Total: %6d (ms)", eventType, res.getExecMs(),
+                res.getFetchMs(), res.getTotalMs()));
         }
         else {
             statusLabel.setText("");
