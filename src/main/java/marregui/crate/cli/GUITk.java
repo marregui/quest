@@ -37,7 +37,7 @@ import javax.swing.border.Border;
 
 
 /**
- * Definitions.
+ * GUI Toolkit.
  */
 public final class GUITk {
 
