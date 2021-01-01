@@ -25,12 +25,9 @@ import java.awt.Font;
 import java.awt.Toolkit;
 import java.awt.Window;
 import java.awt.event.ActionListener;
-import java.net.URL;
 import java.util.Objects;
 
-import javax.imageio.ImageIO;
 import javax.swing.BorderFactory;
-import javax.swing.ImageIcon;
 import javax.swing.JButton;
 import javax.swing.JComponent;
 import javax.swing.JFrame;
@@ -81,17 +78,6 @@ public final class GUITk {
         return new Dimension(x, y);
     }
 
-    private static void setFrameIcon(JFrame frame) {
-        try {
-            URL url = GUITk.class.getResource("/cratedb_logo.png");
-            ImageIcon logo = new ImageIcon(ImageIO.read(url));
-            frame.setIconImage(logo.getImage());
-        }
-        catch (Exception e) {
-            e.printStackTrace();
-        }
-    }
-
     /**
      * Creates a top level frame.
      * 
@@ -119,7 +105,6 @@ public final class GUITk {
         frame.setSize(dimension.width, dimension.height);
         frame.setLocation(location.width, location.height);
         frame.setLayout(new BorderLayout());
-        setFrameIcon(frame);
         return frame;
     }
 
