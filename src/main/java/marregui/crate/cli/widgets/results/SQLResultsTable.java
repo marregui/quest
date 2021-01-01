@@ -77,7 +77,8 @@ public class SQLResultsTable extends JPanel implements Closeable {
     private Component currentModePanel;
     private Mode mode;
 
-    public SQLResultsTable() {
+    public SQLResultsTable(int width, int height) {
+        Dimension size = new Dimension(width, height);
         results = new AtomicReference<SQLTable>();
         tableModel = new PagedSQLTableModel(results::get);
         table = new JTable(tableModel);
@@ -120,8 +121,10 @@ public class SQLResultsTable extends JPanel implements Closeable {
             JScrollPane.HORIZONTAL_SCROLLBAR_AS_NEEDED);
         tableScrollPanel.getViewport().setBackground(Color.BLACK);
         infiniteSpinner = new InfiniteSpinnerPanel();
+        infiniteSpinner.setSize(size);
         changeMode(Mode.TABLE);
         setLayout(new BorderLayout());
+        setPreferredSize(size);
         setBorder(BorderFactory.createBevelBorder(BevelBorder.RAISED));
         add(currentModePanel, BorderLayout.CENTER);
         add(createFlowPanel(statusLabel, rowRangeLabel, prevButton, nextButton), BorderLayout.SOUTH);

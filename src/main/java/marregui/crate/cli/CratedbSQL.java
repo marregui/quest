@@ -75,10 +75,12 @@ public class CratedbSQL implements Closeable {
         LOGGER.info("{} version {}", getClass().getSimpleName(), VERSION);
 
         JFrame frame = GUITk.createFrame();
+        int width = frame.getWidth();
+        int dividerHeight = (int) (frame.getHeight() * 0.6);
         conns = new ConnectionsManager(frame, this::dispatchEvent);
         commands = new CommandBoard(this::dispatchEvent);
-        commands.setPreferredSize(new Dimension(0, (int) (frame.getHeight() * 0.6)));
-        results = new SQLResultsTable();
+        commands.setPreferredSize(new Dimension(0, dividerHeight));
+        results = new SQLResultsTable(width, dividerHeight);
         frame.setTitle(String.format("%s %s [store: %s]", getClass().getSimpleName(), VERSION, conns.getStorePath()));
 
         // menu bar
@@ -87,7 +89,7 @@ public class CratedbSQL implements Closeable {
         frame.setJMenuBar(createMenuBar());
 
         JSplitPane splitPane = new JSplitPane(JSplitPane.VERTICAL_SPLIT, false, commands, results);
-        splitPane.setDividerLocation(commands.getPreferredSize().height);
+        splitPane.setDividerLocation(dividerHeight);
         frame.add(splitPane, BorderLayout.CENTER);
 
         Runtime.getRuntime().addShutdownHook(new Thread(this::close, getClass().getSimpleName() + "-shutdown-hook"));
