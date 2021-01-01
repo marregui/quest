@@ -158,7 +158,7 @@ public class CommandBoard extends MessagePane implements EventProducer<CommandBo
      * 
      * @param event it is effectively ignored, so it can be null
      */
-    public void onClearEvent(ActionEvent event) {
+    private void onClearEvent(ActionEvent event) {
         textPane.setText("");
     }
 
@@ -167,7 +167,7 @@ public class CommandBoard extends MessagePane implements EventProducer<CommandBo
      * 
      * @param event it is effectively ignored, so it can be null
      */
-    public void onReloadEvent(ActionEvent event) {
+    private void onReloadEvent(ActionEvent event) {
         textPane.setText(content.getContent());
     }
 
@@ -176,7 +176,7 @@ public class CommandBoard extends MessagePane implements EventProducer<CommandBo
      * 
      * @param event it is effectively ignored, so it can be null
      */
-    public void onSaveEvent(ActionEvent event) {
+    private void onSaveEvent(ActionEvent event) {
         content.setContent(getTextContent());
         store.asyncSaveToFile();
     }

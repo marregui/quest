@@ -107,7 +107,6 @@ public class CratedbSQL implements Closeable {
         connsMenu.setFont(font);
 
         JMenu commandsMenu = new JMenu("Commands");
-        commandsMenu.add(configureMenuItem(new JMenuItem(), font, "Clear", KeyEvent.VK_BACK_SPACE, commands::onClearEvent));
         commandsMenu.add(configureMenuItem(new JMenuItem(), font, "L.Exec", KeyEvent.VK_L, commands::onExecLineEvent));
         commandsMenu.add(configureMenuItem(new JMenuItem(), font, "Exec", KeyEvent.VK_ENTER, commands::onExecEvent));
         commandsMenu.add(configureMenuItem(new JMenuItem(), font, "Cancel", KeyEvent.VK_C, commands::onCancelEvent));
