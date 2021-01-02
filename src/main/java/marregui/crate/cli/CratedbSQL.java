@@ -25,7 +25,6 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.InputEvent;
 import java.awt.event.KeyEvent;
-import java.io.Closeable;
 import java.util.Set;
 
 import javax.swing.BorderFactory;
@@ -51,7 +50,7 @@ import marregui.crate.cli.widgets.results.SQLResultsTable;
 /**
  * Application's Main.
  */
-public class CratedbSQL implements Closeable {
+public class CratedbSQL {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(CratedbSQL.class);
 
@@ -252,8 +251,7 @@ public class CratedbSQL implements Closeable {
         }
     }
 
-    @Override
-    public void close() {
+    private void close() {
         commands.close();
         executor.close();
         conns.close();
