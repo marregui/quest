@@ -14,7 +14,7 @@
  * Copyright 2020, Miguel Arregui a.k.a. marregui
  */
 
-package marregui.crate.cli.persistence;
+package marregui.crate.cli.backend;
 
 import java.io.BufferedReader;
 import java.io.Closeable;

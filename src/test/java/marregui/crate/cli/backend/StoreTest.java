@@ -14,7 +14,7 @@
  * Copyright 2020, Miguel Arregui a.k.a. marregui
  */
 
-package marregui.crate.cli.persistence;
+package marregui.crate.cli.backend;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.is;
@@ -27,6 +27,8 @@ import java.util.Objects;
 import org.junit.jupiter.api.Test;
 
 import marregui.crate.cli.backend.DBConnAttrs;
+import marregui.crate.cli.backend.Store;
+import marregui.crate.cli.backend.StoreEntry;
 import marregui.crate.cli.widgets.command.Content;
 
 

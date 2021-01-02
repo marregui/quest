@@ -16,7 +16,7 @@
 
 package marregui.crate.cli.widgets.command;
 
-import marregui.crate.cli.persistence.StoreEntry;
+import marregui.crate.cli.backend.StoreEntry;
 
 
 /**

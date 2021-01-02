@@ -42,7 +42,7 @@ import marregui.crate.cli.EventProducer;
 import marregui.crate.cli.GUITk;
 import marregui.crate.cli.backend.DBConn;
 import marregui.crate.cli.backend.SQLExecRequest;
-import marregui.crate.cli.persistence.Store;
+import marregui.crate.cli.backend.Store;
 import marregui.crate.cli.widgets.MaskingMouseListener;
 import marregui.crate.cli.widgets.MessagePane;
 

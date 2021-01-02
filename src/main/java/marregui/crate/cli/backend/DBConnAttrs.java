@@ -19,7 +19,6 @@ package marregui.crate.cli.backend;
 import java.util.Properties;
 
 import marregui.crate.cli.WithKey;
-import marregui.crate.cli.persistence.StoreEntry;
 
 
 /**

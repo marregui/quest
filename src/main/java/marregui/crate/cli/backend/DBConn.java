@@ -25,8 +25,6 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import marregui.crate.cli.persistence.StoreEntry;
-
 
 /**
  * Database connection, it extends base class {@link DBConnAttrs} which
