@@ -24,7 +24,7 @@ import marregui.crate.cli.WithKey;
 /**
  * Persistent connection attributes, host, port, username and password.
  */
-public class DBConnAttrs extends StoreEntry {
+public class ConnAttrs extends StoreEntry {
 
     private static final String JDBC_DRIVER_URL_FORMAT = "jdbc:postgresql://%s:%s/";
 
@@ -75,7 +75,7 @@ public class DBConnAttrs extends StoreEntry {
      * 
      * @param other original store item
      */
-    public DBConnAttrs(StoreEntry other) {
+    public ConnAttrs(StoreEntry other) {
         super(other);
     }
 
@@ -84,7 +84,7 @@ public class DBConnAttrs extends StoreEntry {
      * 
      * @param name name of the connection
      */
-    public DBConnAttrs(String name) {
+    public ConnAttrs(String name) {
         super(name);
         setAttr(AttrName.host, AttrName.host.getDefaultValue());
         setAttr(AttrName.host, AttrName.host.getDefaultValue());

@@ -26,14 +26,11 @@ import java.util.Objects;
 
 import org.junit.jupiter.api.Test;
 
-import marregui.crate.cli.backend.DBConnAttrs;
-import marregui.crate.cli.backend.Store;
-import marregui.crate.cli.backend.StoreEntry;
 import marregui.crate.cli.widgets.command.Content;
 
 
 /**
- * Exemplifies the use of {@link Store} and tests that {@link DBConnAttrs}
+ * Exemplifies the use of {@link Store} and tests that {@link ConnAttrs}
  * instances are loaded/saved from/to the backing file correctly.
  */
 public class StoreTest {
@@ -55,20 +52,20 @@ public class StoreTest {
 
         String fileName = deleteIfExists("db-connection-persistence-test.json");
 
-        DBConnAttrs conn = new DBConnAttrs("master-node-0");
+        ConnAttrs conn = new ConnAttrs("master-node-0");
         conn.setAttr("host", "prometheus");
         conn.setAttr("port", "5433");
         conn.setAttr("username", "patroclo");
         conn.setAttr("password", "secret password");
 
         // Save connection
-        try (Store<DBConnAttrs> store = new Store<>(fileName, DBConnAttrs.class)) {
+        try (Store<ConnAttrs> store = new Store<>(fileName, ConnAttrs.class)) {
             store.addEntry(conn, true);
         }
 
         // Load connection
-        DBConnAttrs pConn;
-        try (Store<DBConnAttrs> store = new Store<>(fileName, DBConnAttrs.class)) {
+        ConnAttrs pConn;
+        try (Store<ConnAttrs> store = new Store<>(fileName, ConnAttrs.class)) {
             store.loadEntriesFromFile();
             assertThat(store.size(), is(1));
             pConn = store.entries().get(0);

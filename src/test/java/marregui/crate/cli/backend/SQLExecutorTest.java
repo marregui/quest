@@ -48,12 +48,12 @@ public class SQLExecutorTest {
         }
 
         int runtimeSeconds = 90;
-        DBConn conn1 = new DBConn("default1");
-        DBConn conn2 = new DBConn("default2");
-        List<DBConn> conns = new ArrayList<>(2);
+        Conn conn1 = new Conn("default1");
+        Conn conn2 = new Conn("default2");
+        List<Conn> conns = new ArrayList<>(2);
         conns.add(conn1);
         conns.add(conn2);
-        DBConnsValidityChecker checker = new DBConnsValidityChecker(() -> conns, (lostConns) -> {
+        ConnsChecker checker = new ConnsChecker(() -> conns, (lostConns) -> {
             System.out.println("Lost connections: " + lostConns);
         });
         try {
@@ -79,7 +79,7 @@ public class SQLExecutorTest {
             }
         }
         finally {
-            conns.forEach(DBConn::close);
+            conns.forEach(Conn::close);
             if (checker.isRunning()) {
                 checker.close();
             }

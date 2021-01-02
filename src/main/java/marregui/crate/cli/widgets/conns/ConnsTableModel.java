@@ -34,8 +34,8 @@ import javax.swing.table.JTableHeader;
 import javax.swing.table.TableColumnModel;
 
 import marregui.crate.cli.GUITk;
-import marregui.crate.cli.backend.DBConn;
-import marregui.crate.cli.backend.DBConnAttrs;
+import marregui.crate.cli.backend.Conn;
+import marregui.crate.cli.backend.ConnAttrs;
 import marregui.crate.cli.widgets.CellRenderer;
 import marregui.crate.cli.widgets.PasswordRenderer;
 
@@ -54,8 +54,8 @@ class ConnsTableModel extends AbstractTableModel implements Closeable {
     private static final String NAME_COL = "name";
     private static final String CONNECTED_COL = "connected";
     private static final String[] COL_NAMES = {
-        NAME_COL, DBConnAttrs.AttrName.host.name(), DBConnAttrs.AttrName.port.name(), DBConnAttrs.AttrName.username.name(),
-        DBConnAttrs.AttrName.password.name(), CONNECTED_COL
+        NAME_COL, ConnAttrs.AttrName.host.name(), ConnAttrs.AttrName.port.name(), ConnAttrs.AttrName.username.name(),
+        ConnAttrs.AttrName.password.name(), CONNECTED_COL
     };
     private static final int ROW_HEIGHT = 22;
     private static final int[] COL_WIDTHS = {
@@ -99,7 +99,7 @@ class ConnsTableModel extends AbstractTableModel implements Closeable {
 
     private static final long serialVersionUID = 1L;
 
-    private final List<DBConn> conns;
+    private final List<Conn> conns;
     private final Map<String, Integer> connKeyToRowIdx;
     private final Set<String> existingNames;
 
@@ -109,13 +109,13 @@ class ConnsTableModel extends AbstractTableModel implements Closeable {
         existingNames = new TreeSet<>();
     }
 
-    void setConns(List<DBConn> newConns) {
+    void setConns(List<Conn> newConns) {
         conns.clear();
         connKeyToRowIdx.clear();
         existingNames.clear();
         if (newConns != null) {
             for (int i = 0; i < newConns.size(); i++) {
-                DBConn conn = newConns.get(i);
+                Conn conn = newConns.get(i);
                 conns.add(conn);
                 connKeyToRowIdx.put(conn.getKey(), i);
                 existingNames.add(conn.getName());
@@ -124,7 +124,7 @@ class ConnsTableModel extends AbstractTableModel implements Closeable {
         }
     }
 
-    List<DBConn> getConns() {
+    List<Conn> getConns() {
         return conns;
     }
 
@@ -132,19 +132,19 @@ class ConnsTableModel extends AbstractTableModel implements Closeable {
         return name != null && existingNames.contains(name);
     }
 
-    boolean containsConn(DBConn conn) {
+    boolean containsConn(Conn conn) {
         if (conn != null) {
             String rowKey = conn.getKey();
             Integer idx = connKeyToRowIdx.get(rowKey);
             if (idx != null) {
-                DBConn internalConn = conns.get(idx);
+                Conn internalConn = conns.get(idx);
                 return internalConn != null && internalConn.equals(conn);
             }
         }
         return false;
     }
 
-    int addConn(DBConn conn) {
+    int addConn(Conn conn) {
         if (conn == null) {
             return -1;
         }
@@ -156,8 +156,8 @@ class ConnsTableModel extends AbstractTableModel implements Closeable {
         return idx;
     }
 
-    DBConn removeConn(int rowIdx) {
-        DBConn conn = conns.remove(rowIdx);
+    Conn removeConn(int rowIdx) {
+        Conn conn = conns.remove(rowIdx);
         connKeyToRowIdx.remove(conn.getKey());
         existingNames.remove(conn.getName());
         fireTableRowsDeleted(rowIdx, rowIdx);
@@ -191,14 +191,14 @@ class ConnsTableModel extends AbstractTableModel implements Closeable {
     public void setValueAt(Object value, int rowIdx, int colIdx) {
         String attrName = COL_NAMES[colIdx];
         if (!NAME_COL.equals(attrName)) {
-            DBConn conn = conns.get(rowIdx);
+            Conn conn = conns.get(rowIdx);
             conn.setAttr(attrName, (String) value, "");
             fireTableCellUpdated(rowIdx, colIdx);
         }
     }
 
-    DBConn getValueAt(int rowIndex) {
-        return (DBConn) getValueAt(rowIndex, -1);
+    Conn getValueAt(int rowIndex) {
+        return (Conn) getValueAt(rowIndex, -1);
     }
 
     @Override
@@ -206,7 +206,7 @@ class ConnsTableModel extends AbstractTableModel implements Closeable {
         if (colIdx == -1) {
             return conns.get(rowIdx);
         }
-        DBConn conn = conns.get(rowIdx);
+        Conn conn = conns.get(rowIdx);
         String attrName = COL_NAMES[colIdx];
         switch (attrName) {
             case NAME_COL:
@@ -233,7 +233,6 @@ class ConnsTableModel extends AbstractTableModel implements Closeable {
         conns.clear();
         connKeyToRowIdx.clear();
         existingNames.clear();
-        fireTableDataChanged();
     }
 
     private void onTableModelEvent(TableModelEvent event) {
@@ -241,7 +240,7 @@ class ConnsTableModel extends AbstractTableModel implements Closeable {
             int ri = event.getFirstRow();
             int ci = event.getColumn();
             if (ri >= 0 && ri < conns.size() && ci >= 1 && ci < COL_NAMES.length) {
-                DBConn updated = conns.get(ri);
+                Conn updated = conns.get(ri);
                 if (updated.isOpen()) {
                     updated.close();
                 }

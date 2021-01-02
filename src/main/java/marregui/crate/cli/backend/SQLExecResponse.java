@@ -33,7 +33,7 @@ public class SQLExecResponse extends SQLExecRequest {
     private final long fetchMs;
     private final Throwable error;
 
-    SQLExecResponse(SQLExecRequest req, DBConn conn, String query, long totalMs, long execMs, long fetchMs,
+    SQLExecResponse(SQLExecRequest req, Conn conn, String query, long totalMs, long execMs, long fetchMs,
         SQLTable table) {
         super(req);
         this.table = table;

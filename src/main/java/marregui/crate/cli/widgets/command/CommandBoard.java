@@ -40,7 +40,7 @@ import javax.swing.text.Utilities;
 import marregui.crate.cli.EventConsumer;
 import marregui.crate.cli.EventProducer;
 import marregui.crate.cli.GUITk;
-import marregui.crate.cli.backend.DBConn;
+import marregui.crate.cli.backend.Conn;
 import marregui.crate.cli.backend.SQLExecRequest;
 import marregui.crate.cli.backend.Store;
 import marregui.crate.cli.widgets.MaskingMouseListener;
@@ -78,7 +78,7 @@ public class CommandBoard extends MessagePane implements EventProducer<CommandBo
     private final JButton execLineButton;
     private final JButton cancelButton;
     private final JLabel connLabel;
-    private DBConn conn; // uses it when set
+    private Conn conn; // uses it when set
     private SQLExecRequest lastRequest;
 
     /**
@@ -133,7 +133,7 @@ public class CommandBoard extends MessagePane implements EventProducer<CommandBo
     /**
      * @return the database connection used by the command board
      */
-    public DBConn getConnection() {
+    public Conn getConnection() {
         return conn;
     }
 
@@ -142,7 +142,7 @@ public class CommandBoard extends MessagePane implements EventProducer<CommandBo
      * 
      * @param conn the connection
      */
-    public void setConnection(DBConn conn) {
+    public void setConnection(Conn conn) {
         this.conn = conn;
         refreshControls();
     }

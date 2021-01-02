@@ -25,7 +25,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 /**
  * Simple program that exemplifies the use of
- * {@link DBConnsValidityChecker} enabling manual testing against a
+ * {@link ConnsChecker} enabling manual testing against a
  * running database.
  * <p>
  * To run the database follow the instructions found here <a href=
@@ -40,7 +40,7 @@ import java.util.concurrent.atomic.AtomicInteger;
  * lost.</li>
  * </ul>
  * If 90 seconds are too long for you, change
- * {@link DBConn#ISVALID_TIMEOUT_SECS} to a lower value, as the
+ * {@link Conn#ISVALID_TIMEOUT_SECS} to a lower value, as the
  * period for the checker is 3x this value.
  */
 public class DBConnectionsValidityCheckerTest {
@@ -53,12 +53,12 @@ public class DBConnectionsValidityCheckerTest {
      */
     public static void main(String[] args) throws Exception {
         int runtimeSeconds = 90;
-        DBConn conn1 = new DBConn("default1");
-        DBConn conn2 = new DBConn("default2");
-        List<DBConn> conns = new ArrayList<>(2);
+        Conn conn1 = new Conn("default1");
+        Conn conn2 = new Conn("default2");
+        List<Conn> conns = new ArrayList<>(2);
         conns.add(conn1);
         conns.add(conn2);
-        DBConnsValidityChecker checker = new DBConnsValidityChecker(() -> conns, (lostConns) -> {
+        ConnsChecker checker = new ConnsChecker(() -> conns, (lostConns) -> {
             System.out.println("Lost connections: " + lostConns);
         });
         try {
@@ -84,7 +84,7 @@ public class DBConnectionsValidityCheckerTest {
             }
         }
         finally {
-            conns.forEach(DBConn::close);
+            conns.forEach(Conn::close);
             if (checker.isRunning()) {
                 checker.close();
             }

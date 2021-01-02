@@ -35,7 +35,7 @@ public class SQLExecRequest implements WithKey {
 
     private final String sourceId;
     private final String key;
-    private final DBConn conn;
+    private final Conn conn;
     private final String sql;
 
     /**
@@ -45,7 +45,7 @@ public class SQLExecRequest implements WithKey {
      * 
      * @param request original request
      */
-    public SQLExecRequest(String sourceId, DBConn conn, String command) {
+    public SQLExecRequest(String sourceId, Conn conn, String command) {
         this(sourceId, UUID.randomUUID().toString(), conn, command);
     }
 
@@ -53,7 +53,7 @@ public class SQLExecRequest implements WithKey {
         this(request.sourceId, request.key, request.conn, request.sql);
     }
 
-    private SQLExecRequest(String sourceId, String key, DBConn conn, String command) {
+    private SQLExecRequest(String sourceId, String key, Conn conn, String command) {
         this.sourceId = sourceId;
         this.key = key;
         this.conn = conn;
@@ -77,7 +77,7 @@ public class SQLExecRequest implements WithKey {
     /**
      * @return database connection
      */
-    public DBConn getConnection() {
+    public Conn getConnection() {
         return conn;
     }
 

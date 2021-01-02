@@ -48,16 +48,16 @@ import org.slf4j.LoggerFactory;
  * Supplier and consumer references are provided to the constructor of this
  * class.
  * 
- * @see DBConn#isValid()
+ * @see Conn#isValid()
  */
-public class DBConnsValidityChecker implements Closeable {
+public class ConnsChecker implements Closeable {
 
     private static final int PERIOD_SECS = 60;
     private static final int NUM_THREADS = 2;
-    private static final Logger LOGGER = LoggerFactory.getLogger(DBConnsValidityChecker.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(ConnsChecker.class);
 
-    private final Supplier<List<DBConn>> connsSupplier;
-    private final Consumer<Set<DBConn>> lostConnsConsumer;
+    private final Supplier<List<Conn>> connsSupplier;
+    private final Consumer<Set<Conn>> lostConnsConsumer;
     private final AtomicBoolean isChecking;
     private ScheduledExecutorService scheduler;
 
@@ -71,8 +71,8 @@ public class DBConnsValidityChecker implements Closeable {
      *                          least one callback carrying a set containing lost
      *                          connections
      */
-    public DBConnsValidityChecker(Supplier<List<DBConn>> connsSupplier,
-        Consumer<Set<DBConn>> lostConnsConsumer) {
+    public ConnsChecker(Supplier<List<Conn>> connsSupplier,
+        Consumer<Set<Conn>> lostConnsConsumer) {
         this.connsSupplier = connsSupplier;
         this.lostConnsConsumer = lostConnsConsumer;
         this.isChecking = new AtomicBoolean();
@@ -98,7 +98,7 @@ public class DBConnsValidityChecker implements Closeable {
     }
 
     private final List<ScheduledFuture<?>> invalidConnsFutures() {
-        return connsSupplier.get().stream().filter(DBConn::isOpen).map(conn -> scheduler.schedule(() -> {
+        return connsSupplier.get().stream().filter(Conn::isOpen).map(conn -> scheduler.schedule(() -> {
             return !conn.isValid() ? conn : null; // might block for up DBConnection.VALID_CHECK_TIMEOUT_SECS
         }, 0, TimeUnit.SECONDS)).collect(Collectors.toList());
     }
@@ -110,12 +110,12 @@ public class DBConnsValidityChecker implements Closeable {
         try {
             List<ScheduledFuture<?>> invalidConns = invalidConnsFutures();
             while (invalidConns.size() > 0) {
-                Set<DBConn> invalidSet = new HashSet<>();
+                Set<Conn> invalidSet = new HashSet<>();
                 for (Iterator<ScheduledFuture<?>> it = invalidConns.iterator(); it.hasNext();) {
                     ScheduledFuture<?> invalidConnFuture = it.next();
                     if (invalidConnFuture.isDone()) {
                         try {
-                            DBConn conn = (DBConn) invalidConnFuture.get();
+                            Conn conn = (Conn) invalidConnFuture.get();
                             if (conn != null) {
                                 invalidSet.add(conn);
                             }

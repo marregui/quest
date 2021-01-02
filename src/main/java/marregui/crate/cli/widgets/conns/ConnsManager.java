@@ -48,14 +48,14 @@ import org.slf4j.LoggerFactory;
 import marregui.crate.cli.EventConsumer;
 import marregui.crate.cli.EventProducer;
 import marregui.crate.cli.GUITk;
-import marregui.crate.cli.backend.DBConn;
-import marregui.crate.cli.backend.DBConnsValidityChecker;
+import marregui.crate.cli.backend.Conn;
+import marregui.crate.cli.backend.ConnsChecker;
 import marregui.crate.cli.backend.Store;
 import marregui.crate.cli.widgets.command.CommandBoard;
 
 
 /**
- * Dialog that presents a table where each row is a {@link DBConn}, allowing the
+ * Dialog that presents a table where each row is a {@link Conn}, allowing the
  * user to test, connect, disconnect, edit, as well as to assign them to the
  * {@link CommandBoard}. Connections are loaded/saved from/to a {@link Store}.
  */
@@ -89,7 +89,7 @@ public class ConnsManager extends JDialog implements EventProducer<ConnsManager.
     private static final String STORE_FILE_NAME = "connections.json";
 
     private final EventConsumer<ConnsManager, Object> eventConsumer;
-    private final Store<DBConn> store;
+    private final Store<Conn> store;
     private final JButton assignButton;
     private final JButton testButton;
     private final JButton connectButton;
@@ -98,7 +98,7 @@ public class ConnsManager extends JDialog implements EventProducer<ConnsManager.
     private final JButton reloadButton;
     private final JTable table;
     private final ConnsTableModel tableModel;
-    private final DBConnsValidityChecker connsValidityChecker;
+    private final ConnsChecker connsValidityChecker;
 
     /**
      * @param owner         reference to the main frame
@@ -107,18 +107,18 @@ public class ConnsManager extends JDialog implements EventProducer<ConnsManager.
     public ConnsManager(Frame owner, EventConsumer<ConnsManager, Object> eventConsumer) {
         super(owner, "Connections", false); // does not block use of the main app
         this.eventConsumer = eventConsumer;
-        store = new Store<>(STORE_FILE_NAME, DBConn.class) {
+        store = new Store<>(STORE_FILE_NAME, Conn.class) {
 
             @Override
-            public DBConn[] defaultStoreEntries() {
-                return new DBConn[] {
-                    new DBConn("default")
+            public Conn[] defaultStoreEntries() {
+                return new Conn[] {
+                    new Conn("default")
                 };
             }
         };
         table = ConnsTableModel.createTable(this::onTableModelEvent, this::toggleComponents);
         tableModel = (ConnsTableModel) table.getModel();
-        connsValidityChecker = new DBConnsValidityChecker(tableModel::getConns, this::onLostConnsEvent);
+        connsValidityChecker = new ConnsChecker(tableModel::getConns, this::onLostConnsEvent);
         reloadButton = GUITk.createButton("Reload", this::onReloadEvent);
         cloneButton = GUITk.createButton("Clone", this::onCloneEvent);
         JButton addButton = GUITk.createButton("Add", this::onAddEvent);
@@ -164,7 +164,7 @@ public class ConnsManager extends JDialog implements EventProducer<ConnsManager.
     /**
      * @return the selected connection, or null
      */
-    public DBConn getSelected() {
+    public Conn getSelected() {
         int rowIdx = table.getSelectedRow();
         return rowIdx != -1 ? tableModel.getValueAt(rowIdx) : null;
     }
@@ -174,7 +174,7 @@ public class ConnsManager extends JDialog implements EventProducer<ConnsManager.
      * 
      * @param conn connection to be selected
      */
-    public void setSelected(DBConn conn) {
+    public void setSelected(Conn conn) {
         if (conn == null) {
             return;
         }
@@ -201,12 +201,12 @@ public class ConnsManager extends JDialog implements EventProducer<ConnsManager.
 
     @Override
     public void close() {
-        store.close();
         connsValidityChecker.close();
         tableModel.close();
+        store.close();
     }
 
-    public void onConnectEvent(DBConn conn) {
+    public void onConnectEvent(Conn conn) {
         if (conn == null) {
             JOptionPane.showMessageDialog(this, "Connection not set", "Connection Failed", JOptionPane.ERROR_MESSAGE);
             return;
@@ -252,14 +252,14 @@ public class ConnsManager extends JDialog implements EventProducer<ConnsManager.
             removeButton.setEnabled(false);
         }
         else {
-            DBConn conn = getSelected();
+            Conn conn = getSelected();
             boolean isSetButNotOpen = conn != null && !conn.isOpen();
             assignButton.setEnabled(conn != null);
             cloneButton.setEnabled(conn != null);
             testButton.setEnabled(isSetButNotOpen);
             removeButton.setEnabled(isSetButNotOpen);
             connectButton.setText(conn != null && conn.isOpen() ? "Disconnect" : "Connect");
-            reloadButton.setEnabled(tableModel.getConns().stream().noneMatch(DBConn::isOpen));
+            reloadButton.setEnabled(tableModel.getConns().stream().noneMatch(Conn::isOpen));
         }
         table.repaint();
         validate();
@@ -276,7 +276,7 @@ public class ConnsManager extends JDialog implements EventProducer<ConnsManager.
     private void onRemoveEvent(ActionEvent event) {
         int selectedRowIdx = table.getSelectedRow();
         if (-1 != selectedRowIdx) {
-            DBConn removed = tableModel.removeConn(selectedRowIdx);
+            Conn removed = tableModel.removeConn(selectedRowIdx);
             if (removed.isOpen()) {
                 removed.close();
             }
@@ -291,7 +291,7 @@ public class ConnsManager extends JDialog implements EventProducer<ConnsManager.
         }
     }
 
-    private void onAddConnEvent(DBConn template) {
+    private void onAddConnEvent(Conn template) {
         String name = JOptionPane.showInputDialog(this, "Name", "New Connection", JOptionPane.INFORMATION_MESSAGE);
         if (name == null || name.isEmpty()) {
             return;
@@ -304,7 +304,7 @@ public class ConnsManager extends JDialog implements EventProducer<ConnsManager.
             JOptionPane.showMessageDialog(this, "Name already exists", "Add Fail", JOptionPane.ERROR_MESSAGE);
             return;
         }
-        DBConn added = new DBConn(name, template);
+        Conn added = new Conn(name, template);
         int offset = tableModel.addConn(added);
         table.getSelectionModel().addSelectionInterval(offset, offset);
         store.addEntry(added, false);
@@ -312,7 +312,7 @@ public class ConnsManager extends JDialog implements EventProducer<ConnsManager.
     }
 
     private void onCloneEvent(ActionEvent event) {
-        DBConn conn = getSelected();
+        Conn conn = getSelected();
         if (conn != null) {
             onAddConnEvent(conn);
         }
@@ -322,9 +322,9 @@ public class ConnsManager extends JDialog implements EventProducer<ConnsManager.
         onAddConnEvent(null);
     }
 
-    private void onLostConnsEvent(Set<DBConn> lostConns) {
+    private void onLostConnsEvent(Set<Conn> lostConns) {
         StringBuilder sb = new StringBuilder();
-        for (DBConn conn : lostConns) {
+        for (Conn conn : lostConns) {
             String msg = String.format("Lost connection with [%s] as '%s'", conn.getUri(), conn.getUsername());
             sb.append(msg).append("\n");
             LOGGER.error(msg);
@@ -338,13 +338,13 @@ public class ConnsManager extends JDialog implements EventProducer<ConnsManager.
 
     private void onReloadEvent(ActionEvent event) {
         int selectedIdx = table.getSelectedRow();
-        DBConn selected = getSelected();
+        Conn selected = getSelected();
         store.loadEntriesFromFile();
-        List<DBConn> conns = store.entries();
+        List<Conn> conns = store.entries();
         tableModel.setConns(conns);
         if (conns.size() > 0) {
             if (selectedIdx >= 0 && selectedIdx < conns.size()) {
-                DBConn conn = tableModel.getValueAt(selectedIdx);
+                Conn conn = tableModel.getValueAt(selectedIdx);
                 if (conn.equals(selected)) {
                     table.getSelectionModel().addSelectionInterval(selectedIdx, selectedIdx);
                 }
@@ -356,7 +356,7 @@ public class ConnsManager extends JDialog implements EventProducer<ConnsManager.
     }
 
     private void onTestEvent(ActionEvent event) {
-        DBConn conn = getSelected();
+        Conn conn = getSelected();
         try {
             if (conn != null) {
                 conn.testConnectivity();

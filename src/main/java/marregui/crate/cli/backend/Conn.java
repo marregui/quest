@@ -27,12 +27,12 @@ import org.slf4j.LoggerFactory;
 
 
 /**
- * Database connection, it extends base class {@link DBConnAttrs} which
+ * Database connection, it extends base class {@link ConnAttrs} which
  * provides persistence for the attributes. It adds logging and connectivity
  * methods to open/close the connection with the database and check its
  * validity.
  */
-public class DBConn extends DBConnAttrs implements Closeable {
+public class Conn extends ConnAttrs implements Closeable {
 
     /**
      * Time to wait for the database operation used to validate the connection to
@@ -50,7 +50,7 @@ public class DBConn extends DBConnAttrs implements Closeable {
      * 
      * @param name name of the connection
      */
-    public DBConn(String name) {
+    public Conn(String name) {
         super(name);
         isOpen = new AtomicBoolean();
         logger = LoggerFactory.getLogger(String.format("%s [%s]", getClass().getSimpleName(), getKey()));
@@ -63,7 +63,7 @@ public class DBConn extends DBConnAttrs implements Closeable {
      * @param name  name of the connection
      * @param other source connection
      */
-    public DBConn(String name, DBConn other) {
+    public Conn(String name, Conn other) {
         this(name);
         if (other != null) {
             setHost(other.getHost());
@@ -79,7 +79,7 @@ public class DBConn extends DBConnAttrs implements Closeable {
      * 
      * @param other original store item
      */
-    public DBConn(StoreEntry other) {
+    public Conn(StoreEntry other) {
         super(other);
         isOpen = new AtomicBoolean();
         logger = LoggerFactory.getLogger(String.format("%s [%s]", getClass().getSimpleName(), getKey()));

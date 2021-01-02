@@ -38,7 +38,7 @@ import javax.swing.KeyStroke;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import marregui.crate.cli.backend.DBConn;
+import marregui.crate.cli.backend.Conn;
 import marregui.crate.cli.backend.SQLExecRequest;
 import marregui.crate.cli.backend.SQLExecResponse;
 import marregui.crate.cli.backend.SQLExecutor;
@@ -141,7 +141,7 @@ public class CratedbSQL {
     }
 
     private void onToggleConnEvent(ActionEvent event) {
-        DBConn conn = commands.getConnection();
+        Conn conn = commands.getConnection();
         conns.onConnectEvent(conn);
         toggleConn.setText(conn != null && conn.isOpen() ? "Connect" : "Disconnect");
     }
@@ -172,7 +172,7 @@ public class CratedbSQL {
     private void onCommandBoardEvent(CommandBoard.EventType event, SQLExecRequest req) {
         switch (event) {
             case COMMAND_AVAILABLE:
-                DBConn conn = commands.getConnection();
+                Conn conn = commands.getConnection();
                 if (conn == null || !conn.isValid()) {
                     onToggleConnEvent(null);
                 }
@@ -219,13 +219,13 @@ public class CratedbSQL {
     private void onDBConnectionManagerEvent(ConnsManager.EventType event, Object data) {
         switch (event) {
             case CONNECTION_SELECTED:
-                commands.setConnection((DBConn) data);
+                commands.setConnection((Conn) data);
                 break;
 
             case CONNECTION_ESTABLISHED:
             case CONNECTION_CLOSED:
-                DBConn conn = (DBConn) data;
-                DBConn current = commands.getConnection();
+                Conn conn = (Conn) data;
+                Conn current = commands.getConnection();
                 if (current != null && current.equals(conn)) {
                     commands.setConnection(conn);
                     toggleConn.setText(conn.isOpen() ? "Disconnect" : "Connect");
@@ -234,10 +234,10 @@ public class CratedbSQL {
 
             case CONNECTIONS_LOST:
                 @SuppressWarnings("unchecked")
-                Set<DBConn> droppedConns = (Set<DBConn>) data;
+                Set<Conn> droppedConns = (Set<Conn>) data;
                 current = commands.getConnection();
                 if (current != null) {
-                    for (DBConn dc : droppedConns) {
+                    for (Conn dc : droppedConns) {
                         if (current.equals(dc)) {
                             commands.setConnection(dc);
                         }

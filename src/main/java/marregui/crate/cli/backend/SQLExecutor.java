@@ -175,7 +175,7 @@ public class SQLExecutor implements EventProducer<SQLExecutor.EventType>, Closea
     private void executeRequest(SQLExecRequest req, EventConsumer<SQLExecutor, SQLExecResponse> eventListener) {
         final long start = System.nanoTime();
         String sourceId = req.getSourceId();
-        DBConn conn = req.getConnection();
+        Conn conn = req.getConnection();
         String query = req.getSQL();
         SQLTable table = new SQLTable(req.getKey());
         if (!conn.isValid()) {
