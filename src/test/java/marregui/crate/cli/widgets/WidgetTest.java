@@ -24,7 +24,7 @@ import javax.swing.JButton;
 import javax.swing.JFrame;
 
 import marregui.crate.cli.widgets.command.CommandBoard;
-import marregui.crate.cli.widgets.conns.ConnectionsManager;
+import marregui.crate.cli.widgets.conns.ConnsManager;
 
 
 public class WidgetTest {
@@ -51,7 +51,7 @@ public class WidgetTest {
 
     public static void test_SQLConnectionManager() {
         @SuppressWarnings("resource")
-        ConnectionsManager connMngr = new ConnectionsManager(null, (source, eventType, eventData) -> {
+        ConnsManager connMngr = new ConnsManager(null, (source, eventType, eventData) -> {
             System.out.printf("src: %s, type: %s -> %s%n", source, eventType, eventData);
         });
         connMngr.start();

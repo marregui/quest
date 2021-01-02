@@ -18,7 +18,6 @@ package marregui.crate.cli.widgets.conns;
 
 import static marregui.crate.cli.GUITk.createEtchedFlowPanel;
 import static marregui.crate.cli.GUITk.createFlowPanel;
-import static marregui.crate.cli.widgets.conns.ConnectionsTableModel.NAME_COL;
 
 import java.awt.BorderLayout;
 import java.awt.Container;
@@ -30,7 +29,6 @@ import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 import java.io.Closeable;
 import java.io.File;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
@@ -57,11 +55,11 @@ import marregui.crate.cli.widgets.command.CommandBoard;
 
 
 /**
- * Presents a table where each row is a {@link DBConn}, allowing the user
- * to act on each (test, connect, disconnect), as well as to assign them to a
+ * Dialog that presents a table where each row is a {@link DBConn}, allowing the
+ * user to test, connect, disconnect, edit, as well as to assign them to the
  * {@link CommandBoard}. Connections are loaded/saved from/to a {@link Store}.
  */
-public class ConnectionsManager extends JDialog implements EventProducer<ConnectionsManager.EventType>, Closeable {
+public class ConnsManager extends JDialog implements EventProducer<ConnsManager.EventType>, Closeable {
 
     public enum EventType {
         /**
@@ -77,7 +75,7 @@ public class ConnectionsManager extends JDialog implements EventProducer<Connect
          */
         CONNECTION_CLOSED,
         /**
-         * A connection has been lost.
+         * A set of connections, possibly only one, has been lost.
          */
         CONNECTIONS_LOST,
         /**
@@ -87,10 +85,10 @@ public class ConnectionsManager extends JDialog implements EventProducer<Connect
     }
 
     private static final long serialVersionUID = 1L;
-    private static final Logger LOGGER = LoggerFactory.getLogger(ConnectionsManager.class);
-    private static final String STORE_FILE_NAME = "db-connections.json";
+    private static final Logger LOGGER = LoggerFactory.getLogger(ConnsManager.class);
+    private static final String STORE_FILE_NAME = "connections.json";
 
-    private final EventConsumer<ConnectionsManager, Object> eventConsumer;
+    private final EventConsumer<ConnsManager, Object> eventConsumer;
     private final Store<DBConn> store;
     private final JButton assignButton;
     private final JButton testButton;
@@ -99,18 +97,16 @@ public class ConnectionsManager extends JDialog implements EventProducer<Connect
     private final JButton removeButton;
     private final JButton reloadButton;
     private final JTable table;
-    private final ConnectionsTableModel tableModel;
-    private final Set<String> existingNamesInTableModel;
+    private final ConnsTableModel tableModel;
     private final DBConnsValidityChecker connsValidityChecker;
 
     /**
      * @param owner         reference to the main frame
      * @param eventConsumer receives the events fired as the user interacts
      */
-    public ConnectionsManager(Frame owner, EventConsumer<ConnectionsManager, Object> eventConsumer) {
-        super(owner, "Connections", false);
+    public ConnsManager(Frame owner, EventConsumer<ConnsManager, Object> eventConsumer) {
+        super(owner, "Connections", false); // does not block use of the main app
         this.eventConsumer = eventConsumer;
-        existingNamesInTableModel = new HashSet<>();
         store = new Store<>(STORE_FILE_NAME, DBConn.class) {
 
             @Override
@@ -120,9 +116,9 @@ public class ConnectionsManager extends JDialog implements EventProducer<Connect
                 };
             }
         };
-
-        table = ConnectionsTableModel.createTable(this::onTableModelEvent, this::toggleComponents);
-        tableModel = (ConnectionsTableModel) table.getModel();
+        table = ConnsTableModel.createTable(this::onTableModelEvent, this::toggleComponents);
+        tableModel = (ConnsTableModel) table.getModel();
+        connsValidityChecker = new DBConnsValidityChecker(tableModel::getConns, this::onLostConnsEvent);
         reloadButton = GUITk.createButton("Reload", this::onReloadEvent);
         cloneButton = GUITk.createButton("Clone", this::onCloneEvent);
         JButton addButton = GUITk.createButton("Add", this::onAddEvent);
@@ -153,10 +149,9 @@ public class ConnectionsManager extends JDialog implements EventProducer<Connect
 
             @Override
             public void windowClosing(WindowEvent we) {
-                eventConsumer.onSourceEvent(ConnectionsManager.this, EventType.HIDE_REQUEST, null);
+                eventConsumer.onSourceEvent(ConnsManager.this, EventType.HIDE_REQUEST, null);
             }
         });
-        connsValidityChecker = new DBConnsValidityChecker(tableModel::getConnections, this::onLostConnsEvent);
     }
 
     /**
@@ -195,8 +190,7 @@ public class ConnectionsManager extends JDialog implements EventProducer<Connect
     }
 
     /**
-     * Loads the database connections from the store and starts the connectivity
-     * checker.
+     * Loads the connections from the store and starts the connectivity checker.
      */
     public void start() {
         if (!connsValidityChecker.isRunning()) {
@@ -210,7 +204,6 @@ public class ConnectionsManager extends JDialog implements EventProducer<Connect
         store.close();
         connsValidityChecker.close();
         tableModel.close();
-        existingNamesInTableModel.clear();
     }
 
     public void onConnectEvent(DBConn conn) {
@@ -218,7 +211,8 @@ public class ConnectionsManager extends JDialog implements EventProducer<Connect
             JOptionPane.showMessageDialog(this, "Connection not set", "Connection Failed", JOptionPane.ERROR_MESSAGE);
             return;
         }
-        if (!tableModel.contains(conn)) {
+        if (!tableModel.containsConn(conn)) {
+            System.out.println("HORROR");
             return;
         }
         if (!conn.isOpen()) {
@@ -236,7 +230,6 @@ public class ConnectionsManager extends JDialog implements EventProducer<Connect
                 conn.close();
             }
             catch (RuntimeException e) {
-                JOptionPane.showMessageDialog(this, e.getMessage(), "SQLException", JOptionPane.ERROR_MESSAGE);
                 LOGGER.error("Disconnect", e);
             }
             finally {
@@ -266,7 +259,7 @@ public class ConnectionsManager extends JDialog implements EventProducer<Connect
             testButton.setEnabled(isSetButNotOpen);
             removeButton.setEnabled(isSetButNotOpen);
             connectButton.setText(conn != null && conn.isOpen() ? "Disconnect" : "Connect");
-            reloadButton.setEnabled(tableModel.getConnections().stream().noneMatch(DBConn::isOpen));
+            reloadButton.setEnabled(tableModel.getConns().stream().noneMatch(DBConn::isOpen));
         }
         table.repaint();
         validate();
@@ -275,41 +268,15 @@ public class ConnectionsManager extends JDialog implements EventProducer<Connect
 
     private void onTableModelEvent(TableModelEvent event) {
         if (event.getType() == TableModelEvent.UPDATE) {
-            int ri = event.getFirstRow();
-            int ci = event.getColumn();
-            if (ri >= 0 && ri < tableModel.getRowCount() && ci >= 0 && ci < tableModel.getColumnCount()) {
-                DBConn updated = tableModel.getValueAt(ri);
-                if (0 == ci) {
-                    if (existingNamesInTableModel.contains(updated.getName())) {
-                        JOptionPane.showMessageDialog(this, "Name already exists, they must be unique", "Update name Fail",
-                            JOptionPane.ERROR_MESSAGE);
-                        onReloadEvent(null);
-                        table.getSelectionModel().setSelectionInterval(ri, ri);
-                        return;
-                    }
-                    updateExistingNames();
-                }
-                if (updated.isOpen()) {
-                    updated.close();
-                }
-                toggleComponents();
-                store.asyncSaveToFile();
-            }
-        }
-    }
-
-    private void updateExistingNames() {
-        existingNamesInTableModel.clear();
-        for (int idx = 0; idx < tableModel.getRowCount(); idx++) {
-            existingNamesInTableModel.add((String) tableModel.getValueAt(idx, 0));
+            toggleComponents();
+            store.asyncSaveToFile();
         }
     }
 
     private void onRemoveEvent(ActionEvent event) {
         int selectedRowIdx = table.getSelectedRow();
         if (-1 != selectedRowIdx) {
-            DBConn removed = tableModel.removeConnection(selectedRowIdx);
-            existingNamesInTableModel.remove(removed.getName());
+            DBConn removed = tableModel.removeConn(selectedRowIdx);
             if (removed.isOpen()) {
                 removed.close();
             }
@@ -324,8 +291,8 @@ public class ConnectionsManager extends JDialog implements EventProducer<Connect
         }
     }
 
-    private void addConnection(DBConn template) {
-        String name = JOptionPane.showInputDialog(this, NAME_COL, "New Connection", JOptionPane.INFORMATION_MESSAGE);
+    private void onAddConnEvent(DBConn template) {
+        String name = JOptionPane.showInputDialog(this, "Name", "New Connection", JOptionPane.INFORMATION_MESSAGE);
         if (name == null || name.isEmpty()) {
             return;
         }
@@ -333,13 +300,12 @@ public class ConnectionsManager extends JDialog implements EventProducer<Connect
             JOptionPane.showMessageDialog(this, "Name cannot contain whites", "Add Fail", JOptionPane.ERROR_MESSAGE);
             return;
         }
-        if (existingNamesInTableModel.contains(name)) {
+        if (tableModel.containsName(name)) {
             JOptionPane.showMessageDialog(this, "Name already exists", "Add Fail", JOptionPane.ERROR_MESSAGE);
             return;
         }
-        existingNamesInTableModel.add(name);
         DBConn added = new DBConn(name, template);
-        int offset = tableModel.addConnection(added);
+        int offset = tableModel.addConn(added);
         table.getSelectionModel().addSelectionInterval(offset, offset);
         store.addEntry(added, false);
         toggleComponents();
@@ -348,12 +314,12 @@ public class ConnectionsManager extends JDialog implements EventProducer<Connect
     private void onCloneEvent(ActionEvent event) {
         DBConn conn = getSelected();
         if (conn != null) {
-            addConnection(conn);
+            onAddConnEvent(conn);
         }
     }
 
     private void onAddEvent(ActionEvent event) {
-        addConnection(null);
+        onAddConnEvent(null);
     }
 
     private void onLostConnsEvent(Set<DBConn> lostConns) {
@@ -375,8 +341,7 @@ public class ConnectionsManager extends JDialog implements EventProducer<Connect
         DBConn selected = getSelected();
         store.loadEntriesFromFile();
         List<DBConn> conns = store.entries();
-        tableModel.setConnections(conns);
-        updateExistingNames();
+        tableModel.setConns(conns);
         if (conns.size() > 0) {
             if (selectedIdx >= 0 && selectedIdx < conns.size()) {
                 DBConn conn = tableModel.getValueAt(selectedIdx);

@@ -43,7 +43,7 @@ import marregui.crate.cli.backend.SQLExecRequest;
 import marregui.crate.cli.backend.SQLExecResponse;
 import marregui.crate.cli.backend.SQLExecutor;
 import marregui.crate.cli.widgets.command.CommandBoard;
-import marregui.crate.cli.widgets.conns.ConnectionsManager;
+import marregui.crate.cli.widgets.conns.ConnsManager;
 import marregui.crate.cli.widgets.results.SQLResultsTable;
 
 
@@ -62,7 +62,7 @@ public class CratedbSQL {
         + " | |___| | | (_| | ||  __/ (_| | |_) |__) | |_| | |___ \n"
         + "  \\____|_|  \\__,_|\\__\\___|\\__,_|_.__/____/ \\__\\_\\_____|" + "\n";
 
-    private final ConnectionsManager conns;
+    private final ConnsManager conns;
     private final SQLExecutor executor;
     private final CommandBoard commands;
     private final SQLResultsTable results;
@@ -76,7 +76,7 @@ public class CratedbSQL {
         JFrame frame = GUITk.createFrame();
         int width = frame.getWidth();
         int dividerHeight = (int) (frame.getHeight() * 0.6);
-        conns = new ConnectionsManager(frame, this::dispatchEvent);
+        conns = new ConnsManager(frame, this::dispatchEvent);
         commands = new CommandBoard(this::dispatchEvent);
         commands.setPreferredSize(new Dimension(0, dividerHeight));
         results = new SQLResultsTable(width, dividerHeight);
@@ -159,7 +159,7 @@ public class CratedbSQL {
         else if (source instanceof SQLExecutor) {
             onSQLExecutorEvent(eventType(event), (SQLExecResponse) data);
         }
-        else if (source instanceof ConnectionsManager) {
+        else if (source instanceof ConnsManager) {
             onDBConnectionManagerEvent(eventType(event), data);
         }
     }
@@ -216,7 +216,7 @@ public class CratedbSQL {
         }
     }
 
-    private void onDBConnectionManagerEvent(ConnectionsManager.EventType event, Object data) {
+    private void onDBConnectionManagerEvent(ConnsManager.EventType event, Object data) {
         switch (event) {
             case CONNECTION_SELECTED:
                 commands.setConnection((DBConn) data);

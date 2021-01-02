@@ -76,7 +76,7 @@ public class StoreEntry implements WithKey, Comparable<StoreEntry> {
      * @param attrName name of the attribute
      * @return the value associated with the attribute, or null if it does not exist
      */
-    public String getAttribute(String attrName) {
+    public String getAttr(String attrName) {
         return attrs.get(attrName);
     }
 
@@ -86,7 +86,7 @@ public class StoreEntry implements WithKey, Comparable<StoreEntry> {
      * @param attr an implementor of HasKey
      * @return the value associated with the attribute, or null if it does not exist
      */
-    public String getAttribute(WithKey attr) {
+    public String getAttr(WithKey attr) {
         return attrs.get(attr.getKey());
     }
 
@@ -98,8 +98,8 @@ public class StoreEntry implements WithKey, Comparable<StoreEntry> {
      * @param attr  an implementor of HasKey
      * @param value value for the attribute
      */
-    public void setAttribute(WithKey attr, String value) {
-        setAttribute(attr, value, "");
+    public void setAttr(WithKey attr, String value) {
+        setAttr(attr, value, "");
     }
 
     /**
@@ -109,7 +109,7 @@ public class StoreEntry implements WithKey, Comparable<StoreEntry> {
      * @param value        value for the attribute
      * @param defaultValue default value when the supplied value is null or empty
      */
-    public void setAttribute(WithKey attr, String value, String defaultValue) {
+    public void setAttr(WithKey attr, String value, String defaultValue) {
         attrs.put(attr.getKey(), null == value || value.isEmpty() ? defaultValue : value);
     }
 
@@ -120,7 +120,7 @@ public class StoreEntry implements WithKey, Comparable<StoreEntry> {
      * @param value        value for the attribute
      * @param defaultValue default value when the supplied value is null or empty
      */
-    public void setAttribute(String attrName, String value, String defaultValue) {
+    public void setAttr(String attrName, String value, String defaultValue) {
         attrs.put(attrName, value == null || value.isEmpty() ? defaultValue : value);
     }
 
@@ -130,7 +130,7 @@ public class StoreEntry implements WithKey, Comparable<StoreEntry> {
      * @param attrName name of the attribute
      * @param value    value for the attribute
      */
-    public void setAttribute(String attrName, String value) {
+    public void setAttr(String attrName, String value) {
         attrs.put(attrName, value);
     }
 

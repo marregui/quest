@@ -20,12 +20,14 @@ import java.io.Closeable;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.TreeMap;
-import java.util.function.BiFunction;
+import java.util.TreeSet;
 
 import javax.swing.JTable;
 import javax.swing.ListSelectionModel;
 import javax.swing.event.ListSelectionListener;
+import javax.swing.event.TableModelEvent;
 import javax.swing.event.TableModelListener;
 import javax.swing.table.AbstractTableModel;
 import javax.swing.table.JTableHeader;
@@ -39,20 +41,37 @@ import marregui.crate.cli.widgets.PasswordRenderer;
 
 
 /**
- * Table model used by the {@link ConnectionsManager}.
+ * Table model used by the {@link ConnsManager}.
  */
-class ConnectionsTableModel extends AbstractTableModel implements Closeable {
+class ConnsTableModel extends AbstractTableModel implements Closeable {
+
+    private static final int NAME_COL_IDX = 0;
+    private static final int HOST_COL_IDX = 1;
+    private static final int PORT_COL_IDX = 2;
+    private static final int USERNAME_COL_IDX = 3;
+    private static final int PASSWORD_COL_IDX = 4;
+    private static final int CONNECTED_COL_IDX = 5;
+    private static final String NAME_COL = "name";
+    private static final String CONNECTED_COL = "connected";
+    private static final String[] COL_NAMES = {
+        NAME_COL, DBConnAttrs.AttrName.host.name(), DBConnAttrs.AttrName.port.name(), DBConnAttrs.AttrName.username.name(),
+        DBConnAttrs.AttrName.password.name(), CONNECTED_COL
+    };
+    private static final int ROW_HEIGHT = 22;
+    private static final int[] COL_WIDTHS = {
+        200, 400, 100, 200, 200, 200
+    };
 
     /**
-     * Factory method, creates a table that has a {@link ConnectionsTableModel}
-     * model.
+     * Factory method, creates a table that has a {@link ConnsTableModel} model.
      * 
      * @param onTableModelEvent called each time a change to the data model occurs
      * @param selectionListener called each time a change to the selection occurs
      * @return a new table
      */
     static JTable createTable(TableModelListener onTableModelEvent, ListSelectionListener selectionListener) {
-        ConnectionsTableModel tableModel = new ConnectionsTableModel();
+        ConnsTableModel tableModel = new ConnsTableModel();
+        tableModel.addTableModelListener(tableModel::onTableModelEvent);
         tableModel.addTableModelListener(onTableModelEvent);
         JTable table = new JTable(tableModel);
         table.setAutoCreateRowSorter(false);
@@ -79,48 +98,44 @@ class ConnectionsTableModel extends AbstractTableModel implements Closeable {
     }
 
     private static final long serialVersionUID = 1L;
-    private static final int NAME_COL_IDX = 0;
-    private static final int HOST_COL_IDX = 1;
-    private static final int PORT_COL_IDX = 2;
-    private static final int USERNAME_COL_IDX = 3;
-    private static final int PASSWORD_COL_IDX = 4;
-    private static final int CONNECTED_COL_IDX = 5;
-    private static final int ROW_HEIGHT = 22;
-    private static final int[] COL_WIDTHS = {
-        200, 400, 100, 200, 200, 200
-    };
-
-    static final String NAME_COL = "name";
 
     private final List<DBConn> conns;
-    private final Map<String, Integer> rowKeyToIdx;
+    private final Map<String, Integer> connKeyToRowIdx;
+    private final Set<String> existingNames;
 
-    private ConnectionsTableModel() {
+    private ConnsTableModel() {
         conns = new ArrayList<>();
-        rowKeyToIdx = new TreeMap<>();
+        connKeyToRowIdx = new TreeMap<>();
+        existingNames = new TreeSet<>();
     }
 
-    void setConnections(List<DBConn> newConns) {
+    void setConns(List<DBConn> newConns) {
         conns.clear();
-        rowKeyToIdx.clear();
-        if (newConns != null && !newConns.isEmpty()) {
+        connKeyToRowIdx.clear();
+        existingNames.clear();
+        if (newConns != null) {
             for (int i = 0; i < newConns.size(); i++) {
                 DBConn conn = newConns.get(i);
                 conns.add(conn);
-                rowKeyToIdx.put(conn.getKey(), i);
+                connKeyToRowIdx.put(conn.getKey(), i);
+                existingNames.add(conn.getName());
             }
+            fireTableDataChanged();
         }
-        fireTableDataChanged();
     }
 
-    List<DBConn> getConnections() {
+    List<DBConn> getConns() {
         return conns;
     }
 
-    boolean contains(DBConn conn) {
+    boolean containsName(String name) {
+        return name != null && existingNames.contains(name);
+    }
+
+    boolean containsConn(DBConn conn) {
         if (conn != null) {
             String rowKey = conn.getKey();
-            Integer idx = rowKeyToIdx.get(rowKey);
+            Integer idx = connKeyToRowIdx.get(rowKey);
             if (idx != null) {
                 DBConn internalConn = conns.get(idx);
                 return internalConn != null && internalConn.equals(conn);
@@ -129,18 +144,22 @@ class ConnectionsTableModel extends AbstractTableModel implements Closeable {
         return false;
     }
 
-    int addConnection(DBConn conn) {
+    int addConn(DBConn conn) {
         if (conn == null) {
             return -1;
         }
         conns.add(conn);
-        int offset = conns.size() - 1;
-        fireTableRowsInserted(offset, offset);
-        return offset;
+        int idx = conns.size() - 1;
+        connKeyToRowIdx.put(conn.getKey(), idx);
+        existingNames.add(conn.getName());
+        fireTableRowsInserted(idx, idx);
+        return idx;
     }
 
-    DBConn removeConnection(int rowIdx) {
+    DBConn removeConn(int rowIdx) {
         DBConn conn = conns.remove(rowIdx);
+        connKeyToRowIdx.remove(conn.getKey());
+        existingNames.remove(conn.getName());
         fireTableRowsDeleted(rowIdx, rowIdx);
         return conn;
     }
@@ -149,7 +168,7 @@ class ConnectionsTableModel extends AbstractTableModel implements Closeable {
         if (connKey == null) {
             return -1;
         }
-        Integer idx = rowKeyToIdx.get(connKey);
+        Integer idx = connKeyToRowIdx.get(connKey);
         return idx != null ? idx.intValue() : -1;
     }
 
@@ -160,23 +179,22 @@ class ConnectionsTableModel extends AbstractTableModel implements Closeable {
 
     @Override
     public int getColumnCount() {
-        return colNames != null ? colNames.length : 0;
+        return COL_NAMES.length;
     }
 
     @Override
     public String getColumnName(int colIdx) {
-        return colNames[colIdx];
-    }
-
-    @Override
-    public Class<?> getColumnClass(int colIdx) {
-        return String.class;
+        return COL_NAMES[colIdx];
     }
 
     @Override
     public void setValueAt(Object value, int rowIdx, int colIdx) {
-        colSetter.call(conns.get(rowIdx), colNames[colIdx], value);
-        fireTableCellUpdated(rowIdx, colIdx);
+        String attrName = COL_NAMES[colIdx];
+        if (!NAME_COL.equals(attrName)) {
+            DBConn conn = conns.get(rowIdx);
+            conn.setAttr(attrName, (String) value, "");
+            fireTableCellUpdated(rowIdx, colIdx);
+        }
     }
 
     DBConn getValueAt(int rowIndex) {
@@ -188,48 +206,46 @@ class ConnectionsTableModel extends AbstractTableModel implements Closeable {
         if (colIdx == -1) {
             return conns.get(rowIdx);
         }
-        return colGetter.apply(conns.get(rowIdx), colNames[colIdx]);
-    }
-
-    @Override
-    public boolean isCellEditable(int rowIdx, int colIdx) {
-        return CONNECTED_COL_IDX != colIdx && NAME_COL_IDX != colIdx;
-    }
-
-    @Override
-    public void close() {
-        conns.clear();
-        rowKeyToIdx.clear();
-        fireTableDataChanged();
-    }
-
-    private static final String CONNECTED_COL = "connected";
-
-    private static final String[] colNames = {
-        NAME_COL, DBConnAttrs.AttrName.host.name(), DBConnAttrs.AttrName.port.name(),
-        DBConnAttrs.AttrName.username.name(), DBConnAttrs.AttrName.password.name(), CONNECTED_COL
-    };
-
-    private static final BiFunction<DBConn, String, Object> colGetter = (conn, attrName) -> {
+        DBConn conn = conns.get(rowIdx);
+        String attrName = COL_NAMES[colIdx];
         switch (attrName) {
             case NAME_COL:
                 return conn.getName();
             case CONNECTED_COL:
                 return conn.isOpen() ? "Yes" : "No";
             default:
-                return conn.getAttribute(attrName);
+                return conn.getAttr(attrName);
         }
-    };
-
-    @FunctionalInterface
-    private static interface ThreeArgsMethod<T, U, V> {
-
-        void call(T t, U u, V v);
     }
 
-    private static final ThreeArgsMethod<DBConn, String, Object> colSetter = (conn, attrName, value) -> {
-        if (!NAME_COL.equals(attrName)) {
-            conn.setAttribute(attrName, (String) value, "");
+    @Override
+    public boolean isCellEditable(int rowIdx, int colIdx) {
+        return NAME_COL_IDX != colIdx && CONNECTED_COL_IDX != colIdx;
+    }
+
+    @Override
+    public Class<?> getColumnClass(int colIdx) {
+        return String.class;
+    }
+
+    @Override
+    public void close() {
+        conns.clear();
+        connKeyToRowIdx.clear();
+        existingNames.clear();
+        fireTableDataChanged();
+    }
+
+    private void onTableModelEvent(TableModelEvent event) {
+        if (event.getType() == TableModelEvent.UPDATE) {
+            int ri = event.getFirstRow();
+            int ci = event.getColumn();
+            if (ri >= 0 && ri < conns.size() && ci >= 1 && ci < COL_NAMES.length) {
+                DBConn updated = conns.get(ri);
+                if (updated.isOpen()) {
+                    updated.close();
+                }
+            }
         }
-    };
+    }
 }

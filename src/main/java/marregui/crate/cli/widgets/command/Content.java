@@ -46,10 +46,10 @@ public class Content extends StoreEntry {
     }
 
     public String getContent() {
-        return getAttribute(ATTR_NAME);
+        return getAttr(ATTR_NAME);
     }
 
     public void setContent(String content) {
-        setAttribute(ATTR_NAME, content);
+        setAttr(ATTR_NAME, content);
     }
 }

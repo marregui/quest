@@ -56,10 +56,10 @@ public class StoreTest {
         String fileName = deleteIfExists("db-connection-persistence-test.json");
 
         DBConnAttrs conn = new DBConnAttrs("master-node-0");
-        conn.setAttribute("host", "prometheus");
-        conn.setAttribute("port", "5433");
-        conn.setAttribute("username", "patroclo");
-        conn.setAttribute("password", "secret password");
+        conn.setAttr("host", "prometheus");
+        conn.setAttr("port", "5433");
+        conn.setAttr("username", "patroclo");
+        conn.setAttr("password", "secret password");
 
         // Save connection
         try (Store<DBConnAttrs> store = new Store<>(fileName, DBConnAttrs.class)) {
@@ -126,8 +126,8 @@ public class StoreTest {
         try (Store<StoreEntry> store = new Store<>(fileName, StoreEntry.class)) {
             for (int i = 0; i < 10; i++) {
                 StoreEntry entry = new StoreEntry("entry_" + i);
-                entry.setAttribute("id", String.valueOf(i));
-                entry.setAttribute("age", "14_000");
+                entry.setAttr("id", String.valueOf(i));
+                entry.setAttr("age", "14_000");
                 store.addEntry(entry, i == 0);
             }
         }
@@ -139,8 +139,8 @@ public class StoreTest {
             int i = 0;
             for (StoreEntry entry : store) {
                 assertThat(entry.getName(), is("entry_" + i));
-                assertThat(entry.getAttribute("id"), is(String.valueOf(i)));
-                assertThat(entry.getAttribute("age"), is("14_000"));
+                assertThat(entry.getAttr("id"), is(String.valueOf(i)));
+                assertThat(entry.getAttr("age"), is("14_000"));
                 i++;
             }
         }

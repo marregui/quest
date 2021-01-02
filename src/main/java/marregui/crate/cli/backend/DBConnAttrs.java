@@ -86,17 +86,17 @@ public class DBConnAttrs extends StoreEntry {
      */
     public DBConnAttrs(String name) {
         super(name);
-        setAttribute(AttrName.host, AttrName.host.getDefaultValue());
-        setAttribute(AttrName.host, AttrName.host.getDefaultValue());
-        setAttribute(AttrName.port, AttrName.port.getDefaultValue());
-        setAttribute(AttrName.username, AttrName.username.getDefaultValue());
-        setAttribute(AttrName.password, AttrName.password.getDefaultValue());
+        setAttr(AttrName.host, AttrName.host.getDefaultValue());
+        setAttr(AttrName.host, AttrName.host.getDefaultValue());
+        setAttr(AttrName.port, AttrName.port.getDefaultValue());
+        setAttr(AttrName.username, AttrName.username.getDefaultValue());
+        setAttr(AttrName.password, AttrName.password.getDefaultValue());
     }
 
     @Override
     public final String getKey() {
-        return String.format("%s %s@%s:%s", getName(), getAttribute(AttrName.username), getAttribute(AttrName.host),
-            getAttribute(AttrName.port));
+        return String.format("%s %s@%s:%s", getName(), getAttr(AttrName.username), getAttr(AttrName.host),
+            getAttr(AttrName.port));
     }
 
     /**
@@ -141,7 +141,7 @@ public class DBConnAttrs extends StoreEntry {
      * @return host name
      */
     public String getHost() {
-        return getAttribute(AttrName.host);
+        return getAttr(AttrName.host);
     }
 
     /**
@@ -150,7 +150,7 @@ public class DBConnAttrs extends StoreEntry {
      * @param host host name
      */
     public void setHost(String host) {
-        setAttribute(AttrName.host, host, AttrName.host.getDefaultValue());
+        setAttr(AttrName.host, host, AttrName.host.getDefaultValue());
     }
 
     /**
@@ -159,7 +159,7 @@ public class DBConnAttrs extends StoreEntry {
      * @return port
      */
     public String getPort() {
-        return getAttribute(AttrName.port);
+        return getAttr(AttrName.port);
     }
 
     /**
@@ -168,7 +168,7 @@ public class DBConnAttrs extends StoreEntry {
      * @param port port
      */
     public void setPort(String port) {
-        setAttribute(AttrName.port, port, AttrName.port.getDefaultValue());
+        setAttr(AttrName.port, port, AttrName.port.getDefaultValue());
     }
 
     /**
@@ -177,7 +177,7 @@ public class DBConnAttrs extends StoreEntry {
      * @return user name
      */
     public String getUsername() {
-        return getAttribute(AttrName.username);
+        return getAttr(AttrName.username);
     }
 
     /**
@@ -186,7 +186,7 @@ public class DBConnAttrs extends StoreEntry {
      * @param username user name
      */
     public void setUsername(String username) {
-        setAttribute(AttrName.username, username, AttrName.username.getDefaultValue());
+        setAttr(AttrName.username, username, AttrName.username.getDefaultValue());
     }
 
     /**
@@ -195,7 +195,7 @@ public class DBConnAttrs extends StoreEntry {
      * @return password
      */
     public String getPassword() {
-        return getAttribute(AttrName.password);
+        return getAttr(AttrName.password);
     }
 
     /**
@@ -204,6 +204,6 @@ public class DBConnAttrs extends StoreEntry {
      * @param password password
      */
     public void setPassword(String password) {
-        setAttribute(AttrName.password, password, AttrName.password.getDefaultValue());
+        setAttr(AttrName.password, password, AttrName.password.getDefaultValue());
     }
 }
