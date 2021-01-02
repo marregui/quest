@@ -52,15 +52,14 @@ import marregui.crate.cli.widgets.results.SQLResultsTable;
  */
 public class CratedbSQL {
 
-    private static final Logger LOGGER = LoggerFactory.getLogger(CratedbSQL.class);
-
-    private static final String VERSION = "2.0.0";
     private static final String BANNER = "\n" // https://patorjk.com/software/taag/#p=display&h=2&f=Ivrit&t=CratedbSQL
         + "   ____           _           _ _    ____   ___  _     \n"
         + "  / ___|_ __ __ _| |_ ___  __| | |__/ ___| / _ \\| |    \n"
         + " | |   | '__/ _` | __/ _ \\/ _` | '_ \\___ \\| | | | |    \n"
         + " | |___| | | (_| | ||  __/ (_| | |_) |__) | |_| | |___ \n"
         + "  \\____|_|  \\__,_|\\__\\___|\\__,_|_.__/____/ \\__\\_\\_____|" + "\n";
+
+    private static final String VERSION = "1.0.0";
 
     private final ConnsManager conns;
     private final SQLExecutor executor;
@@ -70,8 +69,9 @@ public class CratedbSQL {
     private final JMenuItem toggleConn;
 
     private CratedbSQL() {
-        LOGGER.info(BANNER);
-        LOGGER.info("{} version {}", getClass().getSimpleName(), VERSION);
+        Logger logger = LoggerFactory.getLogger(CratedbSQL.class);
+        logger.info(BANNER);
+        logger.info("{} version {}", getClass().getSimpleName(), VERSION);
 
         JFrame frame = GUITk.createFrame();
         int width = frame.getWidth();

@@ -36,8 +36,8 @@ repositories {
 }
 
 group = 'marregui.crate'
-version = '2.0.0-SNAPSHOT'
-description = 'CreateDB SQL'
+version = '1.0.0-SNAPSHOT'
+description = 'CreateDB SQL, a desktop client to a crate node that sends SQL and renders results in a nice GUI.'
 
 dependencies {
     implementation 'org.postgresql:postgresql:42.2.9'
@@ -85,4 +85,3 @@ test {
 wrapper {
     gradleVersion = '6.7.1'
 }
-
