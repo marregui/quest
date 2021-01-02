@@ -152,21 +152,21 @@ public class CratedbSQL {
         toggleConnsWidget.setText(wasVisible ? "Show connections" : "Hide connections");
     }
 
-    private void dispatchEvent(EventProducer<?> source, Enum<?> eventType, Object eventData) {
+    private void dispatchEvent(EventProducer<?> source, Enum<?> event, Object data) {
         if (source instanceof CommandBoard) {
-            onCommandBoardEvent(eventType(eventType), (SQLExecRequest) eventData);
+            onCommandBoardEvent(eventType(event), (SQLExecRequest) data);
         }
         else if (source instanceof SQLExecutor) {
-            onSQLExecutorEvent(eventType(eventType), (SQLExecResponse) eventData);
+            onSQLExecutorEvent(eventType(event), (SQLExecResponse) data);
         }
         else if (source instanceof ConnectionsManager) {
-            onDBConnectionManagerEvent(eventType(eventType), eventData);
+            onDBConnectionManagerEvent(eventType(event), data);
         }
     }
 
     @SuppressWarnings("unchecked")
-    private static <EventType extends Enum<?>> EventType eventType(Enum<?> eventType) {
-        return (EventType) EventType.valueOf(eventType.getClass(), eventType.name());
+    private static <EventType extends Enum<?>> EventType eventType(Enum<?> event) {
+        return (EventType) EventType.valueOf(event.getClass(), event.name());
     }
 
     private void onCommandBoardEvent(CommandBoard.EventType event, SQLExecRequest req) {
@@ -216,15 +216,15 @@ public class CratedbSQL {
         }
     }
 
-    private void onDBConnectionManagerEvent(ConnectionsManager.EventType event, Object eventData) {
+    private void onDBConnectionManagerEvent(ConnectionsManager.EventType event, Object data) {
         switch (event) {
             case CONNECTION_SELECTED:
-                commands.setConnection((DBConn) eventData);
+                commands.setConnection((DBConn) data);
                 break;
 
             case CONNECTION_ESTABLISHED:
             case CONNECTION_CLOSED:
-                DBConn conn = (DBConn) eventData;
+                DBConn conn = (DBConn) data;
                 DBConn current = commands.getConnection();
                 if (current != null && current.equals(conn)) {
                     commands.setConnection(conn);
@@ -234,7 +234,7 @@ public class CratedbSQL {
 
             case CONNECTIONS_LOST:
                 @SuppressWarnings("unchecked")
-                Set<DBConn> droppedConns = (Set<DBConn>) eventData;
+                Set<DBConn> droppedConns = (Set<DBConn>) data;
                 current = commands.getConnection();
                 if (current != null) {
                     for (DBConn dc : droppedConns) {
