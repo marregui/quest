@@ -52,7 +52,7 @@ public class MessagePane extends JPanel {
     private final static Object FOREGROUND = StyleConstants.Foreground;
     private final static StyleContext STYLE = StyleContext.getDefaultStyleContext();
     private final static AttributeSet NORMAL = STYLE.addAttribute(STYLE.getEmptySet(), FOREGROUND, Color.WHITE);
-    private final static AttributeSet ERROR = STYLE.addAttribute(STYLE.getEmptySet(), FOREGROUND, new Color(189, 4, 4));
+    private final static AttributeSet ERROR = STYLE.addAttribute(STYLE.getEmptySet(), FOREGROUND, Color.ORANGE);
     private final static AttributeSet KEYWORD = STYLE.addAttribute(STYLE.getEmptySet(), FOREGROUND, GUITk.APP_THEME_COLOR);
 
     protected final JTextPane textPane;
