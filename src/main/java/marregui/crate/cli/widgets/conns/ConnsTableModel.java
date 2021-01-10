@@ -19,9 +19,7 @@ package marregui.crate.cli.widgets.conns;
 import java.io.Closeable;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
-import java.util.TreeMap;
 import java.util.TreeSet;
 
 import javax.swing.JTable;
@@ -100,24 +98,20 @@ class ConnsTableModel extends AbstractTableModel implements Closeable {
     private static final long serialVersionUID = 1L;
 
     private final List<Conn> conns;
-    private final Map<String, Integer> connKeyToRowIdx;
     private final Set<String> existingNames;
 
     private ConnsTableModel() {
         conns = new ArrayList<>();
-        connKeyToRowIdx = new TreeMap<>();
         existingNames = new TreeSet<>();
     }
 
     void setConns(List<Conn> newConns) {
         conns.clear();
-        connKeyToRowIdx.clear();
         existingNames.clear();
         if (newConns != null) {
             for (int i = 0; i < newConns.size(); i++) {
                 Conn conn = newConns.get(i);
                 conns.add(conn);
-                connKeyToRowIdx.put(conn.getKey(), i);
                 existingNames.add(conn.getName());
             }
             fireTableDataChanged();
@@ -133,15 +127,7 @@ class ConnsTableModel extends AbstractTableModel implements Closeable {
     }
 
     boolean containsConn(Conn conn) {
-        if (conn != null) {
-            String rowKey = conn.getKey();
-            Integer idx = connKeyToRowIdx.get(rowKey);
-            if (idx != null) {
-                Conn internalConn = conns.get(idx);
-                return internalConn != null && internalConn.equals(conn);
-            }
-        }
-        return false;
+        return conn != null && -1 != getRowIdx(conn.getKey());
     }
 
     int addConn(Conn conn) {
@@ -150,7 +136,6 @@ class ConnsTableModel extends AbstractTableModel implements Closeable {
         }
         conns.add(conn);
         int idx = conns.size() - 1;
-        connKeyToRowIdx.put(conn.getKey(), idx);
         existingNames.add(conn.getName());
         fireTableRowsInserted(idx, idx);
         return idx;
@@ -158,7 +143,6 @@ class ConnsTableModel extends AbstractTableModel implements Closeable {
 
     Conn removeConn(int rowIdx) {
         Conn conn = conns.remove(rowIdx);
-        connKeyToRowIdx.remove(conn.getKey());
         existingNames.remove(conn.getName());
         fireTableRowsDeleted(rowIdx, rowIdx);
         return conn;
@@ -168,8 +152,13 @@ class ConnsTableModel extends AbstractTableModel implements Closeable {
         if (connKey == null) {
             return -1;
         }
-        Integer idx = connKeyToRowIdx.get(connKey);
-        return idx != null ? idx.intValue() : -1;
+        for (int i = 0; i < conns.size(); i++) {
+            Conn conn = conns.get(i);
+            if (conn.getKey().equals(connKey)) {
+                return i;
+            }
+        }
+        return -1;
     }
 
     @Override
@@ -231,7 +220,6 @@ class ConnsTableModel extends AbstractTableModel implements Closeable {
     @Override
     public void close() {
         conns.clear();
-        connKeyToRowIdx.clear();
         existingNames.clear();
     }
 

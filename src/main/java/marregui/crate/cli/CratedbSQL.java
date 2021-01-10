@@ -50,7 +50,7 @@ import marregui.crate.cli.widgets.results.SQLResultsTable;
 /**
  * Application's Main.
  */
-public class CratedbSQL {
+public final class CratedbSQL {
 
     private static final String BANNER = "\n" // https://patorjk.com/software/taag/#p=display&h=2&f=Ivrit&t=CratedbSQL
         + "   ____           _           _ _    ____   ___  _     \n"

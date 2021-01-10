@@ -116,7 +116,7 @@ public class ConnsManager extends JDialog implements EventProducer<ConnsManager.
                 };
             }
         };
-        table = ConnsTableModel.createTable(this::onTableModelEvent, this::toggleComponents);
+        table = ConnsTableModel.createTable(this::onTableModelEvent, this::onListSelectionEvent);
         tableModel = (ConnsTableModel) table.getModel();
         connsValidityChecker = new ConnsChecker(tableModel::getConns, this::onLostConnsEvent);
         reloadButton = GUITk.createButton("Reload", this::onReloadEvent);
@@ -125,7 +125,7 @@ public class ConnsManager extends JDialog implements EventProducer<ConnsManager.
         removeButton = GUITk.createButton("Remove", this::onRemoveEvent);
         testButton = GUITk.createButton("Test", this::onTestEvent);
         connectButton = GUITk.createButton("Connect", this::onConnectEvent);
-        assignButton = GUITk.createButton("ASSIGN", this::setSelected);
+        assignButton = GUITk.createButton("ASSIGN", this::onAssignEvent);
         assignButton.setFont(new Font(GUITk.MAIN_FONT_NAME, Font.BOLD, 16));
         JPanel buttons = createFlowPanel(createEtchedFlowPanel(reloadButton, cloneButton, addButton, removeButton),
             createEtchedFlowPanel(assignButton, testButton, connectButton));
@@ -164,7 +164,7 @@ public class ConnsManager extends JDialog implements EventProducer<ConnsManager.
     /**
      * @return the selected connection, or null
      */
-    public Conn getSelected() {
+    public Conn getSelectedConn() {
         int rowIdx = table.getSelectedRow();
         return rowIdx != -1 ? tableModel.getValueAt(rowIdx) : null;
     }
@@ -174,19 +174,15 @@ public class ConnsManager extends JDialog implements EventProducer<ConnsManager.
      * 
      * @param conn connection to be selected
      */
-    public void setSelected(Conn conn) {
+    public void setSelectedConn(Conn conn) {
         if (conn == null) {
             return;
         }
-        int idx = tableModel.getRowIdx(conn.getKey());
-        if (idx >= 0) {
-            table.getSelectionModel().setSelectionInterval(idx, idx);
+        int rowIdx = tableModel.getRowIdx(conn.getKey());
+        if (rowIdx >= 0) {
+            table.getSelectionModel().setSelectionInterval(rowIdx, rowIdx);
             eventConsumer.onSourceEvent(this, EventType.CONNECTION_SELECTED, conn);
         }
-    }
-
-    private void setSelected(ActionEvent conn) {
-        setSelected(getSelected());
     }
 
     /**
@@ -212,7 +208,6 @@ public class ConnsManager extends JDialog implements EventProducer<ConnsManager.
             return;
         }
         if (!tableModel.containsConn(conn)) {
-            System.out.println("HORROR");
             return;
         }
         if (!conn.isOpen()) {
@@ -239,7 +234,7 @@ public class ConnsManager extends JDialog implements EventProducer<ConnsManager.
         toggleComponents();
     }
 
-    private void toggleComponents(ListSelectionEvent event) {
+    private void onListSelectionEvent(ListSelectionEvent event) {
         toggleComponents();
     }
 
@@ -252,7 +247,7 @@ public class ConnsManager extends JDialog implements EventProducer<ConnsManager.
             removeButton.setEnabled(false);
         }
         else {
-            Conn conn = getSelected();
+            Conn conn = getSelectedConn();
             boolean isSetButNotOpen = conn != null && !conn.isOpen();
             assignButton.setEnabled(conn != null);
             cloneButton.setEnabled(conn != null);
@@ -273,22 +268,34 @@ public class ConnsManager extends JDialog implements EventProducer<ConnsManager.
         }
     }
 
-    private void onRemoveEvent(ActionEvent event) {
-        int selectedRowIdx = table.getSelectedRow();
-        if (-1 != selectedRowIdx) {
-            Conn removed = tableModel.removeConn(selectedRowIdx);
-            if (removed.isOpen()) {
-                removed.close();
-            }
-            toggleComponents();
-            if (selectedRowIdx == 0) {
-                table.getSelectionModel().setSelectionInterval(0, 0);
+    private void onReloadEvent(ActionEvent event) {
+        int selectedIdx = table.getSelectedRow();
+        Conn selected = getSelectedConn();
+        store.loadEntriesFromFile();
+        List<Conn> conns = store.entries();
+        tableModel.setConns(conns);
+        if (conns.size() > 0) {
+            if (selectedIdx >= 0 && selectedIdx < conns.size()) {
+                Conn conn = tableModel.getValueAt(selectedIdx);
+                if (conn.equals(selected)) {
+                    table.getSelectionModel().addSelectionInterval(selectedIdx, selectedIdx);
+                }
             }
             else {
-                table.getSelectionModel().setSelectionInterval(selectedRowIdx - 1, selectedRowIdx - 1);
+                setSelectedConn(tableModel.getValueAt(0));
             }
-            store.removeEntry(removed);
         }
+    }
+
+    private void onCloneEvent(ActionEvent event) {
+        Conn conn = getSelectedConn();
+        if (conn != null) {
+            onAddConnEvent(conn);
+        }
+    }
+
+    private void onAddEvent(ActionEvent event) {
+        onAddConnEvent(null);
     }
 
     private void onAddConnEvent(Conn template) {
@@ -311,52 +318,30 @@ public class ConnsManager extends JDialog implements EventProducer<ConnsManager.
         toggleComponents();
     }
 
-    private void onCloneEvent(ActionEvent event) {
-        Conn conn = getSelected();
-        if (conn != null) {
-            onAddConnEvent(conn);
-        }
-    }
-
-    private void onAddEvent(ActionEvent event) {
-        onAddConnEvent(null);
-    }
-
-    private void onLostConnsEvent(Set<Conn> lostConns) {
-        StringBuilder sb = new StringBuilder();
-        for (Conn conn : lostConns) {
-            String msg = String.format("Lost connection with [%s] as '%s'", conn.getUri(), conn.getUsername());
-            sb.append(msg).append("\n");
-            LOGGER.error(msg);
-        }
-        GUITk.invokeLater(() -> {
+    private void onRemoveEvent(ActionEvent event) {
+        int rowIdx = table.getSelectedRow();
+        if (-1 != rowIdx) {
+            Conn removed = tableModel.removeConn(rowIdx);
+            if (removed.isOpen()) {
+                removed.close();
+            }
             toggleComponents();
-            eventConsumer.onSourceEvent(this, EventType.CONNECTIONS_LOST, lostConns);
-            JOptionPane.showMessageDialog(this, sb.toString(), "SQLException", JOptionPane.ERROR_MESSAGE);
-        });
-    }
-
-    private void onReloadEvent(ActionEvent event) {
-        int selectedIdx = table.getSelectedRow();
-        Conn selected = getSelected();
-        store.loadEntriesFromFile();
-        List<Conn> conns = store.entries();
-        tableModel.setConns(conns);
-        if (conns.size() > 0) {
-            if (selectedIdx >= 0 && selectedIdx < conns.size()) {
-                Conn conn = tableModel.getValueAt(selectedIdx);
-                if (conn.equals(selected)) {
-                    table.getSelectionModel().addSelectionInterval(selectedIdx, selectedIdx);
-                }
+            if (rowIdx == 0) {
+                table.getSelectionModel().setSelectionInterval(0, 0);
             }
             else {
-                setSelected(tableModel.getValueAt(0));
+                table.getSelectionModel().setSelectionInterval(rowIdx - 1, rowIdx - 1);
             }
+            store.removeEntry(removed);
         }
+    }
+
+    private void onAssignEvent(ActionEvent event) {
+        setSelectedConn(getSelectedConn());
     }
 
     private void onTestEvent(ActionEvent event) {
-        Conn conn = getSelected();
+        Conn conn = getSelectedConn();
         try {
             if (conn != null) {
                 conn.testConnectivity();
@@ -372,6 +357,20 @@ public class ConnsManager extends JDialog implements EventProducer<ConnsManager.
     }
 
     private void onConnectEvent(ActionEvent event) {
-        onConnectEvent(getSelected());
+        onConnectEvent(getSelectedConn());
+    }
+
+    private void onLostConnsEvent(Set<Conn> lostConns) {
+        StringBuilder sb = new StringBuilder();
+        for (Conn conn : lostConns) {
+            String msg = String.format("Lost connection with [%s] as '%s'", conn.getUri(), conn.getUsername());
+            sb.append(msg).append("\n");
+            LOGGER.error(msg);
+        }
+        GUITk.invokeLater(() -> {
+            toggleComponents();
+            eventConsumer.onSourceEvent(this, EventType.CONNECTIONS_LOST, lostConns);
+            JOptionPane.showMessageDialog(this, sb.toString(), "SQLException", JOptionPane.ERROR_MESSAGE);
+        });
     }
 }
