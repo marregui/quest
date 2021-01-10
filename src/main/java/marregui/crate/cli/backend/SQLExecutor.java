@@ -208,12 +208,7 @@ public class SQLExecutor implements EventProducer<SQLExecutor.EventType>, Closea
                 boolean returnsResults = stmt.execute(query);
                 fetchStart = System.nanoTime();
                 execMs = ms(fetchStart - start);
-                if (!returnsResults) {
-                    // The query executed successfully, but doesn't return a ResultSet
-                    table.setSingleOkStatusRow();
-                    LOGGER.info("Completed [{}] from [{}]: OK", req.getKey(), sourceId);
-                }
-                else {
+                if (returnsResults) {
                     for (ResultSet rs = stmt.getResultSet(); rs.next();) {
                         reqKey = cancelRequests.get(sourceId);
                         if (reqKey != null && reqKey.equals(req.getKey())) {
@@ -251,8 +246,8 @@ public class SQLExecutor implements EventProducer<SQLExecutor.EventType>, Closea
             if (reqKey != null && reqKey.equals(req.getKey())) {
                 eventType = EventType.CANCELLED;
             }
-            String status = eventType.name().toLowerCase();
-            LOGGER.info("{} [{}] {} rows, {} ms (exec:{}, fetch:{})", status, req.getKey(), rowId, totalMs, execMs, fetchMs);
+            LOGGER.info("{} [{}] {} rows, {} ms (exec:{}, fetch:{})", eventType.name(), req.getKey(), table.size(), totalMs,
+                execMs, fetchMs);
             eventListener.onSourceEvent(SQLExecutor.this, eventType,
                 new SQLExecResponse(req, conn, query, totalMs, execMs, fetchMs, table));
         }

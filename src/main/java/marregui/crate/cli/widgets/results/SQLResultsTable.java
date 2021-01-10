@@ -156,7 +156,13 @@ public class SQLResultsTable extends JPanel implements Closeable {
             changeMode(Mode.MESSAGE);
         }
         else {
-            changeMode(Mode.TABLE);
+            if (table.size() == 0) {
+                messagePane.displayMessage("OK.\n\nNo resultset for query:\n" + res.getSQL());
+                changeMode(Mode.MESSAGE);
+            }
+            else {
+                changeMode(Mode.TABLE);
+            }
         }
     }
 

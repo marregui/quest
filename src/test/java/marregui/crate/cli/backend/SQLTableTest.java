@@ -74,28 +74,6 @@ public class SQLTableTest {
     }
 
     @Test
-    public void test_setSingleOkRow() {
-        SQLTable table = new SQLTable("staphylococcus");
-        String rowKey = "0";
-        String[] expectedColNames = {
-            "Status"
-        };
-        int[] expecterColTypes = {
-            Types.VARCHAR
-        };
-        Object[] expectedColValues = {
-            "OK"
-        };
-        SQLTable.Row expectedRow = new SQLTable.Row(table, rowKey, expectedColValues);
-        table.setSingleOkStatusRow();
-        assertThat(table.getKey(), is("staphylococcus"));
-        assertThat(table.getColNames(), is(expectedColNames));
-        assertThat(table.getColTypes(), is(expecterColTypes));
-        assertThat(table.getRow(0), is(expectedRow));
-        table.clear();
-    }
-
-    @Test
     public void test_extractColumnMetadata() throws SQLException {
         SQLTable table = new SQLTable(null);
         table.setColMetadata(rs);

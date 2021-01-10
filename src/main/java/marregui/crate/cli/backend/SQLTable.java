@@ -409,41 +409,4 @@ public class SQLTable implements WithKey {
         Row row = getRow(rowIdx);
         return row != null ? row.getValueAt(colIdx) : null;
     }
-
-    /**
-     * Clears the table's data structures and metadata, excluding the table's key.
-     * Then a single row is set with key "0" and a single column of name "Status"
-     * and type VARCHAR, containing "OK".
-     * <p>
-     * This table can be used in response to SQL commands that do not return
-     * anything.
-     */
-    void setSingleOkStatusRow() {
-        Row row = new Row(this, SINGLE_STATUS_ROW_KEY, SINGLE_STATUS_COL_VALUE);
-        writeLock.lock();
-        try {
-            colNames = SINGLE_STATUS_COL_NAME;
-            colTypes = SINGLE_STATUS_COL_TYPE;
-            colNameToColIdx.clear();
-            colNameToColIdx.put(SINGLE_STATUS_COL_NAME[0], 0);
-            lockFreeClearRows();
-            rows.add(row);
-            rowKeyToIdx.put(row.getKey(), 0);
-        }
-        finally {
-            writeLock.unlock();
-        }
-    }
-
-    private static final String SINGLE_STATUS_ROW_KEY = "0";
-
-    private static final String[] SINGLE_STATUS_COL_NAME = new String[] {
-        "Status"
-    };
-    private static final int[] SINGLE_STATUS_COL_TYPE = new int[] {
-        Types.VARCHAR
-    };
-    private static final Object[] SINGLE_STATUS_COL_VALUE = new Object[] {
-        "OK"
-    };
 }
