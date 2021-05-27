@@ -1,13 +1,16 @@
-# cratedbsql
-A CrateDB desktop client using the Postgress wire protocol.
+# mygupsql
 
-###### Run
+Pronounced **"/my-goop-see-cle/"**, is a desktop user interface to common 
+`postgress wire protocol`-compatible databases such as:
 
-Either
- 
-- `./cratedbsql`
+- [**cratedb**](https://github.com/crate/crate)
+- [**questdb**](https://github.com/questdb/questdb)
 
-or
+## Build commands
+
+- <your system's gradle command> wrapper: regeneates the gradle scaffolding
+
+## Run commands
 
 - `./gradlew run`
-
+- `./mygupsql`

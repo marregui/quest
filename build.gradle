@@ -28,16 +28,18 @@ java {
 }
 
 application {
-    mainClassName = 'marregui.crate.cli.CratedbSQL'
+    mainClass = 'io.mygupsql.MyGupSql'
 }
 
 repositories {
     mavenCentral()
 }
 
-group = 'marregui.crate'
+group = 'io.mygupsql'
 version = '1.0.0-SNAPSHOT'
-description = 'CreateDB SQL, a desktop client to a crate node that sends SQL and renders results in a nice GUI.'
+description = 'desktop user interface to common postgress ' +
+        'wire protocol compatible databases.' +
+        'sends SQL and renders results in a nice GUI.'
 
 dependencies {
     implementation 'org.postgresql:postgresql:42.2.9'
@@ -53,9 +55,9 @@ dependencies {
 
 jar {
     manifest {
-        attributes "Main-Class": "marregui.crate.cli.CratedbSQL"
+        attributes 'Main-Class': 'io.mygupsql.MyGupSql'
     }
- 
+
     from {
         configurations.compileClasspath.collect { it.isDirectory() ? it : zipTree(it) }
     }
@@ -64,12 +66,14 @@ jar {
 task fatJar(type: Jar) {
     manifest.from jar.manifest
     archiveClassifier.set('all')
+    duplicatesStrategy(DuplicatesStrategy.INCLUDE)
     from {
         configurations.runtimeClasspath.collect { it.isDirectory() ? it : zipTree(it) }
+        duplicatesStrategy(DuplicatesStrategy.INCLUDE)
     } {
-        exclude "META-INF/*.SF"
-        exclude "META-INF/*.DSA"
-        exclude "META-INF/*.RSA"
+        exclude 'META-INF/*.SF'
+        exclude 'META-INF/*.DSA'
+        exclude 'META-INF/*.RSA'
     }
     with jar
 }
@@ -83,5 +87,5 @@ test {
 }
 
 wrapper {
-    gradleVersion = '6.8'
+    gradleVersion = '6.9'
 }
