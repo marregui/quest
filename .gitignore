@@ -11,4 +11,7 @@ logs
 *.iws
 *.iml
 *.ipr
-images/candidates
+.mygupsql/command-board-content-persistence-test.json
+.mygupsql/db-connection-persistence-test.json
+.mygupsql/store-iterator-test.json
+src/main/resources/images/candicates
