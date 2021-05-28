@@ -2,6 +2,7 @@ build
 out
 bin
 logs
+venv
 .classpath
 .idea
 .gradle
