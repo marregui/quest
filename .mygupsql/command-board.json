@@ -2,7 +2,7 @@
   {
     "name": "CommandBoard",
     "attrs": {
-      "content": "asdfasdf"
+      "content": "show tables\n\ndrop table x\ncreate table x (value string)\n\ninsert into x values (\u0027marregui\u0027)\ninsert into x values (\u0027mygupsql\u0027)\ninsert into x values (NULL)\n\nselect * from x where value !\u003d NULL\nselect * from x where value \u003d NULL\nx"
     }
   }
 ]
