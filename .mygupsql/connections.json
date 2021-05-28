@@ -5,7 +5,7 @@
       "host": "localhost",
       "password": "password",
       "port": "5432",
-      "username": "root",
+      "username": "postgres",
       "isDefault": "false"
     }
   },
@@ -27,6 +27,16 @@
       "port": "8812",
       "username": "admin",
       "isDefault": "true"
+    }
+  },
+  {
+    "name": "timestaledb",
+    "attrs": {
+      "host": "localhost",
+      "isDefault": "false",
+      "password": "password",
+      "port": "5434",
+      "username": "postgres"
     }
   }
 ]

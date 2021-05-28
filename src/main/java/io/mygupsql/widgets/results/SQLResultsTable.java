@@ -25,6 +25,7 @@ import java.awt.event.ActionEvent;
 import java.io.Closeable;
 import java.util.concurrent.atomic.AtomicReference;
 
+import javax.swing.SwingConstants;
 import javax.swing.BorderFactory;
 import javax.swing.JButton;
 import javax.swing.JLabel;
@@ -115,6 +116,7 @@ public class SQLResultsTable extends JPanel implements Closeable {
         nextButton.setForeground(TABLE_FOOTER_FONT_COLOR);
         nextButton.setPreferredSize(NAVIGATION_BUTTON_SIZE);
         nextButton.setIcon(GTk.Icon.NEXT.icon());
+        nextButton.setHorizontalTextPosition(SwingConstants.LEFT);
         nextButton.addActionListener(this::onNextButtonEvent);
         messagePane = new MessagePane();
         tableScrollPanel = new JScrollPane(table, JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED,
