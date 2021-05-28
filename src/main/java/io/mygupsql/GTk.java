@@ -16,6 +16,9 @@
 
 package io.mygupsql;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Dimension;
@@ -25,14 +28,12 @@ import java.awt.Font;
 import java.awt.Toolkit;
 import java.awt.Window;
 import java.awt.event.ActionListener;
+import java.net.URL;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Objects;
 
-import javax.swing.BorderFactory;
-import javax.swing.JButton;
-import javax.swing.JComponent;
-import javax.swing.JFrame;
-import javax.swing.JPanel;
-import javax.swing.WindowConstants;
+import javax.swing.*;
 import javax.swing.border.Border;
 
 
@@ -41,25 +42,28 @@ import javax.swing.border.Border;
  */
 public final class GTk {
 
-    static {
-        // anti-aliased fonts
-        System.setProperty("awt.useSystemAAFontSettings", "on");
-        System.setProperty("swing.aatext", "true");
-    }
-
     public static final Color APP_THEME_COLOR = new Color(66, 188, 245);
     public static final String MAIN_FONT_NAME = "Arial";
     public static final Font TABLE_HEADER_FONT = new Font(MAIN_FONT_NAME, Font.BOLD, 18);
     public static final Color TABLE_HEADER_FONT_COLOR = Color.BLACK;
     public static final Font TABLE_CELL_FONT = new Font(MAIN_FONT_NAME, Font.PLAIN, 16);
 
+    private static final Toolkit TK = Toolkit.getDefaultToolkit();
+    private static final Logger LOGGER = LoggerFactory.getLogger(GTk.class);
+
+    static {
+        // anti-aliased fonts
+        System.setProperty("awt.useSystemAAFontSettings", "on");
+        System.setProperty("swing.aatext", "true");
+    }
+
+
     /**
      * @return dimension instance where width/height are 90% of the screen's
-     *         width/height
+     * width/height
      */
     public static Dimension frameDimension() {
-        Toolkit tk = Toolkit.getDefaultToolkit();
-        Dimension screenSize = tk.getScreenSize();
+        Dimension screenSize = TK.getScreenSize();
         int width = (int) (screenSize.getWidth() * 0.9);
         int height = (int) (screenSize.getHeight() * 0.9);
         return new Dimension(width, height);
@@ -68,11 +72,10 @@ public final class GTk {
     /**
      * @param frameDimension as produced by {@link #frameDimension()}
      * @return dimension representing the location for the frame to be screen
-     *         centred
+     * centred
      */
     public static Dimension frameLocation(Dimension frameDimension) {
-        Toolkit tk = Toolkit.getDefaultToolkit();
-        Dimension screenSize = tk.getScreenSize();
+        Dimension screenSize = TK.getScreenSize();
         int x = (int) (screenSize.getWidth() - frameDimension.getWidth()) / 2;
         int y = (int) (screenSize.getHeight() - frameDimension.getHeight()) / 2;
         return new Dimension(x, y);
@@ -80,7 +83,7 @@ public final class GTk {
 
     /**
      * Creates a top level frame.
-     * 
+     *
      * @return the frame
      */
     static JFrame createFrame() {
@@ -89,7 +92,7 @@ public final class GTk {
 
     /**
      * Creates a top level frame.
-     * 
+     *
      * @param title title for the frame
      * @return the frame
      */
@@ -109,35 +112,32 @@ public final class GTk {
     }
 
     /**
-     * Creates a simple button.
-     * 
+     * Creates a simple button with an icon.
+     *
      * @param text      text to display on the button
      * @param isEnabled whether the button is enabled
      * @param listener  listener/action on button events
-     * @return
+     * @param icon      the icon to set, or null
+     * @param tooltip   text describing what the button does, or null
+     * @return the button
      */
-    public static JButton createButton(String text, boolean isEnabled, ActionListener listener) {
+    public static JButton createButton(String text, boolean isEnabled, Icon icon, String tooltip, ActionListener listener) {
         JButton button = new JButton(Objects.requireNonNull(text));
+        if (icon != Icon.NO_ICON) {
+            button.setIcon(icon.icon());
+        }
+        if (tooltip != null && !tooltip.isBlank()) {
+            button.setToolTipText(tooltip);
+        }
         button.addActionListener(Objects.requireNonNull(listener));
         button.setEnabled(isEnabled);
         return button;
     }
 
     /**
-     * Creates a simple enabled button.
-     * 
-     * @param text     text to display on the button
-     * @param listener listener/action on button events
-     * @return
-     */
-    public static JButton createButton(String text, ActionListener listener) {
-        return createButton(text, true, listener);
-    }
-
-    /**
      * Creates a panel with a right aligned flow layout and adds the components. The
      * panel features an "etched" border.
-     * 
+     *
      * @param components to be added to the panel
      * @return the panel, containing the components
      */
@@ -147,7 +147,7 @@ public final class GTk {
 
     /**
      * Creates a panel with a right aligned flow layout and adds the components.
-     * 
+     *
      * @param components to be added to the panel
      * @return the panel, containing the components
      */
@@ -168,7 +168,7 @@ public final class GTk {
 
     /**
      * Ensures the tasks are run by the AWT EventQueue event processing thread.
-     * 
+     *
      * @param tasks tasks to be run. If the caller is not the GUI main processing
      *              queue, these are added to the {@link java.awt.EventQueue} and
      *              run later, otherwise they are run on the spot.
@@ -180,8 +180,7 @@ public final class GTk {
                     r.run();
                 }
             }
-        }
-        else {
+        } else {
             try {
                 EventQueue.invokeLater(() -> {
                     for (Runnable r : tasks) {
@@ -190,10 +189,59 @@ public final class GTk {
                         }
                     }
                 });
-            }
-            catch (Throwable fail) {
+            } catch (Throwable fail) {
                 throw new RuntimeException(fail);
             }
+        }
+    }
+
+    /**
+     * 16x16 icons used throughout.
+     */
+    public enum Icon {
+        // https://p.yusukekamiyamane.com/
+        APPLICATION("Application.png"),
+        CONN_ADD("ConnectionAdd.png"),
+        CONN_ASSIGN("ConnectionAssign.png"),
+        CONN_CLONE("ConnectionClone.png"),
+        CONN_CONNECT("ConnectionConnect.png"),
+        CONN_DISCONNECT("ConnectionDisconnect.png"),
+        CONN_REMOVE("ConnectionRemove.png"),
+        CONN_SHOW("ConnectionShow.png"),
+        CONN_TEST("ConnectionTest.png"),
+        EXEC("Exec.png"),
+        EXEC_CANCEL("ExecCancel.png"),
+        EXEC_LINE("ExecLine.png"),
+        COMMAND_CLEAR("CommandClear.png"),
+        COMMAND_SAVE("CommandSave.png"),
+        NEXT("Next.png"),
+        PREV("Prev.png"),
+        RELOAD("Reload.png"),
+        NO_ICON(null);
+
+        private static final String FOLDER = "images";
+        private static final Map<String, ImageIcon> ICON_MAP = new HashMap<>();
+
+        private final String iconName;
+
+        Icon(String iconName) {
+            this.iconName = iconName;
+        }
+
+        public ImageIcon icon() {
+            if (this == NO_ICON) {
+                throw new UnsupportedOperationException();
+            }
+            ImageIcon icon = ICON_MAP.get(iconName);
+            try {
+                if (icon == null) {
+                    URL url = GTk.class.getResource("/" + FOLDER + "/" + iconName);
+                    ICON_MAP.put(iconName, icon = new ImageIcon(TK.getImage(url)));
+                }
+            } catch (Throwable err) {
+                LOGGER.error("Icon not available: [/{}/{}] -> {}", FOLDER, iconName, err.getMessage());
+            }
+            return icon;
         }
     }
 

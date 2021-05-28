@@ -49,7 +49,7 @@ public class SQLResultsTable extends JPanel implements Closeable {
     private static final long serialVersionUID = 1L;
     private static final Dimension STATUS_LABEL_SIZE = new Dimension(600, 35);
     private static final Dimension NAVIGATION_LABEL_SIZE = new Dimension(300, 35);
-    private static final Dimension NAVIGATION_BUTTON_SIZE = new Dimension(85, 35);
+    private static final Dimension NAVIGATION_BUTTON_SIZE = new Dimension(100, 35);
     private static final Color TABLE_GRID_COLOR = GTk.APP_THEME_COLOR.darker().darker().darker();
     private static final Font TABLE_FOOTER_FONT = new Font(GTk.MAIN_FONT_NAME, Font.BOLD, 14);
     private static final Color TABLE_FOOTER_FONT_COLOR = Color.BLACK;
@@ -77,7 +77,7 @@ public class SQLResultsTable extends JPanel implements Closeable {
 
     public SQLResultsTable(int width, int height) {
         Dimension size = new Dimension(width, height);
-        results = new AtomicReference<SQLTable>();
+        results = new AtomicReference<>();
         tableModel = new PagedSQLTableModel(results::get);
         table = new JTable(tableModel);
         table.setAutoCreateRowSorter(false);
@@ -104,15 +104,17 @@ public class SQLResultsTable extends JPanel implements Closeable {
         rowRangeLabel.setForeground(TABLE_FOOTER_FONT_COLOR);
         rowRangeLabel.setPreferredSize(NAVIGATION_LABEL_SIZE);
         rowRangeLabel.setHorizontalAlignment(JLabel.RIGHT);
-        prevButton = new JButton("PREV");
+        prevButton = new JButton("Prev");
         prevButton.setFont(TABLE_FOOTER_FONT);
         prevButton.setForeground(TABLE_FOOTER_FONT_COLOR);
         prevButton.setPreferredSize(NAVIGATION_BUTTON_SIZE);
+        prevButton.setIcon(GTk.Icon.PREV.icon());
         prevButton.addActionListener(this::onPrevButtonEvent);
-        nextButton = new JButton("NEXT");
+        nextButton = new JButton("Next");
         nextButton.setFont(TABLE_FOOTER_FONT);
         nextButton.setForeground(TABLE_FOOTER_FONT_COLOR);
         nextButton.setPreferredSize(NAVIGATION_BUTTON_SIZE);
+        nextButton.setIcon(GTk.Icon.NEXT.icon());
         nextButton.addActionListener(this::onNextButtonEvent);
         messagePane = new MessagePane();
         tableScrollPanel = new JScrollPane(table, JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED,

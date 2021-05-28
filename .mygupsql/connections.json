@@ -1,0 +1,20 @@
+[
+  {
+    "name": "default",
+    "attrs": {
+      "host": "localhost",
+      "password": "",
+      "port": "5432",
+      "username": "crate"
+    }
+  },
+  {
+    "name": "questdb",
+    "attrs": {
+      "host": "localhost",
+      "password": "quest",
+      "port": "8812",
+      "username": "admin"
+    }
+  }
+]

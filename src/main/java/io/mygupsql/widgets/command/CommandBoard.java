@@ -16,15 +16,12 @@
 
 package io.mygupsql.widgets.command;
 
-import static io.mygupsql.GTk.createButton;
-
 import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Cursor;
 import java.awt.Font;
 import java.awt.event.ActionEvent;
 import java.awt.event.MouseEvent;
-import java.awt.event.MouseListener;
 import java.io.Closeable;
 import java.util.function.Supplier;
 
@@ -81,7 +78,7 @@ public class CommandBoard extends MessagePane implements EventProducer<CommandBo
 
     /**
      * Constructor.
-     * 
+     *
      * @param eventConsumer receives the events fired as the user interacts
      */
     public CommandBoard(EventConsumer<CommandBoard, SQLExecRequest> eventConsumer) {
@@ -96,7 +93,7 @@ public class CommandBoard extends MessagePane implements EventProducer<CommandBo
         connLabel = new JLabel();
         connLabel.setFont(HEADER_FONT);
         connLabel.setForeground(GTk.TABLE_HEADER_FONT_COLOR);
-        connLabel.addMouseListener((MouseListener) new MaskingMouseListener() {
+        connLabel.addMouseListener(new MaskingMouseListener() {
 
             @Override
             public void mouseClicked(MouseEvent e) {
@@ -113,14 +110,14 @@ public class CommandBoard extends MessagePane implements EventProducer<CommandBo
                 setCursor(Cursor.getDefaultCursor());
             }
         });
-        execLineButton = GTk.createButton("L.Exec", false, this::onExecLineEvent);
-        execButton = GTk.createButton("Exec", false, this::onExecEvent);
-        cancelButton = GTk.createButton("Cancel", false, this::onCancelEvent);
-        JButton reloadButton = GTk.createButton("Reload", this::onReloadEvent);
-        JButton clearButton = GTk.createButton("Clear", this::onClearEvent);
-        JButton saveButton = GTk.createButton("Save", this::onSaveEvent);
+        execLineButton = GTk.createButton("L.Exec", false, GTk.Icon.EXEC_LINE, "Execute entire line under caret", this::onExecLineEvent);
+        execButton = GTk.createButton("Exec", false, GTk.Icon.EXEC, "Execute selected text block", this::onExecEvent);
+        cancelButton = GTk.createButton("Cancel", false, GTk.Icon.EXEC_CANCEL, "Cancel current execution", this::onCancelEvent);
+        JButton reloadButton = GTk.createButton("Reload", true, GTk.Icon.RELOAD, "Reload last saved content", this::onReloadEvent);
+        JButton clearButton = GTk.createButton("Clear", true, GTk.Icon.COMMAND_CLEAR, "Clear content on screen", this::onClearEvent);
+        JButton saveButton = GTk.createButton("Save", true, GTk.Icon.COMMAND_SAVE, "Save content", this::onSaveEvent);
         JPanel buttons = GTk.createFlowPanel(GTk.createEtchedFlowPanel(reloadButton, clearButton, saveButton),
-            GTk.createEtchedFlowPanel(execLineButton, execButton, cancelButton));
+                GTk.createEtchedFlowPanel(execLineButton, execButton, cancelButton));
         JPanel controlsPanel = new JPanel(new BorderLayout());
         controlsPanel.add(connLabel, BorderLayout.WEST);
         controlsPanel.add(buttons, BorderLayout.EAST);
@@ -137,7 +134,7 @@ public class CommandBoard extends MessagePane implements EventProducer<CommandBo
 
     /**
      * Sets the database connection used by the command board.
-     * 
+     *
      * @param conn the connection
      */
     public void setConnection(Conn conn) {
@@ -153,7 +150,7 @@ public class CommandBoard extends MessagePane implements EventProducer<CommandBo
 
     /**
      * Clears the content of the board.
-     * 
+     *
      * @param event it is effectively ignored, so it can be null
      */
     private void onClearEvent(ActionEvent event) {
@@ -162,7 +159,7 @@ public class CommandBoard extends MessagePane implements EventProducer<CommandBo
 
     /**
      * Reloads the content of from the store.
-     * 
+     *
      * @param event it is effectively ignored, so it can be null
      */
     private void onReloadEvent(ActionEvent event) {
@@ -171,7 +168,7 @@ public class CommandBoard extends MessagePane implements EventProducer<CommandBo
 
     /**
      * Saves the content to the store.
-     * 
+     *
      * @param event it is effectively ignored, so it can be null
      */
     private void onSaveEvent(ActionEvent event) {
@@ -183,7 +180,7 @@ public class CommandBoard extends MessagePane implements EventProducer<CommandBo
      * If the connection is set, it fires COMMAND_AVAILABLE. The content of the
      * command is be the selected text on the board, or the full content if nothing
      * is selected.
-     * 
+     *
      * @param event it is effectively ignored, so it can be null
      */
     public void onExecEvent(ActionEvent event) {
@@ -193,7 +190,7 @@ public class CommandBoard extends MessagePane implements EventProducer<CommandBo
     /**
      * If the connection is set, it fires COMMAND_AVAILABLE. The content of the
      * command is be the full line under the caret.
-     * 
+     *
      * @param event it is effectively ignored, so it can be null
      */
     public void onExecLineEvent(ActionEvent event) {
@@ -202,7 +199,7 @@ public class CommandBoard extends MessagePane implements EventProducer<CommandBo
 
     /**
      * If the connection is set and open, it fires COMMAND_CANCEL.
-     * 
+     *
      * @param event it is effectively ignored, so it can be null
      */
     public void onCancelEvent(ActionEvent event) {
@@ -272,8 +269,7 @@ public class CommandBoard extends MessagePane implements EventProducer<CommandBo
         String txt = "";
         try {
             txt = textPane.getStyledDocument().getText(start, len);
-        }
-        catch (BadLocationException ignore) {
+        } catch (BadLocationException ignore) {
             // not expected to happen in this context
         }
         return txt.trim();
@@ -286,8 +282,7 @@ public class CommandBoard extends MessagePane implements EventProducer<CommandBo
             int end = Utilities.getRowEnd(textPane, caretPos) - 1;
             int len = end - start + 1;
             return getFullContent(start, len);
-        }
-        catch (BadLocationException e) {
+        } catch (BadLocationException e) {
             throw new RuntimeException(e);
         }
     }

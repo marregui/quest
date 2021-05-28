@@ -2,7 +2,6 @@ build
 out
 bin
 logs
-store
 .classpath
 .idea
 .gradle
@@ -12,3 +11,4 @@ store
 *.iws
 *.iml
 *.ipr
+images/candidates
