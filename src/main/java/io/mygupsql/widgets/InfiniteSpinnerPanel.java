@@ -104,7 +104,7 @@ public class InfiniteSpinnerPanel extends JPanel implements MaskingMouseListener
         // lazily created once, and only once, across several start/end cycles
         spinner.compareAndExchange(null, new Spinner(getWidth() / 2, getHeight() / 2));
         while (!Thread.currentThread().isInterrupted()) {
-            EventQueue.invokeLater(() -> repaint());
+            EventQueue.invokeLater(this::repaint);
             spinner.get().rotateByFixedAngle();
             try {
                 TimeUnit.MILLISECONDS.sleep(REFRESH_MILLIS);
@@ -150,14 +150,14 @@ public class InfiniteSpinnerPanel extends JPanel implements MaskingMouseListener
                 Area bar = new Area();
                 bar.add(new Area(new Ellipse2D.Double(0, 0, BAR_HEIGHT, BAR_HEIGHT))); // inner end circle
                 bar.add(new Area(new Ellipse2D.Double(BAR_WIDTH, 0, BAR_HEIGHT, BAR_HEIGHT))); // outer end circle
-                bar.add(new Area(new Rectangle2D.Double(BAR_HEIGHT / 2, 0, BAR_WIDTH, BAR_HEIGHT))); // body, a bar
+                bar.add(new Area(new Rectangle2D.Double(BAR_HEIGHT / 2.0, 0, BAR_WIDTH, BAR_HEIGHT))); // body, a bar
                 bar.transform(toPanelCenter);
                 bar.transform(MOVE_ALONG_SPINNER_RADIUS);
                 bar.transform(getRotateInstance(ANGLE_STEP * i, x, y));
                 bars[i] = bar;
                 int g = 0xFF - 0x7F / (i + 1);
                 int r = g >>> 2;
-                int b = Math.min(g << 2, 0xFF);
+                int b = 0xFF;
                 colors[i] = new Color(r, g, b); // shades of blue
             }
             colorIdx = new AtomicInteger(BAR_COUNT - 1);

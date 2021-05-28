@@ -198,13 +198,6 @@ public class SQLResultsTable extends JPanel implements Closeable {
     }
 
     /**
-     * Hides the infinite spinner.
-     */
-    public void hideInfiniteSpinner() {
-        infiniteSpinner.close();
-    }
-
-    /**
      * To be called when we want to move a page back in the GUI.
      * 
      * @param event event that triggered this method's call

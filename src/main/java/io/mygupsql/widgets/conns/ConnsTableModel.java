@@ -109,8 +109,7 @@ class ConnsTableModel extends AbstractTableModel implements Closeable {
         conns.clear();
         existingNames.clear();
         if (newConns != null) {
-            for (int i = 0; i < newConns.size(); i++) {
-                Conn conn = newConns.get(i);
+            for (Conn conn : newConns) {
                 conns.add(conn);
                 existingNames.add(conn.getName());
             }

@@ -99,7 +99,7 @@ public class MessagePane extends JPanel {
         sb.append("\n").append(ERROR_HEADER).append("\n");
         try (StringWriter sw = new StringWriter(); PrintWriter pw = new PrintWriter(sw)) {
             error.printStackTrace(pw);
-            sb.append(sw.toString());
+            sb.append(sw);
         }
         catch (IOException e) {
             throw new RuntimeException(e);
