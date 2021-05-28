@@ -1,11 +1,12 @@
 [
   {
-    "name": "default",
+    "name": "postgres",
     "attrs": {
       "host": "localhost",
-      "password": "quest",
-      "port": "8812",
-      "username": "admin"
+      "password": "password",
+      "port": "5432",
+      "username": "root",
+      "isDefault": "false"
     }
   },
   {
@@ -14,7 +15,18 @@
       "host": "localhost",
       "password": "",
       "port": "5432",
-      "username": "crate"
+      "username": "crate",
+      "isDefault": "false"
+    }
+  },
+  {
+    "name": "questdb",
+    "attrs": {
+      "host": "localhost",
+      "password": "quest",
+      "port": "8812",
+      "username": "admin",
+      "isDefault": "true"
     }
   }
 ]

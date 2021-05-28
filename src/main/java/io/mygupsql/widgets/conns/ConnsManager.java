@@ -108,29 +108,29 @@ public class ConnsManager extends JDialog implements EventProducer<ConnsManager.
 
             @Override
             public Conn[] defaultStoreEntries() {
-                return new Conn[] {
-                    new Conn("default")
+                return new Conn[]{
+                        new Conn("default")
                 };
             }
         };
         table = ConnsTableModel.createTable(this::onTableModelEvent, this::onListSelectionEvent);
         tableModel = (ConnsTableModel) table.getModel();
         connsValidityChecker = new ConnsChecker(tableModel::getConns, this::onLostConnsEvent);
-        reloadButton = GTk.createButton("Reload", true, GTk.Icon.RELOAD, "Reload last saved connections", this::onReloadEvent);
-        cloneButton = GTk.createButton("Clone", true, GTk.Icon.CONN_CLONE, "Clone selected connection", this::onCloneEvent);
-        JButton addButton = GTk.createButton("Add", true, GTk.Icon.CONN_ADD, "Add connection", this::onAddEvent);
-        removeButton = GTk.createButton("Remove", true, GTk.Icon.CONN_REMOVE, "Remove selected connection", this::onRemoveEvent);
-        testButton = GTk.createButton("Test", true, GTk.Icon.CONN_TEST, "Test selected connection", this::onTestEvent);
-        connectButton = GTk.createButton("Connect", true, GTk.Icon.CONN_CONNECT, "Connect selected connection", this::onConnectEvent);
-        assignButton = GTk.createButton("ASSIGN", true, GTk.Icon.CONN_ASSIGN, "Assigns the selected connection to the command panel", this::onAssignEvent);
+        reloadButton = GTk.createButton("Reload", GTk.Icon.RELOAD, "Reload last saved connections", this::onReloadEvent);
+        cloneButton = GTk.createButton("Clone", GTk.Icon.CONN_CLONE, "Clone selected connection", this::onCloneEvent);
+        JButton addButton = GTk.createButton("Add", GTk.Icon.CONN_ADD, "Add connection", this::onAddEvent);
+        removeButton = GTk.createButton("Remove", GTk.Icon.CONN_REMOVE, "Remove selected connection", this::onRemoveEvent);
+        testButton = GTk.createButton("Test", GTk.Icon.CONN_TEST, "Test selected connection", this::onTestEvent);
+        connectButton = GTk.createButton("Connect", GTk.Icon.CONN_CONNECT, "Connect selected connection", this::onConnectEvent);
+        assignButton = GTk.createButton("ASSIGN", GTk.Icon.CONN_ASSIGN, "Assigns the selected connection to the command panel", this::onAssignEvent);
         assignButton.setFont(new Font(GTk.MAIN_FONT_NAME, Font.BOLD, 16));
         JPanel buttons = GTk.createFlowPanel(GTk.createEtchedFlowPanel(reloadButton, cloneButton, addButton, removeButton),
-            GTk.createEtchedFlowPanel(assignButton, testButton, connectButton));
+                GTk.createEtchedFlowPanel(assignButton, testButton, connectButton));
         Container contentPane = getContentPane();
         contentPane.setLayout(new BorderLayout());
         contentPane.add(
-            new JScrollPane(table, JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED, JScrollPane.HORIZONTAL_SCROLLBAR_AS_NEEDED),
-            BorderLayout.CENTER);
+                new JScrollPane(table, JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED, JScrollPane.HORIZONTAL_SCROLLBAR_AS_NEEDED),
+                BorderLayout.CENTER);
         contentPane.add(buttons, BorderLayout.SOUTH);
         Dimension frameDim = GTk.frameDimension();
         Dimension dimension = new Dimension((int) (frameDim.width * 0.8), (int) (frameDim.height * 0.35));
@@ -168,7 +168,7 @@ public class ConnsManager extends JDialog implements EventProducer<ConnsManager.
 
     /**
      * Sets the selected connection and fires the event CONNECTION_SELECTED.
-     * 
+     *
      * @param conn connection to be selected
      */
     public void setSelectedConn(Conn conn) {
@@ -211,20 +211,16 @@ public class ConnsManager extends JDialog implements EventProducer<ConnsManager.
             try {
                 conn.open();
                 eventConsumer.onSourceEvent(this, EventType.CONNECTION_ESTABLISHED, conn);
-            }
-            catch (Exception e) {
+            } catch (Exception e) {
                 LOGGER.error("Connect: {}", e.getMessage());
                 JOptionPane.showMessageDialog(this, e.getMessage(), "Connection Failed", JOptionPane.ERROR_MESSAGE);
             }
-        }
-        else {
+        } else {
             try {
                 conn.close();
-            }
-            catch (RuntimeException e) {
+            } catch (RuntimeException e) {
                 LOGGER.error("Disconnect", e);
-            }
-            finally {
+            } finally {
                 eventConsumer.onSourceEvent(this, EventType.CONNECTION_CLOSED, conn);
             }
         }
@@ -243,8 +239,7 @@ public class ConnsManager extends JDialog implements EventProducer<ConnsManager.
             connectButton.setIcon(GTk.Icon.CONN_CONNECT.icon());
             cloneButton.setEnabled(false);
             removeButton.setEnabled(false);
-        }
-        else {
+        } else {
             Conn conn = getSelectedConn();
             boolean isSetButNotOpen = conn != null && !conn.isOpen();
             assignButton.setEnabled(conn != null);
@@ -279,9 +274,18 @@ public class ConnsManager extends JDialog implements EventProducer<ConnsManager.
                 if (conn.equals(selected)) {
                     table.getSelectionModel().addSelectionInterval(selectedIdx, selectedIdx);
                 }
-            }
-            else {
-                setSelectedConn(tableModel.getValueAt(0));
+            } else {
+                selectedIdx = 0;
+                for (int i=0; i < conns.size(); i++) {
+                    if (conns.get(i).isDefault()) {
+                        if (selectedIdx == 0) {
+                            selectedIdx = i;
+                        } else {
+                            throw new IllegalStateException("too many default connections");
+                        }
+                    }
+                }
+                setSelectedConn(tableModel.getValueAt(selectedIdx));
             }
         }
     }
@@ -327,8 +331,7 @@ public class ConnsManager extends JDialog implements EventProducer<ConnsManager.
             toggleComponents();
             if (rowIdx == 0) {
                 table.getSelectionModel().setSelectionInterval(0, 0);
-            }
-            else {
+            } else {
                 table.getSelectionModel().setSelectionInterval(rowIdx - 1, rowIdx - 1);
             }
             store.removeEntry(removed);
@@ -345,12 +348,10 @@ public class ConnsManager extends JDialog implements EventProducer<ConnsManager.
             if (conn != null) {
                 conn.testConnectivity();
                 JOptionPane.showMessageDialog(this, "Connection Successful");
-            }
-            else {
+            } else {
                 JOptionPane.showMessageDialog(this, "Connection not set", "Connection Failed", JOptionPane.ERROR_MESSAGE);
             }
-        }
-        catch (Exception e) {
+        } catch (Exception e) {
             JOptionPane.showMessageDialog(this, e.getMessage(), "Connection Failed", JOptionPane.ERROR_MESSAGE);
         }
     }

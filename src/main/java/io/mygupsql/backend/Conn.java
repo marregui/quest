@@ -70,6 +70,7 @@ public class Conn extends ConnAttrs implements Closeable {
             setPort(other.getPort());
             setUsername(other.getUsername());
             setPassword(other.getPassword());
+            setDefault(other.isDefault());
         }
     }
 

@@ -39,6 +39,9 @@ import io.mygupsql.widgets.results.SQLResultsTable;
 
 public final class MyGupSql {
 
+    public static final String NAME = "mygupsql";
+    public static final String VERSION = "1.0.0-SNAPSHOT";
+
     private static final String BANNER = "\n" + // https://patorjk.com/software/taag/#p=display&h=0&f=Ivrit&t=mygupsql
             "                                                            _ \n" +
             "  _ __ ___    _   _    __ _   _   _   _ __    ___    __ _  | |\n" +
@@ -47,9 +50,6 @@ public final class MyGupSql {
             " |_| |_| |_|  \\__, |  \\__, |  \\__,_| | .__/  |___/  \\__, | |_|\n" +
             "              |___/   |___/          |_|               |_|    ";
 
-
-    private static final String NAME = "mygupsql";
-    private static final String VERSION = "1.0.0-SNAPSHOT";
 
     private static final Logger LOGGER = LoggerFactory.getLogger(MyGupSql.class);
 
@@ -151,6 +151,7 @@ public final class MyGupSql {
         boolean wasVisible = conns.isVisible();
         conns.setVisible(!wasVisible);
         toggleConnsWidget.setText(wasVisible ? "Show connections" : "Hide connections");
+        toggleConnsWidget.setIcon((wasVisible ? GTk.Icon.CONN_SHOW : GTk.Icon.CONN_HIDE).icon());
     }
 
     private void dispatchEvent(EventProducer<?> source, Enum<?> event, Object data) {
@@ -264,7 +265,6 @@ public final class MyGupSql {
             UIManager.setLookAndFeel(lookAndFeel);
         } catch (Exception e) {
             LOGGER.warn("CrossPlatformLookAndFeel [{}] unavailable", lookAndFeel);
-            e.printStackTrace();
         }
         GTk.invokeLater(MyGupSql::new);
     }

@@ -18,6 +18,7 @@ package io.mygupsql.backend;
 
 import java.util.Properties;
 
+import io.mygupsql.MyGupSql;
 import io.mygupsql.WithKey;
 
 
@@ -48,7 +49,11 @@ public class ConnAttrs extends StoreEntry {
         /**
          * password.
          */
-        password("");
+        password(""),
+        /**
+         * isDefault.
+         */
+        isDefault(String.valueOf(false));
 
         private final String defaultValue;
 
@@ -72,7 +77,7 @@ public class ConnAttrs extends StoreEntry {
     /**
      * Shallow copy constructor, used by the store, attributes are a reference to
      * the attributes of 'other'.
-     * 
+     *
      * @param other original store item
      */
     public ConnAttrs(StoreEntry other) {
@@ -81,7 +86,7 @@ public class ConnAttrs extends StoreEntry {
 
     /**
      * Constructor .
-     * 
+     *
      * @param name name of the connection
      */
     public ConnAttrs(String name) {
@@ -91,12 +96,12 @@ public class ConnAttrs extends StoreEntry {
         setAttr(AttrName.port, AttrName.port.getDefaultValue());
         setAttr(AttrName.username, AttrName.username.getDefaultValue());
         setAttr(AttrName.password, AttrName.password.getDefaultValue());
+        setAttr(AttrName.isDefault, AttrName.isDefault.getDefaultValue());
     }
 
     @Override
     public final String getKey() {
-        return String.format("%s %s@%s:%s", getName(), getAttr(AttrName.username), getAttr(AttrName.host),
-            getAttr(AttrName.port));
+        return String.format("%s %s@%s:%s", getName(), getAttr(AttrName.username), getAttr(AttrName.host), getAttr(AttrName.port));
     }
 
     /**
@@ -112,13 +117,14 @@ public class ConnAttrs extends StoreEntry {
      * <li>user: user name</li>
      * <li>password: password</li>
      * <li>ssl: false</li>
+     * <li>sslmode: disable</li>
      * <li>recvBufferSize: 1 MB</li>
      * <li>defaultRowFetchSize: 20_000</li>
      * <li>loginTimeout: 5 seconds</li>
      * <li>socketTimeout: 60 seconds);
      * <li>tcpKeepAlive", true);
      * </ul>
-     * 
+     *
      * @return connection properties
      */
     public Properties loginProperties() {
@@ -126,18 +132,90 @@ public class ConnAttrs extends StoreEntry {
         // https://jdbc.postgresql.org/documentation/head/connect.html
         props.put("user", getUsername());
         props.put("password", getPassword());
+
+        // Specifies the name of the application that is using the connection.
+        // This allows a database administrator to see what applications are
+        // connected to the server and what resources they are using through
+        // views like pgstatactivity.
+        props.put("ApplicationName", MyGupSql.NAME + "-" + MyGupSql.VERSION);
+
+        // Connect using SSL. The server must have been compiled with SSL
+        // support. This property does not need a value associated with it.
+        // The mere presence of it specifies a SSL connection. However, for
+        // compatibility with future versions, the value "true" is preferred.
+        // For more information see Chapter 4, Using SSL. Setting up the
+        // certificates and keys for ssl connection can be tricky see The test
+        // documentation for detailed examples.
         props.put("ssl", false);
-        props.put("recvBufferSize", 1024 * 1024);
+
+        // possible values include disable, allow, prefer, require, verify-ca
+        // and verify-full . require, allow and prefer all default to a non
+        // validating SSL factory and do not check the validity of the certificate
+        // or the host name. verify-ca validates the certificate, but does not
+        // verify the hostname. verify-full will validate that the certificate
+        // is correct and verify the host connected to has the same hostname as
+        // the certificate. Default is prefer
+        // Setting these will necessitate storing the server certificate on the
+        // client machine see "Configuring the client" for details.
+        props.setProperty("sslmode", "disable");
+
+        // Sets SO_RCVBUF on the connection stream
+        props.put("receiveBufferSize", 1024 * 1024);
+
+        // Sets SO_SNDBUF on the connection stream
+        props.put("sendBufferSize", 1024 * 1024);
+
+        // Determine the number of rows fetched in ResultSet by one fetch with
+        // trip to the database. Limiting the number of rows are fetch with each
+        // trip to the database allow avoids unnecessary memory consumption and
+        // as a consequence OutOfMemoryException.
+        // The default is zero, meaning that in ResultSet will be fetch all rows
+        // at once. Negative number is not available.
         props.put("defaultRowFetchSize", SQLExecutor.MAX_BATCH_SIZE);
+
+        // Specify how long to wait for establishment of a database connection.
+        // The timeout is specified in seconds.
         props.put("loginTimeout", 20); // seconds
+
+        // The timeout value used for socket read operations. If reading from
+        // the server takes longer than this value, the connection is closed.
+        // This can be used as both a brute force global query timeout and a
+        // method of detecting network problems. The timeout is specified in
+        // seconds and a value of zero means that it is disabled.
         props.put("socketTimeout", SQLExecutor.QUERY_EXECUTION_TIMEOUT_SECS);
+
+        // Enable or disable TCP keep-alive probe. The default is false.
         props.put("tcpKeepAlive", true);
+
+        // Specifies the maximum size (in megabytes) of fields to be cached
+        // per connection. A value of 0 disables the cache.
+        props.put("databaseMetadataCacheFieldsMiB", 0);
+
+        // Specify the type to use when binding PreparedStatement parameters
+        // set via setString(). If stringtype is set to VARCHAR (the default),
+        // such parameters will be sent to the server as varchar parameters.
+        // If stringtype is set to unspecified, parameters will be sent to the
+        // server as untyped values, and the server will attempt to infer an
+        // appropriate type. This is useful if you have an existing application
+        // that uses setString() to set parameters that are actually some other
+        // type, such as integers, and you are unable to change the application
+        // to use an appropriate method such as setInt().
+        props.put("stringtype", "unspecified");
+
+        // This will change batch inserts from
+        // insert into foo (col1, col2, col3) values (1,2,3)
+        // into
+        // insert into foo (col1, col2, col3) values (1,2,3), (4,5,6)
+        // this provides 2-3x performance improvement
+        props.put("reWriteBatchedInserts ", "true");
+
+
         return props;
     }
 
     /**
      * Host name getter.
-     * 
+     *
      * @return host name
      */
     public String getHost() {
@@ -146,7 +224,7 @@ public class ConnAttrs extends StoreEntry {
 
     /**
      * Host name setter, defaults to "localhost" when host is null or empty.
-     * 
+     *
      * @param host host name
      */
     public void setHost(String host) {
@@ -155,7 +233,7 @@ public class ConnAttrs extends StoreEntry {
 
     /**
      * Port getter.
-     * 
+     *
      * @return port
      */
     public String getPort() {
@@ -164,7 +242,7 @@ public class ConnAttrs extends StoreEntry {
 
     /**
      * Port setter, defaults to "5432" when port is null or empty.
-     * 
+     *
      * @param port port
      */
     public void setPort(String port) {
@@ -173,7 +251,7 @@ public class ConnAttrs extends StoreEntry {
 
     /**
      * User name getter.
-     * 
+     *
      * @return user name
      */
     public String getUsername() {
@@ -182,7 +260,7 @@ public class ConnAttrs extends StoreEntry {
 
     /**
      * User name setter, defaults to "crate" when host is null or empty.
-     * 
+     *
      * @param username user name
      */
     public void setUsername(String username) {
@@ -191,7 +269,7 @@ public class ConnAttrs extends StoreEntry {
 
     /**
      * Password getter.
-     * 
+     *
      * @return password
      */
     public String getPassword() {
@@ -200,10 +278,28 @@ public class ConnAttrs extends StoreEntry {
 
     /**
      * Password setter, defaults to "" when host is null.
-     * 
+     *
      * @param password password
      */
     public void setPassword(String password) {
         setAttr(AttrName.password, password, AttrName.password.getDefaultValue());
+    }
+
+    /**
+     * Password getter.
+     *
+     * @return is default
+     */
+    public boolean isDefault() {
+        return Boolean.parseBoolean(getAttr(AttrName.isDefault));
+    }
+
+    /**
+     * Default setter, defaults to false.
+     *
+     * @param isDefault is default
+     */
+    public void setDefault(boolean isDefault) {
+        setAttr(AttrName.isDefault, String.valueOf(isDefault), AttrName.isDefault.getDefaultValue());
     }
 }

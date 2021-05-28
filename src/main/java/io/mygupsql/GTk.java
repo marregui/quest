@@ -115,6 +115,19 @@ public final class GTk {
      * Creates a simple button with an icon.
      *
      * @param text      text to display on the button
+     * @param listener  listener/action on button events
+     * @param icon      the icon to set, or null
+     * @param tooltip   text describing what the button does, or null
+     * @return the button
+     */
+    public static JButton createButton(String text, Icon icon, String tooltip, ActionListener listener) {
+        return createButton(text, true, icon, tooltip, listener);
+    }
+
+    /**
+     * Creates a simple button with an icon.
+     *
+     * @param text      text to display on the button
      * @param isEnabled whether the button is enabled
      * @param listener  listener/action on button events
      * @param icon      the icon to set, or null
@@ -208,6 +221,7 @@ public final class GTk {
         CONN_DISCONNECT("ConnectionDisconnect.png"),
         CONN_REMOVE("ConnectionRemove.png"),
         CONN_SHOW("ConnectionShow.png"),
+        CONN_HIDE("ConnectionHide.png"),
         CONN_TEST("ConnectionTest.png"),
         EXEC("Exec.png"),
         EXEC_CANCEL("ExecCancel.png"),
