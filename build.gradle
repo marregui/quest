@@ -16,10 +16,16 @@
  */
 
 plugins {
-    id 'java'
-    id 'idea'
-    id 'eclipse'
     id 'application'
+    id 'net.nemerosa.versioning' version '2.14.0' // https://plugins.gradle.org/plugin/net.nemerosa.versioning
+}
+
+group = 'io.mygupsql'
+version = '1.0.0'
+description = 'Desktop user interface to common Postgres Wire Protocol compatible databases.'
+
+repositories {
+    mavenCentral()
 }
 
 java {
@@ -27,24 +33,10 @@ java {
     targetCompatibility = JavaVersion.VERSION_11
 }
 
-application {
-    mainClass = 'io.mygupsql.MyGupSql'
-}
-
-repositories {
-    mavenCentral()
-}
-
-group = 'io.mygupsql'
-version = '1.0.0-SNAPSHOT'
-description = 'desktop user interface to common postgress ' +
-        'wire protocol compatible databases.' +
-        'sends SQL and renders results in a nice GUI.'
-
 dependencies {
-    implementation 'org.postgresql:postgresql:42.2.9'
-    implementation 'com.google.code.gson:gson:2.8.6'
-    implementation 'org.apache.logging.log4j:log4j-slf4j-impl:2.13.0'
+    implementation 'org.postgresql:postgresql:42.2.22'
+    implementation 'com.google.code.gson:gson:2.8.7'
+    implementation 'org.apache.logging.log4j:log4j-slf4j-impl:2.14.1'
 
     testImplementation 'org.junit.jupiter:junit-jupiter:5.6.2'
     testImplementation 'org.junit.jupiter:junit-jupiter-engine:5.6.2'
@@ -53,13 +45,25 @@ dependencies {
     testImplementation 'org.mockito:mockito-core:3.5.10'
 }
 
+application {
+    mainClass = 'io.mygupsql.MyGupSql'
+    applicationDefaultJvmArgs = [
+            '-Xmx2G',
+            '-server',
+            '-Dfile.encoding=UTF-8',
+            '-Dstore.path=.mygupsql'
+    ]
+}
+
 jar {
     manifest {
-        attributes 'Main-Class': 'io.mygupsql.MyGupSql'
-    }
-
-    from {
-        configurations.compileClasspath.collect { it.isDirectory() ? it : zipTree(it) }
+        attributes(
+                'Main-Class': 'io.mygupsql.MyGupSql',
+                'Build-Timestamp': new java.text.SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSSZ").format(new Date()),
+                'Build-Branch' : versioning.info.branch,
+                'Build-Revision' : versioning.info.commit,
+                'Build-Jdk'      : "${System.properties['java.version']} (${System.properties['java.vendor']} ${System.properties['java.vm.version']})"
+        )
     }
 }
 
@@ -69,11 +73,6 @@ task fatJar(type: Jar) {
     duplicatesStrategy(DuplicatesStrategy.INCLUDE)
     from {
         configurations.runtimeClasspath.collect { it.isDirectory() ? it : zipTree(it) }
-        duplicatesStrategy(DuplicatesStrategy.INCLUDE)
-    } {
-        exclude 'META-INF/*.SF'
-        exclude 'META-INF/*.DSA'
-        exclude 'META-INF/*.RSA'
     }
     with jar
 }
@@ -87,5 +86,5 @@ test {
 }
 
 wrapper {
-    gradleVersion = '6.9'
+    gradleVersion = '7.1'
 }
