@@ -149,6 +149,9 @@ public final class MyGupSql {
 
     private void onToggleConnsWidgetEvent(ActionEvent event) {
         boolean wasVisible = conns.isVisible();
+        if (!wasVisible) {
+            conns.setLocation(MouseInfo.getPointerInfo().getLocation());
+        }
         conns.setVisible(!wasVisible);
         toggleConnsWidget.setText(wasVisible ? "Show connections" : "Hide connections");
         toggleConnsWidget.setIcon((wasVisible ? GTk.Icon.CONN_SHOW : GTk.Icon.CONN_HIDE).icon());
@@ -216,6 +219,9 @@ public final class MyGupSql {
         switch (event) {
             case CONNECTION_SELECTED:
                 commands.setConnection((Conn) data);
+                if (conns.isVisible()) {
+                    onToggleConnsWidgetEvent(null);
+                }
                 break;
 
             case CONNECTION_ESTABLISHED:
