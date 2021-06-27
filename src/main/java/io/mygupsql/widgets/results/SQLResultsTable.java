@@ -42,7 +42,7 @@ import io.mygupsql.GTk;
 import io.mygupsql.backend.SQLExecResponse;
 import io.mygupsql.backend.SQLTable;
 import io.mygupsql.widgets.InfiniteSpinnerPanel;
-import io.mygupsql.widgets.MessagePane;
+import io.mygupsql.widgets.command.TextPane;
 
 
 public class SQLResultsTable extends JPanel implements Closeable {
@@ -67,7 +67,7 @@ public class SQLResultsTable extends JPanel implements Closeable {
     private final JScrollPane tableScrollPanel;
     private final PagedSQLTableModel tableModel;
     private final AtomicReference<SQLTable> results;
-    private final MessagePane messagePane;
+    private final TextPane textPane;
     private final JLabel rowRangeLabel;
     private final JLabel statusLabel;
     private final JButton prevButton;
@@ -118,7 +118,7 @@ public class SQLResultsTable extends JPanel implements Closeable {
         nextButton.setIcon(GTk.Icon.NEXT.icon());
         nextButton.setHorizontalTextPosition(SwingConstants.LEFT);
         nextButton.addActionListener(this::onNextButtonEvent);
-        messagePane = new MessagePane();
+        textPane = new TextPane();
         tableScrollPanel = new JScrollPane(table, JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED,
             JScrollPane.HORIZONTAL_SCROLLBAR_AS_NEEDED);
         tableScrollPanel.getViewport().setBackground(Color.BLACK);
@@ -154,12 +154,12 @@ public class SQLResultsTable extends JPanel implements Closeable {
         updateRowNavigationComponents();
         infiniteSpinner.close();
         if (table.isSingleRowSingleVarcharCol()) {
-            messagePane.displayMessage((String) table.getValueAt(0, 0));
+            textPane.displayMessage((String) table.getValueAt(0, 0));
             changeMode(Mode.MESSAGE);
         }
         else {
             if (table.size() == 0) {
-                messagePane.displayMessage("OK.\n\nNo resultset for query:\n" + res.getSQL());
+                textPane.displayMessage("OK.\n\nNo resultset for query:\n" + res.getSQL());
                 changeMode(Mode.MESSAGE);
             }
             else {
@@ -187,7 +187,7 @@ public class SQLResultsTable extends JPanel implements Closeable {
      * @param error carries the stack trace to be displayed
      */
     public void displayError(Throwable error) {
-        messagePane.displayError(error);
+        textPane.displayError(error);
         changeMode(Mode.MESSAGE);
     }
 
@@ -274,7 +274,7 @@ public class SQLResultsTable extends JPanel implements Closeable {
                     break;
 
                 case MESSAGE:
-                    currentModePanel = messagePane;
+                    currentModePanel = textPane;
                     break;
             }
             if (toRemove != null) {

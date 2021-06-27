@@ -29,8 +29,6 @@ import javax.swing.JButton;
 import javax.swing.JLabel;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
-import javax.swing.text.BadLocationException;
-import javax.swing.text.Utilities;
 
 import io.mygupsql.EventConsumer;
 import io.mygupsql.EventProducer;
@@ -39,10 +37,9 @@ import io.mygupsql.backend.Conn;
 import io.mygupsql.backend.SQLExecRequest;
 import io.mygupsql.backend.Store;
 import io.mygupsql.widgets.MaskingMouseListener;
-import io.mygupsql.widgets.MessagePane;
 
 
-public class CommandBoard extends MessagePane implements EventProducer<CommandBoard.EventType>, Closeable {
+public class CommandBoard extends TextPane implements EventProducer<CommandBoard.EventType>, Closeable {
 
     public enum EventType {
         /**
@@ -63,7 +60,6 @@ public class CommandBoard extends MessagePane implements EventProducer<CommandBo
     private static final String STORE_FILE_NAME = "command-board.json";
     private static final Color CONNECTED_COLOR = new Color(70, 225, 90);
     private static final Font HEADER_FONT = new Font(GTk.MAIN_FONT_NAME, Font.BOLD, 16);
-    private static final Font BODY_FONT = new Font(GTk.MAIN_FONT_NAME, Font.BOLD, 18);
     private static final Cursor HAND_CURSOR = new Cursor(Cursor.HAND_CURSOR);
 
     private final Content content;
@@ -88,8 +84,6 @@ public class CommandBoard extends MessagePane implements EventProducer<CommandBo
         store.loadEntriesFromFile();
         content = store.size() > 0 ? store.getEntry(0) : new Content();
         textPane.setText(content.getContent());
-        textPane.setEditable(true);
-        textPane.setFont(BODY_FONT);
         connLabel = new JLabel();
         connLabel.setFont(HEADER_FONT);
         connLabel.setForeground(GTk.TABLE_HEADER_FONT_COLOR);
@@ -172,7 +166,7 @@ public class CommandBoard extends MessagePane implements EventProducer<CommandBo
      * @param event it is effectively ignored, so it can be null
      */
     private void onSaveEvent(ActionEvent event) {
-        content.setContent(getTextContent());
+        content.setContent(getContent());
         store.asyncSaveToFile();
     }
 
@@ -215,7 +209,7 @@ public class CommandBoard extends MessagePane implements EventProducer<CommandBo
 
     private String getCommand() {
         String cmd = textPane.getSelectedText();
-        return cmd != null ? cmd.trim() : getTextContent();
+        return cmd != null ? cmd.trim() : getContent();
     }
 
     /**
@@ -223,7 +217,7 @@ public class CommandBoard extends MessagePane implements EventProducer<CommandBo
      */
     @Override
     public void close() {
-        String txt = getTextContent();
+        String txt = getContent();
         if (!content.getContent().equals(txt)) {
             content.setContent(txt);
             store.addEntry(content, true);
@@ -258,32 +252,5 @@ public class CommandBoard extends MessagePane implements EventProducer<CommandBo
         execLineButton.setEnabled(hasText);
         execButton.setEnabled(hasText);
         cancelButton.setEnabled(true);
-    }
-
-    private String getTextContent() {
-        int len = textPane.getStyledDocument().getLength();
-        return getFullContent(0, len);
-    }
-
-    private String getFullContent(int start, int len) {
-        String txt = "";
-        try {
-            txt = textPane.getStyledDocument().getText(start, len);
-        } catch (BadLocationException ignore) {
-            // not expected to happen in this context
-        }
-        return txt.trim();
-    }
-
-    private String getCurrentLine() {
-        int caretPos = textPane.getCaretPosition();
-        try {
-            int start = Utilities.getRowStart(textPane, caretPos);
-            int end = Utilities.getRowEnd(textPane, caretPos) - 1;
-            int len = end - start + 1;
-            return getFullContent(start, len);
-        } catch (BadLocationException e) {
-            throw new RuntimeException(e);
-        }
     }
 }

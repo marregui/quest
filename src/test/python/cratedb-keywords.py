@@ -15,6 +15,7 @@
 # Copyright 2020, Miguel Arregui a.k.a. marregui
 #
 
+import ssl
 import urllib.request
 
 # The file behind GRAMMAR_DEFINITION_URI is CrateDB's antlr4 grammar definition. 
@@ -35,8 +36,12 @@ import urllib.request
  
 GRAMMAR_DEFINITION_URI = "https://raw.githubusercontent.com/crate/crate/master/libs/sql-parser/src/main/antlr/SqlBase.g4"
 
+
 def extract_keywords_from_crate_sql_grammar():
-    with urllib.request.urlopen(GRAMMAR_DEFINITION_URI) as response:
+    ctx = ssl.create_default_context()
+    ctx.check_hostname = False
+    ctx.verify_mode = ssl.CERT_NONE
+    with urllib.request.urlopen(GRAMMAR_DEFINITION_URI, context=ctx) as response:
         g4Bytes = response.read()
     g4Str = g4Bytes.decode("UTF-8")
     start = g4Str.rfind("nonReserved")
@@ -57,6 +62,7 @@ def extract_keywords_from_crate_sql_grammar():
     keywords.sort()                
     return keywords                
 
+
 def format_as_java_regex_pattern(keywords):
     pattern = "\"\\\\bcrate\\\\b"
     indent = 0
@@ -68,6 +74,7 @@ def format_as_java_regex_pattern(keywords):
             pattern += "\"\n + \""
     pattern += "\""
     return pattern
+
 
 if __name__ == '__main__':
     print(format_as_java_regex_pattern(extract_keywords_from_crate_sql_grammar()))
