@@ -41,15 +41,15 @@ public class ConnAttrs extends StoreEntry {
         /**
          * port.
          */
-        port("5432"),
+        port("8812"),
         /**
          * user name.
          */
-        username("crate"),
+        username("admin"),
         /**
          * password.
          */
-        password(""),
+        password("quest"),
         /**
          * isDefault.
          */

@@ -38,5 +38,15 @@
       "port": "5434",
       "username": "postgres"
     }
+  },
+  {
+    "name": "Daniel",
+    "attrs": {
+      "host": "localhost",
+      "isDefault": "false",
+      "password": "fake_password",
+      "port": "5432",
+      "username": "postgres"
+    }
   }
 ]

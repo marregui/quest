@@ -46,7 +46,7 @@ import com.google.gson.reflect.TypeToken;
  * A store is a persistent list of entries, each a subclass of
  * {@link StoreEntry}, backed by a JSON formatted file. Each entry has a unique
  * key and a set of identified attributes (key, value pairs).
- * 
+ *
  * @param <T> a subclass of StoreItem
  */
 public class Store<T extends StoreEntry> implements Closeable, Iterable<T> {
@@ -56,7 +56,7 @@ public class Store<T extends StoreEntry> implements Closeable, Iterable<T> {
     private static final String STORE_PATH_KEY = "store.path";
     private static final String DEFAULT_STORE_PATH = ".mygupsql";
     private static final Class<?>[] ITEM_CONSTRUCTOR_SIGNATURE = {
-        StoreEntry.class
+            StoreEntry.class
     };
     private static final Gson GSON = new GsonBuilder().setPrettyPrinting().create();
     private static final StoreEntry[] EMPTY_STORE = new StoreEntry[0];
@@ -68,7 +68,7 @@ public class Store<T extends StoreEntry> implements Closeable, Iterable<T> {
      * Takes the value from system property "store.path" if set, otherwise the
      * store's default root path is "./store", relative to the home folder of the
      * running process.
-     * 
+     *
      * @return the default store path
      */
     public static File getDefaultRootPath() {
@@ -86,7 +86,7 @@ public class Store<T extends StoreEntry> implements Closeable, Iterable<T> {
      * <p>
      * The store's path is folder "rootPath", which hosts a file named "fileName".
      * The contents of the file are a JSON
-     * 
+     *
      * @param rootPath   persistence folder used by the store
      * @param fileName   name of the JSON formatted file within rootPath that
      *                   contains the store's entries
@@ -110,9 +110,9 @@ public class Store<T extends StoreEntry> implements Closeable, Iterable<T> {
      * <p>
      * The store's path is whatever folder is returned by
      * {@link Store#getDefaultRootPath()}.
-     * 
-     * @param fileName   name of the JSON formatted file within rootPath that
-     *                   contains the store's entries
+     *
+     * @param fileName name of the JSON formatted file within rootPath that
+     *                 contains the store's entries
      */
     public Store(String fileName, Class<? extends StoreEntry> clazz) {
         this(getDefaultRootPath(), fileName, clazz);
@@ -122,7 +122,7 @@ public class Store<T extends StoreEntry> implements Closeable, Iterable<T> {
      * This method can be overridden to provide default store entries, which are
      * added to the store by method {@link Store#loadEntriesFromFile()} when the
      * backing file does not exist.
-     * 
+     *
      * @return the store's default entries
      */
     @SuppressWarnings("unchecked")
@@ -140,7 +140,7 @@ public class Store<T extends StoreEntry> implements Closeable, Iterable<T> {
     /**
      * Adds the entry to the store, giving you the chance to clear the store first.
      * Store contents are asynchronously persisted by the background thread.
-     * 
+     *
      * @param entry           to be added
      * @param clearStoreFirst if true, the contents of the store are cleared
      */
@@ -156,7 +156,7 @@ public class Store<T extends StoreEntry> implements Closeable, Iterable<T> {
 
     /**
      * Returns the entry at the specified index.
-     * 
+     *
      * @param idx index of the entry
      */
     public synchronized T getEntry(int idx) {
@@ -166,7 +166,7 @@ public class Store<T extends StoreEntry> implements Closeable, Iterable<T> {
     /**
      * Removes the entry from the store. Store contents are asynchronously persisted
      * by a background thread.
-     * 
+     *
      * @param entry to be removed
      */
     public synchronized void removeEntry(T entry) {
@@ -248,8 +248,7 @@ public class Store<T extends StoreEntry> implements Closeable, Iterable<T> {
                 for (StoreEntry i : content) {
                     entries.add(entryFactory.newInstance(i));
                 }
-            }
-            catch (Throwable e) {
+            } catch (Throwable e) {
                 throw new RuntimeException(e);
             }
         }
@@ -272,8 +271,7 @@ public class Store<T extends StoreEntry> implements Closeable, Iterable<T> {
         asyncPersister.shutdown();
         try {
             asyncPersister.awaitTermination(400L, TimeUnit.MILLISECONDS);
-        }
-        catch (InterruptedException e) {
+        } catch (InterruptedException e) {
             Thread.currentThread().interrupt();
         }
         saveEntriesToFile(null);
@@ -285,8 +283,7 @@ public class Store<T extends StoreEntry> implements Closeable, Iterable<T> {
         try (BufferedReader in = new BufferedReader(new FileReader(file, StandardCharsets.UTF_8))) {
             entries = GSON.fromJson(in, STORE_TYPE);
             LOGGER.info("Loaded [{}]", file.getAbsolutePath());
-        }
-        catch (Exception e) {
+        } catch (Exception e) {
             LOGGER.error("Could not load store [{}]: {}", file.getAbsolutePath(), e.getMessage());
         }
         return entries;
@@ -298,12 +295,10 @@ public class Store<T extends StoreEntry> implements Closeable, Iterable<T> {
             try (FileWriter out = new FileWriter(file, StandardCharsets.UTF_8, true)) {
                 GSON.toJson(entries, STORE_TYPE, out);
                 LOGGER.info("Saved [{}]", file.getAbsolutePath());
-            }
-            catch (IOException e) {
+            } catch (IOException e) {
                 LOGGER.error("Could not store into file [{}]: {}", file.getAbsolutePath(), e.getMessage());
             }
-        }
-        finally {
+        } finally {
             if (whenDoneTask != null) {
                 whenDoneTask.run();
             }
