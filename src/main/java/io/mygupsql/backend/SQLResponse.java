@@ -25,7 +25,7 @@ package io.mygupsql.backend;
  * Responses carry an instance of {@link SQLTable}, whether it be empty or
  * filled with data.
  */
-public class SQLExecResponse extends SQLExecRequest {
+public class SQLResponse extends SQLRequest {
 
     private final SQLTable table;
     private final long totalMs;
@@ -33,9 +33,8 @@ public class SQLExecResponse extends SQLExecRequest {
     private final long fetchMs;
     private final Throwable error;
 
-    SQLExecResponse(SQLExecRequest req, Conn conn, String query, long totalMs, long execMs, long fetchMs,
-        SQLTable table) {
-        super(req);
+    SQLResponse(SQLRequest request, long totalMs, long execMs, long fetchMs, SQLTable table) {
+        super(request);
         this.table = table;
         this.error = null;
         this.totalMs = totalMs;
@@ -43,7 +42,7 @@ public class SQLExecResponse extends SQLExecRequest {
         this.fetchMs = fetchMs;
     }
 
-    SQLExecResponse(SQLExecRequest request, long totalMs, Throwable error, SQLTable table) {
+    SQLResponse(SQLRequest request, long totalMs, Throwable error, SQLTable table) {
         super(request);
         this.totalMs = totalMs;
         this.error = error;

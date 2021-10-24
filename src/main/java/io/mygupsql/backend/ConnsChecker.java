@@ -52,8 +52,8 @@ import org.slf4j.LoggerFactory;
  */
 public class ConnsChecker implements Closeable {
 
-    private static final int PERIOD_SECS = 60;
-    private static final int NUM_THREADS = 2;
+    private static final int PERIOD_SECS = 30;
+    private static final int NUM_THREADS = 1;
     private static final Logger LOGGER = LoggerFactory.getLogger(ConnsChecker.class);
 
     private final Supplier<List<Conn>> connsSupplier;

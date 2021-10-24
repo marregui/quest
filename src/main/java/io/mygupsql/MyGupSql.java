@@ -29,8 +29,8 @@ import io.mygupsql.backend.Conn;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import io.mygupsql.backend.SQLExecRequest;
-import io.mygupsql.backend.SQLExecResponse;
+import io.mygupsql.backend.SQLRequest;
+import io.mygupsql.backend.SQLResponse;
 import io.mygupsql.backend.SQLExecutor;
 import io.mygupsql.widgets.command.CommandBoard;
 import io.mygupsql.widgets.conns.ConnsManager;
@@ -159,9 +159,9 @@ public final class MyGupSql {
 
     private void dispatchEvent(EventProducer<?> source, Enum<?> event, Object data) {
         if (source instanceof CommandBoard) {
-            onCommandBoardEvent(eventType(event), (SQLExecRequest) data);
+            onCommandBoardEvent(eventType(event), (SQLRequest) data);
         } else if (source instanceof SQLExecutor) {
-            onSQLExecutorEvent(eventType(event), (SQLExecResponse) data);
+            onSQLExecutorEvent(eventType(event), (SQLResponse) data);
         } else if (source instanceof ConnsManager) {
             onDBConnectionManagerEvent(eventType(event), data);
         }
@@ -172,7 +172,7 @@ public final class MyGupSql {
         return (EventType) EventType.valueOf(event.getClass(), event.name());
     }
 
-    private void onCommandBoardEvent(CommandBoard.EventType event, SQLExecRequest req) {
+    private void onCommandBoardEvent(CommandBoard.EventType event, SQLRequest req) {
         switch (event) {
             case COMMAND_AVAILABLE:
                 Conn conn = commands.getConnection();
@@ -193,7 +193,7 @@ public final class MyGupSql {
         }
     }
 
-    private void onSQLExecutorEvent(SQLExecutor.EventType event, SQLExecResponse res) {
+    private void onSQLExecutorEvent(SQLExecutor.EventType event, SQLResponse res) {
         GTk.invokeLater(() -> results.updateStats(event.name(), res));
         switch (event) {
             case STARTED:

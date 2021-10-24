@@ -208,8 +208,6 @@ public class ConnAttrs extends StoreEntry {
         // insert into foo (col1, col2, col3) values (1,2,3), (4,5,6)
         // this provides 2-3x performance improvement
         props.put("reWriteBatchedInserts ", "true");
-
-
         return props;
     }
 

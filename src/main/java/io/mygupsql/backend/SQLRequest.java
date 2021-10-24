@@ -26,12 +26,12 @@ import io.mygupsql.WithKey;
  * <p>
  * Each request carries a SQL command and can be identified by a unique key.
  * Upon execution, the results are carried in one or many instances of
- * {@link SQLExecResponse}. Responses always carry an instance of
+ * {@link SQLResponse}. Responses always carry an instance of
  * {@link SQLTable}, whether it be empty or filled with data. The potentially
  * many responses that result from a request contain the full results, whereas a
  * single response in that set will contain a partial view on the full results.
  */
-public class SQLExecRequest implements WithKey {
+public class SQLRequest implements WithKey {
 
     private final String sourceId;
     private final String key;
@@ -39,21 +39,23 @@ public class SQLExecRequest implements WithKey {
     private final String sql;
 
     /**
-     * Constructor used by {@link SQLExecResponse} to keep the relation between
+     * Constructor used by {@link SQLResponse} to keep the relation between
      * a request and a response. This constructor is used to produce responses for
      * requests whose execution is successful.
      * 
-     * @param request original request
+     * @param sourceId command source, or requester, id
+     * @param conn will send the command down this connection
+     * @param command SQL statement to execute
      */
-    public SQLExecRequest(String sourceId, Conn conn, String command) {
+    public SQLRequest(String sourceId, Conn conn, String command) {
         this(sourceId, UUID.randomUUID().toString(), conn, command);
     }
 
-    SQLExecRequest(SQLExecRequest request) {
+    SQLRequest(SQLRequest request) {
         this(request.sourceId, request.key, request.conn, request.sql);
     }
 
-    private SQLExecRequest(String sourceId, String key, Conn conn, String command) {
+    private SQLRequest(String sourceId, String key, Conn conn, String command) {
         this.sourceId = sourceId;
         this.key = key;
         this.conn = conn;

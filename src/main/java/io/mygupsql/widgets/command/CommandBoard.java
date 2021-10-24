@@ -34,7 +34,7 @@ import io.mygupsql.EventConsumer;
 import io.mygupsql.EventProducer;
 import io.mygupsql.GTk;
 import io.mygupsql.backend.Conn;
-import io.mygupsql.backend.SQLExecRequest;
+import io.mygupsql.backend.SQLRequest;
 import io.mygupsql.backend.Store;
 import io.mygupsql.widgets.MaskingMouseListener;
 
@@ -64,20 +64,20 @@ public class CommandBoard extends TextPane implements EventProducer<CommandBoard
 
     private final Content content;
     private final Store<Content> store;
-    private final EventConsumer<CommandBoard, SQLExecRequest> eventConsumer;
+    private final EventConsumer<CommandBoard, SQLRequest> eventConsumer;
     private final JButton execButton;
     private final JButton execLineButton;
     private final JButton cancelButton;
     private final JLabel connLabel;
     private Conn conn; // uses it when set
-    private SQLExecRequest lastRequest;
+    private SQLRequest lastRequest;
 
     /**
      * Constructor.
      *
      * @param eventConsumer receives the events fired as the user interacts
      */
-    public CommandBoard(EventConsumer<CommandBoard, SQLExecRequest> eventConsumer) {
+    public CommandBoard(EventConsumer<CommandBoard, SQLRequest> eventConsumer) {
         super();
         this.eventConsumer = eventConsumer;
         store = new Store<>(STORE_FILE_NAME, Content.class);
@@ -107,10 +107,10 @@ public class CommandBoard extends TextPane implements EventProducer<CommandBoard
         execLineButton = GTk.createButton("L.Exec", false, GTk.Icon.EXEC_LINE, "Execute entire line under caret", this::onExecLineEvent);
         execButton = GTk.createButton("Exec", false, GTk.Icon.EXEC, "Execute selected text block", this::onExecEvent);
         cancelButton = GTk.createButton("Cancel", false, GTk.Icon.EXEC_CANCEL, "Cancel current execution", this::onCancelEvent);
-        JButton reloadButton = GTk.createButton("Reload", true, GTk.Icon.RELOAD, "Reload last saved content", this::onReloadEvent);
         JButton clearButton = GTk.createButton("Clear", true, GTk.Icon.COMMAND_CLEAR, "Clear content on screen", this::onClearEvent);
+        JButton reloadButton = GTk.createButton("Reload", true, GTk.Icon.RELOAD, "Reload last saved content", this::onReloadEvent);
         JButton saveButton = GTk.createButton("Save", true, GTk.Icon.COMMAND_SAVE, "Save content", this::onSaveEvent);
-        JPanel buttons = GTk.createFlowPanel(GTk.createEtchedFlowPanel(reloadButton, clearButton, saveButton),
+        JPanel buttons = GTk.createFlowPanel(GTk.createEtchedFlowPanel(clearButton, reloadButton, saveButton),
                 GTk.createEtchedFlowPanel(execLineButton, execButton, cancelButton));
         JPanel controlsPanel = new JPanel(new BorderLayout());
         controlsPanel.add(connLabel, BorderLayout.WEST);
@@ -239,7 +239,7 @@ public class CommandBoard extends TextPane implements EventProducer<CommandBoard
             eventConsumer.onSourceEvent(this, EventType.COMMAND_CANCEL, lastRequest);
             lastRequest = null;
         }
-        lastRequest = new SQLExecRequest(content.getKey(), conn, command);
+        lastRequest = new SQLRequest(content.getKey(), conn, command);
         eventConsumer.onSourceEvent(this, EventType.COMMAND_AVAILABLE, lastRequest);
     }
 

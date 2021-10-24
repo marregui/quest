@@ -39,7 +39,7 @@ import javax.swing.table.TableColumn;
 import javax.swing.table.TableColumnModel;
 
 import io.mygupsql.GTk;
-import io.mygupsql.backend.SQLExecResponse;
+import io.mygupsql.backend.SQLResponse;
 import io.mygupsql.backend.SQLTable;
 import io.mygupsql.widgets.InfiniteSpinnerPanel;
 import io.mygupsql.widgets.command.TextPane;
@@ -133,7 +133,7 @@ public class SQLResultsTable extends JPanel implements Closeable {
         updateRowNavigationComponents();
     }
 
-    public void updateStats(String eventType, SQLExecResponse res) {
+    public void updateStats(String eventType, SQLResponse res) {
         if (res != null) {
             statusLabel.setText(String.format("[%s]  Exec: %5d,  Fetch: %5d,  Total: %6d (ms)", eventType, res.getExecMs(),
                 res.getFetchMs(), res.getTotalMs()));
@@ -143,7 +143,7 @@ public class SQLResultsTable extends JPanel implements Closeable {
         }
     }
 
-    public void onRowsAddedEvent(SQLExecResponse res) {
+    public void onRowsAddedEvent(SQLResponse res) {
         SQLTable table = res.getTable();
         if (results.compareAndSet(null, table)) {
             resetTableHeader();

@@ -142,7 +142,7 @@ public class SQLExecutor implements EventProducer<SQLExecutor.EventType>, Closea
      * @param req           contains the SQL to be executed
      * @param eventConsumer receiver of responses to the request
      */
-    public synchronized void submit(SQLExecRequest req, EventConsumer<SQLExecutor, SQLExecResponse> eventConsumer) {
+    public synchronized void submit(SQLRequest req, EventConsumer<SQLExecutor, SQLResponse> eventConsumer) {
         if (executor == null) {
             throw new IllegalStateException("not started");
         }
@@ -158,7 +158,7 @@ public class SQLExecutor implements EventProducer<SQLExecutor.EventType>, Closea
     /**
      * @param req contains the source id and request key
      */
-    public synchronized void cancelSubmittedRequest(SQLExecRequest req) {
+    public synchronized void cancelSubmittedRequest(SQLRequest req) {
         if (executor == null) {
             throw new IllegalStateException("not started");
         }
@@ -171,7 +171,7 @@ public class SQLExecutor implements EventProducer<SQLExecutor.EventType>, Closea
         }
     }
 
-    private void executeRequest(SQLExecRequest req, EventConsumer<SQLExecutor, SQLExecResponse> eventListener) {
+    private void executeRequest(SQLRequest req, EventConsumer<SQLExecutor, SQLResponse> eventListener) {
         final long start = System.nanoTime();
         String sourceId = req.getSourceId();
         Conn conn = req.getConnection();
@@ -183,7 +183,7 @@ public class SQLExecutor implements EventProducer<SQLExecutor.EventType>, Closea
             LOGGER.error("Failed [{}] from [{}], lost connection: {}", req.getKey(), sourceId, conn);
             RuntimeException fail = new RuntimeException(String.format("Connection [%s] is not valid", conn));
             eventListener.onSourceEvent(SQLExecutor.this, EventType.FAILURE,
-                new SQLExecResponse(req, ms(System.nanoTime() - start), fail, table));
+                new SQLResponse(req, ms(System.nanoTime() - start), fail, table));
             return;
         }
         String reqKey = cancelRequests.remove(sourceId);
@@ -192,12 +192,12 @@ public class SQLExecutor implements EventProducer<SQLExecutor.EventType>, Closea
             long totalMs = ms(System.nanoTime() - start);
             LOGGER.info("Cancelled [{}] from [{}], {} ms", reqKey, sourceId, totalMs);
             eventListener.onSourceEvent(SQLExecutor.this, EventType.CANCELLED,
-                new SQLExecResponse(req, conn, query, totalMs, 0L, 0L, table));
+                new SQLResponse(req, totalMs, 0L, 0L, table));
         }
         else {
             LOGGER.info("Executing [{}] from [{}] over [{}]: {}", req.getKey(), sourceId, conn.getKey(), query);
             eventListener.onSourceEvent(SQLExecutor.this, EventType.STARTED,
-                new SQLExecResponse(req, conn, query, ms(System.nanoTime() - start), 0L, 0L, table));
+                new SQLResponse(req, ms(System.nanoTime() - start), 0L, 0L, table));
             final long fetchStart;
             final long execMs;
             long rowId = 0;
@@ -223,7 +223,7 @@ public class SQLExecutor implements EventProducer<SQLExecutor.EventType>, Closea
                             long totalMs = ms(fetchChk - start);
                             long fetchMs = ms(fetchChk - fetchStart);
                             eventListener.onSourceEvent(SQLExecutor.this, EventType.RESULTS_AVAILABLE,
-                                new SQLExecResponse(req, conn, query, totalMs, execMs, fetchMs, table));
+                                new SQLResponse(req, totalMs, execMs, fetchMs, table));
                         }
                     }
                 }
@@ -233,7 +233,7 @@ public class SQLExecutor implements EventProducer<SQLExecutor.EventType>, Closea
                 cancelRequests.remove(sourceId);
                 LOGGER.error("Failed [{}] from [{}]: {}", req.getKey(), sourceId, fail.getMessage());
                 eventListener.onSourceEvent(SQLExecutor.this, EventType.FAILURE,
-                    new SQLExecResponse(req, ms(System.nanoTime() - start), fail, table));
+                    new SQLResponse(req, ms(System.nanoTime() - start), fail, table));
                 return;
             }
             runningQueries.remove(sourceId);
@@ -248,7 +248,7 @@ public class SQLExecutor implements EventProducer<SQLExecutor.EventType>, Closea
             LOGGER.info("{} [{}] {} rows, {} ms (exec:{}, fetch:{})", eventType.name(), req.getKey(), table.size(), totalMs,
                 execMs, fetchMs);
             eventListener.onSourceEvent(SQLExecutor.this, eventType,
-                new SQLExecResponse(req, conn, query, totalMs, execMs, fetchMs, table));
+                new SQLResponse(req, totalMs, execMs, fetchMs, table));
         }
     }
 

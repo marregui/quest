@@ -177,7 +177,7 @@ public class SQLTable implements WithKey {
     }
 
     /**
-     * The table's key, usually the {@link SQLExecRequest}'s key.
+     * The table's key, usually the {@link SQLRequest}'s key.
      */
     @Override
     public String getKey() {

@@ -3,8 +3,10 @@
 Pronounced **"/my-goop-see-ku-el/"**, is a desktop user interface to common 
 `postgress wire protocol`-compatible databases such as:
 
-- [**cratedb**](https://github.com/crate/crate)
-- [**questdb**](https://github.com/questdb/questdb)
+- [**QuestDB**](https://github.com/questdb/questdb)
+- [**Postgres**](https://github.com/postgres/postgres)
+- [**CrateDB**](https://github.com/crate/crate)
+- [**TimescaleDB**](https://github.com/timescale/timescaledb)
 
 ## Build commands
 

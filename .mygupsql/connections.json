@@ -1,26 +1,6 @@
 [
   {
-    "name": "postgres",
-    "attrs": {
-      "host": "localhost",
-      "password": "password",
-      "port": "5432",
-      "username": "postgres",
-      "isDefault": "false"
-    }
-  },
-  {
-    "name": "cratedb",
-    "attrs": {
-      "host": "localhost",
-      "password": "",
-      "port": "5432",
-      "username": "crate",
-      "isDefault": "false"
-    }
-  },
-  {
-    "name": "questdb",
+    "name": "QuestDB",
     "attrs": {
       "host": "localhost",
       "password": "quest",
@@ -30,22 +10,32 @@
     }
   },
   {
-    "name": "timestaledb",
+    "name": "Postgres",
+    "attrs": {
+      "host": "localhost",
+      "password": "password",
+      "port": "5432",
+      "username": "postgres",
+      "isDefault": "false"
+    }
+  },
+  {
+    "name": "CrateDB",
+    "attrs": {
+      "host": "localhost",
+      "password": "",
+      "port": "5432",
+      "username": "crate",
+      "isDefault": "false"
+    }
+  },
+  {
+    "name": "TimescaleDB",
     "attrs": {
       "host": "localhost",
       "isDefault": "false",
       "password": "password",
       "port": "5434",
-      "username": "postgres"
-    }
-  },
-  {
-    "name": "Daniel",
-    "attrs": {
-      "host": "localhost",
-      "isDefault": "false",
-      "password": "fake_password",
-      "port": "5432",
       "username": "postgres"
     }
   }
