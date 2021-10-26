@@ -180,6 +180,15 @@ public final class GTk {
         return createFlowPanel(null, components);
     }
 
+    /**
+     * Creates a panel to be used as a horizontal spacer between two other panels.
+     * @param hgap horizontal gap
+     * @return the panel
+     */
+    public static JPanel createHorizontalSpace(int hgap) {
+        return new JPanel(new FlowLayout(FlowLayout.CENTER, hgap, 0));
+    }
+
     private static JPanel createFlowPanel(Border border, JComponent... components) {
         JPanel panel = new JPanel(new FlowLayout(FlowLayout.RIGHT, 0, 0));
         if (border != null) {
@@ -226,6 +235,8 @@ public final class GTk {
     public enum Icon {
         // https://p.yusukekamiyamane.com/
         APPLICATION("Application.png"),
+        CONN_UP("ConnectionUp.png"),
+        CONN_DOWN("ConnectionDown.png"),
         CONN_ADD("ConnectionAdd.png"),
         CONN_ASSIGN("ConnectionAssign.png"),
         CONN_CLONE("ConnectionClone.png"),
@@ -238,6 +249,8 @@ public final class GTk {
         EXEC("Exec.png"),
         EXEC_CANCEL("ExecCancel.png"),
         EXEC_LINE("ExecLine.png"),
+        COMMAND_ADD("CommandAdd.png"),
+        COMMAND_REMOVE("CommandRemove.png"),
         COMMAND_CLEAR("CommandClear.png"),
         COMMAND_SAVE("CommandSave.png"),
         NEXT("Next.png"),

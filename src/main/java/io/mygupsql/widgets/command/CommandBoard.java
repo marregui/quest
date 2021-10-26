@@ -16,19 +16,13 @@
 
 package io.mygupsql.widgets.command;
 
-import java.awt.BorderLayout;
-import java.awt.Color;
-import java.awt.Cursor;
-import java.awt.Font;
+import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.MouseEvent;
 import java.io.Closeable;
 import java.util.function.Supplier;
 
-import javax.swing.JButton;
-import javax.swing.JLabel;
-import javax.swing.JOptionPane;
-import javax.swing.JPanel;
+import javax.swing.*;
 
 import io.mygupsql.EventConsumer;
 import io.mygupsql.EventProducer;
@@ -57,20 +51,21 @@ public class CommandBoard extends TextPane implements EventProducer<CommandBoard
     }
 
     private static final long serialVersionUID = 1L;
-    private static final String STORE_FILE_NAME = "command-board.json";
-    private static final Color CONNECTED_COLOR = new Color(70, 225, 90);
+    private static final Color CONNECTED_COLOR = new Color(69, 191, 84);
     private static final Font HEADER_FONT = new Font(GTk.MAIN_FONT_NAME, Font.BOLD, 16);
     private static final Cursor HAND_CURSOR = new Cursor(Cursor.HAND_CURSOR);
+    private static final String STORE_FILE_NAME = "command-board.json";
 
-    private final Content content;
     private final Store<Content> store;
     private final EventConsumer<CommandBoard, SQLRequest> eventConsumer;
+    private final JComboBox<String> storeEntries;
     private final JButton execButton;
     private final JButton execLineButton;
     private final JButton cancelButton;
     private final JLabel connLabel;
     private Conn conn; // uses it when set
     private SQLRequest lastRequest;
+    private Content content;
 
     /**
      * Constructor.
@@ -80,10 +75,6 @@ public class CommandBoard extends TextPane implements EventProducer<CommandBoard
     public CommandBoard(EventConsumer<CommandBoard, SQLRequest> eventConsumer) {
         super();
         this.eventConsumer = eventConsumer;
-        store = new Store<>(STORE_FILE_NAME, Content.class);
-        store.loadEntriesFromFile();
-        content = store.size() > 0 ? store.getEntry(0) : new Content();
-        textPane.setText(content.getContent());
         connLabel = new JLabel();
         connLabel.setFont(HEADER_FONT);
         connLabel.setForeground(GTk.TABLE_HEADER_FONT_COLOR);
@@ -104,14 +95,43 @@ public class CommandBoard extends TextPane implements EventProducer<CommandBoard
                 setCursor(Cursor.getDefaultCursor());
             }
         });
-        execLineButton = GTk.createButton("L.Exec", false, GTk.Icon.EXEC_LINE, "Execute entire line under caret", this::onExecLineEvent);
-        execButton = GTk.createButton("Exec", false, GTk.Icon.EXEC, "Execute selected text block", this::onExecEvent);
-        cancelButton = GTk.createButton("Cancel", false, GTk.Icon.EXEC_CANCEL, "Cancel current execution", this::onCancelEvent);
-        JButton clearButton = GTk.createButton("Clear", true, GTk.Icon.COMMAND_CLEAR, "Clear content on screen", this::onClearEvent);
-        JButton reloadButton = GTk.createButton("Reload", true, GTk.Icon.RELOAD, "Reload last saved content", this::onReloadEvent);
-        JButton saveButton = GTk.createButton("Save", true, GTk.Icon.COMMAND_SAVE, "Save content", this::onSaveEvent);
-        JPanel buttons = GTk.createFlowPanel(GTk.createEtchedFlowPanel(clearButton, reloadButton, saveButton),
-                GTk.createEtchedFlowPanel(execLineButton, execButton, cancelButton));
+        store = new Store<>(STORE_FILE_NAME, Content.class);
+        store.loadEntriesFromFile();
+        storeEntries = new JComboBox<>(store.entryNames());
+        storeEntries.setEditable(false);
+        storeEntries.setPreferredSize(new Dimension(150, 25));
+        storeEntries.addActionListener(this::onStoreEntryChangeEvent);
+        storeEntries.setSelectedIndex(0);
+        JLabel commandBoardLabel = new JLabel("Command board:  ");
+        commandBoardLabel.setFont(HEADER_FONT);
+        commandBoardLabel.setForeground(GTk.TABLE_HEADER_FONT_COLOR);
+        JPanel buttons = GTk.createFlowPanel(
+                commandBoardLabel,
+                storeEntries,
+                GTk.createHorizontalSpace(4),
+                GTk.createEtchedFlowPanel(
+                        GTk.createButton(
+                                "Clear", true, GTk.Icon.COMMAND_CLEAR,
+                                "Clear selected board", this::onClearEvent),
+                        GTk.createButton("Reload", true, GTk.Icon.RELOAD,
+                                "Reload last saved content", this::onReloadEvent),
+                        GTk.createButton("Save", true, GTk.Icon.COMMAND_SAVE,
+                                "Save selected board", this::onSaveEvent),
+                        GTk.createButton("New", true, GTk.Icon.COMMAND_ADD,
+                                "Create new board", this::onCreateStoreEntryEvent),
+                        GTk.createButton("Delete", true, GTk.Icon.COMMAND_REMOVE,
+                                "Delete selected board", this::onDeleteStoreEntryEvent)),
+                GTk.createHorizontalSpace(12),
+                GTk.createEtchedFlowPanel(
+                        execLineButton = GTk.createButton(
+                                "L.Exec", false, GTk.Icon.EXEC_LINE,
+                                "Execute entire line under caret", this::onExecLineEvent),
+                        execButton = GTk.createButton(
+                                "Exec", false, GTk.Icon.EXEC,
+                                "Execute selected text", this::onExecEvent),
+                        cancelButton = GTk.createButton(
+                                "Cancel", false, GTk.Icon.EXEC_CANCEL,
+                                "Cancel current execution", this::onCancelEvent)));
         JPanel controlsPanel = new JPanel(new BorderLayout());
         controlsPanel.add(connLabel, BorderLayout.WEST);
         controlsPanel.add(buttons, BorderLayout.EAST);
@@ -143,6 +163,23 @@ public class CommandBoard extends TextPane implements EventProducer<CommandBoard
     }
 
     /**
+     * Replaces the content of the board, saving current content in the process.
+     *
+     * @param event it is effectively ignored, so it can be null
+     */
+    private void onStoreEntryChangeEvent(ActionEvent event) {
+        int idx = storeEntries.getSelectedIndex();
+        if (content != null) {
+            String txt = getContent();
+            if (!content.getContent().equals(txt)) {
+                content.setContent(txt);
+            }
+        }
+        content = store.getEntry(idx, Content::new);
+        textPane.setText(content.getContent());
+    }
+
+    /**
      * Clears the content of the board.
      *
      * @param event it is effectively ignored, so it can be null
@@ -168,6 +205,24 @@ public class CommandBoard extends TextPane implements EventProducer<CommandBoard
     private void onSaveEvent(ActionEvent event) {
         content.setContent(getContent());
         store.asyncSaveToFile();
+    }
+
+    /**
+     * Creates a new board and makes it active.
+     *
+     * @param event it is effectively ignored, so it can be null
+     */
+    private void onCreateStoreEntryEvent(ActionEvent event) {
+
+    }
+
+    /**
+     * Deletes the current board, selects default.
+     *
+     * @param event it is effectively ignored, so it can be null
+     */
+    private void onDeleteStoreEntryEvent(ActionEvent event) {
+
     }
 
     /**
@@ -220,9 +275,8 @@ public class CommandBoard extends TextPane implements EventProducer<CommandBoard
         String txt = getContent();
         if (!content.getContent().equals(txt)) {
             content.setContent(txt);
-            store.addEntry(content, true);
-            store.close();
         }
+        store.close();
     }
 
     private void fireCommandEvent(Supplier<String> commandSupplier) {
@@ -246,8 +300,9 @@ public class CommandBoard extends TextPane implements EventProducer<CommandBoard
     private void refreshControls() {
         boolean isConnected = conn != null && conn.isOpen();
         String connKey = conn != null ? conn.getKey() : "None set";
-        connLabel.setText(String.format("  Connection: [%s]", connKey));
+        connLabel.setText(String.format("[%s]", connKey));
         connLabel.setForeground(isConnected ? CONNECTED_COLOR : Color.BLACK);
+        connLabel.setIcon(isConnected ? GTk.Icon.CONN_UP.icon() : GTk.Icon.CONN_DOWN.icon());
         boolean hasText = textPane.getStyledDocument().getLength() > 0;
         execLineButton.setEnabled(hasText);
         execButton.setEnabled(hasText);

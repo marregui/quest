@@ -27,7 +27,7 @@ public class Content extends StoreEntry {
     private static final String ATTR_NAME = "content";
 
     public Content() {
-        super(CommandBoard.class.getSimpleName());
+        super("default");
         setAttr(ATTR_NAME, "");
     }
 

@@ -33,6 +33,7 @@ import java.util.NoSuchElementException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
+import java.util.function.Supplier;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -158,8 +159,12 @@ public class Store<T extends StoreEntry> implements Closeable, Iterable<T> {
      * Returns the entry at the specified index.
      *
      * @param idx index of the entry
+     * @param constructor supplies the entry at idx
      */
-    public synchronized T getEntry(int idx) {
+    public synchronized T getEntry(int idx, Supplier<T> constructor) {
+        if (constructor != null && entries.size() == idx) {
+            entries.add(idx, constructor.get());
+        }
         return entries.get(idx);
     }
 
@@ -177,10 +182,28 @@ public class Store<T extends StoreEntry> implements Closeable, Iterable<T> {
     }
 
     /**
+     * Removes the entry from the store. Store contents are asynchronously persisted
+     * by a background thread.
+     *
+     * @param idx to be removed
+     */
+    public synchronized void removeEntry(int idx) {
+        entries.remove(idx);
+        asyncSaveToFile();
+    }
+
+    /**
      * @return a read only list containing the store entries
      */
     public synchronized List<T> entries() {
         return Collections.unmodifiableList(entries);
+    }
+
+    /**
+     * @return an array containing the store entries' name
+     */
+    public synchronized String [] entryNames() {
+        return entries.stream().map(StoreEntry::getName).toArray(String[]::new);
     }
 
     /**
