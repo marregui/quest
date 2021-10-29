@@ -14,7 +14,7 @@
  * Copyright (c) 2019 - 2022, Miguel Arregui a.k.a. marregui
  */
 
-package io.mygupsql.widgets.conns;
+package io.mygupsql.frontend.conns;
 
 import java.awt.BorderLayout;
 import java.awt.Container;
@@ -48,7 +48,7 @@ import io.mygupsql.backend.Store;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import io.mygupsql.widgets.command.CommandBoard;
+import io.mygupsql.frontend.commands.CommandBoard;
 
 
 /**
@@ -109,7 +109,10 @@ public class ConnsManager extends JDialog implements EventProducer<ConnsManager.
             @Override
             public Conn[] defaultStoreEntries() {
                 return new Conn[]{
-                        new Conn("default")
+                        new Conn("QuestDB"),
+                        new Conn("Postgres", "localhost", "5432", "postgres", "password"),
+                        new Conn("CrateDB", "localhost", "5432", "crate", ""),
+                        new Conn("TimescaleDB", "localhost", "5434", "postgres", "password")
                 };
             }
         };

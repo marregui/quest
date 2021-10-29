@@ -14,7 +14,7 @@
  * Copyright (c) 2019 - 2022, Miguel Arregui a.k.a. marregui
  */
 
-package io.mygupsql.widgets.command;
+package io.mygupsql.frontend.commands;
 
 import java.awt.BorderLayout;
 import java.awt.Color;
@@ -28,9 +28,9 @@ import java.awt.event.KeyEvent;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.io.StringWriter;
+import java.util.concurrent.atomic.AtomicReference;
 
 import javax.swing.*;
-import javax.swing.event.UndoableEditEvent;
 import javax.swing.text.*;
 import javax.swing.undo.UndoManager;
 
@@ -43,15 +43,15 @@ public class TextPane extends JPanel {
     private static final String EMPTY_STR = "";
     private static final String END_LINE = "\n";
     static final String ERROR_HEADER = "==========  E R R O R  ==========" + END_LINE;
-    private static final Font FONT = new Font(GTk.MAIN_FONT_NAME, Font.BOLD, 14);
-    private static final Color CARET_COLOR = Color.GREEN;
+    private static final Font FONT = new Font("Monospaced", Font.BOLD, 14);
+    private static final Color CARET_COLOR = Color.CYAN;
     private static final Color BACKGROUND_COLOR = Color.BLACK;
 
     protected final JTextPane textPane;
-    private final UndoManager undoManager;
     private final KeywordsHighlighter keywordsHighlighter;
     private final InputMap inputMap;
     private final ActionMap actionMap;
+    private final AtomicReference<UndoManager> undoManager; // set by CommandBoard
 
 
     public TextPane() {
@@ -63,21 +63,13 @@ public class TextPane extends JPanel {
         textPane.setCaretColor(CARET_COLOR);
         textPane.setCaretPosition(0);
         keywordsHighlighter = new KeywordsHighlighter(textPane.getStyledDocument()); // produces "style change" events
-        undoManager = new UndoManager() {
-            @Override
-            public void undoableEditHappened(UndoableEditEvent e) {
-                if (!"style change".equals(e.getEdit().getPresentationName())) {
-                    super.undoableEditHappened(e);
-                }
-            }
-        };
         inputMap = textPane.getInputMap(JComponent.WHEN_FOCUSED);
         actionMap = textPane.getActionMap();
+        undoManager = new AtomicReference<>();
         setupKeyboardActions();
         AbstractDocument doc = (AbstractDocument) textPane.getDocument();
         doc.putProperty(DefaultEditorKit.EndOfLineStringProperty, END_LINE);
         doc.setDocumentFilter(keywordsHighlighter);
-        doc.addUndoableEditListener(undoManager);
         JScrollPane scrollPane = new JScrollPane(textPane);
         scrollPane.getViewport().setBackground(BACKGROUND_COLOR);
         setLayout(new BorderLayout());
@@ -147,6 +139,16 @@ public class TextPane extends JPanel {
         return EMPTY_STR;
     }
 
+    protected void setUndoManager(UndoManager undoManager) {
+        AbstractDocument doc = (AbstractDocument) textPane.getDocument();
+        UndoManager current = this.undoManager.get();
+        if (current != null) {
+            doc.removeUndoableEditListener(current);
+        }
+        this.undoManager.set(undoManager);
+        doc.addUndoableEditListener(undoManager);
+    }
+
     private static String createErrorMessage(Throwable error) {
         StringBuilder sb = new StringBuilder();
         sb.append("\n").append(ERROR_HEADER).append("\n");
@@ -184,14 +186,17 @@ public class TextPane extends JPanel {
     private void setupKeyboardActions() {
         // cmd-z, undo edit
         addCmdKeyAction(KeyEvent.VK_Z, e -> {
-            if (undoManager.canUndo()) {
+            UndoManager undoManager = this.undoManager.get();
+            if (undoManager != null && undoManager.canUndo()) {
                 undoManager.undo();
+                keywordsHighlighter.handleTextChanged();
             }
         });
 
         // cmd-y, redo last undo edit
         addCmdKeyAction(KeyEvent.VK_Y, e -> {
-            if (undoManager.canRedo()) {
+            UndoManager undoManager = this.undoManager.get();
+            if (undoManager != null && undoManager.canRedo()) {
                 undoManager.redo();
                 keywordsHighlighter.handleTextChanged();
             }

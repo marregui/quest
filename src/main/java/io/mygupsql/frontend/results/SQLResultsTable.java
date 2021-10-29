@@ -14,7 +14,7 @@
  * Copyright (c) 2019 - 2022, Miguel Arregui a.k.a. marregui
  */
 
-package io.mygupsql.widgets.results;
+package io.mygupsql.frontend.results;
 
 import java.awt.BorderLayout;
 import java.awt.Color;
@@ -41,8 +41,8 @@ import javax.swing.table.TableColumnModel;
 import io.mygupsql.GTk;
 import io.mygupsql.backend.SQLResponse;
 import io.mygupsql.backend.SQLTable;
-import io.mygupsql.widgets.InfiniteSpinnerPanel;
-import io.mygupsql.widgets.command.TextPane;
+import io.mygupsql.frontend.InfiniteSpinnerPanel;
+import io.mygupsql.frontend.commands.TextPane;
 
 
 public class SQLResultsTable extends JPanel implements Closeable {

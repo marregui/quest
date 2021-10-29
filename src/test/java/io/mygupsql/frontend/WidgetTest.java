@@ -14,7 +14,7 @@
  * Copyright (c) 2019 - 2022, Miguel Arregui a.k.a. marregui
  */
 
-package io.mygupsql.widgets;
+package io.mygupsql.frontend;
 
 import static io.mygupsql.GTk.createFrame;
 
@@ -23,8 +23,8 @@ import java.awt.BorderLayout;
 import javax.swing.JButton;
 import javax.swing.JFrame;
 
-import io.mygupsql.widgets.command.CommandBoard;
-import io.mygupsql.widgets.conns.ConnsManager;
+import io.mygupsql.frontend.commands.CommandBoard;
+import io.mygupsql.frontend.conns.ConnsManager;
 
 
 public class WidgetTest {

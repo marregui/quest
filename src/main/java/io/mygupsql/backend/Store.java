@@ -25,6 +25,7 @@ import java.io.IOException;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Type;
 import java.nio.charset.StandardCharsets;
+import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Iterator;
@@ -44,16 +45,15 @@ import com.google.gson.reflect.TypeToken;
 
 
 /**
- * A store is a persistent list of entries, each a subclass of
- * {@link StoreEntry}, backed by a JSON formatted file. Each entry has a unique
- * key and a set of identified attributes (key, value pairs).
+ * A store is a persistent list of entries, each a subclass of {@link StoreEntry},
+ * backed by a JSON formatted file. Each entry has a unique key and a set of
+ * identified attributes (key, value pairs).
  *
  * @param <T> a subclass of StoreItem
  */
 public class Store<T extends StoreEntry> implements Closeable, Iterable<T> {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(Store.class);
-
     private static final String STORE_PATH_KEY = "store.path";
     private static final String DEFAULT_STORE_PATH = ".mygupsql";
     private static final Class<?>[] ITEM_CONSTRUCTOR_SIGNATURE = {
@@ -67,8 +67,8 @@ public class Store<T extends StoreEntry> implements Closeable, Iterable<T> {
 
     /**
      * Takes the value from system property "store.path" if set, otherwise the
-     * store's default root path is "./store", relative to the home folder of the
-     * running process.
+     * store's default root path is ".mygupsql", relative to the home folder of
+     * the running process.
      *
      * @return the default store path
      */
@@ -89,10 +89,10 @@ public class Store<T extends StoreEntry> implements Closeable, Iterable<T> {
      * The contents of the file are a JSON
      *
      * @param rootPath   persistence folder used by the store
-     * @param fileName   name of the JSON formatted file within rootPath that
-     *                   contains the store's entries
-     * @param entryClass type/class of the entries within the file, must be a
-     *                   subclass of {@link StoreEntry} and have
+     * @param fileName   name of the JSON formatted file within rootPath that contains
+     *                   the store's entries
+     * @param entryClass type/class of the entries within the file, must be a subclass
+     *                   of {@link StoreEntry} and have
      */
     private Store(File rootPath, String fileName, Class<? extends StoreEntry> entryClass) {
         this.rootPath = rootPath;
@@ -112,17 +112,17 @@ public class Store<T extends StoreEntry> implements Closeable, Iterable<T> {
      * The store's path is whatever folder is returned by
      * {@link Store#getDefaultRootPath()}.
      *
-     * @param fileName name of the JSON formatted file within rootPath that
-     *                 contains the store's entries
+     * @param fileName name of the JSON formatted file within rootPath that contains
+     *                 the store's entries
      */
     public Store(String fileName, Class<? extends StoreEntry> clazz) {
         this(getDefaultRootPath(), fileName, clazz);
     }
 
     /**
-     * This method can be overridden to provide default store entries, which are
-     * added to the store by method {@link Store#loadEntriesFromFile()} when the
-     * backing file does not exist.
+     * This method can be overridden to provide default store entries, which are added
+     * to the store by method {@link Store#loadEntriesFromFile()} when the backing file
+     * does not exist.
      *
      * @return the store's default entries
      */

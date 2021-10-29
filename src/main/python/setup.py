@@ -20,7 +20,8 @@ _REQUIREMENTS = [
     'setuptools==57.4.0',
     'argparse==1.4.0',
     'pylint==2.10.2',
-    'psutil==5.8.0'
+    'psutil==5.8.0',
+    'psycopg2==2.9.1'
 ]
 
 setup(

@@ -27,7 +27,7 @@ import java.util.Objects;
 import org.hamcrest.Matchers;
 import org.junit.jupiter.api.Test;
 
-import io.mygupsql.widgets.command.Content;
+import io.mygupsql.frontend.commands.Content;
 
 
 /**

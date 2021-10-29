@@ -27,15 +27,14 @@ import org.slf4j.LoggerFactory;
 
 
 /**
- * Database connection, it extends base class {@link ConnAttrs} which
- * provides persistence for the attributes. It adds logging and connectivity
- * methods to open/close the connection with the database and check its
- * validity.
+ * Database connection, extends {@link ConnAttrs} which provides persistence
+ * for attributes. adds logging and connectivity methods to open/close a
+ * connection with the database and check its validity.
  */
 public class Conn extends ConnAttrs implements Closeable {
 
     /**
-     * Time to wait for the database operation used to validate the connection to
+     * Time to wait for the database operation, used to validate the connection, to
      * complete, 10 seconds.
      */
     private static final int ISVALID_TIMEOUT_SECS = 10;
@@ -47,7 +46,7 @@ public class Conn extends ConnAttrs implements Closeable {
 
     /**
      * Constructor.
-     * 
+     *
      * @param name name of the connection
      */
     public Conn(String name) {
@@ -59,7 +58,7 @@ public class Conn extends ConnAttrs implements Closeable {
     /**
      * Deep copy constructor to create a new copy of the connection, with a
      * different name.
-     * 
+     *
      * @param name  name of the connection
      * @param other source connection
      */
@@ -77,7 +76,7 @@ public class Conn extends ConnAttrs implements Closeable {
     /**
      * Shallow copy constructor, used by the store, attributes are a reference to
      * the attributes of 'other'.
-     * 
+     *
      * @param other original store item
      */
     public Conn(StoreEntry other) {
@@ -87,8 +86,23 @@ public class Conn extends ConnAttrs implements Closeable {
     }
 
     /**
+     * Constructor.
+     *
+     * @param name     of the connection
+     * @param host     of the connection
+     * @param port     of the connection
+     * @param username of the connection
+     * @param password of the connection
+     */
+    public Conn(String name, String host, String port, String username, String password) {
+        super(name, host, port, username, password);
+        isOpen = new AtomicBoolean();
+        logger = LoggerFactory.getLogger(String.format("%s [%s]", getClass().getSimpleName(), getKey()));
+    }
+
+    /**
      * @return true if open() was called and thus the connection is open. No checks
-     *         on validity.
+     * on validity.
      */
     public boolean isOpen() {
         return isOpen.get();
@@ -97,7 +111,7 @@ public class Conn extends ConnAttrs implements Closeable {
     /**
      * Connection getter. No checks as to whether it is set, open and/or valid are
      * applied.
-     * 
+     *
      * @return the connection
      */
     public Connection getConnection() {
@@ -121,8 +135,7 @@ public class Conn extends ConnAttrs implements Closeable {
     public boolean isValid() {
         try {
             isOpen.set(conn != null && conn.isValid(ISVALID_TIMEOUT_SECS));
-        }
-        catch (SQLException e) {
+        } catch (SQLException e) {
             isOpen.set(false);
             conn = null;
         }
@@ -130,8 +143,8 @@ public class Conn extends ConnAttrs implements Closeable {
     }
 
     /**
-     * Opens the connection, sets it to auto commit.
-     * 
+     * Opens the connection, sets it to auto commit true.
+     *
      * @return the connection
      * @throws SQLException when the connection cannot be established
      */
@@ -158,11 +171,9 @@ public class Conn extends ConnAttrs implements Closeable {
                 conn.close();
                 logger.info("Closed");
             }
-        }
-        catch (Throwable throwable) {
+        } catch (Throwable throwable) {
             throw new RuntimeException(throwable);
-        }
-        finally {
+        } finally {
             conn = null;
             isOpen.set(false);
         }
@@ -172,7 +183,7 @@ public class Conn extends ConnAttrs implements Closeable {
      * Opens the connection, checks its validity with a max time wait of 10 seconds
      * and then closes it. If any of this fails, a SQLException is thrown to mean
      * that there would not be connectivity should we try to open the connection.
-     * 
+     *
      * @throws SQLException if the connection cannot be established
      */
     public void testConnectivity() throws SQLException {
@@ -181,17 +192,15 @@ public class Conn extends ConnAttrs implements Closeable {
             testConn = DriverManager.getConnection(getUri(), loginProperties());
             if (!testConn.isValid(ISVALID_TIMEOUT_SECS)) {
                 throw new SQLException(
-                    String.format("connection with %s is not valid (tried for %d secs)", this, ISVALID_TIMEOUT_SECS));
+                        String.format("connection with %s is not valid (tried for %d secs)", this, ISVALID_TIMEOUT_SECS));
             }
-        }
-        finally {
+        } finally {
             if (testConn != null) {
                 try {
                     if (!testConn.isClosed()) {
                         testConn.close();
                     }
-                }
-                catch (SQLException e) {
+                } catch (SQLException e) {
                     e.printStackTrace();
                 }
             }

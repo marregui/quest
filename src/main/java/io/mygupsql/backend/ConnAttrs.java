@@ -92,16 +92,37 @@ public class ConnAttrs extends StoreEntry {
     public ConnAttrs(String name) {
         super(name);
         setAttr(AttrName.host, AttrName.host.getDefaultValue());
-        setAttr(AttrName.host, AttrName.host.getDefaultValue());
         setAttr(AttrName.port, AttrName.port.getDefaultValue());
         setAttr(AttrName.username, AttrName.username.getDefaultValue());
         setAttr(AttrName.password, AttrName.password.getDefaultValue());
         setAttr(AttrName.isDefault, AttrName.isDefault.getDefaultValue());
     }
 
+    /**
+     * Constructor .
+     *
+     * @param name of the connection
+     * @param host of the connection
+     * @param port of the connection
+     * @param username of the connection
+     * @param password of the connection
+     */
+    protected ConnAttrs(String name, String host, String port, String username, String password) {
+        super(name);
+        setAttr(AttrName.host, host);
+        setAttr(AttrName.port, port);
+        setAttr(AttrName.username, username);
+        setAttr(AttrName.password, password);
+        setAttr(AttrName.isDefault, AttrName.isDefault.getDefaultValue());
+    }
+
     @Override
     public final String getKey() {
-        return String.format("%s %s@%s:%s", getName(), getAttr(AttrName.username), getAttr(AttrName.host), getAttr(AttrName.port));
+        return String.format("%s %s@%s:%s",
+                getName(),
+                getAttr(AttrName.username),
+                getAttr(AttrName.host),
+                getAttr(AttrName.port));
     }
 
     /**

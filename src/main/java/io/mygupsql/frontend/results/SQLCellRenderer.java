@@ -14,7 +14,7 @@
  * Copyright (c) 2019 - 2022, Miguel Arregui a.k.a. marregui
  */
 
-package io.mygupsql.widgets.results;
+package io.mygupsql.frontend.results;
 
 import java.awt.Color;
 import java.awt.Component;
@@ -25,7 +25,7 @@ import javax.swing.JTable;
 import io.mygupsql.GTk;
 import io.mygupsql.backend.SQLExecutor;
 import io.mygupsql.backend.SQLTable;
-import io.mygupsql.widgets.CellRenderer;
+import io.mygupsql.frontend.CellRenderer;
 
 
 /**

@@ -14,7 +14,7 @@
  * Copyright (c) 2019 - 2022, Miguel Arregui a.k.a. marregui
  */
 
-package io.mygupsql.widgets.conns;
+package io.mygupsql.frontend.conns;
 
 import java.io.Closeable;
 import java.util.ArrayList;
@@ -34,8 +34,8 @@ import javax.swing.table.TableColumnModel;
 import io.mygupsql.GTk;
 import io.mygupsql.backend.Conn;
 import io.mygupsql.backend.ConnAttrs;
-import io.mygupsql.widgets.PasswordRenderer;
-import io.mygupsql.widgets.CellRenderer;
+import io.mygupsql.frontend.PasswordRenderer;
+import io.mygupsql.frontend.CellRenderer;
 
 
 /**

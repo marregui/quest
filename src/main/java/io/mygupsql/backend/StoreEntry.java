@@ -29,12 +29,25 @@ import io.mygupsql.WithKey;
  */
 public class StoreEntry implements WithKey, Comparable<StoreEntry> {
 
+    private static final Comparator<String> COMPARING = (k1, k2) -> {
+        String[] k1Parts = k1.split("\\.");
+        String[] k2Parts = k2.split("\\.");
+        if (k1Parts.length != k2Parts.length) {
+            return Integer.compare(k1Parts.length, k2Parts.length);
+        } else if (2 == k1Parts.length) {
+            if (Objects.equals(k1Parts[0], k2Parts[0])) {
+                return k1Parts[1].compareTo(k2Parts[1]);
+            }
+        }
+        return k1.compareTo(k2);
+    };
+
     private final String name;
     private final Map<String, String> attrs;
 
     /**
      * Constructor.
-     * 
+     *
      * @param name the name of the store entry
      */
     public StoreEntry(String name) {
@@ -46,14 +59,13 @@ public class StoreEntry implements WithKey, Comparable<StoreEntry> {
     }
 
     /**
-     * Shallow copy constructor, attributes are a reference to the attributes of
-     * 'other'.
+     * Shallow copy constructor, attributes are a reference to the attributes of 'other'.
      * <p>
-     * The {@link Store} uses this constructor to recycle the objects instantiated
-     * by the JSON decoder, which produces instances of StoreItem that already
-     * contain an attribute map. We do not need to instantiate yet another attribute
-     * map when we can recycle the instance provided by the decoder.
-     * 
+     * The {@link Store} uses this constructor to recycle the objects instantiated by the
+     * JSON decoder, which produces instances of StoreItem that already contain an attribute
+     * map. We do not need to instantiate yet another attribute map when we can recycle the
+     * instance provided by the decoder.
+     *
      * @param other store entry
      */
     public StoreEntry(StoreEntry other) {
@@ -63,7 +75,7 @@ public class StoreEntry implements WithKey, Comparable<StoreEntry> {
 
     /**
      * The entry's name.
-     * 
+     *
      * @return the name of the store's entry
      */
     public String getName() {
@@ -72,7 +84,7 @@ public class StoreEntry implements WithKey, Comparable<StoreEntry> {
 
     /**
      * Attribute getter.
-     * 
+     *
      * @param attrName name of the attribute
      * @return the value associated with the attribute, or null if it does not exist
      */
@@ -82,7 +94,7 @@ public class StoreEntry implements WithKey, Comparable<StoreEntry> {
 
     /**
      * Attribute getter.
-     * 
+     *
      * @param attr an implementor of HasKey
      * @return the value associated with the attribute, or null if it does not exist
      */
@@ -94,7 +106,7 @@ public class StoreEntry implements WithKey, Comparable<StoreEntry> {
      * Attribute setter.
      * <p>
      * null values are stored as an empty string.
-     * 
+     *
      * @param attr  an implementor of HasKey
      * @param value value for the attribute
      */
@@ -104,7 +116,7 @@ public class StoreEntry implements WithKey, Comparable<StoreEntry> {
 
     /**
      * Attribute setter.
-     * 
+     *
      * @param attr         an implementor of HasKey
      * @param value        value for the attribute
      * @param defaultValue default value when the supplied value is null or empty
@@ -115,7 +127,7 @@ public class StoreEntry implements WithKey, Comparable<StoreEntry> {
 
     /**
      * Attribute value setter.
-     * 
+     *
      * @param attrName     name of the attribute
      * @param value        value for the attribute
      * @param defaultValue default value when the supplied value is null or empty
@@ -126,7 +138,7 @@ public class StoreEntry implements WithKey, Comparable<StoreEntry> {
 
     /**
      * Attribute value setter.
-     * 
+     *
      * @param attrName name of the attribute
      * @param value    value for the attribute
      */
@@ -164,7 +176,7 @@ public class StoreEntry implements WithKey, Comparable<StoreEntry> {
 
     /**
      * The key changes as attributes are changed.
-     * 
+     *
      * @return the entry's key
      */
     @Override
@@ -176,18 +188,4 @@ public class StoreEntry implements WithKey, Comparable<StoreEntry> {
     public String toString() {
         return String.format("%s.%s", name, attrs);
     }
-
-    private static final Comparator<String> COMPARING = (k1, k2) -> {
-        String[] k1Parts = k1.split("\\.");
-        String[] k2Parts = k2.split("\\.");
-        if (k1Parts.length != k2Parts.length) {
-            return Integer.compare(k1Parts.length, k2Parts.length);
-        }
-        else if (2 == k1Parts.length) {
-            if (Objects.equals(k1Parts[0], k2Parts[0])) {
-                return k1Parts[1].compareTo(k2Parts[1]);
-            }
-        }
-        return k1.compareTo(k2);
-    };
 }

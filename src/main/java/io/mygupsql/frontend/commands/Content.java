@@ -14,7 +14,7 @@
  * Copyright (c) 2019 - 2022, Miguel Arregui a.k.a. marregui
  */
 
-package io.mygupsql.widgets.command;
+package io.mygupsql.frontend.commands;
 
 import io.mygupsql.backend.StoreEntry;
 
@@ -27,7 +27,11 @@ public class Content extends StoreEntry {
     private static final String ATTR_NAME = "content";
 
     public Content() {
-        super("default");
+        this("default");
+    }
+
+    public Content(String name) {
+        super(name);
         setAttr(ATTR_NAME, "");
     }
 

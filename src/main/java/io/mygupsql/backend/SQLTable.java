@@ -36,10 +36,9 @@ import io.mygupsql.WithKey;
 
 
 /**
- * A table is identified by a key, has column metadata (names and types) and a
- * list of {@link Row}s in insertion order. Rows are identified by both their
- * key and the row's values. A table cannot contain duplicate rows. This data
- * structure is thread-safe.
+ * A table is identified by a key, it has column metadata (names and types) and a
+ * list of {@link Row}s in insertion order. Rows are identified by both their key
+ * and the row's values. This data structure is thread-safe.
  */
 public class SQLTable implements WithKey {
 

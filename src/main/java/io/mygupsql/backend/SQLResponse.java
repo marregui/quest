@@ -17,13 +17,12 @@
 package io.mygupsql.backend;
 
 /**
- * The class embodying the responses emitted by the {@link SQLExecutor} as it
- * progresses through its query execution life cycle.
+ * The class embodying the responses emitted by the {@link SQLExecutor} as it progresses
+ * through its query execution life cycle.
  * <p>
- * Each request carries a SQL query. When it is executed, the progress is
- * progressively notified to the listener, by means of instances of this class.
- * Responses carry an instance of {@link SQLTable}, whether it be empty or
- * filled with data.
+ * Each request carries a SQL query. When it is executed, the progress is progressively
+ * notified to the listener by means of instances of this class. Responses contain a
+ * reference to a unique instance of {@link SQLTable}.
  */
 public class SQLResponse extends SQLRequest {
 

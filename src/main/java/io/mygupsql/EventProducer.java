@@ -19,19 +19,17 @@ package io.mygupsql;
 /**
  * Marking interface.
  * <p>
- * Implementors produce events defined by the functional signature declared by
- * {@link EventConsumer}. An event can be conceptually thought of as a triplet:
+ * Implementors produce events defined by the functional signature declared by {@link EventConsumer}.
+ * An event can be conceptually thought of as a triplet:
  * <ul>
- * <li>source, an instance of a class that implements this interface.</li>
- * <li>type, an enum declared by the event producer, defines the kind of event
- * being produced.</li>
- * <li>data, an instance of some particular class that carries the event
- * data.</li>
+ * <li>source: an instance of a class that implements this interface.</li>
+ * <li>type: an enum declared by the event producer, defines the kind of event being produced.</li>
+ * <li>data: an instance of some class that carries the event data.</li>
  * </ul>
- *
- * @param <EventType> enum declared by the event producer
  */
 public interface EventProducer<EventType extends Enum<?>> {
 
-    // intentionally left empty
+    static <EventType extends Enum<?>> EventType eventType(Enum<?> event) {
+        return (EventType) EventType.valueOf(event.getClass(), event.name());
+    }
 }

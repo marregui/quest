@@ -19,14 +19,12 @@ package io.mygupsql;
 /**
  * Marking interface.
  * <p>
- * Implementors consume events produced by {@link EventProducer}s. An event can
- * be conceptually thought of as a triplet:
+ * Implementors consume events produced by {@link EventProducer}s. An event can be
+ * conceptually thought of as a triplet:
  * <ul>
- * <li>source, an implementor of {@link EventProducer}.</li>
- * <li>type, an enum declared by the source, defines the kind of event being
- * consumed.</li>
- * <li>data, an instance of some particular class that carries the event
- * data.</li>
+ * <li>source: an implementor of {@link EventProducer}.</li>
+ * <li>type: an enum declared by the source, defines the kind of event being consumed.</li>
+ * <li>data: an instance of some class (EventDataType) that carries the event data.</li>
  * </ul>
  *
  * @param <EventProducerType> type of the event source

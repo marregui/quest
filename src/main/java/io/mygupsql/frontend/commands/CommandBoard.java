@@ -14,15 +14,23 @@
  * Copyright (c) 2019 - 2022, Miguel Arregui a.k.a. marregui
  */
 
-package io.mygupsql.widgets.command;
+package io.mygupsql.frontend.commands;
 
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.MouseEvent;
+import java.awt.event.MouseListener;
+import java.awt.font.TextAttribute;
 import java.io.Closeable;
+import java.util.Collections;
+import java.util.List;
+import java.util.ArrayList;
+import java.util.Map;
 import java.util.function.Supplier;
 
 import javax.swing.*;
+import javax.swing.event.UndoableEditEvent;
+import javax.swing.undo.UndoManager;
 
 import io.mygupsql.EventConsumer;
 import io.mygupsql.EventProducer;
@@ -30,7 +38,7 @@ import io.mygupsql.GTk;
 import io.mygupsql.backend.Conn;
 import io.mygupsql.backend.SQLRequest;
 import io.mygupsql.backend.Store;
-import io.mygupsql.widgets.MaskingMouseListener;
+import io.mygupsql.frontend.MaskingMouseListener;
 
 
 public class CommandBoard extends TextPane implements EventProducer<CommandBoard.EventType>, Closeable {
@@ -53,12 +61,15 @@ public class CommandBoard extends TextPane implements EventProducer<CommandBoard
     private static final long serialVersionUID = 1L;
     private static final Color CONNECTED_COLOR = new Color(69, 191, 84);
     private static final Font HEADER_FONT = new Font(GTk.MAIN_FONT_NAME, Font.BOLD, 16);
+    private static final Font HEADER_UNDERLINE_FONT = HEADER_FONT.deriveFont(Map.of(
+            TextAttribute.UNDERLINE, TextAttribute.UNDERLINE_ON));
     private static final Cursor HAND_CURSOR = new Cursor(Cursor.HAND_CURSOR);
     private static final String STORE_FILE_NAME = "command-board.json";
 
     private final Store<Content> store;
     private final EventConsumer<CommandBoard, SQLRequest> eventConsumer;
     private final JComboBox<String> storeEntries;
+    private final List<UndoManager> undoManagers;
     private final JButton execButton;
     private final JButton execLineButton;
     private final JButton cancelButton;
@@ -88,11 +99,13 @@ public class CommandBoard extends TextPane implements EventProducer<CommandBoard
             @Override
             public void mouseEntered(MouseEvent e) {
                 setCursor(HAND_CURSOR);
+                connLabel.setFont(HEADER_UNDERLINE_FONT);
             }
 
             @Override
             public void mouseExited(MouseEvent e) {
                 setCursor(Cursor.getDefaultCursor());
+                connLabel.setFont(HEADER_FONT);
             }
         });
         store = new Store<>(STORE_FILE_NAME, Content.class);
@@ -101,27 +114,63 @@ public class CommandBoard extends TextPane implements EventProducer<CommandBoard
         storeEntries.setEditable(false);
         storeEntries.setPreferredSize(new Dimension(150, 25));
         storeEntries.addActionListener(this::onStoreEntryChangeEvent);
-        storeEntries.setSelectedIndex(0);
-        JLabel commandBoardLabel = new JLabel("Command board:  ");
+        undoManagers = new ArrayList<>(); // une per store entry
+        for (int idx =0; idx < store.size(); idx++) {
+            undoManagers.add(new UndoManager() {
+                @Override
+                public void undoableEditHappened(UndoableEditEvent e) {
+                    if (!"style change".equals(e.getEdit().getPresentationName())) {
+                        super.undoableEditHappened(e);
+                    }
+                }
+            });
+        }
+        JLabel commandBoardLabel = new JLabel("Command board:");
         commandBoardLabel.setFont(HEADER_FONT);
         commandBoardLabel.setForeground(GTk.TABLE_HEADER_FONT_COLOR);
+        commandBoardLabel.addMouseListener(new MaskingMouseListener(){
+
+            @Override
+            public void mouseClicked(MouseEvent e) {
+                if (e.getClickCount() == 2 && !e.isConsumed()) {
+                    e.consume();
+                    System.out.printf("2Mouse event: %d, clicks:%d%n", e.getButton(), e.getClickCount());
+                } else if (e.getClickCount() == 1 && !e.isConsumed()) {
+                    e.consume();
+                    System.out.printf("1Mouse event: %d, clicks:%d%n", e.getButton(), e.getClickCount());
+                }
+
+            }
+
+            @Override
+            public void mouseEntered(MouseEvent e) {
+                setCursor(HAND_CURSOR);
+                commandBoardLabel.setFont(HEADER_UNDERLINE_FONT);
+            }
+
+            @Override
+            public void mouseExited(MouseEvent e) {
+                setCursor(Cursor.getDefaultCursor());
+                commandBoardLabel.setFont(HEADER_FONT);
+            }
+        });
         JPanel buttons = GTk.createFlowPanel(
                 commandBoardLabel,
+                GTk.createHorizontalSpace(2),
                 storeEntries,
                 GTk.createHorizontalSpace(4),
                 GTk.createEtchedFlowPanel(
-                        GTk.createButton(
-                                "Clear", true, GTk.Icon.COMMAND_CLEAR,
+                        GTk.createButton("", true, GTk.Icon.COMMAND_CLEAR,
                                 "Clear selected board", this::onClearEvent),
-                        GTk.createButton("Reload", true, GTk.Icon.RELOAD,
-                                "Reload last saved content", this::onReloadEvent),
-                        GTk.createButton("Save", true, GTk.Icon.COMMAND_SAVE,
+                        GTk.createButton("", true, GTk.Icon.RELOAD,
+                                "Reload last saved content for selected board", this::onReloadEvent),
+                        GTk.createButton("", true, GTk.Icon.COMMAND_SAVE,
                                 "Save selected board", this::onSaveEvent),
-                        GTk.createButton("New", true, GTk.Icon.COMMAND_ADD,
+                        GTk.createButton("", true, GTk.Icon.COMMAND_ADD,
                                 "Create new board", this::onCreateStoreEntryEvent),
-                        GTk.createButton("Delete", true, GTk.Icon.COMMAND_REMOVE,
+                        GTk.createButton("", true, GTk.Icon.COMMAND_REMOVE,
                                 "Delete selected board", this::onDeleteStoreEntryEvent)),
-                GTk.createHorizontalSpace(12),
+                GTk.createHorizontalSpace(37),
                 GTk.createEtchedFlowPanel(
                         execLineButton = GTk.createButton(
                                 "L.Exec", false, GTk.Icon.EXEC_LINE,
@@ -137,6 +186,7 @@ public class CommandBoard extends TextPane implements EventProducer<CommandBoard
         controlsPanel.add(buttons, BorderLayout.EAST);
         add(controlsPanel, BorderLayout.NORTH);
         refreshControls();
+        storeEntries.setSelectedIndex(0);
     }
 
     /**
@@ -169,14 +219,57 @@ public class CommandBoard extends TextPane implements EventProducer<CommandBoard
      */
     private void onStoreEntryChangeEvent(ActionEvent event) {
         int idx = storeEntries.getSelectedIndex();
-        if (content != null) {
-            String txt = getContent();
-            if (!content.getContent().equals(txt)) {
-                content.setContent(txt);
+        if (idx >= 0) {
+            if (content != null) {
+                // save content of current board if there are changes (all boards in fact)
+                onSaveEvent(event);
             }
+            content = store.getEntry(idx, Content::new);
+            textPane.setText(content.getContent());
+            setUndoManager(undoManagers.get(idx));
         }
-        content = store.getEntry(idx, Content::new);
-        textPane.setText(content.getContent());
+    }
+
+    /**
+     * Creates a new board and makes it active.
+     *
+     * @param event it is effectively ignored, so it can be null
+     */
+    private void onCreateStoreEntryEvent(ActionEvent event) {
+        String entryName = JOptionPane.showInputDialog(
+                this,
+                "Name",
+                "New Command Board",
+                JOptionPane.INFORMATION_MESSAGE);
+        if (entryName == null || entryName.isEmpty()) {
+            return;
+        }
+        store.addEntry(new Content(entryName), false);
+        storeEntries.addItem(entryName);
+        undoManagers.add(new UndoManager() {
+            @Override
+            public void undoableEditHappened(UndoableEditEvent e) {
+                if (!"style change".equals(e.getEdit().getPresentationName())) {
+                    super.undoableEditHappened(e);
+                }
+            }
+        });
+        storeEntries.setSelectedItem(entryName);
+    }
+
+    /**
+     * Deletes the current board, selects default.
+     *
+     * @param event it is effectively ignored, so it can be null
+     */
+    private void onDeleteStoreEntryEvent(ActionEvent event) {
+        int idx = storeEntries.getSelectedIndex();
+        if (idx > 0) {
+            store.removeEntry(idx);
+            storeEntries.removeItemAt(idx);
+            undoManagers.remove(idx);
+            storeEntries.setSelectedIndex(idx - 1);
+        }
     }
 
     /**
@@ -203,26 +296,8 @@ public class CommandBoard extends TextPane implements EventProducer<CommandBoard
      * @param event it is effectively ignored, so it can be null
      */
     private void onSaveEvent(ActionEvent event) {
-        content.setContent(getContent());
+        updateContent();
         store.asyncSaveToFile();
-    }
-
-    /**
-     * Creates a new board and makes it active.
-     *
-     * @param event it is effectively ignored, so it can be null
-     */
-    private void onCreateStoreEntryEvent(ActionEvent event) {
-
-    }
-
-    /**
-     * Deletes the current board, selects default.
-     *
-     * @param event it is effectively ignored, so it can be null
-     */
-    private void onDeleteStoreEntryEvent(ActionEvent event) {
-
     }
 
     /**
@@ -267,15 +342,20 @@ public class CommandBoard extends TextPane implements EventProducer<CommandBoard
         return cmd != null ? cmd.trim() : getContent();
     }
 
+    private void updateContent() {
+        String txt = getContent();
+        if (!content.getContent().equals(txt)) {
+            content.setContent(txt);
+        }
+    }
+
     /**
      * Saves the content of the board to its store file.
      */
     @Override
     public void close() {
-        String txt = getContent();
-        if (!content.getContent().equals(txt)) {
-            content.setContent(txt);
-        }
+        undoManagers.clear();
+        updateContent();
         store.close();
     }
 

@@ -24,12 +24,10 @@ import io.mygupsql.WithKey;
 /**
  * A unit of work for the {@link SQLExecutor}.
  * <p>
- * Each request carries a SQL command and can be identified by a unique key.
- * Upon execution, the results are carried in one or many instances of
- * {@link SQLResponse}. Responses always carry an instance of
- * {@link SQLTable}, whether it be empty or filled with data. The potentially
- * many responses that result from a request contain the full results, whereas a
- * single response in that set will contain a partial view on the full results.
+ * Each request carries a SQL command and is be identified by a unique key. Upon
+ * execution, the results are returned by means of one or many callbacks delivering
+ * instances of {@link SQLResponse}. Responses must be seen as update messages on
+ * the loading state of a single instance of {@link SQLTable}.
  */
 public class SQLRequest implements WithKey {
 

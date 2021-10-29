@@ -32,9 +32,9 @@ import org.slf4j.LoggerFactory;
 import io.mygupsql.backend.SQLRequest;
 import io.mygupsql.backend.SQLResponse;
 import io.mygupsql.backend.SQLExecutor;
-import io.mygupsql.widgets.command.CommandBoard;
-import io.mygupsql.widgets.conns.ConnsManager;
-import io.mygupsql.widgets.results.SQLResultsTable;
+import io.mygupsql.frontend.commands.CommandBoard;
+import io.mygupsql.frontend.conns.ConnsManager;
+import io.mygupsql.frontend.results.SQLResultsTable;
 
 
 public final class MyGupSql {
@@ -53,7 +53,6 @@ public final class MyGupSql {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(MyGupSql.class);
 
-
     private final ConnsManager conns;
     private final SQLExecutor executor;
     private final CommandBoard commands;
@@ -64,71 +63,112 @@ public final class MyGupSql {
     private MyGupSql() {
         LOGGER.info(BANNER);
         LOGGER.info("{} {}", NAME, VERSION);
-
         JFrame frame = GTk.createFrame();
         frame.setIconImage(GTk.Icon.APPLICATION.icon().getImage());
-
         int width = frame.getWidth();
         int dividerHeight = (int) (frame.getHeight() * 0.6);
-        conns = new ConnsManager(frame, this::dispatchEvent);
-        commands = new CommandBoard(this::dispatchEvent);
+        executor = new SQLExecutor(); // input/output
+        conns = new ConnsManager(frame, this::dispatchEvent); // input
+        commands = new CommandBoard(this::dispatchEvent); // input
         commands.setPreferredSize(new Dimension(0, dividerHeight));
-        results = new SQLResultsTable(width, dividerHeight);
-        frame.setTitle(String.format("%s %s [store: %s]", NAME, VERSION, conns.getStorePath()));
-
-        // menu bar
-        toggleConnsWidget = new JMenuItem();
-        toggleConn = new JMenuItem();
-        frame.setJMenuBar(createMenuBar());
-
+        results = new SQLResultsTable(width, dividerHeight); // output
         JSplitPane splitPane = new JSplitPane(JSplitPane.VERTICAL_SPLIT, false, commands, results);
         splitPane.setDividerLocation(dividerHeight);
         frame.add(splitPane, BorderLayout.CENTER);
-
-        Runtime.getRuntime().addShutdownHook(new Thread(this::close, getClass().getSimpleName() + "-shutdown-hook"));
-        conns.start();
-        executor = new SQLExecutor();
+        frame.setTitle(String.format("%s %s [store: %s]", NAME, VERSION, conns.getStorePath()));
+        toggleConnsWidget = new JMenuItem();
+        toggleConn = new JMenuItem();
+        frame.setJMenuBar(createMenuBar());
+        Runtime.getRuntime()
+                .addShutdownHook(new Thread(this::close, getClass().getSimpleName() + "-shutdown-hook"));
         executor.start();
-
+        conns.start();
         frame.setVisible(true);
     }
 
     private JMenuBar createMenuBar() {
         Font font = new Font(GTk.MAIN_FONT_NAME, Font.BOLD, 14);
         JMenu connsMenu = new JMenu("Connections");
-        connsMenu.add(
-                configureMenuItem(toggleConnsWidget, font, "Show connections", KeyEvent.VK_T, GTk.Icon.CONN_SHOW, this::onToggleConnsWidgetEvent));
-        connsMenu.add(configureMenuItem(toggleConn, font, "Connect", KeyEvent.VK_O, GTk.Icon.CONN_CONNECT, this::onToggleConnEvent));
         connsMenu.setFont(font);
+        connsMenu.add(
+                configureMenuItem(
+                        toggleConnsWidget,
+                        GTk.Icon.CONN_SHOW,
+                        font,
+                        "Show connections",
+                        KeyEvent.VK_T,
+                        this::onToggleConnsWidgetEvent));
+        connsMenu.add(
+                configureMenuItem(
+                        toggleConn,
+                        GTk.Icon.CONN_CONNECT,
+                        font,
+                        "Connect",
+                        KeyEvent.VK_O,
+                        this::onToggleConnEvent));
 
         JMenu commandsMenu = new JMenu("Commands");
-        commandsMenu.add(configureMenuItem(new JMenuItem(), font, "L.Exec", KeyEvent.VK_L, GTk.Icon.EXEC_LINE, commands::onExecLineEvent));
-        commandsMenu.add(configureMenuItem(new JMenuItem(), font, "Exec", KeyEvent.VK_ENTER, GTk.Icon.EXEC, commands::onExecEvent));
-        commandsMenu.add(configureMenuItem(new JMenuItem(), font, "Cancel", KeyEvent.VK_C, GTk.Icon.EXEC_CANCEL, commands::onCancelEvent));
         commandsMenu.setFont(font);
+        commandsMenu.add(
+                configureMenuItem(
+                        new JMenuItem(),
+                        GTk.Icon.EXEC_LINE,
+                        font,
+                        "L.Exec",
+                        KeyEvent.VK_L,
+                        commands::onExecLineEvent));
+        commandsMenu.add(
+                configureMenuItem(
+                        new JMenuItem(),
+                        GTk.Icon.EXEC,
+                        font,
+                        "Exec",
+                        KeyEvent.VK_ENTER,
+                        commands::onExecEvent));
+        commandsMenu.add(
+                configureMenuItem(
+                        new JMenuItem(),
+                        GTk.Icon.EXEC_CANCEL,
+                        font,
+                        "Cancel",
+                        KeyEvent.VK_C,
+                        commands::onCancelEvent));
 
         JMenu resultsMenu = new JMenu("Results");
-        resultsMenu.add(configureMenuItem(new JMenuItem(), font, "PREV", KeyEvent.VK_B, GTk.Icon.PREV, results::onPrevButtonEvent));
-        resultsMenu.add(configureMenuItem(new JMenuItem(), font, "NEXT", KeyEvent.VK_N, GTk.Icon.NEXT, results::onNextButtonEvent));
         resultsMenu.setFont(font);
+        resultsMenu.add(
+                configureMenuItem(
+                        new JMenuItem(),
+                        GTk.Icon.PREV,
+                        font,
+                        "PREV",
+                        KeyEvent.VK_B,
+                        results::onPrevButtonEvent));
+        resultsMenu.add(
+                configureMenuItem(
+                        new JMenuItem(),
+                        GTk.Icon.NEXT,
+                        font,
+                        "NEXT",
+                        KeyEvent.VK_N,
+                        results::onNextButtonEvent));
 
+        JMenuBar menuBar = new JMenuBar();
+        menuBar.setBorder(BorderFactory.createLoweredSoftBevelBorder());
         JMenu menu = new JMenu("Menu");
         menu.setFont(font);
         menu.add(connsMenu);
         menu.add(commandsMenu);
         menu.add(resultsMenu);
-
-        JMenuBar menuBar = new JMenuBar();
-        menuBar.setBorder(BorderFactory.createLoweredSoftBevelBorder());
         menuBar.add(menu);
         return menuBar;
     }
 
     private static JMenuItem configureMenuItem(JMenuItem item,
+                                               GTk.Icon icon,
                                                Font font,
                                                String title,
                                                int keyEvent,
-                                               GTk.Icon icon,
                                                ActionListener listener) {
         item.setFont(font);
         item.setText(title);
@@ -159,17 +199,12 @@ public final class MyGupSql {
 
     private void dispatchEvent(EventProducer<?> source, Enum<?> event, Object data) {
         if (source instanceof CommandBoard) {
-            onCommandBoardEvent(eventType(event), (SQLRequest) data);
+            onCommandBoardEvent(EventProducer.eventType(event), (SQLRequest) data);
         } else if (source instanceof SQLExecutor) {
-            onSQLExecutorEvent(eventType(event), (SQLResponse) data);
+            onSQLExecutorEvent(EventProducer.eventType(event), (SQLResponse) data);
         } else if (source instanceof ConnsManager) {
-            onDBConnectionManagerEvent(eventType(event), data);
+            onDBConnectionManagerEvent(EventProducer.eventType(event), data);
         }
-    }
-
-    @SuppressWarnings("unchecked")
-    private static <EventType extends Enum<?>> EventType eventType(Enum<?> event) {
-        return (EventType) EventType.valueOf(event.getClass(), event.name());
     }
 
     private void onCommandBoardEvent(CommandBoard.EventType event, SQLRequest req) {

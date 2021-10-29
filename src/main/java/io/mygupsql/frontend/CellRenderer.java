@@ -14,7 +14,7 @@
  * Copyright (c) 2019 - 2022, Miguel Arregui a.k.a. marregui
  */
 
-package io.mygupsql.widgets;
+package io.mygupsql.frontend;
 
 import java.awt.Color;
 import java.awt.Component;
@@ -66,7 +66,7 @@ public class CellRenderer extends DefaultTableCellRenderer {
         if (rowIdx >= 0 && rowIdx < table.getModel().getRowCount()) {
             if (isSelected) {
                 setFont(GTk.TABLE_CELL_FONT);
-                setForeground(Color.BLACK);
+                setForeground(Color.WHITE);
                 setBackground(GTk.APP_THEME_COLOR);
             }
             else {

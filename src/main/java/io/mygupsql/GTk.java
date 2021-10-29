@@ -46,8 +46,8 @@ public final class GTk {
     private static final Toolkit TK = Toolkit.getDefaultToolkit();
     private static final Logger LOGGER = LoggerFactory.getLogger(GTk.class);
 
-    public static final Color APP_THEME_COLOR = new Color(66, 188, 245);
-    public static final String MAIN_FONT_NAME = "Arial";
+    public static final Color APP_THEME_COLOR = new Color(200, 50, 100);
+    public static final String MAIN_FONT_NAME = "Arial"; // excluding commands' TextPane
     public static final Font TABLE_HEADER_FONT = new Font(MAIN_FONT_NAME, Font.BOLD, 18);
     public static final Color TABLE_HEADER_FONT_COLOR = Color.BLACK;
     public static final Font TABLE_CELL_FONT = new Font(MAIN_FONT_NAME, Font.PLAIN, 16);
@@ -64,10 +64,6 @@ public final class GTk {
      */
     public static Clipboard systemClipboard() {
         return TK.getSystemClipboard();
-    }
-
-    public static int polla() {
-        return GTk.TK.getMenuShortcutKeyMaskEx();
     }
 
     /**

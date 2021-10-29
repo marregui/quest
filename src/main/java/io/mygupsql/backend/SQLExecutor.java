@@ -35,12 +35,12 @@ import org.slf4j.LoggerFactory;
 
 
 /**
- * Single threaded SQL statements executor. The daemon thread serialises
- * execution of SQL statements, identifying each by source id. For a given
- * source, only one SQL execution request is allowed to run at the time.
- * Submitting a new request will result in terminating an already running
- * request, or if the request has not been executed yet it will be preempted
- * from running and the new request will take its place.
+ * Single threaded SQL statements executor. A daemon thread serialises execution
+ * of SQL statements, identifying each by source id. For a given source, only one
+ * SQL execution request is allowed to run at the time. Submitting a new request
+ * will result in terminating an already running request, or if the request has
+ * not been executed yet it will be preempted from running and the new request
+ * will take its place.
  */
 public class SQLExecutor implements EventProducer<SQLExecutor.EventType>, Closeable {
 
@@ -79,6 +79,9 @@ public class SQLExecutor implements EventProducer<SQLExecutor.EventType>, Closea
     private final ConcurrentMap<String, String> cancelRequests;
     private ExecutorService executor;
 
+    /**
+     * Constructor.
+     */
     public SQLExecutor() {
         runningQueries = new ConcurrentHashMap<>();
         cancelRequests = new ConcurrentHashMap<>();

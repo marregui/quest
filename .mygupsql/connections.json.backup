@@ -3,30 +3,30 @@
     "name": "QuestDB",
     "attrs": {
       "host": "localhost",
-      "isDefault": "false",
       "password": "quest",
       "port": "8812",
-      "username": "admin"
+      "username": "admin",
+      "isDefault": "true"
     }
   },
   {
     "name": "Postgres",
     "attrs": {
       "host": "localhost",
-      "isDefault": "false",
       "password": "password",
       "port": "5432",
-      "username": "postgres"
+      "username": "postgres",
+      "isDefault": "false"
     }
   },
   {
     "name": "CrateDB",
     "attrs": {
       "host": "localhost",
-      "isDefault": "false",
       "password": "",
       "port": "5432",
-      "username": "crate"
+      "username": "crate",
+      "isDefault": "false"
     }
   },
   {
