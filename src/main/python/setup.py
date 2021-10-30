@@ -25,13 +25,13 @@ _REQUIREMENTS = [
 ]
 
 setup(
-    name='qdbpy',
+    name='pygupsql',
     version='1.0',
-    description='Toolkit for QuestDB',
+    description='Toolkit for Postgres protocol wire compatible databases',
     author='Miguel Arregui',
     author_email='miguel.arregui@gmail.com',
     url='https://github.com/marregui/mygupsql',
-    packages=['qdbpy'],
+    packages=['pygupsql'],
     install_requires=_REQUIREMENTS,
     license='Apache License v2.0',
     classifiers=[

@@ -14,7 +14,7 @@
 # Copyright (c) 2019 - 2022, Miguel Arregui a.k.a. marregui
 #
 
-from qdbpy.ts import (
+from pygupsql.ts import (
     to_timestamp,
     from_timestamp,
     to_date,

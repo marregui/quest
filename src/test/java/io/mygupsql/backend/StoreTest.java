@@ -112,7 +112,7 @@ public class StoreTest {
             pContent = store.entries().get(0);
         }
 
-        assertThat(pContent.getName(), is("CommandBoard"));
+        assertThat(pContent.getName(), is("default"));
         assertThat(pContent.getContent(), is("Audentes fortuna  iuvat"));
         assertThat(pContent.getKey(), is(pContent.getName()));
         assertThat(content, is(pContent));

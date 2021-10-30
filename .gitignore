@@ -2,7 +2,7 @@ build/
 logs/
 .idea/
 .gradle/
-qdbpy.egg-info/
+pygupsql.egg-info/
 __pycache__/
 .DS_Store
 *.iws

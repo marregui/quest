@@ -25,7 +25,7 @@ from pathlib import Path
 VERSION = '1.0.0'
 
 # User local QuestDB installation folder
-QDB_HOME = Path.home() / '.qdbpy'
+QDB_HOME = Path.home() / '.pygupsql'
 
 # QuestBD's storage root folder contains db, conf
 QDB_DB_ROOT = QDB_HOME / 'ROOT'
@@ -129,7 +129,7 @@ def is_qdb_jar(file_name: str) -> bool:
 
 
 def _args_parser() -> argparse.ArgumentParser:
-    args_parser = argparse.ArgumentParser(description='qdbpy commands to run QuestDB')
+    args_parser = argparse.ArgumentParser(description='pygupsql commands to run QuestDB')
     command = args_parser.add_subparsers(dest='command')
     command.add_parser('start', help='Starts QuestDB in localhost')
     update = command.add_parser('update', help='Clones/builds QuestDB\'s github repo')
