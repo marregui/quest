@@ -108,14 +108,22 @@ public class CommandBoard extends TextPane implements EventProducer<CommandBoard
                 connLabel.setFont(HEADER_FONT);
             }
         });
-        store = new Store<>(STORE_FILE_NAME, Content.class);
+        store = new Store<>(STORE_FILE_NAME, Content.class) {
+
+            @Override
+            public Content[] defaultStoreEntries() {
+                return new Content[]{
+                        new Content("default")
+                };
+            }
+        };
         store.loadEntriesFromFile();
         storeEntries = new JComboBox<>(store.entryNames());
         storeEntries.setEditable(false);
         storeEntries.setPreferredSize(new Dimension(150, 25));
         storeEntries.addActionListener(this::onStoreEntryChangeEvent);
         undoManagers = new ArrayList<>(); // une per store entry
-        for (int idx =0; idx < store.size(); idx++) {
+        for (int idx = 0; idx < store.size(); idx++) {
             undoManagers.add(new UndoManager() {
                 @Override
                 public void undoableEditHappened(UndoableEditEvent e) {
@@ -128,7 +136,7 @@ public class CommandBoard extends TextPane implements EventProducer<CommandBoard
         JLabel commandBoardLabel = new JLabel("Command board:");
         commandBoardLabel.setFont(HEADER_FONT);
         commandBoardLabel.setForeground(GTk.TABLE_HEADER_FONT_COLOR);
-        commandBoardLabel.addMouseListener(new MaskingMouseListener(){
+        commandBoardLabel.addMouseListener(new MaskingMouseListener() {
 
             @Override
             public void mouseClicked(MouseEvent e) {

@@ -32,7 +32,13 @@ public class Content extends StoreEntry {
 
     public Content(String name) {
         super(name);
-        setAttr(ATTR_NAME, "");
+        setAttr(ATTR_NAME, "Copyright (c) 2019 - 2022, Miguel Arregui a.k.a. marregui  _\n" +
+                " _ __ ___    _   _    __ _   _   _   _ __    ___    __ _  | |\n" +
+                "| \u0027_ ` _ \\  | | | |  / _` | | | | | | \u0027_ \\  / __|  / _` | | |\n" +
+                "| | | | | | | |_| | | (_| | | |_| | | |_) | \\__ \\ | (_| | | |\n" +
+                "|_| |_| |_|  \\__, |  \\__, |  \\__,_| | .__/  |___/  \\__, | |_|\n" +
+                "             |___/   |___/          |_|               |_| \n" +
+                "_____________________________________________________________");
     }
 
     /**

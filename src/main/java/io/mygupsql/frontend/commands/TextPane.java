@@ -145,6 +145,7 @@ public class TextPane extends JPanel {
         if (current != null) {
             doc.removeUndoableEditListener(current);
         }
+        undoManager.discardAllEdits();
         this.undoManager.set(undoManager);
         doc.addUndoableEditListener(undoManager);
     }
@@ -188,7 +189,11 @@ public class TextPane extends JPanel {
         addCmdKeyAction(KeyEvent.VK_Z, e -> {
             UndoManager undoManager = this.undoManager.get();
             if (undoManager != null && undoManager.canUndo()) {
-                undoManager.undo();
+                try {
+                    undoManager.undo();
+                } catch (Throwable ignore) {
+                    // do nothing
+                }
                 keywordsHighlighter.handleTextChanged();
             }
         });
@@ -197,7 +202,11 @@ public class TextPane extends JPanel {
         addCmdKeyAction(KeyEvent.VK_Y, e -> {
             UndoManager undoManager = this.undoManager.get();
             if (undoManager != null && undoManager.canRedo()) {
-                undoManager.redo();
+                try {
+                    undoManager.redo();
+                } catch (Throwable ignore) {
+                    // do nothing
+                }
                 keywordsHighlighter.handleTextChanged();
             }
         });
