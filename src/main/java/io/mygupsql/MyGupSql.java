@@ -124,9 +124,24 @@ public final class MyGupSql {
                 configureMenuItem(
                         new JMenuItem(),
                         GTk.Icon.EXEC_CANCEL,
-                        "Cancel",
-                        KeyEvent.VK_C,
-                        commands::onCancelEvent));
+                        "Whack",
+                        KeyEvent.VK_W,
+                        commands::fireCancelEvent));
+        commandsMenu.addSeparator();
+        commandsMenu.add(
+                configureMenuItem(
+                        new JMenuItem(),
+                        GTk.Icon.COMMAND_FIND,
+                        "Find",
+                        KeyEvent.VK_F,
+                        commands::onFindEvent));
+        commandsMenu.add(
+                configureMenuItem(
+                        new JMenuItem(),
+                        GTk.Icon.COMMAND_REPLACE,
+                        "Replace",
+                        KeyEvent.VK_R,
+                        commands::onReplaceEvent));
 
         JMenu resultsMenu = new JMenu("Results");
         resultsMenu.setFont(GTk.MENU_FONT);

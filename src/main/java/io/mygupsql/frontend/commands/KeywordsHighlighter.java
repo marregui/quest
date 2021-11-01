@@ -18,11 +18,14 @@ package io.mygupsql.frontend.commands;
 
 import io.mygupsql.GTk;
 
+import javax.swing.*;
 import javax.swing.text.*;
 import java.awt.*;
 import java.util.Objects;
+import java.util.WeakHashMap;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import java.util.regex.PatternSyntaxException;
 
 class KeywordsHighlighter extends DocumentFilter {
 
@@ -31,12 +34,15 @@ class KeywordsHighlighter extends DocumentFilter {
     private final static AttributeSet NORMAL = STYLE.addAttribute(STYLE.getEmptySet(), FOREGROUND, Color.WHITE);
     private final static AttributeSet ERROR = STYLE.addAttribute(STYLE.getEmptySet(), FOREGROUND, Color.ORANGE);
     private final static AttributeSet KEYWORD = STYLE.addAttribute(STYLE.getEmptySet(), FOREGROUND, GTk.APP_THEME_COLOR);
+    private final static AttributeSet HIGHLIGHT = STYLE.addAttribute(STYLE.getEmptySet(), FOREGROUND, Color.CYAN);
 
 
     private final StyledDocument styledDocument;
+    private final WeakHashMap<String, Pattern> findPatternCache;
 
     KeywordsHighlighter(StyledDocument styledDocument) {
         this.styledDocument = Objects.requireNonNull(styledDocument);
+        findPatternCache = new WeakHashMap<>(5, 0.2f); // one at the time
     }
 
     @Override
@@ -70,31 +76,58 @@ class KeywordsHighlighter extends DocumentFilter {
     }
 
     void handleTextChanged() {
+        handleTextChanged(null);
+    }
+
+    int handleTextChanged(String findRegex) {
         int len = styledDocument.getLength();
         String txt;
         try {
             txt = styledDocument.getText(0, len);
-
         } catch (BadLocationException impossible) {
-            return;
+            return 0;
         }
         if (ERROR_HEADER_PATTERN.matcher(txt).find()) {
             styledDocument.setCharacterAttributes(0, len, ERROR, true);
         } else {
             styledDocument.setCharacterAttributes(0, len, NORMAL, true);
-            Matcher matcher = KEYWORDS_PATTERN.matcher(txt);
-            while (matcher.find()) {
-                int start = matcher.start();
-                len = matcher.end() - start;
-                styledDocument.setCharacterAttributes(start, len, KEYWORD, false);
+            applyStyle(KEYWORDS_PATTERN.matcher(txt), KEYWORD, false);
+            if (findRegex != null && !findRegex.isBlank()) {
+                Pattern findPattern = findPatternCache.get(findRegex);
+                if (findPattern == null) {
+                    try {
+                        findPattern = Pattern.compile(findRegex, KEYWORDS_PATTERN_FLAGS);
+                        findPatternCache.put(findRegex, findPattern);
+                    } catch (PatternSyntaxException err) {
+                        JOptionPane.showMessageDialog(null, String.format(
+                                "Not a valid filter: %s", findRegex));
+                        return 0;
+                    }
+                }
+                return applyStyle(findPattern.matcher(txt), HIGHLIGHT, true);
             }
         }
+        return 0;
+    }
+
+    private int applyStyle(Matcher matcher, AttributeSet style, boolean replace) {
+        int matchCount = 0;
+        while (matcher.find()) {
+            styledDocument.setCharacterAttributes(
+                    matcher.start(),
+                    matcher.end() - matcher.start(),
+                    style,
+                    replace);
+            matchCount++;
+        }
+        return matchCount;
     }
 
     private static final Pattern ERROR_HEADER_PATTERN = Pattern.compile(TextPane.ERROR_HEADER);
 
     // Execute <b>src/test/python/keywords.py</b>, then copy the results to the
     // first parameter of Pattern.compile.
+    private static final int KEYWORDS_PATTERN_FLAGS = Pattern.CASE_INSENSITIVE | Pattern.UNICODE_CASE;
     private static final Pattern KEYWORDS_PATTERN = Pattern.compile(
             "\\bquestdb\\b|\\badd\\b|\\ball\\b|\\balter\\b|\\band\\b|\\bas\\b|\\basc\\b"
                     + "|\\basof\\b|\\bbackup\\b|\\bbetween\\b|\\bby\\b|\\bcache\\b"
@@ -114,5 +147,5 @@ class KeywordsHighlighter extends DocumentFilter {
                     + "|\\bto\\b|\\btransaction\\b|\\btruncate\\b|\\btype\\b|\\bunion\\b"
                     + "|\\bunlock\\b|\\bupdate\\b|\\bvalues\\b|\\bwhen\\b|\\bwhere\\b"
                     + "|\\bwith\\b|\\bwriter\\b",
-            Pattern.CASE_INSENSITIVE | Pattern.UNICODE_CASE);
+            KEYWORDS_PATTERN_FLAGS);
 }

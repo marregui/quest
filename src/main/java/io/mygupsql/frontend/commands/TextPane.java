@@ -29,6 +29,7 @@ import java.io.IOException;
 import java.io.PrintWriter;
 import java.io.StringWriter;
 import java.util.concurrent.atomic.AtomicReference;
+import java.util.regex.PatternSyntaxException;
 
 import javax.swing.*;
 import javax.swing.text.*;
@@ -76,29 +77,24 @@ public class TextPane extends JPanel {
         add(scrollPane, BorderLayout.CENTER);
     }
 
-    /**
-     * Displays the message.
-     *
-     * @param message message to be displayed
-     */
     public void displayMessage(String message) {
         textPane.setText(message);
         repaint();
     }
 
-    /**
-     * Displays the error's stack trace.
-     *
-     * @param error carries the stack trace to be displayed
-     */
     public void displayError(Throwable error) {
-        textPane.setText(createErrorMessage(error));
+        StringBuilder sb = new StringBuilder();
+        sb.append("\n").append(ERROR_HEADER).append("\n");
+        try (StringWriter sw = new StringWriter(); PrintWriter pw = new PrintWriter(sw)) {
+            error.printStackTrace(pw);
+            sb.append(sw);
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+        textPane.setText(sb.toString());
         repaint();
     }
 
-    /**
-     * @return the content of the current line under the caret
-     */
     protected String getCurrentLine() {
         try {
             int caretPos = textPane.getCaretPosition();
@@ -111,18 +107,10 @@ public class TextPane extends JPanel {
         return EMPTY_STR;
     }
 
-    /**
-     * @return full content
-     */
     protected String getContent() {
         return getContent(0, -1);
     }
 
-    /**
-     * @param start start offset
-     * @param len   num chars to get, -1 to get all from start
-     * @return content start.. to start + len, or ""
-     */
     protected String getContent(int start, int len) {
         Document doc = textPane.getStyledDocument();
         int length = len < 0 ? doc.getLength() - start : len;
@@ -139,6 +127,25 @@ public class TextPane extends JPanel {
         return EMPTY_STR;
     }
 
+    protected int highlightContent(String findRegex) {
+        if (findRegex != null && !findRegex.isBlank() && !findRegex.isEmpty()) {
+            return keywordsHighlighter.handleTextChanged(findRegex);
+        }
+        return 0;
+    }
+
+    protected void replaceContent(String findRegex, String replaceWith) {
+        if (findRegex != null && !findRegex.isBlank() && replaceWith != null && !replaceWith.isBlank()) {
+            try {
+                textPane.setText(getContent().replaceAll(findRegex, replaceWith));
+                keywordsHighlighter.handleTextChanged();
+            } catch (PatternSyntaxException err) {
+                JOptionPane.showMessageDialog(null, String.format(
+                        "Not a valid filter: %s", err.getMessage()));
+            }
+        }
+    }
+
     protected void setUndoManager(UndoManager undoManager) {
         AbstractDocument doc = (AbstractDocument) textPane.getDocument();
         UndoManager current = this.undoManager.get();
@@ -148,18 +155,6 @@ public class TextPane extends JPanel {
         undoManager.discardAllEdits();
         this.undoManager.set(undoManager);
         doc.addUndoableEditListener(undoManager);
-    }
-
-    private static String createErrorMessage(Throwable error) {
-        StringBuilder sb = new StringBuilder();
-        sb.append("\n").append(ERROR_HEADER).append("\n");
-        try (StringWriter sw = new StringWriter(); PrintWriter pw = new PrintWriter(sw)) {
-            error.printStackTrace(pw);
-            sb.append(sw);
-        } catch (IOException e) {
-            throw new RuntimeException(e);
-        }
-        return sb.toString();
     }
 
     private void addCmdKeyAction(int keyEvent, ActionListener action) {
@@ -312,7 +307,8 @@ public class TextPane extends JPanel {
         addCmdKeyAction(KeyEvent.VK_UP, e -> textPane.setCaretPosition(0));
 
         // cmd-down, jump to the end of the document
-        addCmdKeyAction(KeyEvent.VK_DOWN, e -> textPane.setCaretPosition(textPane.getStyledDocument().getLength()));
+        addCmdKeyAction(KeyEvent.VK_DOWN,
+                e -> textPane.setCaretPosition(textPane.getStyledDocument().getLength()));
 
         // cmd-shift-left, select from caret to the beginning of the line
         addCmdShiftKeysAction(KeyEvent.VK_LEFT, e -> {

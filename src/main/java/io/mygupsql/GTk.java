@@ -29,7 +29,6 @@ import java.awt.Toolkit;
 import java.awt.Window;
 import java.awt.datatransfer.Clipboard;
 import java.awt.event.ActionListener;
-import java.awt.event.InputEvent;
 import java.net.URL;
 import java.util.HashMap;
 import java.util.Map;
@@ -62,6 +61,28 @@ public final class GTk {
 
     public static Clipboard systemClipboard() {
         return TK.getSystemClipboard();
+    }
+
+    public static void invokeLater(Runnable... tasks) {
+        if (EventQueue.isDispatchThread()) {
+            for (Runnable r : tasks) {
+                if (r != null) {
+                    r.run();
+                }
+            }
+        } else {
+            try {
+                EventQueue.invokeLater(() -> {
+                    for (Runnable r : tasks) {
+                        if (r != null) {
+                            r.run();
+                        }
+                    }
+                });
+            } catch (Throwable fail) {
+                throw new RuntimeException(fail);
+            }
+        }
     }
 
     public static Dimension frameDimension() {
@@ -115,19 +136,19 @@ public final class GTk {
     }
 
     public static JPanel createEtchedFlowPanel(JComponent... components) {
-        return createFlowPanel(BorderFactory.createEtchedBorder(), components);
+        return createFlowPanel(BorderFactory.createEtchedBorder(), 0, 0, components);
     }
 
     public static JPanel createFlowPanel(JComponent... components) {
-        return createFlowPanel(null, components);
+        return createFlowPanel(null, 0, 0, components);
     }
 
-    public static JPanel createHorizontalSpace(int hgap) {
-        return new JPanel(new FlowLayout(FlowLayout.CENTER, hgap, 0));
+    public static JPanel createFlowPanel(int hgap, int vgap, JComponent... components) {
+        return createFlowPanel(null, hgap, vgap, components);
     }
 
-    private static JPanel createFlowPanel(Border border, JComponent... components) {
-        JPanel panel = new JPanel(new FlowLayout(FlowLayout.RIGHT, 0, 0));
+    public static JPanel createFlowPanel(Border border, int hgap, int vgap, JComponent... components) {
+        JPanel panel = new JPanel(new FlowLayout(FlowLayout.RIGHT, hgap, vgap));
         if (border != null) {
             panel.setBorder(border);
         }
@@ -137,33 +158,8 @@ public final class GTk {
         return panel;
     }
 
-    /**
-     * Ensures the tasks are run by the AWT EventQueue event processing thread.
-     *
-     * @param tasks tasks to be run. If the caller is not the GUI main processing queue,
-     *              these are added to the {@link java.awt.EventQueue} and run later,
-     *              otherwise they are run on the spot.
-     */
-    public static void invokeLater(Runnable... tasks) {
-        if (EventQueue.isDispatchThread()) {
-            for (Runnable r : tasks) {
-                if (r != null) {
-                    r.run();
-                }
-            }
-        } else {
-            try {
-                EventQueue.invokeLater(() -> {
-                    for (Runnable r : tasks) {
-                        if (r != null) {
-                            r.run();
-                        }
-                    }
-                });
-            } catch (Throwable fail) {
-                throw new RuntimeException(fail);
-            }
-        }
+    public static JPanel createHorizontalSpace(int hgap) {
+        return new JPanel(new FlowLayout(FlowLayout.CENTER, hgap, 0));
     }
 
     public static JMenuItem configureMenuItem(JMenuItem item,
@@ -178,17 +174,16 @@ public final class GTk {
         item.setText(title);
         if (keyEvent != NO_KEY_EVENT) {
             item.setMnemonic(keyEvent);
-            item.setAccelerator(KeyStroke.getKeyStroke(keyEvent, InputEvent.CTRL_DOWN_MASK));
+            item.setAccelerator(KeyStroke.getKeyStroke(keyEvent, CMD_DOWN_MASK));
         }
         item.addActionListener(listener);
         return item;
     }
 
-    /**
-     * 16x16 icons used throughout.
-     */
     public enum Icon {
         // https://p.yusukekamiyamane.com/
+        // 16x16 icons
+        NO_ICON(null),
         APPLICATION("Application.png"),
         CONN_UP("ConnectionUp.png"),
         CONN_DOWN("ConnectionDown.png"),
@@ -210,10 +205,11 @@ public final class GTk {
         COMMAND_SAVE("CommandSave.png"),
         COMMAND_STORE_BACKUP("CommandStoreBackup.png"),
         COMMAND_STORE_LOAD("CommandStoreLoad.png"),
+        COMMAND_FIND("CommandFind.png"),
+        COMMAND_REPLACE("CommandReplace.png"),
         NEXT("Next.png"),
         PREV("Prev.png"),
-        RELOAD("Reload.png"),
-        NO_ICON(null);
+        RELOAD("Reload.png");
 
         private static final String FOLDER = "images";
         private static final Map<String, ImageIcon> ICON_MAP = new HashMap<>();
