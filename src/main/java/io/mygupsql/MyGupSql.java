@@ -18,8 +18,6 @@ package io.mygupsql;
 
 import java.awt.*;
 import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
-import java.awt.event.InputEvent;
 import java.awt.event.KeyEvent;
 import java.util.Set;
 
@@ -35,6 +33,8 @@ import io.mygupsql.backend.SQLExecutor;
 import io.mygupsql.frontend.commands.CommandBoard;
 import io.mygupsql.frontend.conns.ConnsManager;
 import io.mygupsql.frontend.results.SQLResultsTable;
+
+import static io.mygupsql.GTk.configureMenuItem;
 
 
 public final class MyGupSql {
@@ -87,14 +87,12 @@ public final class MyGupSql {
     }
 
     private JMenuBar createMenuBar() {
-        Font font = new Font(GTk.MAIN_FONT_NAME, Font.BOLD, 14);
         JMenu connsMenu = new JMenu("Connections");
-        connsMenu.setFont(font);
+        connsMenu.setFont(GTk.MENU_FONT);
         connsMenu.add(
                 configureMenuItem(
                         toggleConnsWidget,
                         GTk.Icon.CONN_SHOW,
-                        font,
                         "Show connections",
                         KeyEvent.VK_T,
                         this::onToggleConnsWidgetEvent));
@@ -102,18 +100,16 @@ public final class MyGupSql {
                 configureMenuItem(
                         toggleConn,
                         GTk.Icon.CONN_CONNECT,
-                        font,
                         "Connect",
                         KeyEvent.VK_O,
                         this::onToggleConnEvent));
 
         JMenu commandsMenu = new JMenu("Commands");
-        commandsMenu.setFont(font);
+        commandsMenu.setFont(GTk.MENU_FONT);
         commandsMenu.add(
                 configureMenuItem(
                         new JMenuItem(),
                         GTk.Icon.EXEC_LINE,
-                        font,
                         "L.Exec",
                         KeyEvent.VK_L,
                         commands::onExecLineEvent));
@@ -121,7 +117,6 @@ public final class MyGupSql {
                 configureMenuItem(
                         new JMenuItem(),
                         GTk.Icon.EXEC,
-                        font,
                         "Exec",
                         KeyEvent.VK_ENTER,
                         commands::onExecEvent));
@@ -129,18 +124,16 @@ public final class MyGupSql {
                 configureMenuItem(
                         new JMenuItem(),
                         GTk.Icon.EXEC_CANCEL,
-                        font,
                         "Cancel",
                         KeyEvent.VK_C,
                         commands::onCancelEvent));
 
         JMenu resultsMenu = new JMenu("Results");
-        resultsMenu.setFont(font);
+        resultsMenu.setFont(GTk.MENU_FONT);
         resultsMenu.add(
                 configureMenuItem(
                         new JMenuItem(),
                         GTk.Icon.PREV,
-                        font,
                         "PREV",
                         KeyEvent.VK_B,
                         results::onPrevButtonEvent));
@@ -148,7 +141,6 @@ public final class MyGupSql {
                 configureMenuItem(
                         new JMenuItem(),
                         GTk.Icon.NEXT,
-                        font,
                         "NEXT",
                         KeyEvent.VK_N,
                         results::onNextButtonEvent));
@@ -156,29 +148,12 @@ public final class MyGupSql {
         JMenuBar menuBar = new JMenuBar();
         menuBar.setBorder(BorderFactory.createLoweredSoftBevelBorder());
         JMenu menu = new JMenu("Menu");
-        menu.setFont(font);
+        menu.setFont(GTk.MENU_FONT);
         menu.add(connsMenu);
         menu.add(commandsMenu);
         menu.add(resultsMenu);
         menuBar.add(menu);
         return menuBar;
-    }
-
-    private static JMenuItem configureMenuItem(JMenuItem item,
-                                               GTk.Icon icon,
-                                               Font font,
-                                               String title,
-                                               int keyEvent,
-                                               ActionListener listener) {
-        item.setFont(font);
-        item.setText(title);
-        item.setMnemonic(keyEvent);
-        item.setAccelerator(KeyStroke.getKeyStroke(keyEvent, InputEvent.CTRL_DOWN_MASK));
-        item.addActionListener(listener);
-        if (icon != GTk.Icon.NO_ICON) {
-            item.setIcon(icon.icon());
-        }
-        return item;
     }
 
     private void onToggleConnEvent(ActionEvent event) {

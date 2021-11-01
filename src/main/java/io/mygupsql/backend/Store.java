@@ -94,7 +94,7 @@ public class Store<T extends StoreEntry> implements Closeable, Iterable<T> {
      * @param entryClass type/class of the entries within the file, must be a subclass
      *                   of {@link StoreEntry} and have
      */
-    private Store(File rootPath, String fileName, Class<? extends StoreEntry> entryClass) {
+    public Store(File rootPath, String fileName, Class<? extends StoreEntry> entryClass) {
         this.rootPath = rootPath;
         this.fileName = fileName;
         this.entryClass = entryClass;
@@ -158,7 +158,7 @@ public class Store<T extends StoreEntry> implements Closeable, Iterable<T> {
     /**
      * Returns the entry at the specified index.
      *
-     * @param idx index of the entry
+     * @param idx         index of the entry
      * @param constructor supplies the entry at idx
      */
     public synchronized T getEntry(int idx, Supplier<T> constructor) {
@@ -202,7 +202,7 @@ public class Store<T extends StoreEntry> implements Closeable, Iterable<T> {
     /**
      * @return an array containing the store entries' name
      */
-    public synchronized String [] entryNames() {
+    public synchronized String[] entryNames() {
         return entries.stream().map(StoreEntry::getName).toArray(String[]::new);
     }
 
@@ -285,6 +285,15 @@ public class Store<T extends StoreEntry> implements Closeable, Iterable<T> {
         asyncPersister.submit(() -> saveEntriesToFile(null));
     }
 
+    public void saveToFile(File file) {
+        try (FileWriter out = new FileWriter(file, StandardCharsets.UTF_8, true)) {
+            GSON.toJson(entries, STORE_TYPE, out);
+            LOGGER.info("Saved [{}]", file.getAbsolutePath());
+        } catch (IOException e) {
+            LOGGER.error("Could not store into file [{}]: {}", file.getAbsolutePath(), e.getMessage());
+        }
+    }
+
     /**
      * Shuts down the persistence thread, saves the contents of the store, as they
      * are, to the backing file and then releases the store's resources.
@@ -314,13 +323,7 @@ public class Store<T extends StoreEntry> implements Closeable, Iterable<T> {
 
     private void saveEntriesToFile(Runnable whenDoneTask) {
         try {
-            File file = getFile(true);
-            try (FileWriter out = new FileWriter(file, StandardCharsets.UTF_8, true)) {
-                GSON.toJson(entries, STORE_TYPE, out);
-                LOGGER.info("Saved [{}]", file.getAbsolutePath());
-            } catch (IOException e) {
-                LOGGER.error("Could not store into file [{}]: {}", file.getAbsolutePath(), e.getMessage());
-            }
+            saveToFile(getFile(true));
         } finally {
             if (whenDoneTask != null) {
                 whenDoneTask.run();

@@ -261,7 +261,9 @@ public class ConnsManager extends JDialog implements EventProducer<ConnsManager.
     private void onTableModelEvent(TableModelEvent event) {
         if (event.getType() == TableModelEvent.UPDATE) {
             toggleComponents();
-            store.asyncSaveToFile();
+            if (event.getColumn() >= 0 && event.getLastRow() != Integer.MAX_VALUE) {
+                store.asyncSaveToFile();
+            }
         }
     }
 

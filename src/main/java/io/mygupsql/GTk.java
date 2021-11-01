@@ -29,6 +29,7 @@ import java.awt.Toolkit;
 import java.awt.Window;
 import java.awt.datatransfer.Clipboard;
 import java.awt.event.ActionListener;
+import java.awt.event.InputEvent;
 import java.net.URL;
 import java.util.HashMap;
 import java.util.Map;
@@ -38,9 +39,6 @@ import javax.swing.*;
 import javax.swing.border.Border;
 
 
-/**
- * GUI Toolkit.
- */
 public final class GTk {
 
     private static final Toolkit TK = Toolkit.getDefaultToolkit();
@@ -48,10 +46,13 @@ public final class GTk {
 
     public static final Color APP_THEME_COLOR = new Color(200, 50, 100);
     public static final String MAIN_FONT_NAME = "Arial"; // excluding commands' TextPane
+    public static final Font MENU_FONT = new Font(MAIN_FONT_NAME, Font.BOLD, 14);
+
     public static final Font TABLE_HEADER_FONT = new Font(MAIN_FONT_NAME, Font.BOLD, 18);
     public static final Color TABLE_HEADER_FONT_COLOR = Color.BLACK;
     public static final Font TABLE_CELL_FONT = new Font(MAIN_FONT_NAME, Font.PLAIN, 16);
     public static final int CMD_DOWN_MASK = GTk.TK.getMenuShortcutKeyMaskEx();
+    public static final int NO_KEY_EVENT = -1;
 
     static {
         // anti-aliased fonts
@@ -59,17 +60,10 @@ public final class GTk {
         System.setProperty("swing.aatext", "true");
     }
 
-    /**
-     * @return the system's clipboard
-     */
     public static Clipboard systemClipboard() {
         return TK.getSystemClipboard();
     }
 
-    /**
-     * @return dimension instance where width/height are 90% of the screen's
-     * width/height
-     */
     public static Dimension frameDimension() {
         Dimension screenSize = TK.getScreenSize();
         int width = (int) (screenSize.getWidth() * 0.9);
@@ -77,11 +71,6 @@ public final class GTk {
         return new Dimension(width, height);
     }
 
-    /**
-     * @param frameDimension as produced by {@link #frameDimension()}
-     * @return dimension representing the location for the frame to be screen
-     * centred
-     */
     public static Dimension frameLocation(Dimension frameDimension) {
         Dimension screenSize = TK.getScreenSize();
         int x = (int) (screenSize.getWidth() - frameDimension.getWidth()) / 2;
@@ -89,21 +78,10 @@ public final class GTk {
         return new Dimension(x, y);
     }
 
-    /**
-     * Creates a top level frame.
-     *
-     * @return the frame
-     */
-    static JFrame createFrame() {
+    public static JFrame createFrame() {
         return createFrame(null);
     }
 
-    /**
-     * Creates a top level frame.
-     *
-     * @param title title for the frame
-     * @return the frame
-     */
     public static JFrame createFrame(String title) {
         JFrame frame = new JFrame();
         frame.setType(Window.Type.NORMAL);
@@ -119,29 +97,10 @@ public final class GTk {
         return frame;
     }
 
-    /**
-     * Creates a simple button with an icon.
-     *
-     * @param text      text to display on the button
-     * @param listener  listener/action on button events
-     * @param icon      the icon to set, or null
-     * @param tooltip   text describing what the button does, or null
-     * @return the button
-     */
     public static JButton createButton(String text, Icon icon, String tooltip, ActionListener listener) {
         return createButton(text, true, icon, tooltip, listener);
     }
 
-    /**
-     * Creates a simple button with an icon.
-     *
-     * @param text      text to display on the button
-     * @param isEnabled whether the button is enabled
-     * @param listener  listener/action on button events
-     * @param icon      the icon to set, or null
-     * @param tooltip   text describing what the button does, or null
-     * @return the button
-     */
     public static JButton createButton(String text, boolean isEnabled, Icon icon, String tooltip, ActionListener listener) {
         JButton button = new JButton(Objects.requireNonNull(text));
         if (icon != Icon.NO_ICON) {
@@ -155,32 +114,14 @@ public final class GTk {
         return button;
     }
 
-    /**
-     * Creates a panel with a right aligned flow layout and adds the components. The
-     * panel features an "etched" border.
-     *
-     * @param components to be added to the panel
-     * @return the panel, containing the components
-     */
     public static JPanel createEtchedFlowPanel(JComponent... components) {
         return createFlowPanel(BorderFactory.createEtchedBorder(), components);
     }
 
-    /**
-     * Creates a panel with a right aligned flow layout and adds the components.
-     *
-     * @param components to be added to the panel
-     * @return the panel, containing the components
-     */
     public static JPanel createFlowPanel(JComponent... components) {
         return createFlowPanel(null, components);
     }
 
-    /**
-     * Creates a panel to be used as a horizontal spacer between two other panels.
-     * @param hgap horizontal gap
-     * @return the panel
-     */
     public static JPanel createHorizontalSpace(int hgap) {
         return new JPanel(new FlowLayout(FlowLayout.CENTER, hgap, 0));
     }
@@ -199,9 +140,9 @@ public final class GTk {
     /**
      * Ensures the tasks are run by the AWT EventQueue event processing thread.
      *
-     * @param tasks tasks to be run. If the caller is not the GUI main processing
-     *              queue, these are added to the {@link java.awt.EventQueue} and
-     *              run later, otherwise they are run on the spot.
+     * @param tasks tasks to be run. If the caller is not the GUI main processing queue,
+     *              these are added to the {@link java.awt.EventQueue} and run later,
+     *              otherwise they are run on the spot.
      */
     public static void invokeLater(Runnable... tasks) {
         if (EventQueue.isDispatchThread()) {
@@ -223,6 +164,24 @@ public final class GTk {
                 throw new RuntimeException(fail);
             }
         }
+    }
+
+    public static JMenuItem configureMenuItem(JMenuItem item,
+                                              GTk.Icon icon,
+                                              String title,
+                                              int keyEvent,
+                                              ActionListener listener) {
+        if (icon != GTk.Icon.NO_ICON) {
+            item.setIcon(icon.icon());
+        }
+        item.setFont(MENU_FONT);
+        item.setText(title);
+        if (keyEvent != NO_KEY_EVENT) {
+            item.setMnemonic(keyEvent);
+            item.setAccelerator(KeyStroke.getKeyStroke(keyEvent, InputEvent.CTRL_DOWN_MASK));
+        }
+        item.addActionListener(listener);
+        return item;
     }
 
     /**
@@ -249,6 +208,8 @@ public final class GTk {
         COMMAND_REMOVE("CommandRemove.png"),
         COMMAND_CLEAR("CommandClear.png"),
         COMMAND_SAVE("CommandSave.png"),
+        COMMAND_STORE_BACKUP("CommandStoreBackup.png"),
+        COMMAND_STORE_LOAD("CommandStoreLoad.png"),
         NEXT("Next.png"),
         PREV("Prev.png"),
         RELOAD("Reload.png"),

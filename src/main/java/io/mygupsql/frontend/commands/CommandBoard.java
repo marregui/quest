@@ -19,10 +19,9 @@ package io.mygupsql.frontend.commands;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.MouseEvent;
-import java.awt.event.MouseListener;
 import java.awt.font.TextAttribute;
 import java.io.Closeable;
-import java.util.Collections;
+import java.io.File;
 import java.util.List;
 import java.util.ArrayList;
 import java.util.Map;
@@ -39,6 +38,8 @@ import io.mygupsql.backend.Conn;
 import io.mygupsql.backend.SQLRequest;
 import io.mygupsql.backend.Store;
 import io.mygupsql.frontend.MaskingMouseListener;
+
+import static io.mygupsql.GTk.configureMenuItem;
 
 
 public class CommandBoard extends TextPane implements EventProducer<CommandBoard.EventType>, Closeable {
@@ -65,24 +66,20 @@ public class CommandBoard extends TextPane implements EventProducer<CommandBoard
             TextAttribute.UNDERLINE, TextAttribute.UNDERLINE_ON));
     private static final Cursor HAND_CURSOR = new Cursor(Cursor.HAND_CURSOR);
     private static final String STORE_FILE_NAME = "command-board.json";
-
-    private final Store<Content> store;
+    private final JMenu storeMenu;
     private final EventConsumer<CommandBoard, SQLRequest> eventConsumer;
     private final JComboBox<String> storeEntries;
-    private final List<UndoManager> undoManagers;
+    private final List<UndoManager> storeUndoManagers;
     private final JButton execButton;
     private final JButton execLineButton;
     private final JButton cancelButton;
+    private final JLabel commandBoardLabel;
     private final JLabel connLabel;
+    private Store<Content> store;
     private Conn conn; // uses it when set
     private SQLRequest lastRequest;
     private Content content;
 
-    /**
-     * Constructor.
-     *
-     * @param eventConsumer receives the events fired as the user interacts
-     */
     public CommandBoard(EventConsumer<CommandBoard, SQLRequest> eventConsumer) {
         super();
         this.eventConsumer = eventConsumer;
@@ -108,46 +105,35 @@ public class CommandBoard extends TextPane implements EventProducer<CommandBoard
                 connLabel.setFont(HEADER_FONT);
             }
         });
-        store = new Store<>(STORE_FILE_NAME, Content.class) {
-
-            @Override
-            public Content[] defaultStoreEntries() {
-                return new Content[]{
-                        new Content("default")
-                };
-            }
-        };
-        store.loadEntriesFromFile();
-        storeEntries = new JComboBox<>(store.entryNames());
+        storeEntries = new JComboBox<>();
         storeEntries.setEditable(false);
         storeEntries.setPreferredSize(new Dimension(150, 25));
-        storeEntries.addActionListener(this::onStoreEntryChangeEvent);
-        undoManagers = new ArrayList<>(); // une per store entry
-        for (int idx = 0; idx < store.size(); idx++) {
-            undoManagers.add(new UndoManager() {
-                @Override
-                public void undoableEditHappened(UndoableEditEvent e) {
-                    if (!"style change".equals(e.getEdit().getPresentationName())) {
-                        super.undoableEditHappened(e);
-                    }
-                }
-            });
-        }
-        JLabel commandBoardLabel = new JLabel("Command board:");
+        storeEntries.addActionListener(this::onChangeCommandBoardEvent);
+        storeUndoManagers = new ArrayList<>();
+        storeMenu = new JMenu();
+        storeMenu.setFont(GTk.MENU_FONT);
+        storeMenu.add(
+                configureMenuItem(
+                        new JMenuItem(),
+                        GTk.Icon.COMMAND_STORE_BACKUP,
+                        "Backup to file",
+                        GTk.NO_KEY_EVENT,
+                        this::onBackupCommandBoardsEvent));
+        storeMenu.add(
+                configureMenuItem(
+                        new JMenuItem(),
+                        GTk.Icon.COMMAND_STORE_LOAD,
+                        "Load from backup",
+                        GTk.NO_KEY_EVENT,
+                        this::onLoadCommandBoardsFromBackupEvent));
+        commandBoardLabel = new JLabel("Command board:");
         commandBoardLabel.setFont(HEADER_FONT);
         commandBoardLabel.setForeground(GTk.TABLE_HEADER_FONT_COLOR);
         commandBoardLabel.addMouseListener(new MaskingMouseListener() {
 
             @Override
             public void mouseClicked(MouseEvent e) {
-                if (e.getClickCount() == 2 && !e.isConsumed()) {
-                    e.consume();
-                    System.out.printf("2Mouse event: %d, clicks:%d%n", e.getButton(), e.getClickCount());
-                } else if (e.getClickCount() == 1 && !e.isConsumed()) {
-                    e.consume();
-                    System.out.printf("1Mouse event: %d, clicks:%d%n", e.getButton(), e.getClickCount());
-                }
-
+                storeMenu.getPopupMenu().show(e.getComponent(), e.getX() - 30, e.getY());
             }
 
             @Override
@@ -175,9 +161,9 @@ public class CommandBoard extends TextPane implements EventProducer<CommandBoard
                         GTk.createButton("", true, GTk.Icon.COMMAND_SAVE,
                                 "Save selected board", this::onSaveEvent),
                         GTk.createButton("", true, GTk.Icon.COMMAND_ADD,
-                                "Create new board", this::onCreateStoreEntryEvent),
+                                "Create new board", this::onCreateCommandBoardEvent),
                         GTk.createButton("", true, GTk.Icon.COMMAND_REMOVE,
-                                "Delete selected board", this::onDeleteStoreEntryEvent)),
+                                "Delete selected board", this::onDeleteCommandBoardEvent)),
                 GTk.createHorizontalSpace(37),
                 GTk.createEtchedFlowPanel(
                         execLineButton = GTk.createButton(
@@ -194,21 +180,13 @@ public class CommandBoard extends TextPane implements EventProducer<CommandBoard
         controlsPanel.add(buttons, BorderLayout.EAST);
         add(controlsPanel, BorderLayout.NORTH);
         refreshControls();
-        storeEntries.setSelectedIndex(0);
+        loadStoreEntries(STORE_FILE_NAME);
     }
 
-    /**
-     * @return the database connection used by the command board
-     */
     public Conn getConnection() {
         return conn;
     }
 
-    /**
-     * Sets the database connection used by the command board.
-     *
-     * @param conn the connection
-     */
     public void setConnection(Conn conn) {
         this.conn = conn;
         refreshControls();
@@ -220,12 +198,45 @@ public class CommandBoard extends TextPane implements EventProducer<CommandBoard
         textPane.requestFocus();
     }
 
-    /**
-     * Replaces the content of the board, saving current content in the process.
-     *
-     * @param event it is effectively ignored, so it can be null
-     */
-    private void onStoreEntryChangeEvent(ActionEvent event) {
+    public void onExecEvent(ActionEvent event) {
+        fireCommandEvent(this::getCommand);
+    }
+
+    public void onExecLineEvent(ActionEvent event) {
+        fireCommandEvent(this::getCurrentLine);
+    }
+
+    private void loadStoreEntries(String fileName) {
+        store = new Store<>(fileName, Content.class) {
+
+            @Override
+            public Content[] defaultStoreEntries() {
+                return new Content[]{
+                        new Content("default")
+                };
+            }
+        };
+        store.loadEntriesFromFile();
+        commandBoardLabel.setToolTipText(fileName);
+        storeUndoManagers.clear();
+        for (int idx = 0; idx < store.size(); idx++) {
+            storeUndoManagers.add(new UndoManager() {
+                @Override
+                public void undoableEditHappened(UndoableEditEvent e) {
+                    if (!"style change".equals(e.getEdit().getPresentationName())) {
+                        super.undoableEditHappened(e);
+                    }
+                }
+            });
+        }
+        storeEntries.removeAllItems();
+        for (String item :store.entryNames()) {
+            storeEntries.addItem(item);
+        }
+        storeEntries.setSelectedIndex(0);
+    }
+
+    private void onChangeCommandBoardEvent(ActionEvent event) {
         int idx = storeEntries.getSelectedIndex();
         if (idx >= 0) {
             if (content != null) {
@@ -234,16 +245,11 @@ public class CommandBoard extends TextPane implements EventProducer<CommandBoard
             }
             content = store.getEntry(idx, Content::new);
             textPane.setText(content.getContent());
-            setUndoManager(undoManagers.get(idx));
+            setUndoManager(storeUndoManagers.get(idx));
         }
     }
 
-    /**
-     * Creates a new board and makes it active.
-     *
-     * @param event it is effectively ignored, so it can be null
-     */
-    private void onCreateStoreEntryEvent(ActionEvent event) {
+    private void onCreateCommandBoardEvent(ActionEvent event) {
         String entryName = JOptionPane.showInputDialog(
                 this,
                 "Name",
@@ -254,7 +260,7 @@ public class CommandBoard extends TextPane implements EventProducer<CommandBoard
         }
         store.addEntry(new Content(entryName), false);
         storeEntries.addItem(entryName);
-        undoManagers.add(new UndoManager() {
+        storeUndoManagers.add(new UndoManager() {
             @Override
             public void undoableEditHappened(UndoableEditEvent e) {
                 if (!"style change".equals(e.getEdit().getPresentationName())) {
@@ -265,75 +271,87 @@ public class CommandBoard extends TextPane implements EventProducer<CommandBoard
         storeEntries.setSelectedItem(entryName);
     }
 
-    /**
-     * Deletes the current board, selects default.
-     *
-     * @param event it is effectively ignored, so it can be null
-     */
-    private void onDeleteStoreEntryEvent(ActionEvent event) {
+    private void onDeleteCommandBoardEvent(ActionEvent event) {
         int idx = storeEntries.getSelectedIndex();
         if (idx > 0) {
             store.removeEntry(idx);
             storeEntries.removeItemAt(idx);
-            undoManagers.remove(idx);
+            storeUndoManagers.remove(idx);
             storeEntries.setSelectedIndex(idx - 1);
         }
     }
 
-    /**
-     * Clears the content of the board.
-     *
-     * @param event it is effectively ignored, so it can be null
-     */
+    private void onBackupCommandBoardsEvent(ActionEvent event) {
+        JFileChooser chooseBackupFile = new JFileChooser(store.getRootPath());
+        chooseBackupFile.setDialogTitle("Backing up store");
+        chooseBackupFile.setSelectedFile(new File("command-board-backup.json"));
+        chooseBackupFile.setDialogType(JFileChooser.SAVE_DIALOG);
+        chooseBackupFile.setFileSelectionMode(JFileChooser.FILES_ONLY);
+        chooseBackupFile.setMultiSelectionEnabled(false);
+        if (JFileChooser.APPROVE_OPTION == chooseBackupFile.showSaveDialog(this)) {
+            File selectedFile = chooseBackupFile.getSelectedFile();
+            try {
+                if (!selectedFile.exists()) {
+                    store.saveToFile(selectedFile);
+                } else {
+                    if (JOptionPane.YES_OPTION == JOptionPane.showConfirmDialog(
+                            this,
+                            "Override file?",
+                            "Dilemma",
+                            JOptionPane.YES_NO_OPTION)) {
+                        store.saveToFile(selectedFile);
+                    }
+                }
+            } catch (Throwable t) {
+                JOptionPane.showMessageDialog(
+                        this,
+                        String.format("Could not save file '%s': %s",
+                                selectedFile.getAbsolutePath(),
+                                t.getMessage()),
+                        "Error",
+                        JOptionPane.ERROR_MESSAGE
+                );
+            }
+        }
+    }
+
+    private void onLoadCommandBoardsFromBackupEvent(ActionEvent event) {
+        JFileChooser chooseLoadFile = new JFileChooser(store.getRootPath());
+        chooseLoadFile.setDialogTitle("Loading store from backup");
+        chooseLoadFile.setDialogType(JFileChooser.OPEN_DIALOG);
+        chooseLoadFile.setFileSelectionMode(JFileChooser.FILES_ONLY);
+        chooseLoadFile.setMultiSelectionEnabled(false);
+        if (JFileChooser.APPROVE_OPTION == chooseLoadFile.showOpenDialog(this)) {
+            File selectedFile = chooseLoadFile.getSelectedFile();
+            try {
+                loadStoreEntries(selectedFile.getName());
+            } catch (Throwable t) {
+                JOptionPane.showMessageDialog(
+                        this,
+                        String.format("Could not load file '%s': %s",
+                                selectedFile.getAbsolutePath(),
+                                t.getMessage()),
+                        "Error",
+                        JOptionPane.ERROR_MESSAGE
+                );
+            }
+        }
+    }
+
     private void onClearEvent(ActionEvent event) {
         textPane.setText("");
     }
 
-    /**
-     * Reloads the content of from the store.
-     *
-     * @param event it is effectively ignored, so it can be null
-     */
     private void onReloadEvent(ActionEvent event) {
         textPane.setText(content.getContent());
     }
 
-    /**
-     * Saves the content to the store.
-     *
-     * @param event it is effectively ignored, so it can be null
-     */
     private void onSaveEvent(ActionEvent event) {
-        updateContent();
-        store.asyncSaveToFile();
+        if (updateContent()) {
+            store.asyncSaveToFile();
+        }
     }
 
-    /**
-     * If the connection is set, it fires COMMAND_AVAILABLE. The content of the
-     * command is be the selected text on the board, or the full content if nothing
-     * is selected.
-     *
-     * @param event it is effectively ignored, so it can be null
-     */
-    public void onExecEvent(ActionEvent event) {
-        fireCommandEvent(this::getCommand);
-    }
-
-    /**
-     * If the connection is set, it fires COMMAND_AVAILABLE. The content of the
-     * command is be the full line under the caret.
-     *
-     * @param event it is effectively ignored, so it can be null
-     */
-    public void onExecLineEvent(ActionEvent event) {
-        fireCommandEvent(this::getCurrentLine);
-    }
-
-    /**
-     * If the connection is set and open, it fires COMMAND_CANCEL.
-     *
-     * @param event it is effectively ignored, so it can be null
-     */
     public void onCancelEvent(ActionEvent event) {
         if (conn == null || !conn.isOpen()) {
             JOptionPane.showMessageDialog(this, "Not connected");
@@ -345,26 +363,25 @@ public class CommandBoard extends TextPane implements EventProducer<CommandBoard
         }
     }
 
+    @Override
+    public void close() {
+        storeUndoManagers.clear();
+        updateContent();
+        store.close();
+    }
+
     private String getCommand() {
         String cmd = textPane.getSelectedText();
         return cmd != null ? cmd.trim() : getContent();
     }
 
-    private void updateContent() {
+    private boolean updateContent() {
         String txt = getContent();
         if (!content.getContent().equals(txt)) {
             content.setContent(txt);
+            return true;
         }
-    }
-
-    /**
-     * Saves the content of the board to its store file.
-     */
-    @Override
-    public void close() {
-        undoManagers.clear();
-        updateContent();
-        store.close();
+        return false;
     }
 
     private void fireCommandEvent(Supplier<String> commandSupplier) {
