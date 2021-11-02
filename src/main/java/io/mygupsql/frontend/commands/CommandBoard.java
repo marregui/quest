@@ -158,24 +158,11 @@ public class CommandBoard extends TextPane implements EventProducer<CommandBoard
     }
 
     public void onFindEvent(ActionEvent event) {
-        boolean wasVisible = findPanel.isVisible();
-        if (!wasVisible) {
-            findPanel.setVisible(true);
-        } else {
-            int matches = highlightContent(findText.getText());
-            findMatchesLabel.setText(String.format("%d %s", matches, matches == 1 ? "match" : "matches"));
-        }
-        findText.requestFocusInWindow();
+        onFindReplaceEvent(() -> highlightContent(findText.getText()));
     }
 
     public void onReplaceEvent(ActionEvent event) {
-        boolean wasVisible = findPanel.isVisible();
-        if (!wasVisible) {
-            findPanel.setVisible(true);
-        } else {
-            replaceContent(findText.getText(), replaceWithText.getText());
-        }
-        replaceWithText.requestFocusInWindow();
+        onFindReplaceEvent(() -> replaceContent(findText.getText(), replaceWithText.getText()));
     }
 
     public void fireCancelEvent(ActionEvent event) {
@@ -231,6 +218,16 @@ public class CommandBoard extends TextPane implements EventProducer<CommandBoard
             commandBoardEntryNames.addItem(item);
         }
         commandBoardEntryNames.setSelectedIndex(0);
+    }
+
+    private void onFindReplaceEvent(Supplier<Integer> matchesCountSupplier) {
+        if (!findPanel.isVisible()) {
+            findPanel.setVisible(true);
+        } else {
+            int matches = matchesCountSupplier.get();
+            findMatchesLabel.setText(String.format("%d %s", matches, matches == 1 ? "match" : "matches"));
+        }
+        findText.requestFocusInWindow();
     }
 
     private void onCloseFindReplaceViewEvent(ActionEvent event) {

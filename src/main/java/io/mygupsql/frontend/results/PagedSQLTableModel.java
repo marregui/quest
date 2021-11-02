@@ -170,8 +170,11 @@ class PagedSQLTableModel extends AbstractTableModel {
             return "";
         }
         int idx = pageStartOffset + rowIdx;
-        SQLTable.Row row = table.getRow(idx);
-        return colIdx == -1 ? row : row.getValueAt(colIdx);
+        if (idx < table.size()) {
+            SQLTable.Row row = table.getRow(idx);
+            return colIdx == -1 ? row : row.getValueAt(colIdx);
+        }
+        return null;
     }
 
     @Override

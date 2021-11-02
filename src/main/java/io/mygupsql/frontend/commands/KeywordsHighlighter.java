@@ -75,11 +75,15 @@ class KeywordsHighlighter extends DocumentFilter {
         handleTextChanged();
     }
 
-    void handleTextChanged() {
-        handleTextChanged(null);
+    int handleTextChanged() {
+        return handleTextChanged(null, null);
     }
 
     int handleTextChanged(String findRegex) {
+        return handleTextChanged(findRegex, null);
+    }
+
+    int handleTextChanged(String findRegex, String replaceWith) {
         int len = styledDocument.getLength();
         String txt;
         try {
@@ -104,10 +108,26 @@ class KeywordsHighlighter extends DocumentFilter {
                         return 0;
                     }
                 }
-                return applyStyle(findPattern.matcher(txt), HIGHLIGHT, true);
+                if (replaceWith != null) {
+                    return replaceAll(findPattern.matcher(txt), replaceWith);
+                }
+                return replaceWith != null ?
+                        replaceAll(findPattern.matcher(txt), replaceWith)
+                        :
+                        applyStyle(findPattern.matcher(txt), HIGHLIGHT, true);
             }
         }
         return 0;
+    }
+
+    private int replaceAll(Matcher matcher, String replaceWith) {
+        int matchCount = 0;
+        while (matcher.find()) {
+            matchCount++;
+        }
+        matcher.reset();
+        matcher.replaceAll(replaceWith);
+        return matchCount;
     }
 
     private int applyStyle(Matcher matcher, AttributeSet style, boolean replace) {

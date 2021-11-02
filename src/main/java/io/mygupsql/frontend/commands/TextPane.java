@@ -134,16 +134,17 @@ public class TextPane extends JPanel {
         return 0;
     }
 
-    protected void replaceContent(String findRegex, String replaceWith) {
-        if (findRegex != null && !findRegex.isBlank() && replaceWith != null && !replaceWith.isBlank()) {
+    protected int replaceContent(String findRegex, String replaceWith) {
+        if (findRegex != null && !findRegex.isBlank() && replaceWith != null) {
             try {
                 textPane.setText(getContent().replaceAll(findRegex, replaceWith));
-                keywordsHighlighter.handleTextChanged();
+                return keywordsHighlighter.handleTextChanged();
             } catch (PatternSyntaxException err) {
                 JOptionPane.showMessageDialog(null, String.format(
                         "Not a valid filter: %s", err.getMessage()));
             }
         }
+        return 0;
     }
 
     protected void setUndoManager(UndoManager undoManager) {
