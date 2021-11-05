@@ -42,7 +42,7 @@ public class StoreEntry implements WithKey, Comparable<StoreEntry> {
         return k1.compareTo(k2);
     };
 
-    private final String name;
+    private volatile String name;
     private final Map<String, String> attrs;
 
     /**
@@ -80,6 +80,15 @@ public class StoreEntry implements WithKey, Comparable<StoreEntry> {
      */
     public String getName() {
         return name;
+    }
+
+    /**
+     * Sets the entry's name.
+     *
+     * @param name of the store's entry
+     */
+    public void setName(String name) {
+        this.name = name;
     }
 
     /**

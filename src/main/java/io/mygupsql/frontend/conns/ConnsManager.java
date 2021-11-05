@@ -119,16 +119,16 @@ public class ConnsManager extends JDialog implements EventProducer<ConnsManager.
         table = ConnsTableModel.createTable(this::onTableModelEvent, this::onListSelectionEvent);
         tableModel = (ConnsTableModel) table.getModel();
         connsValidityChecker = new ConnsChecker(tableModel::getConns, this::onLostConnsEvent);
-        reloadButton = GTk.createButton("Reload", GTk.Icon.RELOAD, "Reload last saved connections", this::onReloadEvent);
-        cloneButton = GTk.createButton("Clone", GTk.Icon.CONN_CLONE, "Clone selected connection", this::onCloneEvent);
-        JButton addButton = GTk.createButton("Add", GTk.Icon.CONN_ADD, "Add connection", this::onAddEvent);
-        removeButton = GTk.createButton("Remove", GTk.Icon.CONN_REMOVE, "Remove selected connection", this::onRemoveEvent);
-        testButton = GTk.createButton("Test", GTk.Icon.CONN_TEST, "Test selected connection", this::onTestEvent);
-        connectButton = GTk.createButton("Connect", GTk.Icon.CONN_CONNECT, "Connect selected connection", this::onConnectEvent);
-        assignButton = GTk.createButton("ASSIGN", GTk.Icon.CONN_ASSIGN, "Assigns the selected connection to the command panel", this::onAssignEvent);
+        reloadButton = GTk.button("Reload", GTk.Icon.RELOAD, "Reload last saved connections", this::onReloadEvent);
+        cloneButton = GTk.button("Clone", GTk.Icon.CONN_CLONE, "Clone selected connection", this::onCloneEvent);
+        JButton addButton = GTk.button("Add", GTk.Icon.CONN_ADD, "Add connection", this::onAddEvent);
+        removeButton = GTk.button("Remove", GTk.Icon.CONN_REMOVE, "Remove selected connection", this::onRemoveEvent);
+        testButton = GTk.button("Test", GTk.Icon.CONN_TEST, "Test selected connection", this::onTestEvent);
+        connectButton = GTk.button("Connect", GTk.Icon.CONN_CONNECT, "Connect selected connection", this::onConnectEvent);
+        assignButton = GTk.button("ASSIGN", GTk.Icon.CONN_ASSIGN, "Assigns the selected connection to the command panel", this::onAssignEvent);
         assignButton.setFont(new Font(GTk.MAIN_FONT_NAME, Font.BOLD, 16));
-        JPanel buttons = GTk.createFlowPanel(GTk.createEtchedFlowPanel(reloadButton, cloneButton, addButton, removeButton),
-                GTk.createEtchedFlowPanel(assignButton, testButton, connectButton));
+        JPanel buttons = GTk.flowPanel(GTk.etchedFlowPanel(reloadButton, cloneButton, addButton, removeButton),
+                GTk.etchedFlowPanel(assignButton, testButton, connectButton));
         Container contentPane = getContentPane();
         contentPane.setLayout(new BorderLayout());
         contentPane.add(

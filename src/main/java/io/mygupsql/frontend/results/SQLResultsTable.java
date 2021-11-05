@@ -128,7 +128,7 @@ public class SQLResultsTable extends JPanel implements Closeable {
         setPreferredSize(size);
         setBorder(BorderFactory.createBevelBorder(BevelBorder.RAISED));
         add(currentModePanel, BorderLayout.CENTER);
-        add(GTk.createFlowPanel(statusLabel, rowRangeLabel, prevButton, nextButton), BorderLayout.SOUTH);
+        add(GTk.flowPanel(statusLabel, rowRangeLabel, prevButton, nextButton), BorderLayout.SOUTH);
         updateRowNavigationComponents();
     }
 

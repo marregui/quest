@@ -133,11 +133,11 @@ public final class GTk {
         return frame;
     }
 
-    public static JButton createButton(String text, Icon icon, String tooltip, ActionListener listener) {
-        return createButton(text, true, icon, tooltip, listener);
+    public static JButton button(String text, Icon icon, String tooltip, ActionListener listener) {
+        return button(text, true, icon, tooltip, listener);
     }
 
-    public static JButton createButton(String text, boolean isEnabled, Icon icon, String tooltip, ActionListener listener) {
+    public static JButton button(String text, boolean isEnabled, Icon icon, String tooltip, ActionListener listener) {
         JButton button = new JButton(Objects.requireNonNull(text));
         if (icon != Icon.NO_ICON) {
             button.setIcon(icon.icon());
@@ -150,19 +150,19 @@ public final class GTk {
         return button;
     }
 
-    public static JPanel createEtchedFlowPanel(JComponent... components) {
-        return createFlowPanel(BorderFactory.createEtchedBorder(), 0, 0, components);
+    public static JPanel etchedFlowPanel(JComponent... components) {
+        return flowPanel(BorderFactory.createEtchedBorder(), 0, 0, components);
     }
 
-    public static JPanel createFlowPanel(JComponent... components) {
-        return createFlowPanel(null, 0, 0, components);
+    public static JPanel flowPanel(JComponent... components) {
+        return flowPanel(null, 0, 0, components);
     }
 
-    public static JPanel createFlowPanel(int hgap, int vgap, JComponent... components) {
-        return createFlowPanel(null, hgap, vgap, components);
+    public static JPanel flowPanel(int hgap, int vgap, JComponent... components) {
+        return flowPanel(null, hgap, vgap, components);
     }
 
-    public static JPanel createFlowPanel(Border border, int hgap, int vgap, JComponent... components) {
+    public static JPanel flowPanel(Border border, int hgap, int vgap, JComponent... components) {
         JPanel panel = new JPanel(new FlowLayout(FlowLayout.RIGHT, hgap, vgap));
         if (border != null) {
             panel.setBorder(border);
@@ -173,7 +173,7 @@ public final class GTk {
         return panel;
     }
 
-    public static JPanel createHorizontalSpace(int hgap) {
+    public static JPanel horizontalSpace(int hgap) {
         return new JPanel(new FlowLayout(FlowLayout.CENTER, hgap, 0));
     }
 
@@ -182,11 +182,23 @@ public final class GTk {
                                               String title,
                                               int keyEvent,
                                               ActionListener listener) {
+        return configureMenuItem(item, icon, title, null , keyEvent, listener);
+    }
+
+    public static JMenuItem configureMenuItem(JMenuItem item,
+                                              GTk.Icon icon,
+                                              String title,
+                                              String tooltip,
+                                              int keyEvent,
+                                              ActionListener listener) {
         if (icon != GTk.Icon.NO_ICON) {
             item.setIcon(icon.icon());
         }
         item.setFont(MENU_FONT);
         item.setText(title);
+        if (tooltip != null) {
+            item.setToolTipText(tooltip);
+        }
         if (keyEvent != NO_KEY_EVENT) {
             item.setMnemonic(keyEvent);
             item.setAccelerator(KeyStroke.getKeyStroke(keyEvent, CMD_DOWN_MASK));
@@ -214,6 +226,7 @@ public final class GTk {
         EXEC("Exec.png"),
         EXEC_CANCEL("ExecCancel.png"),
         EXEC_LINE("ExecLine.png"),
+        COMMAND_QUEST("CommandQuestDB.png"),
         COMMAND_ADD("CommandAdd.png"),
         COMMAND_REMOVE("CommandRemove.png"),
         COMMAND_EDIT("CommandEdit.png"),

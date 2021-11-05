@@ -131,14 +131,14 @@ public final class MyGupSql {
                         GTk.Icon.COMMAND_FIND,
                         "Find",
                         KeyEvent.VK_F,
-                        commands::onFindEvent));
+                        commands::onFind));
         commandsMenu.add(
                 configureMenuItem(
                         new JMenuItem(),
                         GTk.Icon.COMMAND_REPLACE,
                         "Replace",
                         KeyEvent.VK_R,
-                        commands::onReplaceEvent));
+                        commands::onReplace));
 
         JMenu resultsMenu = new JMenu("Results");
         resultsMenu.setFont(GTk.MENU_FONT);

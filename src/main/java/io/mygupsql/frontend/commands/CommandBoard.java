@@ -42,7 +42,6 @@ import io.mygupsql.backend.SQLRequest;
 import io.mygupsql.backend.Store;
 import io.mygupsql.frontend.MaskingMouseListener;
 
-import static io.mygupsql.GTk.configureMenuItem;
 
 public class CommandBoard extends TextPane implements EventProducer<CommandBoard.EventType>, Closeable {
 
@@ -64,21 +63,21 @@ public class CommandBoard extends TextPane implements EventProducer<CommandBoard
     private static final long serialVersionUID = 1L;
     private static final Color CONNECTED_COLOR = new Color(69, 191, 84);
     private static final Font HEADER_FONT = new Font(GTk.MAIN_FONT_NAME, Font.BOLD, 16);
-    private static final Font FIND_FONT = new Font(GTk.MAIN_FONT_NAME, Font.BOLD, 14);
-    private static final Color FIND_FONT_COLOR = new Color(58, 138, 138);
     private static final Font HEADER_UNDERLINE_FONT = HEADER_FONT.deriveFont(Map.of(
             TextAttribute.UNDERLINE, TextAttribute.UNDERLINE_ON));
+    private static final Font FIND_FONT = new Font(GTk.MAIN_FONT_NAME, Font.BOLD, 14);
+    private static final Color FIND_FONT_COLOR = new Color(58, 138, 138);
     private static final Cursor HAND_CURSOR = new Cursor(Cursor.HAND_CURSOR);
     private static final String STORE_FILE_NAME = "command-board.json";
     private final EventConsumer<CommandBoard, SQLRequest> eventConsumer;
-    private final JComboBox<String> commandBoardEntryNames;
+    private final JComboBox<String> boardEntryNames;
     private final List<UndoManager> undoManagers; // same order as boardEntries' model
     private final JButton execButton;
     private final JButton execLineButton;
     private final JButton cancelButton;
-    private final JLabel commandBoardLabel;
+    private final JLabel questLabel;
     private final JLabel connLabel;
-    private JMenu storeMenu;
+    private JMenu commandBoardMenu;
     private JPanel findPanel;
     private JTextField findText;
     private JTextField replaceWithText;
@@ -92,50 +91,41 @@ public class CommandBoard extends TextPane implements EventProducer<CommandBoard
         super();
         this.eventConsumer = eventConsumer;
         undoManagers = new ArrayList<>(5);
-        commandBoardEntryNames = new JComboBox<>();
-        commandBoardEntryNames.setEditable(false);
-        commandBoardEntryNames.setPreferredSize(new Dimension(180, 25));
-        commandBoardEntryNames.addActionListener(this::onChangeBoardEvent);
-        createStoreMenu();
-        JPanel buttons = GTk.createFlowPanel(
-                commandBoardLabel = createLabel(
-                        "Command board",
-                        e -> storeMenu.getPopupMenu().show(e.getComponent(), e.getX() - 30, e.getY())),
-                GTk.createHorizontalSpace(2),
-                commandBoardEntryNames,
-                GTk.createHorizontalSpace(4),
-                GTk.createEtchedFlowPanel(
-                        GTk.createButton("", true, GTk.Icon.COMMAND_CLEAR,
-                                "Clear selected board", this::onClearBoardEvent),
-                        GTk.createButton("", true, GTk.Icon.RELOAD,
-                                "Reload last saved content for selected board", this::onReloadBoardEvent),
-                        GTk.createButton("", true, GTk.Icon.COMMAND_SAVE,
-                                "Save selected board", this::onSaveBoardEvent),
-                        GTk.createButton("", true, GTk.Icon.COMMAND_ADD,
-                                "Create new board", this::onCreateBoardEvent),
-                        GTk.createButton("", true, GTk.Icon.COMMAND_REMOVE,
-                                "Delete selected board", this::onDeleteBoardEvent),
-                        GTk.createButton("", true, GTk.Icon.COMMAND_EDIT,
-                                "Edit name of selected board", this::onEditBoardNameEvent)),
-                GTk.createHorizontalSpace(37),
-                GTk.createEtchedFlowPanel(
-                        execLineButton = GTk.createButton(
+        boardEntryNames = new JComboBox<>();
+        boardEntryNames.setEditable(false);
+        boardEntryNames.setPreferredSize(new Dimension(180, 25));
+        boardEntryNames.addActionListener(this::onChangeBoardEvent);
+        setupBoardMenu();
+        JPanel topRightPanel = GTk.flowPanel(
+                questLabel = createLabel(
+                        GTk.Icon.COMMAND_QUEST,
+                        "uest",
+                        e -> commandBoardMenu
+                                .getPopupMenu()
+                                .show(e.getComponent(), e.getX() - 30, e.getY())),
+                GTk.horizontalSpace(4),
+                boardEntryNames,
+                GTk.horizontalSpace(4),
+                GTk.etchedFlowPanel(
+                        execLineButton = GTk.button(
                                 "L.Exec", false, GTk.Icon.EXEC_LINE,
                                 "Execute entire line under caret", this::onExecLineEvent),
-                        execButton = GTk.createButton(
+                        execButton = GTk.button(
                                 "Exec", false, GTk.Icon.EXEC,
                                 "Execute selected text", this::onExecEvent),
-                        cancelButton = GTk.createButton(
+                        cancelButton = GTk.button(
                                 "Cancel", false, GTk.Icon.EXEC_CANCEL,
                                 "Cancel current execution", this::fireCancelEvent)));
-        createFindPanel();
+        setupFindPanel();
         JPanel controlsPanel = new JPanel(new BorderLayout(0, 0));
         controlsPanel.add(
                 connLabel = createLabel(e -> eventConsumer.onSourceEvent(
                         CommandBoard.this,
                         EventType.CONNECTION_STATUS_CLICKED,
-                        null)), BorderLayout.WEST);
-        controlsPanel.add(buttons, BorderLayout.EAST);
+                        null)),
+                BorderLayout.WEST
+        );
+        controlsPanel.add(topRightPanel, BorderLayout.EAST);
         controlsPanel.add(findPanel, BorderLayout.SOUTH);
         add(controlsPanel, BorderLayout.NORTH);
         refreshControls();
@@ -159,11 +149,11 @@ public class CommandBoard extends TextPane implements EventProducer<CommandBoard
         fireCommandEvent(this::getCurrentLine);
     }
 
-    public void onFindEvent(ActionEvent event) {
+    public void onFind(ActionEvent event) {
         onFindReplaceEvent(() -> highlightContent(findText.getText()));
     }
 
-    public void onReplaceEvent(ActionEvent event) {
+    public void onReplace(ActionEvent event) {
         onFindReplaceEvent(() -> replaceContent(findText.getText(), replaceWithText.getText()));
     }
 
@@ -203,7 +193,7 @@ public class CommandBoard extends TextPane implements EventProducer<CommandBoard
             }
         };
         store.loadEntriesFromFile();
-        commandBoardLabel.setToolTipText(fileName);
+        questLabel.setToolTipText(String.format("file: %s", fileName));
         undoManagers.clear();
         for (int idx = 0; idx < store.size(); idx++) {
             undoManagers.add(new UndoManager() {
@@ -215,11 +205,7 @@ public class CommandBoard extends TextPane implements EventProducer<CommandBoard
                 }
             });
         }
-        commandBoardEntryNames.removeAllItems();
-        for (String item : store.entryNames()) {
-            commandBoardEntryNames.addItem(item);
-        }
-        commandBoardEntryNames.setSelectedIndex(0);
+        refreshBoardEntryNames(0);
     }
 
     private void onFindReplaceEvent(Supplier<Integer> matchesCountSupplier) {
@@ -232,16 +218,16 @@ public class CommandBoard extends TextPane implements EventProducer<CommandBoard
         findText.requestFocusInWindow();
     }
 
-    private void onCloseFindReplaceViewEvent(ActionEvent event) {
+    private void onCloseFindReplaceView(ActionEvent event) {
         findPanel.setVisible(false);
     }
 
     private void onChangeBoardEvent(ActionEvent event) {
-        int idx = commandBoardEntryNames.getSelectedIndex();
+        int idx = boardEntryNames.getSelectedIndex();
         if (idx >= 0) {
             if (content != null) {
                 // save content of current board if there are changes (all boards in fact)
-                onSaveBoardEvent(event);
+                onSaveBoard(event);
             }
             content = store.getEntry(idx, Content::new);
             textPane.setText(content.getContent());
@@ -249,7 +235,7 @@ public class CommandBoard extends TextPane implements EventProducer<CommandBoard
         }
     }
 
-    private void onCreateBoardEvent(ActionEvent event) {
+    private void onCreateBoard(ActionEvent event) {
         String entryName = JOptionPane.showInputDialog(
                 this,
                 "Name",
@@ -259,7 +245,7 @@ public class CommandBoard extends TextPane implements EventProducer<CommandBoard
             return;
         }
         store.addEntry(new Content(entryName), false);
-        commandBoardEntryNames.addItem(entryName);
+        boardEntryNames.addItem(entryName);
         undoManagers.add(new UndoManager() {
             @Override
             public void undoableEditHappened(UndoableEditEvent e) {
@@ -268,45 +254,43 @@ public class CommandBoard extends TextPane implements EventProducer<CommandBoard
                 }
             }
         });
-        commandBoardEntryNames.setSelectedItem(entryName);
+        boardEntryNames.setSelectedItem(entryName);
     }
 
-    private void onDeleteBoardEvent(ActionEvent event) {
-        int idx = commandBoardEntryNames.getSelectedIndex();
+    private void onDeleteBoard(ActionEvent event) {
+        int idx = boardEntryNames.getSelectedIndex();
         if (idx > 0) {
             if (JOptionPane.YES_OPTION == JOptionPane.showConfirmDialog(
                     this,
                     String.format("Delete %s?",
-                            commandBoardEntryNames.getSelectedItem()),
+                            boardEntryNames.getSelectedItem()),
                     "Deleting board",
                     JOptionPane.YES_NO_OPTION)) {
                 store.removeEntry(idx);
-                commandBoardEntryNames.removeItemAt(idx);
+                boardEntryNames.removeItemAt(idx);
                 undoManagers.remove(idx);
-                commandBoardEntryNames.setSelectedIndex(idx - 1);
+                boardEntryNames.setSelectedIndex(idx - 1);
             }
         }
     }
 
-    private void onEditBoardNameEvent(ActionEvent event) {
-        int idx = commandBoardEntryNames.getSelectedIndex();
-        if (idx > 0) {
+    private void onRenameBoard(ActionEvent event) {
+        int idx = boardEntryNames.getSelectedIndex();
+        if (idx >= 0) {
+            String currentName = (String) boardEntryNames.getSelectedItem();
             String newName = JOptionPane.showInputDialog(
                     this,
-                    "Change name",
+                    "New name",
                     "Renaming board",
                     JOptionPane.QUESTION_MESSAGE);
-            String currentName = (String) commandBoardEntryNames.getSelectedItem();
             if (newName != null && !newName.isBlank() && !newName.equals(currentName)) {
-//                store.removeEntry(idx);
-//                commandBoardEntryNames.changeIt(idx);
-//                undoManagers.remove(idx);
-//                commandBoardEntryNames.setSelectedIndex(idx - 1);
+                store.getEntry(idx, null).setName(newName);
+                refreshBoardEntryNames(idx);
             }
         }
     }
 
-    private void onBackupCommandBoardsEvent(ActionEvent event) {
+    private void onBackupBoards(ActionEvent event) {
         JFileChooser choose = new JFileChooser(store.getRootPath());
         choose.setDialogTitle("Backing up store");
         choose.setDialogType(JFileChooser.SAVE_DIALOG);
@@ -339,7 +323,7 @@ public class CommandBoard extends TextPane implements EventProducer<CommandBoard
         }
     }
 
-    private void onLoadCommandBoardsFromBackupEvent(ActionEvent event) {
+    private void onLoadBoardsFromBackup(ActionEvent event) {
         JFileChooser choose = new JFileChooser(store.getRootPath());
         choose.setDialogTitle("Loading store from backup");
         choose.setDialogType(JFileChooser.OPEN_DIALOG);
@@ -362,15 +346,15 @@ public class CommandBoard extends TextPane implements EventProducer<CommandBoard
         }
     }
 
-    private void onClearBoardEvent(ActionEvent event) {
+    private void onClearBoard(ActionEvent event) {
         textPane.setText("");
     }
 
-    private void onReloadBoardEvent(ActionEvent event) {
+    private void onReloadBoard(ActionEvent event) {
         textPane.setText(content.getContent());
     }
 
-    private void onSaveBoardEvent(ActionEvent event) {
+    private void onSaveBoard(ActionEvent event) {
         if (commitContent()) {
             store.asyncSaveToFile();
         }
@@ -383,6 +367,16 @@ public class CommandBoard extends TextPane implements EventProducer<CommandBoard
             return true;
         }
         return false;
+    }
+
+    private void refreshBoardEntryNames(int idx) {
+        boardEntryNames.removeAllItems();
+        for (String item : store.entryNames()) {
+            boardEntryNames.addItem(item);
+        }
+        if (idx >= 0 && idx < boardEntryNames.getItemCount()) {
+            boardEntryNames.setSelectedIndex(idx);
+        }
     }
 
     private void fireCommandEvent(Supplier<String> commandSupplier) {
@@ -419,7 +413,7 @@ public class CommandBoard extends TextPane implements EventProducer<CommandBoard
         cancelButton.setEnabled(true);
     }
 
-    private void createFindPanel() {
+    private void setupFindPanel() {
         JLabel findLabel = new JLabel("Find");
         findLabel.setFont(HEADER_FONT);
         findLabel.setForeground(GTk.TABLE_HEADER_FONT_COLOR);
@@ -431,7 +425,7 @@ public class CommandBoard extends TextPane implements EventProducer<CommandBoard
             @Override
             public void keyReleased(KeyEvent e) {
                 if (e.getKeyCode() == KeyEvent.VK_ENTER) {
-                    onFindEvent(null);
+                    onFind(null);
                 } else if (e.getKeyCode() == KeyEvent.VK_TAB) {
                     replaceWithText.requestFocusInWindow();
                 } else {
@@ -449,7 +443,7 @@ public class CommandBoard extends TextPane implements EventProducer<CommandBoard
             @Override
             public void keyReleased(KeyEvent e) {
                 if (e.getKeyCode() == KeyEvent.VK_ENTER) {
-                    onReplaceEvent(null);
+                    onReplace(null);
                 } else if (e.getKeyCode() == KeyEvent.VK_TAB) {
                     findText.requestFocusInWindow();
                 } else {
@@ -460,66 +454,115 @@ public class CommandBoard extends TextPane implements EventProducer<CommandBoard
         findMatchesLabel = new JLabel("0 matches");
         findMatchesLabel.setFont(HEADER_FONT);
         findMatchesLabel.setForeground(GTk.TABLE_HEADER_FONT_COLOR);
-        findPanel = GTk.createFlowPanel(7, 2,
+        findPanel = GTk.flowPanel(7, 2,
                 findLabel,
                 findText,
                 replaceWithLabel,
                 replaceWithText,
                 findMatchesLabel,
-                GTk.createButton(
+                GTk.button(
                         "Find",
                         GTk.Icon.COMMAND_FIND,
                         "Find matching text in command board",
-                        this::onFindEvent),
-                GTk.createButton(
+                        this::onFind),
+                GTk.button(
                         "Replace",
                         GTk.Icon.COMMAND_REPLACE,
                         "Replace the matching text in selected area",
-                        this::onReplaceEvent),
-                GTk.createButton(
+                        this::onReplace),
+                GTk.button(
                         "X",
                         GTk.Icon.NO_ICON,
                         "Close find/replace view",
-                        this::onCloseFindReplaceViewEvent));
+                        this::onCloseFindReplaceView));
         findPanel.setVisible(false);
     }
 
-    private void createStoreMenu() {
-        storeMenu = new JMenu();
-        storeMenu.setFont(GTk.MENU_FONT);
-        storeMenu.add(
-                configureMenuItem(
+    private void setupBoardMenu() {
+        commandBoardMenu = new JMenu();
+        commandBoardMenu.setFont(GTk.MENU_FONT);
+        commandBoardMenu.add(
+                GTk.configureMenuItem(
                         new JMenuItem(),
                         GTk.Icon.COMMAND_STORE_BACKUP,
-                        "Backup to file",
+                        "Save All quests to new file",
                         GTk.NO_KEY_EVENT,
-                        this::onBackupCommandBoardsEvent));
-        storeMenu.add(
-                configureMenuItem(
+                        this::onBackupBoards));
+        commandBoardMenu.add(
+                GTk.configureMenuItem(
                         new JMenuItem(),
                         GTk.Icon.COMMAND_STORE_LOAD,
-                        "Load from backup",
+                        "Load quests from file",
                         GTk.NO_KEY_EVENT,
-                        this::onLoadCommandBoardsFromBackupEvent));
+                        this::onLoadBoardsFromBackup));
+        commandBoardMenu.add(
+                GTk.configureMenuItem(
+                        new JMenuItem(),
+                        GTk.Icon.COMMAND_CLEAR,
+                        "Clear current quest",
+                        "Clears current quest board, does not save",
+                        GTk.NO_KEY_EVENT,
+                        this::onClearBoard));
+        commandBoardMenu.add(
+                GTk.configureMenuItem(
+                        new JMenuItem(),
+                        GTk.Icon.RELOAD,
+                        "Reload last saved",
+                        "Recovers current quest board from last save",
+                        GTk.NO_KEY_EVENT,
+                        this::onReloadBoard));
+        commandBoardMenu.add(
+                GTk.configureMenuItem(
+                        new JMenuItem(),
+                        GTk.Icon.COMMAND_SAVE,
+                        "Save All quests",
+                        GTk.NO_KEY_EVENT,
+                        this::onSaveBoard));
+        commandBoardMenu.add(
+                GTk.configureMenuItem(
+                        new JMenuItem(),
+                        GTk.Icon.COMMAND_ADD,
+                        "New quest",
+                        GTk.NO_KEY_EVENT,
+                        this::onCreateBoard));
+        commandBoardMenu.add(
+                GTk.configureMenuItem(
+                        new JMenuItem(),
+                        GTk.Icon.COMMAND_REMOVE,
+                        "Delete quest",
+                        GTk.NO_KEY_EVENT,
+                        this::onDeleteBoard));
+        commandBoardMenu.add(
+                GTk.configureMenuItem(
+                        new JMenuItem(),
+                        GTk.Icon.COMMAND_EDIT,
+                        "Rename quest",
+                        GTk.NO_KEY_EVENT,
+                        this::onRenameBoard));
     }
 
     private JLabel createLabel(Consumer<MouseEvent> consumer) {
-        return createLabel(null, consumer);
+        return createLabel(GTk.Icon.NO_ICON, null, consumer);
     }
 
-    private JLabel createLabel(String text, Consumer<MouseEvent> consumer) {
-        JLabel connLabel = new JLabel();
-        connLabel.setText(text);
-        connLabel.setFont(HEADER_FONT);
-        connLabel.setForeground(GTk.TABLE_HEADER_FONT_COLOR);
-        connLabel.addMouseListener(new LabelMouseListener(connLabel) {
+    private JLabel createLabel(GTk.Icon icon, String text, Consumer<MouseEvent> consumer) {
+        JLabel label = new JLabel();
+        if (text != null) {
+            label.setText(text);
+        }
+        if (icon != GTk.Icon.NO_ICON) {
+            label.setIcon(icon.icon());
+        }
+        label.setFont(HEADER_FONT);
+        label.setForeground(GTk.TABLE_HEADER_FONT_COLOR);
+        label.addMouseListener(new LabelMouseListener(label) {
             @Override
             public void mouseClicked(MouseEvent e) {
                 super.mouseClicked(e);
                 consumer.accept(e);
             }
         });
-        return connLabel;
+        return label;
     }
 
     private class LabelMouseListener implements MaskingMouseListener {
