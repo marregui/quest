@@ -20,7 +20,7 @@ plugins {
     id 'net.nemerosa.versioning' version '2.15.0' // https://plugins.gradle.org/plugin/net.nemerosa.versioning
 }
 
-group = 'io.mygupsql'
+group = 'io.quest'
 version = '1.0.0'
 description = 'Desktop user interface to common Postgres Wire Protocol compatible databases.'
 
@@ -46,19 +46,19 @@ dependencies {
 }
 
 application {
-    mainClass = 'io.mygupsql.MyGupSql'
+    mainClass = 'io.quest.QuestMain'
     applicationDefaultJvmArgs = [
             '-Xmx2G',
             '-server',
             '-Dfile.encoding=UTF-8',
-            '-Dstore.path=.mygupsql'
+            '-Dstore.path=.quest'
     ]
 }
 
 jar {
     manifest {
         attributes(
-                'Main-Class': 'io.mygupsql.MyGupSql',
+                'Main-Class': 'io.quest.QuestMain',
                 'Build-Timestamp': new java.text.SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSSZ").format(new Date()),
                 'Build-Branch' : versioning.info.branch,
                 'Build-Revision' : versioning.info.commit,

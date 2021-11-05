@@ -25,13 +25,13 @@ _REQUIREMENTS = [
 ]
 
 setup(
-    name='pygupsql',
+    name='quest',
     version='1.0',
     description='Toolkit for Postgres protocol wire compatible databases',
     author='Miguel Arregui',
     author_email='miguel.arregui@gmail.com',
     url='https://github.com/marregui/mygupsql',
-    packages=['pygupsql'],
+    packages=['quest'],
     install_requires=_REQUIREMENTS,
     license='Apache License v2.0',
     classifiers=[

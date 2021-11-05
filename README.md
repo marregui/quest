@@ -1,6 +1,6 @@
-# mygupsql
+# quest
 
-Pronounced **"/my-goop-see-ku-el/"**, is a desktop user interface to common 
+Quest is a desktop user interface to common 
 `postgress wire protocol`-compatible databases such as:
 
 - [**QuestDB**](https://github.com/questdb/questdb)
@@ -10,7 +10,7 @@ Pronounced **"/my-goop-see-ku-el/"**, is a desktop user interface to common
 
 ## Build commands
 
-- <your system's gradle command> wrapper: regeneates the gradle scaffolding,
+- <your system's gradle command> wrapper: regenerates the gradle scaffolding,
   *eg.* `gradle whapper`, so that then you can use the subsequent commands.
 - **build**: `./gradlew clean build`
 
@@ -24,7 +24,7 @@ Pronounced **"/my-goop-see-ku-el/"**, is a desktop user interface to common
 After the **build** command completes, you will find a zip file in `build/distributions/`:
 
 - `cd build/distributions`
-- `unzip mygupsql-*.zip`
-- `cd mygupsql-<version>`
-- `bin/mygupsql` (or `bin\mygupsql.bat` in windows)
+- `unzip quest-*.zip`
+- `cd quest-<version>`
+- `bin/quest` (or `bin\quest.bat` in windows)
  

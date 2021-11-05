@@ -2,12 +2,12 @@ build/
 logs/
 .idea/
 .gradle/
-pygupsql.egg-info/
+quest.egg-info/
 __pycache__/
 .DS_Store
 *.iws
 *.iml
 *.ipr
 *.txt
-.mygupsql
+.quest
 src/main/resources/images/candicates
