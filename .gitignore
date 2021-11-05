@@ -9,7 +9,5 @@ __pycache__/
 *.iml
 *.ipr
 *.txt
-.mygupsql/command-board-content-persistence-test.json
-.mygupsql/db-connection-persistence-test.json
-.mygupsql/store-iterator-test.json
+.mygupsql
 src/main/resources/images/candicates

@@ -23,13 +23,10 @@ import java.util.Set;
 
 import javax.swing.*;
 
-import io.mygupsql.backend.Conn;
+import io.mygupsql.backend.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import io.mygupsql.backend.SQLRequest;
-import io.mygupsql.backend.SQLResponse;
-import io.mygupsql.backend.SQLExecutor;
 import io.mygupsql.frontend.commands.CommandBoard;
 import io.mygupsql.frontend.conns.ConnsManager;
 import io.mygupsql.frontend.results.SQLResultsTable;

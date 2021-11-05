@@ -36,6 +36,9 @@ import java.util.Objects;
 
 import javax.swing.*;
 import javax.swing.border.Border;
+import javax.swing.text.AttributeSet;
+import javax.swing.text.StyleConstants;
+import javax.swing.text.StyleContext;
 
 
 public final class GTk {
@@ -44,12 +47,19 @@ public final class GTk {
     private static final Logger LOGGER = LoggerFactory.getLogger(GTk.class);
 
     public static final Color APP_THEME_COLOR = new Color(200, 50, 100);
+    public static final Color TABLE_HEADER_FONT_COLOR = Color.BLACK;
+    public final static AttributeSet HIGHLIGHT_NORMAL = GTk.styleForegroundColor(255, 245, 222);
+    public final static AttributeSet HIGHLIGHT_ERROR = GTk.styleForegroundColor(225, 125, 5);
+    public final static AttributeSet HIGHLIGHT_KEYWORD = GTk.styleForegroundColor(200, 50, 100);
+    public final static AttributeSet HIGHLIGHT_TYPE = GTk.styleForegroundColor(240, 10, 140);
+    public final static AttributeSet HIGHLIGHT_MATCH = GTk.styleForegroundColor(50, 200, 185);
+
     public static final String MAIN_FONT_NAME = "Arial"; // excluding commands' TextPane
     public static final Font MENU_FONT = new Font(MAIN_FONT_NAME, Font.BOLD, 14);
-
     public static final Font TABLE_HEADER_FONT = new Font(MAIN_FONT_NAME, Font.BOLD, 18);
-    public static final Color TABLE_HEADER_FONT_COLOR = Color.BLACK;
     public static final Font TABLE_CELL_FONT = new Font(MAIN_FONT_NAME, Font.PLAIN, 16);
+
+
     public static final int CMD_DOWN_MASK = GTk.TK.getMenuShortcutKeyMaskEx();
     public static final int NO_KEY_EVENT = -1;
 
@@ -57,6 +67,11 @@ public final class GTk {
         // anti-aliased fonts
         System.setProperty("awt.useSystemAAFontSettings", "on");
         System.setProperty("swing.aatext", "true");
+    }
+
+    public static AttributeSet styleForegroundColor(int r, int g, int b) {
+        StyleContext sc = StyleContext.getDefaultStyleContext();
+        return sc.addAttribute(sc.getEmptySet(), StyleConstants.Foreground, new Color(r, g, b));
     }
 
     public static Clipboard systemClipboard() {
@@ -201,6 +216,7 @@ public final class GTk {
         EXEC_LINE("ExecLine.png"),
         COMMAND_ADD("CommandAdd.png"),
         COMMAND_REMOVE("CommandRemove.png"),
+        COMMAND_EDIT("CommandEdit.png"),
         COMMAND_CLEAR("CommandClear.png"),
         COMMAND_SAVE("CommandSave.png"),
         COMMAND_STORE_BACKUP("CommandStoreBackup.png"),

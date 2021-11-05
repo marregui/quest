@@ -49,7 +49,7 @@ public class TextPane extends JPanel {
     private static final Color BACKGROUND_COLOR = Color.BLACK;
 
     protected final JTextPane textPane;
-    private final KeywordsHighlighter keywordsHighlighter;
+    private final Highlighter keywordsHighlighter;
     private final InputMap inputMap;
     private final ActionMap actionMap;
     private final AtomicReference<UndoManager> undoManager; // set by CommandBoard
@@ -63,7 +63,7 @@ public class TextPane extends JPanel {
         textPane.setBackground(BACKGROUND_COLOR);
         textPane.setCaretColor(CARET_COLOR);
         textPane.setCaretPosition(0);
-        keywordsHighlighter = new KeywordsHighlighter(textPane.getStyledDocument()); // produces "style change" events
+        keywordsHighlighter = new Highlighter(textPane.getStyledDocument()); // produces "style change" events
         inputMap = textPane.getInputMap(JComponent.WHEN_FOCUSED);
         actionMap = textPane.getActionMap();
         undoManager = new AtomicReference<>();

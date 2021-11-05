@@ -46,7 +46,6 @@ import io.mygupsql.frontend.commands.TextPane;
 
 
 public class SQLResultsTable extends JPanel implements Closeable {
-
     private static final long serialVersionUID = 1L;
     private static final Dimension STATUS_LABEL_SIZE = new Dimension(600, 35);
     private static final Dimension NAVIGATION_LABEL_SIZE = new Dimension(300, 35);
@@ -89,7 +88,7 @@ public class SQLResultsTable extends JPanel implements Closeable {
         table.setGridColor(TABLE_GRID_COLOR);
         table.setFont(GTk.TABLE_CELL_FONT);
         table.setDefaultRenderer(String.class, new SQLCellRenderer(results::get));
-        table.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
+        table.setSelectionMode(ListSelectionModel.MULTIPLE_INTERVAL_SELECTION);
         table.setAutoResizeMode(JTable.AUTO_RESIZE_OFF);
         JTableHeader header = table.getTableHeader();
         header.setReorderingAllowed(false);
@@ -181,29 +180,16 @@ public class SQLResultsTable extends JPanel implements Closeable {
         changeMode(Mode.TABLE);
     }
 
-    /**
-     * Displays the error's stack trace.
-     * 
-     * @param error carries the stack trace to be displayed
-     */
     public void displayError(Throwable error) {
         textPane.displayError(error);
         changeMode(Mode.MESSAGE);
     }
 
-    /**
-     * Shows the infinite spinner, to signify background activity is progressing.
-     */
     public void showInfiniteSpinner() {
         infiniteSpinner.start();
         changeMode(Mode.INFINITE);
     }
 
-    /**
-     * To be called when we want to move a page back in the GUI.
-     * 
-     * @param event event that triggered this method's call
-     */
     public void onPrevButtonEvent(ActionEvent event) {
         if (prevButton.isEnabled() && tableModel.canDecrPage()) {
             tableModel.decrPage();
@@ -211,16 +197,15 @@ public class SQLResultsTable extends JPanel implements Closeable {
         }
     }
 
-    /**
-     * To be called when we want to move a page forward in the GUI.
-     * 
-     * @param event event that triggered this method's call
-     */
     public void onNextButtonEvent(ActionEvent event) {
         if (nextButton.isEnabled() && tableModel.canIncrPage()) {
             tableModel.incrPage();
             updateRowNavigationComponents();
         }
+    }
+
+    public SQLTable getResults() {
+        return results.get();
     }
 
     private void updateRowNavigationComponents() {

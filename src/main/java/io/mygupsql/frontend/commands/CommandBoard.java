@@ -94,7 +94,7 @@ public class CommandBoard extends TextPane implements EventProducer<CommandBoard
         undoManagers = new ArrayList<>(5);
         commandBoardEntryNames = new JComboBox<>();
         commandBoardEntryNames.setEditable(false);
-        commandBoardEntryNames.setPreferredSize(new Dimension(150, 25));
+        commandBoardEntryNames.setPreferredSize(new Dimension(180, 25));
         commandBoardEntryNames.addActionListener(this::onChangeBoardEvent);
         createStoreMenu();
         JPanel buttons = GTk.createFlowPanel(
@@ -112,9 +112,11 @@ public class CommandBoard extends TextPane implements EventProducer<CommandBoard
                         GTk.createButton("", true, GTk.Icon.COMMAND_SAVE,
                                 "Save selected board", this::onSaveBoardEvent),
                         GTk.createButton("", true, GTk.Icon.COMMAND_ADD,
-                                "Create new board", this::onCreateCommandBoardEvent),
+                                "Create new board", this::onCreateBoardEvent),
                         GTk.createButton("", true, GTk.Icon.COMMAND_REMOVE,
-                                "Delete selected board", this::onDeleteCommandBoardEvent)),
+                                "Delete selected board", this::onDeleteBoardEvent),
+                        GTk.createButton("", true, GTk.Icon.COMMAND_EDIT,
+                                "Edit name of selected board", this::onEditBoardNameEvent)),
                 GTk.createHorizontalSpace(37),
                 GTk.createEtchedFlowPanel(
                         execLineButton = GTk.createButton(
@@ -247,7 +249,7 @@ public class CommandBoard extends TextPane implements EventProducer<CommandBoard
         }
     }
 
-    private void onCreateCommandBoardEvent(ActionEvent event) {
+    private void onCreateBoardEvent(ActionEvent event) {
         String entryName = JOptionPane.showInputDialog(
                 this,
                 "Name",
@@ -269,13 +271,38 @@ public class CommandBoard extends TextPane implements EventProducer<CommandBoard
         commandBoardEntryNames.setSelectedItem(entryName);
     }
 
-    private void onDeleteCommandBoardEvent(ActionEvent event) {
+    private void onDeleteBoardEvent(ActionEvent event) {
         int idx = commandBoardEntryNames.getSelectedIndex();
         if (idx > 0) {
-            store.removeEntry(idx);
-            commandBoardEntryNames.removeItemAt(idx);
-            undoManagers.remove(idx);
-            commandBoardEntryNames.setSelectedIndex(idx - 1);
+            if (JOptionPane.YES_OPTION == JOptionPane.showConfirmDialog(
+                    this,
+                    String.format("Delete %s?",
+                            commandBoardEntryNames.getSelectedItem()),
+                    "Deleting board",
+                    JOptionPane.YES_NO_OPTION)) {
+                store.removeEntry(idx);
+                commandBoardEntryNames.removeItemAt(idx);
+                undoManagers.remove(idx);
+                commandBoardEntryNames.setSelectedIndex(idx - 1);
+            }
+        }
+    }
+
+    private void onEditBoardNameEvent(ActionEvent event) {
+        int idx = commandBoardEntryNames.getSelectedIndex();
+        if (idx > 0) {
+            String newName = JOptionPane.showInputDialog(
+                    this,
+                    "Change name",
+                    "Renaming board",
+                    JOptionPane.QUESTION_MESSAGE);
+            String currentName = (String) commandBoardEntryNames.getSelectedItem();
+            if (newName != null && !newName.isBlank() && !newName.equals(currentName)) {
+//                store.removeEntry(idx);
+//                commandBoardEntryNames.changeIt(idx);
+//                undoManagers.remove(idx);
+//                commandBoardEntryNames.setSelectedIndex(idx - 1);
+            }
         }
     }
 
@@ -399,6 +426,7 @@ public class CommandBoard extends TextPane implements EventProducer<CommandBoard
         findText = new JTextField(35);
         findText.setFont(FIND_FONT);
         findText.setForeground(FIND_FONT_COLOR);
+
         findText.addKeyListener(new KeyAdapter() {
             @Override
             public void keyReleased(KeyEvent e) {
