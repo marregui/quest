@@ -17,10 +17,9 @@
 package io.quest.frontend.commands;
 
 import java.awt.*;
-import java.awt.event.ActionEvent;
-import java.awt.event.KeyAdapter;
-import java.awt.event.KeyEvent;
-import java.awt.event.MouseEvent;
+import java.awt.datatransfer.DataFlavor;
+import java.awt.datatransfer.StringSelection;
+import java.awt.event.*;
 import java.awt.font.TextAttribute;
 import java.io.Closeable;
 import java.io.File;
@@ -467,38 +466,12 @@ public class CommandBoard extends TextPanel implements EventProducer<CommandBoar
         findLabel.setFont(HEADER_FONT);
         findLabel.setForeground(GTk.TABLE_HEADER_FONT_COLOR);
         findText = new JTextField(35);
-        findText.setFont(FIND_FONT);
-        findText.setForeground(FIND_FONT_COLOR);
-        findText.addKeyListener(new KeyAdapter() {
-            @Override
-            public void keyReleased(KeyEvent e) {
-                if (e.getKeyCode() == KeyEvent.VK_ENTER) {
-                    onFind(null);
-                } else if (e.getKeyCode() == KeyEvent.VK_TAB) {
-                    replaceWithText.requestFocusInWindow();
-                } else {
-                    super.keyReleased(e);
-                }
-            }
-        });
+        setupSearchTextField(findText, this::onFind);
         JLabel replaceWithLabel = new JLabel("replace with");
         replaceWithLabel.setFont(HEADER_FONT);
         replaceWithLabel.setForeground(GTk.TABLE_HEADER_FONT_COLOR);
         replaceWithText = new JTextField(35);
-        replaceWithText.setFont(FIND_FONT);
-        replaceWithText.setForeground(FIND_FONT_COLOR);
-        replaceWithText.addKeyListener(new KeyAdapter() {
-            @Override
-            public void keyReleased(KeyEvent e) {
-                if (e.getKeyCode() == KeyEvent.VK_ENTER) {
-                    onReplace(null);
-                } else if (e.getKeyCode() == KeyEvent.VK_TAB) {
-                    findText.requestFocusInWindow();
-                } else {
-                    super.keyReleased(e);
-                }
-            }
-        });
+        setupSearchTextField(replaceWithText, this::onReplace);
         findMatchesLabel = new JLabel("0 matches");
         findMatchesLabel.setFont(HEADER_FONT);
         findMatchesLabel.setForeground(GTk.TABLE_HEADER_FONT_COLOR);
@@ -524,6 +497,60 @@ public class CommandBoard extends TextPanel implements EventProducer<CommandBoar
                         "Close find/replace view",
                         this::onCloseFindReplaceView));
         findPanel.setVisible(false);
+    }
+
+    private void setupSearchTextField(JTextField field, ActionListener listener) {
+        field.setFont(FIND_FONT);
+        field.setForeground(FIND_FONT_COLOR);
+        // cmd-a, select the full content
+        GTk.addCmdKeyAction(KeyEvent.VK_A, field, e -> field.selectAll());
+        // cmd-c, copy to clipboard, selection or current line
+        GTk.addCmdKeyAction(KeyEvent.VK_C, field, e -> {
+            String selected = field.getSelectedText();
+            if (selected == null) {
+                selected = field.getText();
+            }
+            if (!selected.equals(EMPTY_STR)) {
+                GTk.systemClipboard().setContents(new StringSelection(selected), null);
+            }
+        });
+        // cmd-v, paste content of clipboard into selection or caret position
+        final StringBuilder sb = new StringBuilder();
+        GTk.addCmdKeyAction(KeyEvent.VK_V, field, e -> {
+            try {
+                String data = (String) GTk.systemClipboard().getData(DataFlavor.stringFlavor);
+                if (data != null && !data.isEmpty()) {
+                    int start = field.getSelectionStart();
+                    int end = field.getSelectionEnd();
+                    String text = field.getText();
+                    sb.setLength(0);
+                    sb.append(text, 0, start);
+                    sb.append(data);
+                    sb.append(text, end, text.length());
+                    field.setText(sb.toString());
+                }
+            } catch (Exception fail) {
+                // do nothing
+            }
+        });
+        // cmd-left, jump to the beginning of the line
+        GTk.addCmdKeyAction(KeyEvent.VK_LEFT, field,
+                e -> field.setCaretPosition(0));
+        // cmd-right, jump to the end of the line
+        GTk.addCmdKeyAction(KeyEvent.VK_RIGHT, field,
+                e -> field.setCaretPosition(field.getText().length()));
+        field.addKeyListener(new KeyAdapter() {
+            @Override
+            public void keyReleased(KeyEvent e) {
+                if (e.getKeyCode() == KeyEvent.VK_ENTER) {
+                    listener.actionPerformed(null);
+                } else if (e.getKeyCode() == KeyEvent.VK_TAB) {
+                    replaceWithText.requestFocusInWindow();
+                } else {
+                    super.keyReleased(e);
+                }
+            }
+        });
     }
 
     private void setupBoardMenu() {

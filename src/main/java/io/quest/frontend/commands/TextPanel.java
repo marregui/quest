@@ -22,8 +22,6 @@ import java.awt.Font;
 import java.awt.Insets;
 import java.awt.datatransfer.DataFlavor;
 import java.awt.datatransfer.StringSelection;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
 import java.awt.event.KeyEvent;
 import java.io.IOException;
 import java.io.PrintWriter;
@@ -40,8 +38,8 @@ import io.quest.common.GTk;
 
 public class TextPanel extends JPanel {
     private static final long serialVersionUID = 1L;
-    private static final String EMPTY_STR = "";
     private static final String END_LINE = "\n";
+    static final String EMPTY_STR = "";
     static final String ERROR_HEADER = "==========  E R R O R  ==========" + END_LINE;
     private static final Font FONT = new Font("Monospaced", Font.BOLD, 14);
     private static final Color CARET_COLOR = Color.CYAN;
@@ -49,8 +47,6 @@ public class TextPanel extends JPanel {
 
     protected final JTextPane textPane;
     private final Highlighter highlighter;
-    private final InputMap inputMap;
-    private final ActionMap actionMap;
     private final AtomicReference<UndoManager> undoManager; // set by CommandBoard
 
 
@@ -63,8 +59,6 @@ public class TextPanel extends JPanel {
         textPane.setCaretColor(CARET_COLOR);
         textPane.setCaretPosition(0);
         highlighter = new Highlighter(textPane.getStyledDocument()); // produces "style change" events
-        inputMap = textPane.getInputMap(JComponent.WHEN_FOCUSED);
-        actionMap = textPane.getActionMap();
         undoManager = new AtomicReference<>();
         setupKeyboardActions();
         AbstractDocument doc = (AbstractDocument) textPane.getDocument();
@@ -157,20 +151,9 @@ public class TextPanel extends JPanel {
         doc.addUndoableEditListener(undoManager);
     }
 
-    private void addCmdKeyAction(int keyEvent, ActionListener action) {
-        Action cmd = new AbstractAction() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                action.actionPerformed(e);
-            }
-        };
-        inputMap.put(KeyStroke.getKeyStroke(keyEvent, GTk.CMD_DOWN_MASK), cmd);
-        actionMap.put(cmd, cmd);
-    }
-
     private void setupKeyboardActions() {
         // cmd-z, undo edit
-        addCmdKeyAction(KeyEvent.VK_Z, e -> {
+        GTk.addCmdKeyAction(KeyEvent.VK_Z, textPane, e -> {
             UndoManager undoManager = this.undoManager.get();
             if (undoManager != null && undoManager.canUndo()) {
                 try {
@@ -181,9 +164,8 @@ public class TextPanel extends JPanel {
                 highlighter.handleTextChanged();
             }
         });
-
         // cmd-y, redo last undo edit
-        addCmdKeyAction(KeyEvent.VK_Y, e -> {
+        GTk.addCmdKeyAction(KeyEvent.VK_Y, textPane, e -> {
             UndoManager undoManager = this.undoManager.get();
             if (undoManager != null && undoManager.canRedo()) {
                 try {
@@ -194,12 +176,10 @@ public class TextPanel extends JPanel {
                 highlighter.handleTextChanged();
             }
         });
-
         // cmd-a, select the full content
-        addCmdKeyAction(KeyEvent.VK_A, e -> textPane.selectAll());
-
+        GTk.addCmdKeyAction(KeyEvent.VK_A, textPane, e -> textPane.selectAll());
         // cmd-c, copy to clipboard, selection or current line
-        addCmdKeyAction(KeyEvent.VK_C, e -> {
+        GTk.addCmdKeyAction(KeyEvent.VK_C, textPane, e -> {
             String selected = textPane.getSelectedText();
             if (selected == null) {
                 selected = getCurrentLine();
@@ -208,9 +188,8 @@ public class TextPanel extends JPanel {
                 GTk.systemClipboard().setContents(new StringSelection(selected), null);
             }
         });
-
         // cmd-d, duplicate line under caret, and append it under
-        addCmdKeyAction(KeyEvent.VK_D, e -> {
+        GTk.addCmdKeyAction(KeyEvent.VK_D, textPane, e -> {
             try {
                 int caretPos = textPane.getCaretPosition();
                 int start = Utilities.getRowStart(textPane, caretPos);
@@ -223,9 +202,8 @@ public class TextPanel extends JPanel {
                 // do nothing
             }
         });
-
         // cmd-v, paste content of clipboard into selection or caret position
-        addCmdKeyAction(KeyEvent.VK_V, e -> {
+        GTk.addCmdKeyAction(KeyEvent.VK_V, textPane, e -> {
             try {
                 String data = (String) GTk.systemClipboard().getData(DataFlavor.stringFlavor);
                 if (data != null && !data.isEmpty()) {
@@ -241,9 +219,8 @@ public class TextPanel extends JPanel {
                 // do nothing
             }
         });
-
         // cmd-x, remove selection or whole line under caret and copy to clipboard
-        addCmdKeyAction(KeyEvent.VK_X, e -> {
+        GTk.addCmdKeyAction(KeyEvent.VK_X, textPane, e -> {
             try {
                 int start = textPane.getSelectionStart();
                 int end = textPane.getSelectionEnd();
@@ -271,9 +248,8 @@ public class TextPanel extends JPanel {
                 // do nothing
             }
         });
-
         // cmd-left, jump to the beginning of the line
-        addCmdKeyAction(KeyEvent.VK_LEFT, e -> {
+        GTk.addCmdKeyAction(KeyEvent.VK_LEFT, textPane, e -> {
             try {
                 int caretPos = textPane.getCaretPosition();
                 textPane.setCaretPosition(Utilities.getRowStart(textPane, caretPos));
@@ -281,9 +257,8 @@ public class TextPanel extends JPanel {
                 // do nothing
             }
         });
-
         // cmd-right, jump to the end of the line
-        addCmdKeyAction(KeyEvent.VK_RIGHT, e -> {
+        GTk.addCmdKeyAction(KeyEvent.VK_RIGHT, textPane, e -> {
             try {
                 int caretPos = textPane.getCaretPosition();
                 textPane.setCaretPosition(Utilities.getRowEnd(textPane, caretPos));
@@ -291,11 +266,10 @@ public class TextPanel extends JPanel {
                 // do nothing
             }
         });
-
         // cmd-up, jump to the beginning of the document
-        addCmdKeyAction(KeyEvent.VK_UP, e -> textPane.setCaretPosition(0));
-
+        GTk.addCmdKeyAction(KeyEvent.VK_UP, textPane, e -> textPane.setCaretPosition(0));
         // cmd-down, jump to the end of the document
-        addCmdKeyAction(KeyEvent.VK_DOWN, e -> textPane.setCaretPosition(textPane.getStyledDocument().getLength()));
+        GTk.addCmdKeyAction(KeyEvent.VK_DOWN, textPane,
+                e -> textPane.setCaretPosition(textPane.getStyledDocument().getLength()));
     }
 }

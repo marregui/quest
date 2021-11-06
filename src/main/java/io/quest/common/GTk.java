@@ -28,6 +28,7 @@ import java.awt.Font;
 import java.awt.Toolkit;
 import java.awt.Window;
 import java.awt.datatransfer.Clipboard;
+import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.InputEvent;
 import java.net.URL;
@@ -107,6 +108,19 @@ public final class GTk {
                 throw new RuntimeException(fail);
             }
         }
+    }
+
+    public static void addCmdKeyAction(int keyEvent,
+                                       JComponent component,
+                                       ActionListener action) {
+        Action cmd = new AbstractAction() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                action.actionPerformed(e);
+            }
+        };
+        component.getInputMap(JComponent.WHEN_FOCUSED).put(KeyStroke.getKeyStroke(keyEvent, CMD_DOWN_MASK), cmd);
+        component.getActionMap().put(cmd, cmd);
     }
 
     public static Dimension frameDimension() {
@@ -191,7 +205,7 @@ public final class GTk {
                                               String title,
                                               int keyEvent,
                                               ActionListener listener) {
-        return configureMenuItem(item, icon, title, null , keyEvent, listener);
+        return configureMenuItem(item, icon, title, null, keyEvent, listener);
     }
 
     public static JMenuItem configureMenuItem(JMenuItem item,
