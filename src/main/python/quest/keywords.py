@@ -15,23 +15,7 @@
 # Copyright 2020, Miguel Arregui a.k.a. marregui
 #
 
-import ssl
 import psycopg2
-import typing
-
-
-def format_as_java_regex_pattern(keywords: typing.List[str]) -> str:
-    pattern = '"'
-    indent = 0
-    for kw in keywords:
-        pattern = f'{pattern}|\\\\b{kw}\\\\b'
-        indent += len(kw) + 9  # 2x quote + 2x \\b + 1x pipe
-        if indent > 65:
-            indent = 0
-            pattern += '"\n + "'
-    pattern += '"'
-    return pattern
-
 
 CONN_ATTRS = {
     'user': 'admin',
@@ -41,18 +25,36 @@ CONN_ATTRS = {
     'database': 'qdb'
 }
 
+TYPE_KEYWORDS = {
+    'boolean', 'byte', 'short', 'char',
+    'int', 'long', 'date', 'timestamp',
+    'float', 'double', 'string', 'symbol',
+    'long256', 'geohash', 'binary', 'null',
+    'index', 'capacity', 'cache', 'nocache'
+}
+
+
+def format_as_java_regex_pattern(keywords):
+    indent = 0
+    pattern = ''
+    for kw in keywords:
+        pattern += f'\\\\b{kw}\\\\b|'
+        indent += len(kw) + 9  # 2x quote + 2x \\b + 1x pipe
+        if indent > 75:
+            pattern += '"\n + "'
+            indent = 0
+    return f'"{pattern[:-1]}"'
+
+
 if __name__ == '__main__':
     with psycopg2.connect(**CONN_ATTRS) as conn:
         with conn.cursor() as stmt_cursor:
             stmt_cursor.execute(f'pg_catalog.pg_get_keywords();')
-            print(format_as_java_regex_pattern([
-                'boolean', 'byte', 'short', 'char',
-                'int', 'long', 'date', 'timestamp',
-                'float', 'double', 'string', 'symbol',
-                'long256', 'geohash', 'binary', 'null'
-            ]))
+            print(format_as_java_regex_pattern(TYPE_KEYWORDS))
             print("=" * 100)
             keywords = ['questdb']
             for row in stmt_cursor.fetchall():
-                keywords.append(row[0].lower())
+                kw = row[0].lower()
+                if kw not in TYPE_KEYWORDS:
+                    keywords.append(kw)
             print(format_as_java_regex_pattern(keywords))

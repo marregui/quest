@@ -34,6 +34,7 @@ import javax.swing.*;
 import javax.swing.event.UndoableEditEvent;
 import javax.swing.undo.UndoManager;
 
+import io.quest.backend.StoreEntry;
 import io.quest.common.EventConsumer;
 import io.quest.common.EventProducer;
 import io.quest.common.GTk;
@@ -43,7 +44,7 @@ import io.quest.backend.Store;
 import io.quest.frontend.MaskingMouseListener;
 
 
-public class CommandBoard extends TextPane implements EventProducer<CommandBoard.EventType>, Closeable {
+public class CommandBoard extends TextPanel implements EventProducer<CommandBoard.EventType>, Closeable {
 
     public enum EventType {
         /**
@@ -60,6 +61,42 @@ public class CommandBoard extends TextPane implements EventProducer<CommandBoard
         CONNECTION_STATUS_CLICKED
     }
 
+    public static class Content extends StoreEntry {
+        private static final String ATTR_NAME = "content";
+
+        public Content() {
+            this("default");
+        }
+
+        public Content(String name) {
+            super(name);
+            setAttr(ATTR_NAME,
+                    "\n" +
+                            "\n" +
+                            GTk.BANNER +
+                            "\n" +
+                            "  Copyright (c) 2019 - 2022\n"
+            );
+        }
+
+        public Content(StoreEntry other) {
+            super(other);
+        }
+
+        @Override
+        public final String getKey() {
+            return getName();
+        }
+
+        public String getContent() {
+            return getAttr(ATTR_NAME);
+        }
+
+        public void setContent(String content) {
+            setAttr(ATTR_NAME, content);
+        }
+    }
+
     private static final long serialVersionUID = 1L;
     private static final Color CONNECTED_COLOR = new Color(69, 191, 84);
     private static final Font HEADER_FONT = new Font(GTk.MAIN_FONT_NAME, Font.BOLD, 16);
@@ -68,7 +105,7 @@ public class CommandBoard extends TextPane implements EventProducer<CommandBoard
     private static final Font FIND_FONT = new Font(GTk.MAIN_FONT_NAME, Font.BOLD, 14);
     private static final Color FIND_FONT_COLOR = new Color(58, 138, 138);
     private static final Cursor HAND_CURSOR = new Cursor(Cursor.HAND_CURSOR);
-    private static final String STORE_FILE_NAME = "command-board.json";
+    private static final String STORE_FILE_NAME = "default-notebook.json";
     private final EventConsumer<CommandBoard, SQLRequest> eventConsumer;
     private final JComboBox<String> boardEntryNames;
     private final List<UndoManager> undoManagers; // same order as boardEntries' model
@@ -94,7 +131,7 @@ public class CommandBoard extends TextPane implements EventProducer<CommandBoard
         boardEntryNames = new JComboBox<>();
         boardEntryNames.setEditable(false);
         boardEntryNames.setPreferredSize(new Dimension(180, 25));
-        boardEntryNames.addActionListener(this::onChangeBoardEvent);
+        boardEntryNames.addActionListener(this::onChangeBoard);
         setupBoardMenu();
         JPanel topRightPanel = GTk.flowPanel(
                 questLabel = createLabel(
@@ -109,13 +146,13 @@ public class CommandBoard extends TextPane implements EventProducer<CommandBoard
                 GTk.etchedFlowPanel(
                         execLineButton = GTk.button(
                                 "L.Exec", false, GTk.Icon.EXEC_LINE,
-                                "Execute entire line under caret", this::onExecLineEvent),
+                                "Execute entire line under caret", this::onExecLine),
                         execButton = GTk.button(
                                 "Exec", false, GTk.Icon.EXEC,
-                                "Execute selected text", this::onExecEvent),
+                                "Execute selected text", this::onExec),
                         cancelButton = GTk.button(
-                                "Whack", false, GTk.Icon.EXEC_CANCEL,
-                                "Whack current execution", this::fireCancelEvent)));
+                                "Cancel", false, GTk.Icon.EXEC_CANCEL,
+                                "Cancel current execution", this::fireCancelEvent)));
         setupFindPanel();
         JPanel controlsPanel = new JPanel(new BorderLayout(0, 0));
         controlsPanel.add(
@@ -145,11 +182,11 @@ public class CommandBoard extends TextPane implements EventProducer<CommandBoard
         return commandBoardMenu;
     }
 
-    public void onExecEvent(ActionEvent event) {
+    public void onExec(ActionEvent event) {
         fireCommandEvent(this::getCommand);
     }
 
-    public void onExecLineEvent(ActionEvent event) {
+    public void onExecLine(ActionEvent event) {
         fireCommandEvent(this::getCurrentLine);
     }
 
@@ -180,7 +217,7 @@ public class CommandBoard extends TextPane implements EventProducer<CommandBoard
     @Override
     public void close() {
         undoManagers.clear();
-        commitContent();
+        refreshStore();
         store.close();
     }
 
@@ -226,12 +263,20 @@ public class CommandBoard extends TextPane implements EventProducer<CommandBoard
         findPanel.setVisible(false);
     }
 
-    private void onChangeBoardEvent(ActionEvent event) {
+    private void onChangeBoard(ActionEvent event) {
         int idx = boardEntryNames.getSelectedIndex();
         if (idx >= 0) {
             if (content != null) {
-                // save content of current board if there are changes (all boards in fact)
-                onSaveBoard(event);
+                if (refreshStore()) {
+                    if (JOptionPane.YES_OPTION == JOptionPane.showConfirmDialog(
+                            this,
+                            "Content has changed, save?, if not -> discard it",
+                            "Command board changed",
+                            JOptionPane.YES_NO_OPTION,
+                            JOptionPane.QUESTION_MESSAGE)) {
+                        store.asyncSaveToFile();
+                    }
+                }
             }
             content = store.getEntry(idx, Content::new);
             textPane.setText(content.getContent());
@@ -359,12 +404,12 @@ public class CommandBoard extends TextPane implements EventProducer<CommandBoard
     }
 
     private void onSaveBoard(ActionEvent event) {
-        if (commitContent()) {
+        if (refreshStore()) {
             store.asyncSaveToFile();
         }
     }
 
-    private boolean commitContent() {
+    private boolean refreshStore() {
         String txt = getContent();
         if (!content.getContent().equals(txt)) {
             content.setContent(txt);
@@ -424,7 +469,6 @@ public class CommandBoard extends TextPane implements EventProducer<CommandBoard
         findText = new JTextField(35);
         findText.setFont(FIND_FONT);
         findText.setForeground(FIND_FONT_COLOR);
-
         findText.addKeyListener(new KeyAdapter() {
             @Override
             public void keyReleased(KeyEvent e) {
@@ -488,40 +532,26 @@ public class CommandBoard extends TextPane implements EventProducer<CommandBoard
         commandBoardMenu.add(
                 GTk.configureMenuItem(
                         new JMenuItem(),
-                        GTk.Icon.COMMAND_STORE_BACKUP,
-                        "Save All quests to new file",
-                        GTk.NO_KEY_EVENT,
-                        this::onBackupBoards));
-        commandBoardMenu.add(
-                GTk.configureMenuItem(
-                        new JMenuItem(),
-                        GTk.Icon.COMMAND_STORE_LOAD,
-                        "Load quests from file",
-                        GTk.NO_KEY_EVENT,
-                        this::onLoadBoardsFromBackup));
-        commandBoardMenu.add(
-                GTk.configureMenuItem(
-                        new JMenuItem(),
                         GTk.Icon.COMMAND_CLEAR,
-                        "Clear current quest",
-                        "Clears current quest board, does not save",
+                        "Clear quest",
                         GTk.NO_KEY_EVENT,
                         this::onClearBoard));
         commandBoardMenu.add(
                 GTk.configureMenuItem(
                         new JMenuItem(),
                         GTk.Icon.RELOAD,
-                        "Reload last saved",
-                        "Recovers current quest board from last save",
+                        "Reload quest",
+                        "Recovers quest from last save",
                         GTk.NO_KEY_EVENT,
                         this::onReloadBoard));
         commandBoardMenu.add(
                 GTk.configureMenuItem(
                         new JMenuItem(),
                         GTk.Icon.COMMAND_SAVE,
-                        "Save All quests",
+                        "Save quest",
                         GTk.NO_KEY_EVENT,
                         this::onSaveBoard));
+        commandBoardMenu.addSeparator();
         commandBoardMenu.add(
                 GTk.configureMenuItem(
                         new JMenuItem(),
@@ -532,17 +562,32 @@ public class CommandBoard extends TextPane implements EventProducer<CommandBoard
         commandBoardMenu.add(
                 GTk.configureMenuItem(
                         new JMenuItem(),
-                        GTk.Icon.COMMAND_REMOVE,
-                        "Delete quest",
-                        GTk.NO_KEY_EVENT,
-                        this::onDeleteBoard));
-        commandBoardMenu.add(
-                GTk.configureMenuItem(
-                        new JMenuItem(),
                         GTk.Icon.COMMAND_EDIT,
                         "Rename quest",
                         GTk.NO_KEY_EVENT,
                         this::onRenameBoard));
+        commandBoardMenu.add(
+                GTk.configureMenuItem(
+                        new JMenuItem(),
+                        GTk.Icon.COMMAND_REMOVE,
+                        "Delete quest",
+                        GTk.NO_KEY_EVENT,
+                        this::onDeleteBoard));
+        commandBoardMenu.addSeparator();
+        commandBoardMenu.add(
+                GTk.configureMenuItem(
+                        new JMenuItem(),
+                        GTk.Icon.COMMAND_STORE_LOAD,
+                        "Load quests from notebook",
+                        GTk.NO_KEY_EVENT,
+                        this::onLoadBoardsFromBackup));
+        commandBoardMenu.add(
+                GTk.configureMenuItem(
+                        new JMenuItem(),
+                        GTk.Icon.COMMAND_STORE_BACKUP,
+                        "Save quests to new notebook",
+                        GTk.NO_KEY_EVENT,
+                        this::onBackupBoards));
     }
 
     private JLabel createLabel(Consumer<MouseEvent> consumer) {

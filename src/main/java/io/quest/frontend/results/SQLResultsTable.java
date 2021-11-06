@@ -42,7 +42,7 @@ import io.quest.common.GTk;
 import io.quest.backend.SQLResponse;
 import io.quest.backend.SQLTable;
 import io.quest.frontend.InfiniteSpinnerPanel;
-import io.quest.frontend.commands.TextPane;
+import io.quest.frontend.commands.TextPanel;
 
 
 public class SQLResultsTable extends JPanel implements Closeable {
@@ -66,7 +66,7 @@ public class SQLResultsTable extends JPanel implements Closeable {
     private final JScrollPane tableScrollPanel;
     private final PagedSQLTableModel tableModel;
     private final AtomicReference<SQLTable> results;
-    private final TextPane textPane;
+    private final TextPanel textPanel;
     private final JLabel rowRangeLabel;
     private final JLabel statusLabel;
     private final JButton prevButton;
@@ -117,7 +117,7 @@ public class SQLResultsTable extends JPanel implements Closeable {
         nextButton.setIcon(GTk.Icon.NEXT.icon());
         nextButton.setHorizontalTextPosition(SwingConstants.LEFT);
         nextButton.addActionListener(this::onNextButtonEvent);
-        textPane = new TextPane();
+        textPanel = new TextPanel();
         tableScrollPanel = new JScrollPane(table, JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED,
             JScrollPane.HORIZONTAL_SCROLLBAR_AS_NEEDED);
         tableScrollPanel.getViewport().setBackground(Color.BLACK);
@@ -153,12 +153,12 @@ public class SQLResultsTable extends JPanel implements Closeable {
         updateRowNavigationComponents();
         infiniteSpinner.close();
         if (table.isSingleRowSingleVarcharCol()) {
-            textPane.displayMessage((String) table.getValueAt(0, 0));
+            textPanel.displayMessage((String) table.getValueAt(0, 0));
             changeMode(Mode.MESSAGE);
         }
         else {
             if (table.size() == 0) {
-                textPane.displayMessage("OK.\n\nNo resultset for query:\n" + res.getSQL());
+                textPanel.displayMessage("OK.\n\nNo resultset for query:\n" + res.getSQL());
                 changeMode(Mode.MESSAGE);
             }
             else {
@@ -181,7 +181,7 @@ public class SQLResultsTable extends JPanel implements Closeable {
     }
 
     public void displayError(Throwable error) {
-        textPane.displayError(error);
+        textPanel.displayError(error);
         changeMode(Mode.MESSAGE);
     }
 
@@ -259,7 +259,7 @@ public class SQLResultsTable extends JPanel implements Closeable {
                     break;
 
                 case MESSAGE:
-                    currentModePanel = textPane;
+                    currentModePanel = textPanel;
                     break;
             }
             if (toRemove != null) {

@@ -34,7 +34,6 @@ import org.junit.jupiter.api.Test;
 
 
 public class SQLTableTest {
-
     private static final String[] COL_NAMES = {
         "Status", "Source", "Uptime"
     };

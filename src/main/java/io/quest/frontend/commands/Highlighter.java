@@ -135,33 +135,31 @@ class Highlighter extends DocumentFilter {
         return matchCount;
     }
 
-    private static final Pattern ERROR_HEADER_PATTERN = Pattern.compile(TextPane.ERROR_HEADER);
+    private static final Pattern ERROR_HEADER_PATTERN = Pattern.compile(TextPanel.ERROR_HEADER);
     private static final int PATTERN_FLAGS = Pattern.CASE_INSENSITIVE | Pattern.UNICODE_CASE;
+    // src/test/python/keywords.py
     // https://docs.oracle.com/javase/tutorial/essential/regex/bounds.html
     private static final Pattern TYPES_PATTERN = Pattern.compile(
-            "\\bboolean\\b|\\bbyte\\b|\\bshort\\b|\\bchar\\b|\\bint\\b"
-                    + "|\\blong\\b|\\bdate\\b|\\btimestamp\\b|\\bfloat\\b|\\bdouble\\b"
-                    + "|\\bstring\\b|\\bsymbol\\b|\\blong256\\b|\\bgeohash\\b|\\bbinary\\b"
-                    + "|\\bnull\\b|\\bindex\\b|\\bcapacity\\b|\\bcache\\b|\\bnocache\\b",
+            "\\bbinary\\b|\\bint\\b|\\bcapacity\\b|\\bshort\\b|\\btimestamp\\b|"
+                    + "\\bboolean\\b|\\bbyte\\b|\\bindex\\b|\\bnocache\\b|\\bcache\\b|\\bnull\\b|"
+                    + "\\blong\\b|\\bdate\\b|\\bstring\\b|\\bsymbol\\b|\\bdouble\\b|\\bfloat\\b|"
+                    + "\\blong256\\b|\\bchar\\b|\\bgeohash\\b",
             PATTERN_FLAGS);
-    // src/test/python/keywords.py
-    private static final String KEYWORDS = "\\bquestdb\\b|\\badd\\b|\\ball\\b|\\balter\\b|\\band\\b|\\bas\\b|\\basc\\b"
-            + "|\\basof\\b|\\bbackup\\b|\\bbetween\\b|\\bby\\b"
-            + "|\\bcase\\b|\\bcast\\b|\\bcolumn\\b|\\bcolumns\\b"
-            + "|\\bcopy\\b|\\bcreate\\b|\\bcross\\b|\\bdatabase\\b|\\bdefault\\b"
-            + "|\\bdelete\\b|\\bdesc\\b|\\bdistinct\\b|\\bdrop\\b|\\belse\\b"
-            + "|\\bend\\b|\\bexcept\\b|\\bexists\\b|\\bfill\\b|\\bforeign\\b"
-            + "|\\bfrom\\b|\\bgrant\\b|\\bgroup\\b|\\bheader\\b|\\bif\\b"
-            + "|\\bin\\b|\\binner\\b|\\binsert\\b|\\bintersect\\b"
-            + "|\\binto\\b|\\bisolation\\b|\\bjoin\\b|\\bkey\\b|\\blatest\\b"
-            + "|\\bleft\\b|\\blevel\\b|\\blimit\\b|\\block\\b|\\blt\\b|\\bnan\\b"
-            + "|\\bnatural\\b|\\bnone\\b|\\bnot\\b|\\bnull\\b"
-            + "|\\bon\\b|\\bonly\\b|\\bor\\b|\\border\\b|\\bouter\\b|\\bover\\b"
-            + "|\\bpartition\\b|\\bprimary\\b|\\breferences\\b|\\brename\\b"
-            + "|\\brepair\\b|\\bright\\b|\\bsample\\b|\\bselect\\b|\\bshow\\b"
-            + "|\\bsplice\\b|\\bsystem\\b|\\btable\\b|\\btables\\b|\\bthen\\b"
-            + "|\\bto\\b|\\btransaction\\b|\\btruncate\\b|\\btype\\b|\\bunion\\b"
-            + "|\\bunlock\\b|\\bupdate\\b|\\bvalues\\b|\\bwhen\\b|\\bwhere\\b"
-            + "|\\bwith\\b|\\bwriter\\b";
-    private static final Pattern KEYWORDS_PATTERN = Pattern.compile(KEYWORDS, PATTERN_FLAGS);
+    private static final Pattern KEYWORDS_PATTERN = Pattern.compile(
+            "\\bquestdb\\b|\\badd\\b|\\ball\\b|\\balter\\b|\\band\\b|\\bas\\b|"
+                    + "\\basc\\b|\\basof\\b|\\bbackup\\b|\\bbetween\\b|\\bby\\b|\\bcase\\b|"
+                    + "\\bcast\\b|\\bcolumn\\b|\\bcolumns\\b|\\bcopy\\b|\\bcreate\\b|\\bcross\\b|"
+                    + "\\bdatabase\\b|\\bdefault\\b|\\bdelete\\b|\\bdesc\\b|\\bdistinct\\b|"
+                    + "\\bdrop\\b|\\belse\\b|\\bend\\b|\\bexcept\\b|\\bexists\\b|\\bfill\\b|"
+                    + "\\bforeign\\b|\\bfrom\\b|\\bgrant\\b|\\bgroup\\b|\\bheader\\b|\\bif\\b|"
+                    + "\\bin\\b|\\binner\\b|\\binsert\\b|\\bintersect\\b|\\binto\\b|\\bisolation\\b|"
+                    + "\\bjoin\\b|\\bkey\\b|\\blatest\\b|\\bleft\\b|\\blevel\\b|\\blimit\\b|"
+                    + "\\block\\b|\\blt\\b|\\bnan\\b|\\bnatural\\b|\\bnone\\b|\\bnot\\b|"
+                    + "\\bon\\b|\\bonly\\b|\\bor\\b|\\border\\b|\\bouter\\b|\\bover\\b|"
+                    + "\\bpartition\\b|\\bprimary\\b|\\breferences\\b|\\brename\\b|\\brepair\\b|"
+                    + "\\bright\\b|\\bsample\\b|\\bselect\\b|\\bshow\\b|\\bsplice\\b|\\bsystem\\b|"
+                    + "\\btable\\b|\\btables\\b|\\bthen\\b|\\bto\\b|\\btransaction\\b|\\btruncate\\b|"
+                    + "\\btype\\b|\\bunion\\b|\\bunlock\\b|\\bupdate\\b|\\bvalues\\b|\\bwhen\\b|"
+                    + "\\bwhere\\b|\\bwith\\b|\\bwriter\\b",
+            PATTERN_FLAGS);
 }

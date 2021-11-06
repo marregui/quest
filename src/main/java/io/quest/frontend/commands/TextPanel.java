@@ -38,8 +38,7 @@ import javax.swing.undo.UndoManager;
 import io.quest.common.GTk;
 
 
-public class TextPane extends JPanel {
-
+public class TextPanel extends JPanel {
     private static final long serialVersionUID = 1L;
     private static final String EMPTY_STR = "";
     private static final String END_LINE = "\n";
@@ -49,13 +48,13 @@ public class TextPane extends JPanel {
     private static final Color BACKGROUND_COLOR = Color.BLACK;
 
     protected final JTextPane textPane;
-    private final Highlighter keywordsHighlighter;
+    private final Highlighter highlighter;
     private final InputMap inputMap;
     private final ActionMap actionMap;
     private final AtomicReference<UndoManager> undoManager; // set by CommandBoard
 
 
-    public TextPane() {
+    public TextPanel() {
         textPane = new JTextPane();
         textPane.setEditable(true);
         textPane.setMargin(new Insets(5, 5, 5, 5));
@@ -63,14 +62,14 @@ public class TextPane extends JPanel {
         textPane.setBackground(BACKGROUND_COLOR);
         textPane.setCaretColor(CARET_COLOR);
         textPane.setCaretPosition(0);
-        keywordsHighlighter = new Highlighter(textPane.getStyledDocument()); // produces "style change" events
+        highlighter = new Highlighter(textPane.getStyledDocument()); // produces "style change" events
         inputMap = textPane.getInputMap(JComponent.WHEN_FOCUSED);
         actionMap = textPane.getActionMap();
         undoManager = new AtomicReference<>();
         setupKeyboardActions();
         AbstractDocument doc = (AbstractDocument) textPane.getDocument();
         doc.putProperty(DefaultEditorKit.EndOfLineStringProperty, END_LINE);
-        doc.setDocumentFilter(keywordsHighlighter);
+        doc.setDocumentFilter(highlighter);
         JScrollPane scrollPane = new JScrollPane(textPane);
         scrollPane.getViewport().setBackground(BACKGROUND_COLOR);
         setLayout(new BorderLayout());
@@ -129,7 +128,7 @@ public class TextPane extends JPanel {
 
     protected int highlightContent(String findRegex) {
         if (findRegex != null && !findRegex.isBlank() && !findRegex.isEmpty()) {
-            return keywordsHighlighter.handleTextChanged(findRegex);
+            return highlighter.handleTextChanged(findRegex);
         }
         return 0;
     }
@@ -138,7 +137,7 @@ public class TextPane extends JPanel {
         if (findRegex != null && !findRegex.isBlank() && replaceWith != null) {
             try {
                 textPane.setText(getContent().replaceAll(findRegex, replaceWith));
-                return keywordsHighlighter.handleTextChanged();
+                return highlighter.handleTextChanged();
             } catch (PatternSyntaxException err) {
                 JOptionPane.showMessageDialog(null, String.format(
                         "Not a valid filter: %s", err.getMessage()));
@@ -169,17 +168,6 @@ public class TextPane extends JPanel {
         actionMap.put(cmd, cmd);
     }
 
-    private void addCmdShiftKeysAction(int keyEvent, ActionListener action) {
-        Action cmd = new AbstractAction() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                action.actionPerformed(e);
-            }
-        };
-        inputMap.put(KeyStroke.getKeyStroke(keyEvent, GTk.CMD_DOWN_MASK | KeyEvent.SHIFT_DOWN_MASK), cmd);
-        actionMap.put(cmd, cmd);
-    }
-
     private void setupKeyboardActions() {
         // cmd-z, undo edit
         addCmdKeyAction(KeyEvent.VK_Z, e -> {
@@ -190,7 +178,7 @@ public class TextPane extends JPanel {
                 } catch (Throwable ignore) {
                     // do nothing
                 }
-                keywordsHighlighter.handleTextChanged();
+                highlighter.handleTextChanged();
             }
         });
 
@@ -203,7 +191,7 @@ public class TextPane extends JPanel {
                 } catch (Throwable ignore) {
                     // do nothing
                 }
-                keywordsHighlighter.handleTextChanged();
+                highlighter.handleTextChanged();
             }
         });
 
@@ -308,46 +296,6 @@ public class TextPane extends JPanel {
         addCmdKeyAction(KeyEvent.VK_UP, e -> textPane.setCaretPosition(0));
 
         // cmd-down, jump to the end of the document
-        addCmdKeyAction(KeyEvent.VK_DOWN,
-                e -> textPane.setCaretPosition(textPane.getStyledDocument().getLength()));
-
-        // cmd-shift-left, select from caret to the beginning of the line
-        addCmdShiftKeysAction(KeyEvent.VK_LEFT, e -> {
-            try {
-                int caretPos = textPane.getCaretPosition();
-                int start = Utilities.getRowStart(textPane, caretPos);
-                textPane.setSelectionStart(start);
-                textPane.setSelectionEnd(caretPos);
-            } catch (BadLocationException ignore) {
-                // do nothing
-            }
-        });
-
-        // cmd-shift-right, select from caret to the end of the line
-        addCmdShiftKeysAction(KeyEvent.VK_RIGHT, e -> {
-            try {
-                int caretPos = textPane.getCaretPosition();
-                int end = Utilities.getRowEnd(textPane, caretPos);
-                textPane.setSelectionStart(caretPos);
-                textPane.setSelectionEnd(end);
-            } catch (BadLocationException ignore) {
-                // do nothing
-            }
-        });
-
-        // cmd-shift-up, select from caret to the beginning of the document
-        addCmdShiftKeysAction(KeyEvent.VK_UP, e -> {
-            int caretPos = textPane.getCaretPosition();
-            textPane.setSelectionStart(0);
-            textPane.setSelectionEnd(caretPos);
-        });
-
-        // cmd-shift-down, select from caret to the end of the document
-        addCmdShiftKeysAction(KeyEvent.VK_DOWN, e -> {
-            int caretPos = textPane.getCaretPosition();
-            int end = textPane.getStyledDocument().getLength();
-            textPane.setSelectionStart(caretPos);
-            textPane.setSelectionEnd(end);
-        });
+        addCmdKeyAction(KeyEvent.VK_DOWN, e -> textPane.setCaretPosition(textPane.getStyledDocument().getLength()));
     }
 }

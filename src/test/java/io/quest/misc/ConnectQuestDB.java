@@ -20,35 +20,27 @@ import io.quest.backend.Conn;
 
 import java.sql.Connection;
 import java.sql.PreparedStatement;
+import java.sql.ResultSet;
 import java.sql.Timestamp;
 
 
 public class ConnectQuestDB {
-
     public static void main(String... args) throws Exception {
-
         try (Conn conn = new Conn("questdb")) {
             Connection connection = conn.open();
-
-            try {
-                connection.prepareStatement("DROP TABLE testing;").execute();
-            } catch (Exception e) {
-                // Ignored
-            }
+            connection.prepareStatement("DROP TABLE testing;").execute();
             connection.prepareStatement("CREATE TABLE testing(test TIMESTAMP) TIMESTAMP(test);").execute();
-
             // Insert timestamp
             Timestamp timestamp = Timestamp.valueOf("2021-09-11 07:29:59.306");
-            System.out.printf("Before: %s%n", timestamp);
+            System.out.printf("Insert: %s%n", timestamp);
             PreparedStatement insertStatement = connection.prepareStatement("INSERT INTO testing VALUES (?);");
             insertStatement.setTimestamp(1, timestamp);
             insertStatement.execute();
-
-//            // Get timestamp again
-//            ResultSet queryResult = connection.prepareStatement("SELECT * FROM testing;").executeQuery();
-//            queryResult.next();
-//            Timestamp afterTimestamp = queryResult.getTimestamp("test");
-//            System.out.printf("After: %s%n", afterTimestamp);
+            // Get timestamp again
+            ResultSet queryResult = connection.prepareStatement("SELECT * FROM testing;").executeQuery();
+            queryResult.next();
+            Timestamp afterTimestamp = queryResult.getTimestamp("test");
+            System.out.printf("Select: %s%n", afterTimestamp);
         }
     }
 }

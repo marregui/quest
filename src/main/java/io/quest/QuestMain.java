@@ -39,15 +39,7 @@ import static io.quest.common.GTk.configureMenuItem;
 public final class QuestMain {
 
     public static final String NAME = "quest";
-    public static final String VERSION = "1.0.0-SNAPSHOT";
-
-    private static final String BANNER = "\n" + // https://patorjk.com/software/taag/#p=display&h=0&f=Ivrit&t=quest
-            "                               _   \n" +
-            "   __ _   _   _    ___   ___  | |_ \n" +
-            "  / _` | | | | |  / _ \\ / __| | __|\n" +
-            " | (_| | | |_| | |  __/ \\__ \\ | |_ \n" +
-            "  \\__, |  \\__,_|  \\___| |___/  \\__|\n" +
-            "     |_|";
+    public static final String VERSION = "1.0";
 
     private static final Logger LOGGER = LoggerFactory.getLogger(QuestMain.class);
 
@@ -59,7 +51,7 @@ public final class QuestMain {
     private final JMenuItem toggleConn;
 
     private QuestMain() {
-        LOGGER.info(BANNER);
+        LOGGER.info(GTk.BANNER);
         LOGGER.info("{} {}", NAME, VERSION);
         JFrame frame = GTk.createFrame();
         frame.setIconImage(GTk.Icon.APPLICATION.icon().getImage());
@@ -115,19 +107,19 @@ public final class QuestMain {
                         GTk.Icon.EXEC_LINE,
                         "L.Exec",
                         KeyEvent.VK_L,
-                        commands::onExecLineEvent));
+                        commands::onExecLine));
         commandsMenu.add(
                 configureMenuItem(
                         new JMenuItem(),
                         GTk.Icon.EXEC,
                         "Exec",
                         KeyEvent.VK_ENTER,
-                        commands::onExecEvent));
+                        commands::onExec));
         commandsMenu.add(
                 configureMenuItem(
                         new JMenuItem(),
                         GTk.Icon.EXEC_CANCEL,
-                        "Whack",
+                        "Cancel",
                         KeyEvent.VK_W,
                         commands::fireCancelEvent));
         commandsMenu.addSeparator();

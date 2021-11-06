@@ -44,6 +44,15 @@ import javax.swing.text.StyleContext;
 
 public final class GTk {
 
+    // https://patorjk.com/software/taag/#p=display&h=0&f=Ivrit&t=quest
+    public static final String BANNER = "\n" +
+            ".                              _   \n" +
+            "   __ _   _   _    ___   ___  | |_ \n" +
+            "  / _` | | | | |  / _ \\ / __| | __|\n" +
+            " | (_| | | |_| | |  __/ \\__ \\ | |_ \n" +
+            "  \\__, |  \\__,_|  \\___| |___/  \\__|\n" +
+            "     |_|";
+
     private static final Toolkit TK = Toolkit.getDefaultToolkit();
     private static final Logger LOGGER = LoggerFactory.getLogger(GTk.class);
 
@@ -60,8 +69,7 @@ public final class GTk {
     public static final Font TABLE_HEADER_FONT = new Font(MAIN_FONT_NAME, Font.BOLD, 18);
     public static final Font TABLE_CELL_FONT = new Font(MAIN_FONT_NAME, Font.PLAIN, 16);
 
-
-    public static final int CMD_DOWN_MASK = GTk.TK.getMenuShortcutKeyMaskEx();
+    public static final int CMD_DOWN_MASK = InputEvent.META_DOWN_MASK | InputEvent.META_MASK;
     public static final int NO_KEY_EVENT = -1;
 
     static {
