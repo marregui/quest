@@ -23,8 +23,7 @@ import io.quest.common.GTk;
 
 
 /**
- * Resolves {@link java.sql.Types} to their text representation, and rendering
- * colour.
+ * Resolves {@link java.sql.Types} to their text representation, and rendering color.
  */
 final class SQLType {
 

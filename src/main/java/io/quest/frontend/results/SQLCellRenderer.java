@@ -23,23 +23,11 @@ import java.util.function.Supplier;
 import javax.swing.JTable;
 
 import io.quest.common.GTk;
-import io.quest.backend.SQLExecutor;
 import io.quest.backend.SQLTable;
 import io.quest.frontend.CellRenderer;
 
 
-/**
- * Changes the cell background colour as a function of the column's SQL
- * {@link java.sql.Types}. Colours are defined in {@link SQLType}.
- * <p>
- * Column metadata are accessed through a {@link SQLTable} supplier. The table
- * is built by a {@link SQLExecutor} and thus it will be null until then SQL
- * query execution is started.
- * 
- * @see SQLType
- */
 class SQLCellRenderer extends CellRenderer {
-
     private static final long serialVersionUID = 1L;
 
     private final Supplier<SQLTable> tableSupplier;
@@ -50,8 +38,12 @@ class SQLCellRenderer extends CellRenderer {
     }
 
     @Override
-    public Component getTableCellRendererComponent(JTable table, Object value, boolean isSelected, boolean hasFocus,
-        int rowIdx, int colIdx) {
+    public Component getTableCellRendererComponent(JTable table,
+                                                   Object value,
+                                                   boolean isSelected,
+                                                   boolean hasFocus,
+                                                   int rowIdx,
+                                                   int colIdx) {
         super.getTableCellRendererComponent(table, value, isSelected, hasFocus, rowIdx, colIdx);
         SQLTable sqlTable = tableSupplier.get();
         if (sqlTable != null && !isSelected && rowIdx >= 0 && rowIdx < table.getModel().getRowCount()) {

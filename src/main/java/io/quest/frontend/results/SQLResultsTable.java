@@ -158,7 +158,7 @@ public class SQLResultsTable extends JPanel implements Closeable {
         }
         else {
             if (table.size() == 0) {
-                textPanel.displayMessage("OK.\n\nNo resultset for query:\n" + res.getSQL());
+                textPanel.displayMessage("OK.\n\nNo results for query:\n" + res.getSQL());
                 changeMode(Mode.MESSAGE);
             }
             else {
@@ -204,10 +204,6 @@ public class SQLResultsTable extends JPanel implements Closeable {
         }
     }
 
-    public SQLTable getResults() {
-        return results.get();
-    }
-
     private void updateRowNavigationComponents() {
         prevButton.setEnabled(tableModel.canDecrPage());
         nextButton.setEnabled(tableModel.canIncrPage());
@@ -242,7 +238,8 @@ public class SQLResultsTable extends JPanel implements Closeable {
     }
 
     private static int resolveColWidth(String name, int type) {
-        return Math.max(TABLE_CELL_MIN_WIDTH, TABLE_CELL_CHAR_WIDTH * (name.length() + SQLType.resolveName(type).length()));
+        return Math.max(TABLE_CELL_MIN_WIDTH,
+                TABLE_CELL_CHAR_WIDTH * (name.length() + SQLType.resolveName(type).length()));
     }
 
     private void changeMode(Mode newMode) {

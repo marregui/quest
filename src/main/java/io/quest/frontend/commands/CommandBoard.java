@@ -31,6 +31,7 @@ import java.util.function.Supplier;
 
 import javax.swing.*;
 import javax.swing.event.UndoableEditEvent;
+import javax.swing.filechooser.FileFilter;
 import javax.swing.undo.UndoManager;
 
 import io.quest.backend.StoreEntry;
@@ -41,6 +42,7 @@ import io.quest.backend.Conn;
 import io.quest.backend.SQLRequest;
 import io.quest.backend.Store;
 import io.quest.frontend.MaskingMouseListener;
+import io.quest.frontend.conns.ConnsManager;
 
 
 public class CommandBoard extends TextPanel implements EventProducer<CommandBoard.EventType>, Closeable {
@@ -129,7 +131,7 @@ public class CommandBoard extends TextPanel implements EventProducer<CommandBoar
         undoManagers = new ArrayList<>(5);
         boardEntryNames = new JComboBox<>();
         boardEntryNames.setEditable(false);
-        boardEntryNames.setPreferredSize(new Dimension(180, 25));
+        boardEntryNames.setPreferredSize(new Dimension(200, 25));
         boardEntryNames.addActionListener(this::onChangeBoard);
         setupBoardMenu();
         JPanel topRightPanel = GTk.flowPanel(
@@ -377,6 +379,19 @@ public class CommandBoard extends TextPanel implements EventProducer<CommandBoar
         choose.setDialogType(JFileChooser.OPEN_DIALOG);
         choose.setFileSelectionMode(JFileChooser.FILES_ONLY);
         choose.setMultiSelectionEnabled(false);
+        choose.setFileFilter(new FileFilter() {
+            @Override
+            public boolean accept(File f) {
+                String name = f.getName();
+                return name.endsWith(".json") && !name.equals(ConnsManager.STORE_FILE_NAME);
+            }
+
+            @Override
+            public String getDescription() {
+                return "JSON files";
+            }
+        });
+
         if (JFileChooser.APPROVE_OPTION == choose.showOpenDialog(this)) {
             File selectedFile = choose.getSelectedFile();
             try {
@@ -410,7 +425,8 @@ public class CommandBoard extends TextPanel implements EventProducer<CommandBoar
 
     private boolean refreshStore() {
         String txt = getContent();
-        if (!content.getContent().equals(txt)) {
+        String current = content.getContent();
+        if (current != null && !current.equals(txt)) {
             content.setContent(txt);
             return true;
         }

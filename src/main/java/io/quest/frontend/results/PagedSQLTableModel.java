@@ -42,32 +42,18 @@ class PagedSQLTableModel extends AbstractTableModel {
     private int pageStartOffset;
     private int pageEndOffset;
 
-    /**
-     * Constructor.
-     * 
-     * @param tableSupplier provides access to the table, which may be null
-     */
     PagedSQLTableModel(Supplier<SQLTable> tableSupplier) {
         this.tableSupplier = Objects.requireNonNull(tableSupplier);
     }
 
-    /**
-     * @return true if can increase the page number
-     */
     boolean canIncrPage() {
         return currentPage < maxPage;
     }
 
-    /**
-     * @return true if can decrease the page number
-     */
     boolean canDecrPage() {
         return currentPage > 0;
     }
 
-    /**
-     * Increases current page.
-     */
     void incrPage() {
         if (canIncrPage()) {
             currentPage++;
@@ -75,9 +61,6 @@ class PagedSQLTableModel extends AbstractTableModel {
         }
     }
 
-    /**
-     * Decreases current page.
-     */
     void decrPage() {
         if (canDecrPage()) {
             currentPage--;
@@ -112,32 +95,20 @@ class PagedSQLTableModel extends AbstractTableModel {
         super.fireTableDataChanged();
     }
 
-    /**
-     * @return the page's start offset within the table. Offsets start at 0.
-     */
     public int getPageStartOffset() {
         return pageStartOffset;
     }
 
-    /**
-     * @return the page's end offset, excluded, within the table
-     */
     public int getPageEndOffset() {
         return pageEndOffset;
     }
 
-    /**
-     * @return the number of rows in the current page
-     */
     @Override
     public int getRowCount() {
         SQLTable table = tableSupplier.get();
         return table != null ? pageEndOffset - pageStartOffset : 0;
     }
 
-    /**
-     * @return the total size of the table, not just the number of rows in a page
-     */
     public int getTableSize() {
         SQLTable table = tableSupplier.get();
         return table != null ? table.size() : 0;
@@ -155,7 +126,9 @@ class PagedSQLTableModel extends AbstractTableModel {
         if (table == null) {
             return "";
         }
-        return String.format("%s [%s]", table.getColName(colIdx), SQLType.resolveName(table.getColType(colIdx)));
+        return String.format("%s [%s]",
+                table.getColName(colIdx),
+                SQLType.resolveName(table.getColType(colIdx)));
     }
 
     @Override

@@ -81,9 +81,9 @@ public class ConnsManager extends JDialog implements EventProducer<ConnsManager.
         HIDE_REQUEST
     }
 
+    public static final String STORE_FILE_NAME = "connections.json";
     private static final long serialVersionUID = 1L;
     private static final Logger LOGGER = LoggerFactory.getLogger(ConnsManager.class);
-    private static final String STORE_FILE_NAME = "connections.json";
 
     private final EventConsumer<ConnsManager, Object> eventConsumer;
     private final Store<Conn> store;
