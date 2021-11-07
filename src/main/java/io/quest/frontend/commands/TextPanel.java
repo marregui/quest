@@ -20,7 +20,6 @@ import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Font;
 import java.awt.Insets;
-import java.awt.datatransfer.DataFlavor;
 import java.awt.event.KeyEvent;
 import java.io.IOException;
 import java.io.PrintWriter;
@@ -33,7 +32,6 @@ import javax.swing.text.*;
 import javax.swing.undo.UndoManager;
 
 import io.quest.frontend.GTk;
-import io.quest.common.StringTransferable;
 
 
 public class TextPanel extends JPanel {
@@ -60,7 +58,6 @@ public class TextPanel extends JPanel {
         textPane.setCaretPosition(0);
         highlighter = new Highlighter(textPane.getStyledDocument()); // produces "style change" events
         undoManager = new AtomicReference<>();
-        setupKeyboardActions();
         AbstractDocument doc = (AbstractDocument) textPane.getDocument();
         doc.putProperty(DefaultEditorKit.EndOfLineStringProperty, END_LINE);
         doc.setDocumentFilter(highlighter);
@@ -68,6 +65,7 @@ public class TextPanel extends JPanel {
         scrollPane.getViewport().setBackground(BACKGROUND_COLOR);
         setLayout(new BorderLayout());
         add(scrollPane, BorderLayout.CENTER);
+        setupKeyboardActions();
     }
 
     public void displayMessage(String message) {
@@ -121,14 +119,14 @@ public class TextPanel extends JPanel {
     }
 
     protected int highlightContent(String findRegex) {
-        if (findRegex != null && !findRegex.isBlank() && !findRegex.isEmpty()) {
+        if (findRegex != null) {
             return highlighter.handleTextChanged(findRegex);
         }
         return 0;
     }
 
     protected int replaceContent(String findRegex, String replaceWith) {
-        if (findRegex != null && !findRegex.isBlank() && replaceWith != null) {
+        if (findRegex != null) {
             try {
                 textPane.setText(getContent().replaceAll(findRegex, replaceWith));
                 return highlighter.handleTextChanged();
@@ -185,7 +183,7 @@ public class TextPanel extends JPanel {
                 selected = getCurrentLine();
             }
             if (!selected.equals(EMPTY_STR)) {
-                GTk.systemClipboard().setContents(new StringTransferable(selected), null);
+                GTk.setSystemClipboardContent(selected);
             }
         });
         // cmd-d, duplicate line under caret, and append it under
@@ -205,7 +203,7 @@ public class TextPanel extends JPanel {
         // cmd-v, paste content of clipboard into selection or caret position
         GTk.addCmdKeyAction(KeyEvent.VK_V, textPane, e -> {
             try {
-                String data = (String) GTk.systemClipboard().getData(DataFlavor.stringFlavor);
+                String data = GTk.getSystemClipboardContent();
                 if (data != null && !data.isEmpty()) {
                     int start = textPane.getSelectionStart();
                     int end = textPane.getSelectionEnd();
@@ -232,7 +230,7 @@ public class TextPanel extends JPanel {
                 Document doc = textPane.getStyledDocument();
                 int len = end - start;
                 if (len > 0) {
-                    GTk.systemClipboard().setContents(new StringTransferable(doc.getText(start, len)), null);
+                    GTk.setSystemClipboardContent(doc.getText(start, len));
                     doc.remove(start, len);
                 }
                 end = doc.getLength();
@@ -248,6 +246,11 @@ public class TextPanel extends JPanel {
                 // do nothing
             }
         });
+        // cmd-up, jump to the beginning of the document
+        GTk.addCmdKeyAction(KeyEvent.VK_UP, textPane, e -> textPane.setCaretPosition(0));
+        // cmd-down, jump to the end of the document
+        GTk.addCmdKeyAction(KeyEvent.VK_DOWN, textPane,
+                e -> textPane.setCaretPosition(textPane.getStyledDocument().getLength()));
         // cmd-left, jump to the beginning of the line
         GTk.addCmdKeyAction(KeyEvent.VK_LEFT, textPane, e -> {
             try {
@@ -266,10 +269,36 @@ public class TextPanel extends JPanel {
                 // do nothing
             }
         });
-        // cmd-up, jump to the beginning of the document
-        GTk.addCmdKeyAction(KeyEvent.VK_UP, textPane, e -> textPane.setCaretPosition(0));
-        // cmd-down, jump to the end of the document
-        GTk.addCmdKeyAction(KeyEvent.VK_DOWN, textPane,
+        // cmd-shift-left, jump to the beginning of the line
+        GTk.addCmdShiftKeyAction(KeyEvent.VK_LEFT, textPane, e -> {
+            try {
+                int caretPos = textPane.getCaretPosition();
+                int start = Utilities.getRowStart(textPane, caretPos);
+                int end = textPane.getSelectionEnd();
+                textPane.setCaretPosition(start);
+                if (textPane.getSelectionStart() != end) {
+                    textPane.select(start, end);
+                }
+            } catch (BadLocationException ignore) {
+                // do nothing
+            }
+        });
+        // cmd-shift-right, jump to the end of the line
+        GTk.addCmdShiftKeyAction(KeyEvent.VK_RIGHT, textPane, e -> {
+            try {
+                int caretPos = textPane.getCaretPosition();
+                int start = textPane.getSelectionStart();
+                int end = Utilities.getRowEnd(textPane, caretPos);
+                textPane.setCaretPosition(end);
+                if (start != textPane.getSelectionEnd()) {
+                    textPane.select(start, end);
+                }
+            } catch (BadLocationException ignore) {
+                // do nothing
+            }
+        });
+        // cmd-fwd-slash, toggle comment
+        GTk.addCmdKeyAction(KeyEvent.VK_SLASH, textPane,
                 e -> textPane.setCaretPosition(textPane.getStyledDocument().getLength()));
     }
 }

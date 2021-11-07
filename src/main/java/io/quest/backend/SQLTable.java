@@ -38,6 +38,7 @@ import io.quest.common.WithKey;
  * and the row's values. This data structure is thread-safe.
  */
 public class SQLTable implements WithKey<String> {
+    public static final String ROWID_COL_NAME = "#";
 
     private final ReadLock readLock;
     private final WriteLock writeLock;
@@ -106,12 +107,15 @@ public class SQLTable implements WithKey<String> {
         if (colCount <= 0) {
             throw new IllegalArgumentException("no column metadata (names, types) were found");
         }
-        String[] names = new String[colCount];
-        int[] types = new int[colCount];
+        String[] names = new String[colCount + 1];
+        int[] types = new int[colCount + 1];
         Map<String, Integer> nameToIdx = new HashMap<>();
-        for (int i = 0; i < colCount; i++) {
-            names[i] = metaData.getColumnName(i + 1);
-            types[i] = metaData.getColumnType(i + 1);
+        names[0] = ROWID_COL_NAME;
+        types[0] = Types.ROWID;
+        nameToIdx.put(names[0], 0);
+        for (int i = 1; i <= colCount; i++) {
+            names[i] = metaData.getColumnName(i);
+            types[i] = metaData.getColumnType(i);
             nameToIdx.put(names[i], i);
         }
         writeLock.lock();
@@ -144,8 +148,9 @@ public class SQLTable implements WithKey<String> {
             throw new IllegalArgumentException("column metadata (names, types) not defined");
         }
         Object[] values = new Object[types.length];
-        for (int i = 0; i < types.length; i++) {
-            values[i] = rs.getObject(i + 1);
+        values[0] = rowKey;
+        for (int i = 1; i < types.length; i++) {
+            values[i] = rs.getObject(i);
         }
         SQLRow row = new SQLRow(this, rowKey, values);
         if (!containsRow(row)) {

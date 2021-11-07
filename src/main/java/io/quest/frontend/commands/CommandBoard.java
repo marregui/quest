@@ -17,8 +17,6 @@
 package io.quest.frontend.commands;
 
 import java.awt.*;
-import java.awt.datatransfer.DataFlavor;
-import java.awt.datatransfer.StringSelection;
 import java.awt.event.*;
 import java.awt.font.TextAttribute;
 import java.io.Closeable;
@@ -527,14 +525,14 @@ public class CommandBoard extends TextPanel implements EventProducer<CommandBoar
                 selected = field.getText();
             }
             if (!selected.equals(EMPTY_STR)) {
-                GTk.systemClipboard().setContents(new StringSelection(selected), null);
+                GTk.setSystemClipboardContent(selected);
             }
         });
         // cmd-v, paste content of clipboard into selection or caret position
         final StringBuilder sb = new StringBuilder();
         GTk.addCmdKeyAction(KeyEvent.VK_V, field, e -> {
             try {
-                String data = (String) GTk.systemClipboard().getData(DataFlavor.stringFlavor);
+                String data = GTk.getSystemClipboardContent();
                 if (data != null && !data.isEmpty()) {
                     int start = field.getSelectionStart();
                     int end = field.getSelectionEnd();

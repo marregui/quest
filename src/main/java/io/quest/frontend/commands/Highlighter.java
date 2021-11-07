@@ -45,6 +45,7 @@ class Highlighter extends DocumentFilter {
     @Override
     public void insertString(FilterBypass fb, int offset, String text, AttributeSet attributeSet) {
         try {
+            text = text.replaceAll("\t", "    ");
             super.insertString(fb, offset, text, attributeSet);
         } catch (BadLocationException irrelevant) {
             // do nothing
@@ -65,6 +66,7 @@ class Highlighter extends DocumentFilter {
     @Override
     public void replace(FilterBypass fb, int offset, int length, String text, AttributeSet attrSet) {
         try {
+            text = text.replaceAll("\t", "    ");
             super.replace(fb, offset, length, text, attrSet);
         } catch (BadLocationException irrelevant) {
             // do nothing

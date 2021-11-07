@@ -16,6 +16,8 @@
 
 package io.quest.frontend;
 
+import io.quest.backend.SQLRow;
+import io.quest.backend.SQLTable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -27,10 +29,13 @@ import java.awt.FlowLayout;
 import java.awt.Font;
 import java.awt.Toolkit;
 import java.awt.Window;
-import java.awt.datatransfer.Clipboard;
+import java.awt.datatransfer.DataFlavor;
+import java.awt.datatransfer.Transferable;
+import java.awt.datatransfer.UnsupportedFlavorException;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.InputEvent;
+import java.awt.event.KeyEvent;
 import java.io.IOException;
 import java.net.URL;
 import java.util.HashMap;
@@ -67,8 +72,11 @@ public final class GTk {
     public static final Font TABLE_CELL_FONT = new Font(MAIN_FONT_NAME, Font.PLAIN, 16);
     public static final Color TABLE_HEADER_FONT_COLOR = Color.BLACK;
 
-    public static final int CMD_DOWN_MASK = InputEvent.META_DOWN_MASK | InputEvent.META_MASK;
+    public static final int CMD_DOWN_MASK = InputEvent.META_DOWN_MASK;
+    public static final int CMD_SHIFT_DOWN_MASK = CMD_DOWN_MASK | InputEvent.SHIFT_DOWN_MASK;
     public static final int NO_KEY_EVENT = -1;
+
+    private static final DataFlavor[] SUPPORTED_COPY_PASTE_FLAVOR = {DataFlavor.stringFlavor};
 
     static {
         // anti-aliased fonts
@@ -76,55 +84,68 @@ public final class GTk {
         System.setProperty("swing.aatext", "true");
     }
 
-    public static void openQuestDBDocumentation(ActionEvent event) {
-        Runtime rt = Runtime.getRuntime();
-        String os = System.getProperty("os.name").toLowerCase();
+
+    public static void setSystemClipboardContent(final String str) {
+        TK.getSystemClipboard().setContents(new Transferable() {
+                                                @Override
+                                                public DataFlavor[] getTransferDataFlavors() {
+                                                    return SUPPORTED_COPY_PASTE_FLAVOR;
+                                                }
+
+                                                @Override
+                                                public boolean isDataFlavorSupported(DataFlavor flavor) {
+                                                    return DataFlavor.stringFlavor.equals(flavor);
+                                                }
+
+                                                @Override
+                                                public Object getTransferData(DataFlavor flavor) throws UnsupportedFlavorException, IOException {
+                                                    if (!isDataFlavorSupported(flavor)) {
+                                                        throw new UnsupportedFlavorException(flavor);
+                                                    }
+                                                    return str;
+                                                }
+                                            },
+                null);
+    }
+
+    public static String getSystemClipboardContent() {
         try {
-            if (os.indexOf("mac") >= 0) {
-                rt.exec(String.format(
-                        "open %s",
-                        QUESTDB_DOCUMENTATION_URL));
-            } else if (os.indexOf("win") >= 0) {
-                rt.exec(String.format(
-                        "rundll32 url.dll,FileProtocolHandler %s",
-                        QUESTDB_DOCUMENTATION_URL));
-            } else if (os.indexOf("nix") >= 0 || os.indexOf("nux") >= 0) {
-                String[] browsers = {
-                        "google-chrome", "firefox", "mozilla",
-                        "epiphany", "konqueror", "netscape",
-                        "opera", "links", "lynx"
-                };
-                StringBuilder cmd = new StringBuilder();
-                for (int i = 0; i < browsers.length; i++) {
-                    if (i != 0) {
-                        cmd.append(" || ");
-                    }
-                    cmd.append(browsers[i])
-                            .append("\"").append(QUESTDB_DOCUMENTATION_URL).append("\"");
-                }
-                // If the first didn't work, try the next
-                rt.exec(new String[]{"sh", "-c", cmd.toString()});
-            }
-        } catch (IOException err) {
-            JOptionPane.showMessageDialog(
-                    null,
-                    String.format(
-                            "Failed to open browser [%s:%s]: %s",
-                            os,
-                            QUESTDB_DOCUMENTATION_URL,
-                            err.getMessage()),
-                    "Helpless",
-                    JOptionPane.INFORMATION_MESSAGE);
+            return (String) TK.getSystemClipboard().getData(DataFlavor.stringFlavor);
+        } catch (IOException | UnsupportedFlavorException err) {
+            return "";
         }
     }
 
-    public static AttributeSet styleForegroundColor(int r, int g, int b) {
-        StyleContext sc = StyleContext.getDefaultStyleContext();
-        return sc.addAttribute(sc.getEmptySet(), StyleConstants.Foreground, new Color(r, g, b));
-    }
-
-    public static Clipboard systemClipboard() {
-        return TK.getSystemClipboard();
+    public static void setupTableCmdKeyActions(JTable table) {
+        // cmd-a, select the full content
+        GTk.addCmdKeyAction(KeyEvent.VK_A, table, e -> table.selectAll());
+        // cmd-c, copy to clipboard, selection or full page
+        final StringBuilder sb = new StringBuilder();
+        GTk.addCmdKeyAction(KeyEvent.VK_C, table, e -> {
+            int[] selectedRows = table.getSelectedRows();
+            int[] selectedCols = table.getSelectedColumns();
+            if (selectedRows.length <= 0) {
+                table.selectAll();
+                selectedRows = table.getSelectedRows();
+            }
+            sb.setLength(0);
+            for (int i = 0; i < selectedRows.length; i++) {
+                int rowIdx = selectedRows[i];
+                for (int j = 0; j < selectedCols.length; j++) {
+                    int colIdx = selectedCols[j];
+                    if (!table.getColumnName(colIdx).equals(SQLTable.ROWID_COL_NAME)) {
+                        sb.append(table.getValueAt(rowIdx, colIdx)).append(", ");
+                    }
+                }
+                if (sb.length() > 0) {
+                    sb.setLength(sb.length() - 2);
+                    sb.append("\n");
+                }
+            }
+            if (sb.length() > 0) {
+                setSystemClipboardContent(sb.toString());
+            }
+        });
     }
 
     public static void invokeLater(Runnable... tasks) {
@@ -149,6 +170,11 @@ public final class GTk {
         }
     }
 
+    public static AttributeSet styleForegroundColor(int r, int g, int b) {
+        StyleContext sc = StyleContext.getDefaultStyleContext();
+        return sc.addAttribute(sc.getEmptySet(), StyleConstants.Foreground, new Color(r, g, b));
+    }
+
     public static void addCmdKeyAction(int keyEvent,
                                        JComponent component,
                                        ActionListener action) {
@@ -158,7 +184,22 @@ public final class GTk {
                 action.actionPerformed(e);
             }
         };
-        component.getInputMap(JComponent.WHEN_FOCUSED).put(KeyStroke.getKeyStroke(keyEvent, CMD_DOWN_MASK), cmd);
+        component.getInputMap(JComponent.WHEN_FOCUSED)
+                .put(KeyStroke.getKeyStroke(keyEvent, CMD_DOWN_MASK), cmd);
+        component.getActionMap().put(cmd, cmd);
+    }
+
+    public static void addCmdShiftKeyAction(int keyEvent,
+                                            JComponent component,
+                                            ActionListener action) {
+        Action cmd = new AbstractAction() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                action.actionPerformed(e);
+            }
+        };
+        component.getInputMap(JComponent.WHEN_FOCUSED)
+                .put(KeyStroke.getKeyStroke(keyEvent, CMD_SHIFT_DOWN_MASK), cmd);
         component.getActionMap().put(cmd, cmd);
     }
 
@@ -267,6 +308,48 @@ public final class GTk {
         }
         item.addActionListener(listener);
         return item;
+    }
+
+    public static void openQuestDBDocumentation(ActionEvent ignore) {
+        Runtime rt = Runtime.getRuntime();
+        String os = System.getProperty("os.name").toLowerCase();
+        try {
+            if (os.indexOf("mac") >= 0) {
+                rt.exec(String.format(
+                        "open %s",
+                        QUESTDB_DOCUMENTATION_URL));
+            } else if (os.indexOf("win") >= 0) {
+                rt.exec(String.format(
+                        "rundll32 url.dll,FileProtocolHandler %s",
+                        QUESTDB_DOCUMENTATION_URL));
+            } else if (os.indexOf("nix") >= 0 || os.indexOf("nux") >= 0) {
+                String[] browsers = {
+                        "google-chrome", "firefox", "mozilla",
+                        "epiphany", "konqueror", "netscape",
+                        "opera", "links", "lynx"
+                };
+                StringBuilder cmd = new StringBuilder();
+                for (int i = 0; i < browsers.length; i++) {
+                    if (i != 0) {
+                        cmd.append(" || ");
+                    }
+                    cmd.append(browsers[i])
+                            .append("\"").append(QUESTDB_DOCUMENTATION_URL).append("\"");
+                }
+                // If the first didn't work, try the next
+                rt.exec(new String[]{"sh", "-c", cmd.toString()});
+            }
+        } catch (IOException err) {
+            JOptionPane.showMessageDialog(
+                    null,
+                    String.format(
+                            "Failed to open browser [%s:%s]: %s",
+                            os,
+                            QUESTDB_DOCUMENTATION_URL,
+                            err.getMessage()),
+                    "Helpless",
+                    JOptionPane.INFORMATION_MESSAGE);
+        }
     }
 
     public enum Icon {

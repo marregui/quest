@@ -20,9 +20,7 @@ import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Component;
 import java.awt.Dimension;
-import java.awt.Font;
 import java.awt.event.ActionEvent;
-import java.awt.event.KeyEvent;
 import java.io.Closeable;
 import java.util.concurrent.atomic.AtomicReference;
 
@@ -39,11 +37,9 @@ import javax.swing.table.JTableHeader;
 import javax.swing.table.TableColumn;
 import javax.swing.table.TableColumnModel;
 
-import io.quest.backend.SQLRow;
 import io.quest.frontend.GTk;
 import io.quest.backend.SQLResponse;
 import io.quest.backend.SQLTable;
-import io.quest.common.StringTransferable;
 import io.quest.frontend.InfiniteSpinnerPanel;
 import io.quest.frontend.commands.TextPanel;
 
@@ -53,17 +49,10 @@ public class SQLResultsTable extends JPanel implements Closeable {
     private static final Dimension STATUS_LABEL_SIZE = new Dimension(600, 35);
     private static final Dimension NAVIGATION_LABEL_SIZE = new Dimension(300, 35);
     private static final Dimension NAVIGATION_BUTTON_SIZE = new Dimension(100, 35);
-    private static final Font TABLE_FOOTER_FONT = new Font(GTk.MAIN_FONT_NAME, Font.BOLD, 14);
-    private static final Color TABLE_GRID_COLOR = GTk.APP_THEME_COLOR.darker().darker().darker();
-    private static final Color TABLE_FOOTER_FONT_COLOR = Color.BLACK;
     private static final int TABLE_ROW_HEIGHT = 30;
-    private static final int TABLE_CELL_MIN_WIDTH = 300;
-    private static final int TABLE_CELL_CHAR_WIDTH = 15;
     private static final int TABLE_HEADER_HEIGHT = 50;
 
-    private enum Mode {
-        INFINITE, TABLE, MESSAGE
-    }
+    private enum Mode {INFINITE, TABLE, MESSAGE}
 
     private final JTable table;
     private final JScrollPane tableScrollPanel;
@@ -71,7 +60,7 @@ public class SQLResultsTable extends JPanel implements Closeable {
     private final AtomicReference<SQLTable> results;
     private final TextPanel textPanel;
     private final JLabel rowRangeLabel;
-    private final JLabel statusLabel;
+    private final JLabel statsLabel;
     private final JButton prevButton;
     private final JButton nextButton;
     private final InfiniteSpinnerPanel infiniteSpinner;
@@ -84,49 +73,53 @@ public class SQLResultsTable extends JPanel implements Closeable {
         tableModel = new PagedSQLTableModel(results::get);
         table = new JTable(tableModel);
         table.setAutoCreateRowSorter(false);
-        table.setRowSelectionAllowed(false);
-        table.setColumnSelectionAllowed(false);
+        table.setRowSelectionAllowed(true);
+        table.setColumnSelectionAllowed(true);
         table.setCellSelectionEnabled(true);
         table.setRowHeight(TABLE_ROW_HEIGHT);
-        table.setGridColor(TABLE_GRID_COLOR);
+        table.setGridColor(GTk.APP_THEME_COLOR.darker().darker().darker());
         table.setFont(GTk.TABLE_CELL_FONT);
         table.setDefaultRenderer(String.class, new SQLCellRenderer(results::get));
         table.setSelectionMode(ListSelectionModel.MULTIPLE_INTERVAL_SELECTION);
         table.setAutoResizeMode(JTable.AUTO_RESIZE_OFF);
-        setupTableCmdKeyActions();
+        GTk.setupTableCmdKeyActions(table);
         JTableHeader header = table.getTableHeader();
         header.setReorderingAllowed(false);
         header.setFont(GTk.TABLE_HEADER_FONT);
         header.setForeground(GTk.TABLE_HEADER_FONT_COLOR);
-        statusLabel = new JLabel();
-        statusLabel.setFont(TABLE_FOOTER_FONT);
-        statusLabel.setForeground(TABLE_FOOTER_FONT_COLOR);
-        statusLabel.setPreferredSize(STATUS_LABEL_SIZE);
-        statusLabel.setHorizontalAlignment(JLabel.RIGHT);
+        statsLabel = new JLabel();
+        statsLabel.setFont(GTk.MENU_FONT);
+        statsLabel.setForeground(GTk.TABLE_HEADER_FONT_COLOR);
+        statsLabel.setPreferredSize(STATUS_LABEL_SIZE);
+        statsLabel.setHorizontalAlignment(JLabel.RIGHT);
         rowRangeLabel = new JLabel();
-        rowRangeLabel.setFont(TABLE_FOOTER_FONT);
-        rowRangeLabel.setForeground(TABLE_FOOTER_FONT_COLOR);
+        rowRangeLabel.setFont(GTk.MENU_FONT);
+        rowRangeLabel.setForeground(GTk.TABLE_HEADER_FONT_COLOR);
         rowRangeLabel.setPreferredSize(NAVIGATION_LABEL_SIZE);
         rowRangeLabel.setHorizontalAlignment(JLabel.RIGHT);
-        prevButton = new JButton("Prev");
-        prevButton.setFont(TABLE_FOOTER_FONT);
-        prevButton.setForeground(TABLE_FOOTER_FONT_COLOR);
+        prevButton = GTk.button(
+                "Prev",
+                GTk.Icon.RESULTS_PREV,
+                "Go to previous page",
+                this::onPrevButton);
+        prevButton.setFont(GTk.MENU_FONT);
+        prevButton.setForeground(GTk.TABLE_HEADER_FONT_COLOR);
         prevButton.setPreferredSize(NAVIGATION_BUTTON_SIZE);
-        prevButton.setIcon(GTk.Icon.RESULTS_PREV.icon());
-        prevButton.addActionListener(this::onPrevButton);
-        nextButton = new JButton("Next");
-        nextButton.setFont(TABLE_FOOTER_FONT);
-        nextButton.setForeground(TABLE_FOOTER_FONT_COLOR);
+        nextButton = GTk.button(
+                "Next",
+                GTk.Icon.RESULTS_NEXT,
+                "Go to next page",
+                this::onNextButton);
+        nextButton.setFont(GTk.MENU_FONT);
+        nextButton.setForeground(GTk.TABLE_HEADER_FONT_COLOR);
         nextButton.setPreferredSize(NAVIGATION_BUTTON_SIZE);
-        nextButton.setIcon(GTk.Icon.RESULTS_NEXT.icon());
         nextButton.setHorizontalTextPosition(SwingConstants.LEFT);
-        nextButton.addActionListener(this::onNextButton);
         textPanel = new TextPanel();
         tableScrollPanel = new JScrollPane(
                 table,
                 JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED,
                 JScrollPane.HORIZONTAL_SCROLLBAR_AS_NEEDED);
-        tableScrollPanel.getViewport().setBackground(Color.BLACK);
+        tableScrollPanel.getViewport().setBackground(GTk.TABLE_HEADER_FONT_COLOR);
         infiniteSpinner = new InfiniteSpinnerPanel();
         infiniteSpinner.setSize(size);
         changeMode(Mode.TABLE);
@@ -134,20 +127,22 @@ public class SQLResultsTable extends JPanel implements Closeable {
         setPreferredSize(size);
         setBorder(BorderFactory.createBevelBorder(BevelBorder.RAISED));
         add(currentModePanel, BorderLayout.CENTER);
-        add(GTk.flowPanel(statusLabel, rowRangeLabel, prevButton, nextButton), BorderLayout.SOUTH);
+        add(GTk.flowPanel(
+                        statsLabel, rowRangeLabel, prevButton, nextButton),
+                BorderLayout.SOUTH);
         updateRowNavigationComponents();
     }
 
     public void updateStats(String eventType, SQLResponse res) {
         if (res != null) {
-            statusLabel.setText(String.format(
+            statsLabel.setText(String.format(
                     "[%s]  Exec: %5d,  Fetch: %5d,  Total: %6d (ms)",
                     eventType,
                     res.getExecMs(),
                     res.getFetchMs(),
                     res.getTotalMs()));
         } else {
-            statusLabel.setText("");
+            statsLabel.setText("");
         }
     }
 
@@ -224,6 +219,7 @@ public class SQLResultsTable extends JPanel implements Closeable {
     }
 
     private void resetTableHeader() {
+        tableModel.refreshTableStructure();
         JTableHeader header = table.getTableHeader();
         header.setForeground(Color.WHITE);
         header.setBackground(Color.BLACK);
@@ -236,19 +232,14 @@ public class SQLResultsTable extends JPanel implements Closeable {
         int tableWidth = 0;
         for (int i = 0; i < numCols; i++) {
             TableColumn col = tcm.getColumn(i);
-            int minWidth = resolveColWidth(colNames[i], colTypes[i]);
+            int minWidth = SQLType.resolveColWidth(colNames[i], colTypes[i]);
             tableWidth += minWidth;
             col.setMinWidth(minWidth);
+            col.setPreferredWidth(minWidth);
         }
         table.setAutoResizeMode(tableWidth < getWidth() ?
                 JTable.AUTO_RESIZE_ALL_COLUMNS : JTable.AUTO_RESIZE_OFF);
-        tableModel.fireTableStructureChanged();
-    }
-
-    private static int resolveColWidth(String name, int type) {
-        return Math.max(
-                TABLE_CELL_MIN_WIDTH,
-                TABLE_CELL_CHAR_WIDTH * (name.length() + SQLType.resolveName(type).length()));
+        tableModel.fireTableDataChanged();
     }
 
     private void changeMode(Mode newMode) {
@@ -259,11 +250,9 @@ public class SQLResultsTable extends JPanel implements Closeable {
                 case TABLE:
                     currentModePanel = tableScrollPanel;
                     break;
-
                 case INFINITE:
                     currentModePanel = infiniteSpinner;
                     break;
-
                 case MESSAGE:
                     currentModePanel = textPanel;
                     break;
@@ -275,41 +264,5 @@ public class SQLResultsTable extends JPanel implements Closeable {
             validate();
             repaint();
         }
-    }
-
-    private void setupTableCmdKeyActions() {
-        // cmd-a, select the full content
-        GTk.addCmdKeyAction(KeyEvent.VK_A, table, e -> table.selectAll());
-        // cmd-c, copy to clipboard, selection or full page
-        final StringBuilder sb = new StringBuilder();
-        GTk.addCmdKeyAction(KeyEvent.VK_C, table, e -> {
-            int[] selectedRows = table.getSelectedRows();
-            int[] selectedCols = table.getSelectedColumns();
-            if (selectedRows.length <= 0) {
-                table.selectAll();
-                selectedRows = table.getSelectedRows();
-            }
-            int colCount = table.getColumnCount();
-            sb.setLength(0);
-            for (int i = 0; i < selectedRows.length; i++) {
-                int rowIdx = selectedRows[i];
-                if (selectedCols.length == colCount) {
-                    SQLRow row = (SQLRow) table.getValueAt(rowIdx, -1);
-                    sb.append(row.toString()).append("\n");
-                } else {
-                    for (int j = 0; j < selectedCols.length; j++) {
-                        int colIdx = selectedCols[j];
-                        sb.append(table.getValueAt(rowIdx, colIdx)).append(", ");
-                    }
-                    if (sb.length() > 0) {
-                        sb.setLength(sb.length() - 2);
-                        sb.append("\n");
-                    }
-                }
-            }
-            if (sb.length() > 0) {
-                GTk.systemClipboard().setContents(new StringTransferable(sb.toString()), null);
-            }
-        });
     }
 }

@@ -99,10 +99,49 @@ final class SQLType {
             case Types.JAVA_OBJECT:
                 type = "JAVA_OBJECT";
                 break;
+            case Types.ROWID:
+                type = "";
+                break;
             default:
                 type = String.valueOf(sqlType);
         }
         return type;
+    }
+
+    static int resolveColWidth(String name, int sqlType) {
+        final int width;
+        switch (sqlType) {
+            case Types.BIT:
+            case Types.BOOLEAN:
+            case Types.CHAR:
+            case Types.ROWID:
+            case Types.SMALLINT:
+                width = 100;
+                break;
+            case Types.INTEGER:
+                width = 120;
+                break;
+            case Types.DATE:
+            case Types.TIME:
+            case Types.BIGINT:
+                width = 200;
+                break;
+            case Types.TIMESTAMP:
+            case Types.DOUBLE:
+            case Types.REAL:
+                width = 250;
+                break;
+            case Types.BINARY:
+                width = 400;
+                break;
+            case Types.VARCHAR:
+                width = 620;
+                break;
+            default:
+                width = 150;
+        }
+        int nameWidth = 15 * (name.length() + resolveName(sqlType).length());
+        return Math.max(width, nameWidth);
     }
 
     static Color resolveColor(int sqlType) {

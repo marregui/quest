@@ -68,6 +68,10 @@ class PagedSQLTableModel extends AbstractTableModel {
         }
     }
 
+    protected void refreshTableStructure() {
+        super.fireTableStructureChanged();
+    }
+
     @Override
     public void fireTableStructureChanged() {
         super.fireTableStructureChanged();
@@ -139,9 +143,11 @@ class PagedSQLTableModel extends AbstractTableModel {
         if (table == null) {
             return "";
         }
-        return String.format("%s [%s]",
-                table.getColName(colIdx),
-                SQLType.resolveName(table.getColType(colIdx)));
+        String type = SQLType.resolveName(table.getColType(colIdx));
+        if (!type.isEmpty()) {
+            type = " [" + type + "]";
+        }
+        return String.format("%s%s", table.getColName(colIdx), type);
     }
 
     @Override
