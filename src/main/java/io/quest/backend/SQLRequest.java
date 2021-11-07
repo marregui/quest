@@ -29,7 +29,7 @@ import io.quest.common.WithKey;
  * instances of {@link SQLResponse}. Responses must be seen as update messages on
  * the loading state of a single instance of {@link SQLTable}.
  */
-public class SQLRequest implements WithKey {
+public class SQLRequest implements WithKey<String> {
 
     private final String sourceId;
     private final String key;

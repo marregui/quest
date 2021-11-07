@@ -87,14 +87,14 @@ public class SQLTableTest {
 
     @Test
     public void test_addRow() throws SQLException {
-        String rowKey = "0";
+        long rowKey = 0L;
         SQLTable table = new SQLTable(null);
         table.setColMetadata(rs);
         table.addRow(rowKey, rs);
         assertThat(table.getColNames(), is(COL_NAMES));
         assertThat(table.getColTypes(), is(COL_TYPES));
         assertThat(table.size(), is(1));
-        assertThat(table.getRow(0), Matchers.is(new SQLTable.Row(null, rowKey, COL_VALUES)));
+        assertThat(table.getRow(0), Matchers.is(new SQLRow(null, rowKey, COL_VALUES)));
         table.clear();
     }
 }

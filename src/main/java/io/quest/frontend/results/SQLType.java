@@ -31,97 +31,74 @@ final class SQLType {
         String type;
         switch (sqlType) {
             case Types.OTHER:
-                type = "object";
+                type = "OBJECT";
                 break;
-
             case Types.BOOLEAN:
-                type = "boolean";
+                type = "BOOLEAN";
                 break;
-
             case Types.TINYINT:
-                type = "tinyint";
+                type = "TINYINT";
                 break;
-
             case Types.SMALLINT:
-                type = "smallint";
+                type = "SMALLINT";
                 break;
-
             case Types.INTEGER:
-                type = "integer";
+                type = "INTEGER";
                 break;
-
             case Types.BIGINT:
-                type = "bigint";
+                type = "BIGINT";
                 break;
-
             case Types.REAL:
-                type = "real";
+                type = "REAL";
                 break;
-
             case Types.DOUBLE:
-                type = "double";
+                type = "DOUBLE";
                 break;
-
             case Types.DATE:
-                type = "date";
+                type = "DATE";
                 break;
-
             case Types.TIMESTAMP:
-                type = "timestamp";
+                type = "TIMESTAMP";
                 break;
-
             case Types.TIMESTAMP_WITH_TIMEZONE:
-                type = "timestamptz";
+                type = "TIMESTAMPTZ";
                 break;
-
             case Types.TIME:
-                type = "time";
+                type = "TIME";
                 break;
-
             case Types.TIME_WITH_TIMEZONE:
-                type = "timetz";
+                type = "TIMETZ";
                 break;
-
             case Types.ARRAY:
-                type = "array";
+                type = "ARRAY";
                 break;
-
             case Types.BLOB:
-                type = "blob";
+                type = "BLOB";
                 break;
-
             case Types.BINARY:
-                type = "binary";
+                type = "BINARY";
                 break;
-
             case Types.VARBINARY:
-                type = "varbinary";
+                type = "VARBINARY";
                 break;
-
             case Types.CHAR:
-                type = "char";
+                type = "CHAR";
                 break;
-
             case Types.CLOB:
-                type = "clob";
+                type = "CLOB";
                 break;
-
             case Types.VARCHAR:
-                type = "varchar";
+                type = "VARCHAR";
                 break;
-
             case Types.BIT:
-                type = "bit";
+                type = "BIT";
                 break;
-
             case Types.STRUCT:
-                type = "struct";
+                type = "STRUCT";
                 break;
-
             case Types.JAVA_OBJECT:
-                type = "java_object";
+                type = "JAVA_OBJECT";
                 break;
-
             default:
                 type = String.valueOf(sqlType);
         }
@@ -134,28 +111,23 @@ final class SQLType {
             case Types.OTHER:
                 color = Color.ORANGE;
                 break;
-
             case Types.BOOLEAN:
                 color = BLUE_GREENISH_COLOR;
                 break;
-
             case Types.TINYINT:
             case Types.SMALLINT:
             case Types.INTEGER:
             case Types.BIGINT:
                 color = OLIVE_COLOR;
                 break;
-
             case Types.REAL:
             case Types.DOUBLE:
                 color = Color.GREEN;
                 break;
-
             case Types.TIMESTAMP:
             case Types.TIMESTAMP_WITH_TIMEZONE:
                 color = CYAN_DULL_COLOR;
                 break;
-
             case Types.VARCHAR:
                 color = GTk.APP_THEME_COLOR;
                 break;

@@ -21,7 +21,6 @@ import java.awt.Color;
 import java.awt.Font;
 import java.awt.Insets;
 import java.awt.datatransfer.DataFlavor;
-import java.awt.datatransfer.StringSelection;
 import java.awt.event.KeyEvent;
 import java.io.IOException;
 import java.io.PrintWriter;
@@ -34,6 +33,7 @@ import javax.swing.text.*;
 import javax.swing.undo.UndoManager;
 
 import io.quest.common.GTk;
+import io.quest.common.StringTransferable;
 
 
 public class TextPanel extends JPanel {
@@ -185,7 +185,7 @@ public class TextPanel extends JPanel {
                 selected = getCurrentLine();
             }
             if (!selected.equals(EMPTY_STR)) {
-                GTk.systemClipboard().setContents(new StringSelection(selected), null);
+                GTk.systemClipboard().setContents(new StringTransferable(selected), null);
             }
         });
         // cmd-d, duplicate line under caret, and append it under
@@ -232,7 +232,7 @@ public class TextPanel extends JPanel {
                 Document doc = textPane.getStyledDocument();
                 int len = end - start;
                 if (len > 0) {
-                    GTk.systemClipboard().setContents(new StringSelection(doc.getText(start, len)), null);
+                    GTk.systemClipboard().setContents(new StringTransferable(doc.getText(start, len)), null);
                     doc.remove(start, len);
                 }
                 end = doc.getLength();

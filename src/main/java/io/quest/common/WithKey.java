@@ -16,13 +16,6 @@
 
 package io.quest.common;
 
-/**
- * Marking interface for things that have a key.
- */
-public interface WithKey {
-
-    /**
-     * @return the key
-     */
-    String getKey();
+public interface WithKey<T> {
+    T getKey();
 }

@@ -32,7 +32,7 @@ public class ConnAttrs extends StoreEntry {
     /**
      * Attribute names.
      */
-    public enum AttrName implements WithKey {
+    public enum AttrName implements WithKey<String> {
 
         /**
          * host.

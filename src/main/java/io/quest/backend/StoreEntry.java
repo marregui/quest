@@ -27,7 +27,7 @@ import io.quest.common.WithKey;
 /**
  * Base type for the entries persisted by a {@link Store}.
  */
-public class StoreEntry implements WithKey, Comparable<StoreEntry> {
+public class StoreEntry implements WithKey<String>, Comparable<StoreEntry> {
 
     private static final Comparator<String> COMPARING = (k1, k2) -> {
         String[] k1Parts = k1.split("\\.");
@@ -107,7 +107,7 @@ public class StoreEntry implements WithKey, Comparable<StoreEntry> {
      * @param attr an implementor of HasKey
      * @return the value associated with the attribute, or null if it does not exist
      */
-    public String getAttr(WithKey attr) {
+    public String getAttr(WithKey<String> attr) {
         return attrs.get(attr.getKey());
     }
 
@@ -119,7 +119,7 @@ public class StoreEntry implements WithKey, Comparable<StoreEntry> {
      * @param attr  an implementor of HasKey
      * @param value value for the attribute
      */
-    public void setAttr(WithKey attr, String value) {
+    public void setAttr(WithKey<String> attr, String value) {
         setAttr(attr, value, "");
     }
 
@@ -130,7 +130,7 @@ public class StoreEntry implements WithKey, Comparable<StoreEntry> {
      * @param value        value for the attribute
      * @param defaultValue default value when the supplied value is null or empty
      */
-    public void setAttr(WithKey attr, String value, String defaultValue) {
+    public void setAttr(WithKey<String> attr, String value, String defaultValue) {
         attrs.put(attr.getKey(), null == value || value.isEmpty() ? defaultValue : value);
     }
 

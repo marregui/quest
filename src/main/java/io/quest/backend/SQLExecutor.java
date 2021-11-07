@@ -220,7 +220,7 @@ public class SQLExecutor implements EventProducer<SQLExecutor.EventType>, Closea
                         if (!table.hasColMetadata()) {
                             table.setColMetadata(rs);
                         }
-                        table.addRow(String.valueOf(rowId++), rs);
+                        table.addRow(rowId++, rs);
                         if (0 == rowId % batchSize) {
                             batchSize = Math.min(batchSize * 2, MAX_BATCH_SIZE);
                             long totalMs = ms(fetchChk - start);
