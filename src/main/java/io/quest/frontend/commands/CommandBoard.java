@@ -37,7 +37,7 @@ import javax.swing.undo.UndoManager;
 import io.quest.backend.StoreEntry;
 import io.quest.common.EventConsumer;
 import io.quest.common.EventProducer;
-import io.quest.common.GTk;
+import io.quest.frontend.GTk;
 import io.quest.backend.Conn;
 import io.quest.backend.SQLRequest;
 import io.quest.backend.Store;

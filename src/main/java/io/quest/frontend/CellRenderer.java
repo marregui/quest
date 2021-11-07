@@ -23,8 +23,6 @@ import java.awt.Font;
 import javax.swing.JTable;
 import javax.swing.table.DefaultTableCellRenderer;
 
-import io.quest.common.GTk;
-
 
 /**
  * Renders rows in alternative colours.
@@ -39,37 +37,32 @@ public class CellRenderer extends DefaultTableCellRenderer {
     private final Color bgColorAlternate;
     private final Font font;
 
-    /**
-     * Constructor with predefined alternate colours and font.
-     */
     public CellRenderer() {
         this(GTk.TABLE_CELL_FONT, BG_ROW_COLOR, BG_ROW_COLOR_ALTERNATE);
     }
 
-    /**
-     * Constructor with user defined alternate colours and font.
-     * 
-     * @param font             cell font
-     * @param bgColor          even row background colour
-     * @param bgColorAlternate odd row background colour
-     */
-    public CellRenderer(Font font, Color bgColor, Color bgColorAlternate) {
+    protected CellRenderer(Font font, Color bgColor, Color bgColorAlternate) {
         this.font = font;
         this.bgColor = bgColor;
         this.bgColorAlternate = bgColorAlternate;
     }
 
     @Override
-    public Component getTableCellRendererComponent(JTable table, Object value, boolean isSelected, boolean hasFocus,
-        int rowIdx, int colIdx) {
+    public Component getTableCellRendererComponent(
+            JTable table,
+            Object value,
+            boolean isSelected,
+            boolean hasFocus,
+            int rowIdx,
+            int colIdx
+    ) {
         super.getTableCellRendererComponent(table, value, isSelected, hasFocus, rowIdx, colIdx);
         if (rowIdx >= 0 && rowIdx < table.getModel().getRowCount()) {
             if (isSelected) {
                 setFont(GTk.TABLE_CELL_FONT);
                 setForeground(Color.WHITE);
                 setBackground(GTk.APP_THEME_COLOR);
-            }
-            else {
+            } else {
                 setFont(font);
                 setForeground(Color.BLACK);
                 setBackground(0 == rowIdx % 2 ? bgColor : bgColorAlternate);
@@ -77,6 +70,6 @@ public class CellRenderer extends DefaultTableCellRenderer {
             return this;
         }
         throw new IndexOutOfBoundsException(
-            String.format("row %d does not exist, there are [0..%d] rows", rowIdx, table.getModel().getRowCount() - 1));
+                String.format("row %d does not exist, there are [0..%d] rows", rowIdx, table.getModel().getRowCount() - 1));
     }
 }

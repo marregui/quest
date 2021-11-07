@@ -14,7 +14,7 @@
  * Copyright (c) 2019 - 2022, Miguel Arregui a.k.a. marregui
  */
 
-package io.quest.common;
+package io.quest.frontend;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -28,9 +28,6 @@ import java.awt.Font;
 import java.awt.Toolkit;
 import java.awt.Window;
 import java.awt.datatransfer.Clipboard;
-import java.awt.datatransfer.DataFlavor;
-import java.awt.datatransfer.Transferable;
-import java.awt.datatransfer.UnsupportedFlavorException;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.InputEvent;
@@ -63,17 +60,12 @@ public final class GTk {
     private static final Logger LOGGER = LoggerFactory.getLogger(GTk.class);
 
     public static final Color APP_THEME_COLOR = new Color(200, 50, 100);
-    public static final Color TABLE_HEADER_FONT_COLOR = Color.BLACK;
-    public final static AttributeSet HIGHLIGHT_NORMAL = GTk.styleForegroundColor(255, 245, 222);
-    public final static AttributeSet HIGHLIGHT_ERROR = GTk.styleForegroundColor(225, 125, 5);
-    public final static AttributeSet HIGHLIGHT_KEYWORD = GTk.styleForegroundColor(200, 50, 100);
-    public final static AttributeSet HIGHLIGHT_TYPE = GTk.styleForegroundColor(240, 10, 140);
-    public final static AttributeSet HIGHLIGHT_MATCH = GTk.styleForegroundColor(50, 200, 185);
 
     public static final String MAIN_FONT_NAME = "Arial"; // excluding commands' TextPane
     public static final Font MENU_FONT = new Font(MAIN_FONT_NAME, Font.BOLD, 14);
     public static final Font TABLE_HEADER_FONT = new Font(MAIN_FONT_NAME, Font.BOLD, 18);
     public static final Font TABLE_CELL_FONT = new Font(MAIN_FONT_NAME, Font.PLAIN, 16);
+    public static final Color TABLE_HEADER_FONT_COLOR = Color.BLACK;
 
     public static final int CMD_DOWN_MASK = InputEvent.META_DOWN_MASK | InputEvent.META_MASK;
     public static final int NO_KEY_EVENT = -1;

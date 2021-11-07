@@ -25,7 +25,7 @@ import javax.swing.*;
 
 import io.quest.backend.*;
 import io.quest.common.EventProducer;
-import io.quest.common.GTk;
+import io.quest.frontend.GTk;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -33,7 +33,7 @@ import io.quest.frontend.commands.CommandBoard;
 import io.quest.frontend.conns.ConnsManager;
 import io.quest.frontend.results.SQLResultsTable;
 
-import static io.quest.common.GTk.configureMenuItem;
+import static io.quest.frontend.GTk.configureMenuItem;
 
 
 public final class QuestMain {

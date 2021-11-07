@@ -16,7 +16,7 @@
 
 package io.quest.frontend;
 
-import static io.quest.common.GTk.createFrame;
+import static io.quest.frontend.GTk.createFrame;
 
 import java.awt.BorderLayout;
 

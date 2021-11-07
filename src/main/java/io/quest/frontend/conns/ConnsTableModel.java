@@ -31,7 +31,7 @@ import javax.swing.table.AbstractTableModel;
 import javax.swing.table.JTableHeader;
 import javax.swing.table.TableColumnModel;
 
-import io.quest.common.GTk;
+import io.quest.frontend.GTk;
 import io.quest.backend.Conn;
 import io.quest.backend.ConnAttrs;
 import io.quest.frontend.PasswordRenderer;

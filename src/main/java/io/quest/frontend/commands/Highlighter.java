@@ -16,7 +16,7 @@
 
 package io.quest.frontend.commands;
 
-import io.quest.common.GTk;
+import io.quest.frontend.GTk;
 
 import javax.swing.*;
 import javax.swing.text.*;
@@ -27,6 +27,12 @@ import java.util.regex.Pattern;
 import java.util.regex.PatternSyntaxException;
 
 class Highlighter extends DocumentFilter {
+
+    public final static AttributeSet HIGHLIGHT_NORMAL = GTk.styleForegroundColor(255, 245, 222);
+    public final static AttributeSet HIGHLIGHT_ERROR = GTk.styleForegroundColor(225, 125, 5);
+    public final static AttributeSet HIGHLIGHT_KEYWORD = GTk.styleForegroundColor(200, 50, 100);
+    public final static AttributeSet HIGHLIGHT_TYPE = GTk.styleForegroundColor(240, 10, 140);
+    public final static AttributeSet HIGHLIGHT_MATCH = GTk.styleForegroundColor(50, 200, 185);
 
     private final StyledDocument styledDocument;
     private final WeakHashMap<String, Pattern> findPatternCache;
@@ -83,11 +89,11 @@ class Highlighter extends DocumentFilter {
             return 0;
         }
         if (ERROR_HEADER_PATTERN.matcher(txt).find()) {
-            styledDocument.setCharacterAttributes(0, len, GTk.HIGHLIGHT_ERROR, true);
+            styledDocument.setCharacterAttributes(0, len, HIGHLIGHT_ERROR, true);
         } else {
-            styledDocument.setCharacterAttributes(0, len, GTk.HIGHLIGHT_NORMAL, true);
-            applyStyle(KEYWORDS_PATTERN.matcher(txt), GTk.HIGHLIGHT_KEYWORD, false);
-            applyStyle(TYPES_PATTERN.matcher(txt), GTk.HIGHLIGHT_TYPE, false);
+            styledDocument.setCharacterAttributes(0, len, HIGHLIGHT_NORMAL, true);
+            applyStyle(KEYWORDS_PATTERN.matcher(txt), HIGHLIGHT_KEYWORD, false);
+            applyStyle(TYPES_PATTERN.matcher(txt), HIGHLIGHT_TYPE, false);
             if (findRegex != null && !findRegex.isBlank()) {
                 Pattern findPattern = findPatternCache.get(findRegex);
                 if (findPattern == null) {
@@ -106,7 +112,7 @@ class Highlighter extends DocumentFilter {
                 return replaceWith != null ?
                         replaceAll(findPattern.matcher(txt), replaceWith)
                         :
-                        applyStyle(findPattern.matcher(txt), GTk.HIGHLIGHT_MATCH, true);
+                        applyStyle(findPattern.matcher(txt), HIGHLIGHT_MATCH, true);
             }
         }
         return 0;

@@ -32,7 +32,7 @@ import javax.swing.*;
 import javax.swing.text.*;
 import javax.swing.undo.UndoManager;
 
-import io.quest.common.GTk;
+import io.quest.frontend.GTk;
 import io.quest.common.StringTransferable;
 
 

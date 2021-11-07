@@ -22,7 +22,7 @@ import java.util.function.Supplier;
 
 import javax.swing.JTable;
 
-import io.quest.common.GTk;
+import io.quest.frontend.GTk;
 import io.quest.backend.SQLTable;
 import io.quest.frontend.CellRenderer;
 
@@ -38,12 +38,14 @@ class SQLCellRenderer extends CellRenderer {
     }
 
     @Override
-    public Component getTableCellRendererComponent(JTable table,
-                                                   Object value,
-                                                   boolean isSelected,
-                                                   boolean hasFocus,
-                                                   int rowIdx,
-                                                   int colIdx) {
+    public Component getTableCellRendererComponent(
+            JTable table,
+            Object value,
+            boolean isSelected,
+            boolean hasFocus,
+            int rowIdx,
+            int colIdx
+    ) {
         super.getTableCellRendererComponent(table, value, isSelected, hasFocus, rowIdx, colIdx);
         SQLTable sqlTable = tableSupplier.get();
         if (sqlTable != null && !isSelected && rowIdx >= 0 && rowIdx < table.getModel().getRowCount()) {

@@ -40,7 +40,7 @@ import javax.swing.table.TableColumn;
 import javax.swing.table.TableColumnModel;
 
 import io.quest.backend.SQLRow;
-import io.quest.common.GTk;
+import io.quest.frontend.GTk;
 import io.quest.backend.SQLResponse;
 import io.quest.backend.SQLTable;
 import io.quest.common.StringTransferable;
@@ -53,8 +53,8 @@ public class SQLResultsTable extends JPanel implements Closeable {
     private static final Dimension STATUS_LABEL_SIZE = new Dimension(600, 35);
     private static final Dimension NAVIGATION_LABEL_SIZE = new Dimension(300, 35);
     private static final Dimension NAVIGATION_BUTTON_SIZE = new Dimension(100, 35);
-    private static final Color TABLE_GRID_COLOR = GTk.APP_THEME_COLOR.darker().darker().darker();
     private static final Font TABLE_FOOTER_FONT = new Font(GTk.MAIN_FONT_NAME, Font.BOLD, 14);
+    private static final Color TABLE_GRID_COLOR = GTk.APP_THEME_COLOR.darker().darker().darker();
     private static final Color TABLE_FOOTER_FONT_COLOR = Color.BLACK;
     private static final int TABLE_ROW_HEIGHT = 30;
     private static final int TABLE_CELL_MIN_WIDTH = 300;

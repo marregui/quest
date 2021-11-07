@@ -41,7 +41,7 @@ import javax.swing.event.TableModelEvent;
 
 import io.quest.common.EventConsumer;
 import io.quest.common.EventProducer;
-import io.quest.common.GTk;
+import io.quest.frontend.GTk;
 import io.quest.backend.Conn;
 import io.quest.backend.ConnsChecker;
 import io.quest.backend.Store;

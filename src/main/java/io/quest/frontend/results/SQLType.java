@@ -19,7 +19,7 @@ package io.quest.frontend.results;
 import java.awt.Color;
 import java.sql.Types;
 
-import io.quest.common.GTk;
+import io.quest.frontend.GTk;
 
 
 /**
