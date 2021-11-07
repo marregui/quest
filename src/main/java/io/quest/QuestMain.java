@@ -77,25 +77,28 @@ public final class QuestMain {
     }
 
     private JMenuBar createMenuBar() {
+        // Connections
         JMenu connsMenu = new JMenu("Connections");
         connsMenu.setFont(GTk.MENU_FONT);
+        connsMenu.setIcon(GTk.Icon.CONNS.icon());
         connsMenu.add(
                 configureMenuItem(
                         toggleConnsWidget,
                         GTk.Icon.CONN_SHOW,
                         "Show connections",
                         KeyEvent.VK_T,
-                        this::onToggleConnsWidgetEvent));
+                        this::onToggleConnsWidget));
         connsMenu.add(
                 configureMenuItem(
                         toggleConn,
                         GTk.Icon.CONN_CONNECT,
                         "Connect",
                         KeyEvent.VK_O,
-                        this::onToggleConnEvent));
-
+                        this::onToggleConn));
+        // Commands
         JMenu commandsMenu = new JMenu("Commands");
         commandsMenu.setFont(GTk.MENU_FONT);
+        commandsMenu.setIcon(GTk.Icon.COMMANDS.icon());
         JMenu commandBoardMenu = commands.getCommandBoardMenu();
         commandBoardMenu.setText("uest");
         commandBoardMenu.setIcon(GTk.Icon.COMMAND_QUEST.icon());
@@ -104,21 +107,21 @@ public final class QuestMain {
         commandsMenu.add(
                 configureMenuItem(
                         new JMenuItem(),
-                        GTk.Icon.EXEC_LINE,
+                        GTk.Icon.COMMAND_EXEC_LINE,
                         "L.Exec",
                         KeyEvent.VK_L,
                         commands::onExecLine));
         commandsMenu.add(
                 configureMenuItem(
                         new JMenuItem(),
-                        GTk.Icon.EXEC,
+                        GTk.Icon.COMMAND_EXEC,
                         "Exec",
                         KeyEvent.VK_ENTER,
                         commands::onExec));
         commandsMenu.add(
                 configureMenuItem(
                         new JMenuItem(),
-                        GTk.Icon.EXEC_CANCEL,
+                        GTk.Icon.COMMAND_EXEC_CANCEL,
                         "Cancel",
                         KeyEvent.VK_W,
                         commands::fireCancelEvent));
@@ -137,42 +140,50 @@ public final class QuestMain {
                         "Replace",
                         KeyEvent.VK_R,
                         commands::onReplace));
-
+        // Results
         JMenu resultsMenu = new JMenu("Results");
         resultsMenu.setFont(GTk.MENU_FONT);
+        resultsMenu.setIcon(GTk.Icon.RESULTS.icon());
         resultsMenu.add(
                 configureMenuItem(
                         new JMenuItem(),
-                        GTk.Icon.PREV,
+                        GTk.Icon.RESULTS_PREV,
                         "PREV",
                         KeyEvent.VK_B,
-                        results::onPrevButtonEvent));
+                        results::onPrevButton));
         resultsMenu.add(
                 configureMenuItem(
                         new JMenuItem(),
-                        GTk.Icon.NEXT,
+                        GTk.Icon.RESULTS_NEXT,
                         "NEXT",
                         KeyEvent.VK_N,
-                        results::onNextButtonEvent));
+                        results::onNextButton));
 
-        JMenuBar menuBar = new JMenuBar();
-        menuBar.setBorder(BorderFactory.createLoweredSoftBevelBorder());
         JMenu menu = new JMenu("Menu");
         menu.setFont(GTk.MENU_FONT);
         menu.add(connsMenu);
         menu.add(commandsMenu);
         menu.add(resultsMenu);
+        menu.addSeparator();
+        menu.add(configureMenuItem(
+                new JMenuItem(),
+                GTk.Icon.HELP,
+                "QuestDB Docs",
+                GTk.NO_KEY_EVENT,
+                GTk::openQuestDBDocumentation));
+        JMenuBar menuBar = new JMenuBar();
+        menuBar.setBorder(BorderFactory.createLoweredSoftBevelBorder());
         menuBar.add(menu);
         return menuBar;
     }
 
-    private void onToggleConnEvent(ActionEvent event) {
+    private void onToggleConn(ActionEvent event) {
         Conn conn = commands.getConnection();
         conns.onConnectEvent(conn);
         toggleConn.setText(conn != null && conn.isOpen() ? "Connect" : "Disconnect");
     }
 
-    private void onToggleConnsWidgetEvent(ActionEvent event) {
+    private void onToggleConnsWidget(ActionEvent event) {
         boolean wasVisible = conns.isVisible();
         if (!wasVisible) {
             conns.setLocation(MouseInfo.getPointerInfo().getLocation());
@@ -197,7 +208,7 @@ public final class QuestMain {
             case COMMAND_AVAILABLE:
                 Conn conn = commands.getConnection();
                 if (conn == null || !conn.isValid()) {
-                    onToggleConnEvent(null);
+                    onToggleConn(null);
                 }
                 results.close();
                 executor.submit(req, this::dispatchEvent);
@@ -208,7 +219,7 @@ public final class QuestMain {
                 break;
 
             case CONNECTION_STATUS_CLICKED:
-                onToggleConnsWidgetEvent(null);
+                onToggleConnsWidget(null);
                 break;
         }
     }
@@ -222,7 +233,7 @@ public final class QuestMain {
 
             case RESULTS_AVAILABLE:
             case COMPLETED:
-                GTk.invokeLater(() -> results.onRowsAddedEvent(res));
+                GTk.invokeLater(() -> results.onRowsAdded(res));
                 break;
 
             case CANCELLED:
@@ -240,7 +251,7 @@ public final class QuestMain {
             case CONNECTION_SELECTED:
                 commands.setConnection((Conn) data);
                 if (conns.isVisible()) {
-                    onToggleConnsWidgetEvent(null);
+                    onToggleConnsWidget(null);
                 }
                 break;
 
@@ -268,7 +279,7 @@ public final class QuestMain {
                 break;
 
             case HIDE_REQUEST:
-                onToggleConnsWidgetEvent(null);
+                onToggleConnsWidget(null);
                 break;
         }
     }

@@ -146,13 +146,13 @@ public class CommandBoard extends TextPanel implements EventProducer<CommandBoar
                 GTk.horizontalSpace(4),
                 GTk.etchedFlowPanel(
                         execLineButton = GTk.button(
-                                "L.Exec", false, GTk.Icon.EXEC_LINE,
+                                "L.Exec", false, GTk.Icon.COMMAND_EXEC_LINE,
                                 "Execute entire line under caret", this::onExecLine),
                         execButton = GTk.button(
-                                "Exec", false, GTk.Icon.EXEC,
+                                "Exec", false, GTk.Icon.COMMAND_EXEC,
                                 "Execute selected text", this::onExec),
                         cancelButton = GTk.button(
-                                "Cancel", false, GTk.Icon.EXEC_CANCEL,
+                                "Cancel", false, GTk.Icon.COMMAND_EXEC_CANCEL,
                                 "Cancel current execution", this::fireCancelEvent)));
         setupFindPanel();
         JPanel controlsPanel = new JPanel(new BorderLayout(0, 0));
@@ -192,11 +192,11 @@ public class CommandBoard extends TextPanel implements EventProducer<CommandBoar
     }
 
     public void onFind(ActionEvent event) {
-        onFindReplaceEvent(() -> highlightContent(findText.getText()));
+        onFindReplace(() -> highlightContent(findText.getText()));
     }
 
     public void onReplace(ActionEvent event) {
-        onFindReplaceEvent(() -> replaceContent(findText.getText(), replaceWithText.getText()));
+        onFindReplace(() -> replaceContent(findText.getText(), replaceWithText.getText()));
     }
 
     public void fireCancelEvent(ActionEvent event) {
@@ -250,7 +250,7 @@ public class CommandBoard extends TextPanel implements EventProducer<CommandBoar
         refreshBoardEntryNames(0);
     }
 
-    private void onFindReplaceEvent(Supplier<Integer> matchesCountSupplier) {
+    private void onFindReplace(Supplier<Integer> matchesCountSupplier) {
         if (!findPanel.isVisible()) {
             findPanel.setVisible(true);
         } else {
@@ -582,7 +582,7 @@ public class CommandBoard extends TextPanel implements EventProducer<CommandBoar
         commandBoardMenu.add(
                 GTk.configureMenuItem(
                         new JMenuItem(),
-                        GTk.Icon.RELOAD,
+                        GTk.Icon.COMMAND_RELOAD,
                         "Reload quest",
                         "Recovers quest from last save",
                         GTk.NO_KEY_EVENT,

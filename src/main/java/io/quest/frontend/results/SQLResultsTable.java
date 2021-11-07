@@ -108,15 +108,15 @@ public class SQLResultsTable extends JPanel implements Closeable {
         prevButton.setFont(TABLE_FOOTER_FONT);
         prevButton.setForeground(TABLE_FOOTER_FONT_COLOR);
         prevButton.setPreferredSize(NAVIGATION_BUTTON_SIZE);
-        prevButton.setIcon(GTk.Icon.PREV.icon());
-        prevButton.addActionListener(this::onPrevButtonEvent);
+        prevButton.setIcon(GTk.Icon.RESULTS_PREV.icon());
+        prevButton.addActionListener(this::onPrevButton);
         nextButton = new JButton("Next");
         nextButton.setFont(TABLE_FOOTER_FONT);
         nextButton.setForeground(TABLE_FOOTER_FONT_COLOR);
         nextButton.setPreferredSize(NAVIGATION_BUTTON_SIZE);
-        nextButton.setIcon(GTk.Icon.NEXT.icon());
+        nextButton.setIcon(GTk.Icon.RESULTS_NEXT.icon());
         nextButton.setHorizontalTextPosition(SwingConstants.LEFT);
-        nextButton.addActionListener(this::onNextButtonEvent);
+        nextButton.addActionListener(this::onNextButton);
         textPanel = new TextPanel();
         tableScrollPanel = new JScrollPane(table, JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED,
             JScrollPane.HORIZONTAL_SCROLLBAR_AS_NEEDED);
@@ -142,7 +142,7 @@ public class SQLResultsTable extends JPanel implements Closeable {
         }
     }
 
-    public void onRowsAddedEvent(SQLResponse res) {
+    public void onRowsAdded(SQLResponse res) {
         SQLTable table = res.getTable();
         if (results.compareAndSet(null, table)) {
             resetTableHeader();
@@ -190,14 +190,14 @@ public class SQLResultsTable extends JPanel implements Closeable {
         changeMode(Mode.INFINITE);
     }
 
-    public void onPrevButtonEvent(ActionEvent event) {
+    public void onPrevButton(ActionEvent event) {
         if (prevButton.isEnabled() && tableModel.canDecrPage()) {
             tableModel.decrPage();
             updateRowNavigationComponents();
         }
     }
 
-    public void onNextButtonEvent(ActionEvent event) {
+    public void onNextButton(ActionEvent event) {
         if (nextButton.isEnabled() && tableModel.canIncrPage()) {
             tableModel.incrPage();
             updateRowNavigationComponents();

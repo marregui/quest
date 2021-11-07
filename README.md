@@ -5,8 +5,6 @@ Quest is a desktop user interface to common
 
 - [**QuestDB**](https://github.com/questdb/questdb)
 - [**Postgres**](https://github.com/postgres/postgres)
-- [**CrateDB**](https://github.com/crate/crate)
-- [**TimescaleDB**](https://github.com/timescale/timescaledb)
 
 ## Build commands
 

@@ -52,17 +52,21 @@ class ConnsTableModel extends AbstractTableModel implements Closeable {
     private static final String NAME_COL = "name";
     private static final String CONNECTED_COL = "connected";
     private static final String[] COL_NAMES = {
-        NAME_COL, ConnAttrs.AttrName.host.name(), ConnAttrs.AttrName.port.name(), ConnAttrs.AttrName.username.name(),
-        ConnAttrs.AttrName.password.name(), CONNECTED_COL
+            NAME_COL,
+            ConnAttrs.AttrName.host.name(),
+            ConnAttrs.AttrName.port.name(),
+            ConnAttrs.AttrName.username.name(),
+            ConnAttrs.AttrName.password.name(),
+            CONNECTED_COL
     };
     private static final int ROW_HEIGHT = 22;
     private static final int[] COL_WIDTHS = {
-        200, 400, 100, 200, 200, 200
+            200, 400, 100, 200, 200, 200
     };
 
     /**
      * Factory method, creates a table that has a {@link ConnsTableModel} model.
-     * 
+     *
      * @param onTableModelEvent called each time a change to the data model occurs
      * @param selectionListener called each time a change to the selection occurs
      * @return a new table
@@ -96,7 +100,6 @@ class ConnsTableModel extends AbstractTableModel implements Closeable {
     }
 
     private static final long serialVersionUID = 1L;
-
     private final List<Conn> conns;
     private final Set<String> existingNames;
 

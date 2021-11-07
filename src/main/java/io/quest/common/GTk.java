@@ -31,6 +31,7 @@ import java.awt.datatransfer.Clipboard;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.InputEvent;
+import java.io.IOException;
 import java.net.URL;
 import java.util.HashMap;
 import java.util.Map;
@@ -53,6 +54,7 @@ public final class GTk {
             " | (_| | | |_| | |  __/ \\__ \\ | |_ \n" +
             "  \\__, |  \\__,_|  \\___| |___/  \\__|\n" +
             "     |_|";
+    private static final String QUESTDB_DOCUMENTATION_URL = "https://questdb.io/docs/introduction/";
 
     private static final Toolkit TK = Toolkit.getDefaultToolkit();
     private static final Logger LOGGER = LoggerFactory.getLogger(GTk.class);
@@ -77,6 +79,48 @@ public final class GTk {
         // anti-aliased fonts
         System.setProperty("awt.useSystemAAFontSettings", "on");
         System.setProperty("swing.aatext", "true");
+    }
+
+    public static void openQuestDBDocumentation(ActionEvent event) {
+        Runtime rt = Runtime.getRuntime();
+        String os = System.getProperty("os.name").toLowerCase();
+        try {
+            if (os.indexOf("mac") >= 0) {
+                rt.exec(String.format(
+                        "open %s",
+                        QUESTDB_DOCUMENTATION_URL));
+            } else if (os.indexOf("win") >= 0) {
+                rt.exec(String.format(
+                        "rundll32 url.dll,FileProtocolHandler %s",
+                        QUESTDB_DOCUMENTATION_URL));
+            } else if (os.indexOf("nix") >= 0 || os.indexOf("nux") >= 0) {
+                String[] browsers = {
+                        "google-chrome", "firefox", "mozilla",
+                        "epiphany", "konqueror", "netscape",
+                        "opera", "links", "lynx"
+                };
+                StringBuilder cmd = new StringBuilder();
+                for (int i = 0; i < browsers.length; i++) {
+                    if (i != 0) {
+                        cmd.append(" || ");
+                    }
+                    cmd.append(browsers[i])
+                            .append("\"").append(QUESTDB_DOCUMENTATION_URL).append("\"");
+                }
+                // If the first didn't work, try the next
+                rt.exec(new String[]{"sh", "-c", cmd.toString()});
+            }
+        } catch (IOException err) {
+            JOptionPane.showMessageDialog(
+                    null,
+                    String.format(
+                            "Failed to open browser [%s:%s]: %s",
+                            os,
+                            QUESTDB_DOCUMENTATION_URL,
+                            err.getMessage()),
+                    "Helpless",
+                    JOptionPane.INFORMATION_MESSAGE);
+        }
     }
 
     public static AttributeSet styleForegroundColor(int r, int g, int b) {
@@ -235,6 +279,8 @@ public final class GTk {
         // 16x16 icons
         NO_ICON(null),
         APPLICATION("Application.png"),
+        HELP("Help.png"),
+        CONNS("ConnectionTest.png"),
         CONN_UP("ConnectionUp.png"),
         CONN_DOWN("ConnectionDown.png"),
         CONN_ADD("ConnectionAdd.png"),
@@ -246,22 +292,24 @@ public final class GTk {
         CONN_SHOW("ConnectionShow.png"),
         CONN_HIDE("ConnectionHide.png"),
         CONN_TEST("ConnectionTest.png"),
-        EXEC("Exec.png"),
-        EXEC_CANCEL("ExecCancel.png"),
-        EXEC_LINE("ExecLine.png"),
+        COMMANDS("Commands.png"),
         COMMAND_QUEST("CommandQuestDB.png"),
         COMMAND_ADD("CommandAdd.png"),
         COMMAND_REMOVE("CommandRemove.png"),
         COMMAND_EDIT("CommandEdit.png"),
         COMMAND_CLEAR("CommandClear.png"),
         COMMAND_SAVE("CommandSave.png"),
+        COMMAND_RELOAD("Reload.png"),
         COMMAND_STORE_BACKUP("CommandStoreBackup.png"),
         COMMAND_STORE_LOAD("CommandStoreLoad.png"),
         COMMAND_FIND("CommandFind.png"),
         COMMAND_REPLACE("CommandReplace.png"),
-        NEXT("Next.png"),
-        PREV("Prev.png"),
-        RELOAD("Reload.png");
+        COMMAND_EXEC("Exec.png"),
+        COMMAND_EXEC_CANCEL("ExecCancel.png"),
+        COMMAND_EXEC_LINE("ExecLine.png"),
+        RESULTS("Table.png"),
+        RESULTS_NEXT("Next.png"),
+        RESULTS_PREV("Prev.png");
 
         private static final String FOLDER = "images";
         private static final Map<String, ImageIcon> ICON_MAP = new HashMap<>();

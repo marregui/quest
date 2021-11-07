@@ -294,7 +294,12 @@ public class SQLTable implements WithKey {
         }
         Object[] values = new Object[types.length];
         for (int i = 0; i < types.length; i++) {
-            values[i] = rs.getObject(i + 1);
+            int colType = colTypes[i];
+//            if (colType == Types.NUMERIC) {
+//                values[i] = rs.getObject(i + 1, String.class);
+//            } else {
+                values[i] = rs.getObject(i + 1);
+//            }
         }
         Row row = new Row(this, rowKey, values);
         if (!containsRow(row)) {
