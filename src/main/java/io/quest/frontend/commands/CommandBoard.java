@@ -222,7 +222,7 @@ public class CommandBoard extends TextPanel implements EventProducer<CommandBoar
 
     private String getCommand() {
         String cmd = textPane.getSelectedText();
-        return cmd != null ? cmd.trim() : getContent();
+        return cmd != null ? cmd : getContent();
     }
 
     private void loadStoreEntries(String fileName) {
@@ -233,7 +233,7 @@ public class CommandBoard extends TextPanel implements EventProducer<CommandBoar
             }
         };
         store.loadEntriesFromFile();
-        questLabel.setToolTipText(String.format("file: %s", fileName));
+        questLabel.setToolTipText(String.format("notebook: %s", fileName));
         undoManagers.clear();
         for (int idx = 0; idx < store.size(); idx++) {
             undoManagers.add(new UndoManager() {
@@ -253,7 +253,8 @@ public class CommandBoard extends TextPanel implements EventProducer<CommandBoar
             findPanel.setVisible(true);
         } else {
             int matches = matchesCountSupplier.get();
-            findMatchesLabel.setText(String.format("%d %s", matches, matches == 1 ? "match" : "matches"));
+            findMatchesLabel.setText(String.format(
+                    "%d %s", matches, matches == 1 ? "match" : "matches"));
         }
         findText.requestFocusInWindow();
     }

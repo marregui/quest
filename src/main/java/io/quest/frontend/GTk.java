@@ -65,13 +65,12 @@ public final class GTk {
     private static final Logger LOGGER = LoggerFactory.getLogger(GTk.class);
 
     public static final Color APP_THEME_COLOR = new Color(200, 50, 100);
-
     public static final String MAIN_FONT_NAME = "Arial"; // excluding commands' TextPane
     public static final Font MENU_FONT = new Font(MAIN_FONT_NAME, Font.BOLD, 14);
     public static final Font TABLE_HEADER_FONT = new Font(MAIN_FONT_NAME, Font.BOLD, 18);
     public static final Font TABLE_CELL_FONT = new Font(MAIN_FONT_NAME, Font.PLAIN, 16);
     public static final Color TABLE_HEADER_FONT_COLOR = Color.BLACK;
-
+    public static final String TAB_SPACES = "    ";
     public static final int CMD_DOWN_MASK = InputEvent.META_DOWN_MASK;
     public static final int CMD_SHIFT_DOWN_MASK = CMD_DOWN_MASK | InputEvent.SHIFT_DOWN_MASK;
     public static final int NO_KEY_EVENT = -1;
@@ -84,27 +83,24 @@ public final class GTk {
         System.setProperty("swing.aatext", "true");
     }
 
-
     public static void setSystemClipboardContent(final String str) {
-        TK.getSystemClipboard().setContents(new Transferable() {
-                                                @Override
-                                                public DataFlavor[] getTransferDataFlavors() {
-                                                    return SUPPORTED_COPY_PASTE_FLAVOR;
-                                                }
+        TK.getSystemClipboard().setContents(
+                new Transferable() {
+                    @Override
+                    public DataFlavor[] getTransferDataFlavors() {
+                        return SUPPORTED_COPY_PASTE_FLAVOR;
+                    }
 
-                                                @Override
-                                                public boolean isDataFlavorSupported(DataFlavor flavor) {
-                                                    return DataFlavor.stringFlavor.equals(flavor);
-                                                }
+                    @Override
+                    public boolean isDataFlavorSupported(DataFlavor flavor) {
+                        return DataFlavor.stringFlavor.equals(flavor);
+                    }
 
-                                                @Override
-                                                public Object getTransferData(DataFlavor flavor) throws UnsupportedFlavorException, IOException {
-                                                    if (!isDataFlavorSupported(flavor)) {
-                                                        throw new UnsupportedFlavorException(flavor);
-                                                    }
-                                                    return str;
-                                                }
-                                            },
+                    @Override
+                    public Object getTransferData(DataFlavor flavor) {
+                        return isDataFlavorSupported(flavor) ? str : "";
+                    }
+                },
                 null);
     }
 
@@ -129,10 +125,11 @@ public final class GTk {
                 selectedRows = table.getSelectedRows();
             }
             sb.setLength(0);
-            for (int i = 0; i < selectedRows.length; i++) {
-                int rowIdx = selectedRows[i];
-                for (int j = 0; j < selectedCols.length; j++) {
-                    int colIdx = selectedCols[j];
+
+            for (int r = 0; r < selectedRows.length; r++) {
+                int rowIdx = selectedRows[r];
+                for (int c = 0; c < selectedCols.length; c++) {
+                    int colIdx = selectedCols[c];
                     if (!table.getColumnName(colIdx).equals(SQLTable.ROWID_COL_NAME)) {
                         sb.append(table.getValueAt(rowIdx, colIdx)).append(", ");
                     }
@@ -143,6 +140,9 @@ public final class GTk {
                 }
             }
             if (sb.length() > 0) {
+                if (selectedRows.length == 1) {
+                    sb.setLength(sb.length() - 1);
+                }
                 setSystemClipboardContent(sb.toString());
             }
         });
@@ -358,18 +358,18 @@ public final class GTk {
         NO_ICON(null),
         APPLICATION("Application.png"),
         HELP("Help.png"),
-        CONNS("ConnectionTest.png"),
-        CONN_UP("ConnectionUp.png"),
-        CONN_DOWN("ConnectionDown.png"),
-        CONN_ADD("ConnectionAdd.png"),
-        CONN_ASSIGN("ConnectionAssign.png"),
-        CONN_CLONE("ConnectionClone.png"),
-        CONN_CONNECT("ConnectionConnect.png"),
-        CONN_DISCONNECT("ConnectionDisconnect.png"),
-        CONN_REMOVE("ConnectionRemove.png"),
-        CONN_SHOW("ConnectionShow.png"),
-        CONN_HIDE("ConnectionHide.png"),
-        CONN_TEST("ConnectionTest.png"),
+        CONNS("Conns.png"),
+        CONN_UP("ConnUp.png"),
+        CONN_DOWN("ConnDown.png"),
+        CONN_ADD("ConnAdd.png"),
+        CONN_ASSIGN("ConnAssign.png"),
+        CONN_CLONE("ConnClone.png"),
+        CONN_CONNECT("ConnConnect.png"),
+        CONN_DISCONNECT("ConnDisconnect.png"),
+        CONN_REMOVE("ConnRemove.png"),
+        CONN_SHOW("ConnShow.png"),
+        CONN_HIDE("ConnHide.png"),
+        CONN_TEST("ConnTest.png"),
         COMMANDS("Commands.png"),
         COMMAND_QUEST("CommandQuestDB.png"),
         COMMAND_ADD("CommandAdd.png"),
@@ -377,17 +377,17 @@ public final class GTk {
         COMMAND_EDIT("CommandEdit.png"),
         COMMAND_CLEAR("CommandClear.png"),
         COMMAND_SAVE("CommandSave.png"),
-        COMMAND_RELOAD("Reload.png"),
+        COMMAND_RELOAD("CommandReload.png"),
         COMMAND_STORE_BACKUP("CommandStoreBackup.png"),
         COMMAND_STORE_LOAD("CommandStoreLoad.png"),
         COMMAND_FIND("CommandFind.png"),
         COMMAND_REPLACE("CommandReplace.png"),
-        COMMAND_EXEC("Exec.png"),
-        COMMAND_EXEC_CANCEL("ExecCancel.png"),
-        COMMAND_EXEC_LINE("ExecLine.png"),
-        RESULTS("Table.png"),
-        RESULTS_NEXT("Next.png"),
-        RESULTS_PREV("Prev.png");
+        COMMAND_EXEC("CommandExec.png"),
+        COMMAND_EXEC_CANCEL("CommandExecCancel.png"),
+        COMMAND_EXEC_LINE("CommandExecLine.png"),
+        RESULTS("Results.png"),
+        RESULTS_NEXT("ResultsNext.png"),
+        RESULTS_PREV("ResultsPrev.png");
 
         private static final String FOLDER = "images";
         private static final Map<String, ImageIcon> ICON_MAP = new HashMap<>();

@@ -38,7 +38,7 @@ public class TextPanel extends JPanel {
     private static final long serialVersionUID = 1L;
     private static final String END_LINE = "\n";
     static final String EMPTY_STR = "";
-    static final String ERROR_HEADER = "==========  E R R O R  ==========" + END_LINE;
+    static final String ERROR_HEADER = "==========  [E]  ==========" + END_LINE;
     private static final Font FONT = new Font("Monospaced", Font.BOLD, 14);
     private static final Color CARET_COLOR = Color.CYAN;
     private static final Color BACKGROUND_COLOR = Color.BLACK;
@@ -47,9 +47,12 @@ public class TextPanel extends JPanel {
     private final Highlighter highlighter;
     private final AtomicReference<UndoManager> undoManager; // set by CommandBoard
 
-
     public TextPanel() {
-        textPane = new JTextPane();
+        textPane = new JTextPane() {
+            public boolean getScrollableTracksViewportWidth() {
+                return getUI().getPreferredSize(this).width <= getParent().getSize().width;
+            }
+        };
         textPane.setEditable(true);
         textPane.setMargin(new Insets(5, 5, 5, 5));
         textPane.setFont(FONT);
@@ -63,6 +66,10 @@ public class TextPanel extends JPanel {
         doc.setDocumentFilter(highlighter);
         JScrollPane scrollPane = new JScrollPane(textPane);
         scrollPane.getViewport().setBackground(BACKGROUND_COLOR);
+        scrollPane.getVerticalScrollBar().setUnitIncrement(5);
+        scrollPane.getVerticalScrollBar().setBlockIncrement(15);
+        scrollPane.getHorizontalScrollBar().setUnitIncrement(5);
+        scrollPane.getHorizontalScrollBar().setBlockIncrement(15);
         setLayout(new BorderLayout());
         add(scrollPane, BorderLayout.CENTER);
         setupKeyboardActions();
@@ -109,7 +116,7 @@ public class TextPanel extends JPanel {
             try {
                 String txt = doc.getText(start, length);
                 if (txt != null && !txt.isBlank()) {
-                    return txt.trim();
+                    return txt;
                 }
             } catch (BadLocationException ignore) {
                 // do nothing
@@ -267,6 +274,24 @@ public class TextPanel extends JPanel {
                 textPane.setCaretPosition(Utilities.getRowEnd(textPane, caretPos));
             } catch (BadLocationException ignore) {
                 // do nothing
+            }
+        });
+        // cmd-shift-up, jump to the beginning of the page
+        GTk.addCmdShiftKeyAction(KeyEvent.VK_UP, textPane, e -> {
+            int start = 0;
+            int end = textPane.getSelectionEnd();
+            textPane.setCaretPosition(start);
+            if (textPane.getSelectionStart() != end) {
+                textPane.select(start, end);
+            }
+        });
+        // cmd-shift-down, jump to the end of the page
+        GTk.addCmdShiftKeyAction(KeyEvent.VK_DOWN, textPane, e -> {
+            int start = textPane.getSelectionStart();
+            int end = textPane.getStyledDocument().getLength();
+            textPane.setCaretPosition(end);
+            if (start != textPane.getSelectionEnd()) {
+                textPane.select(start, end);
             }
         });
         // cmd-shift-left, jump to the beginning of the line

@@ -45,8 +45,7 @@ class Highlighter extends DocumentFilter {
     @Override
     public void insertString(FilterBypass fb, int offset, String text, AttributeSet attributeSet) {
         try {
-            text = text.replaceAll("\t", "    ");
-            super.insertString(fb, offset, text, attributeSet);
+            super.insertString(fb, offset, replaceTabs(text), attributeSet);
         } catch (BadLocationException irrelevant) {
             // do nothing
         }
@@ -66,8 +65,7 @@ class Highlighter extends DocumentFilter {
     @Override
     public void replace(FilterBypass fb, int offset, int length, String text, AttributeSet attrSet) {
         try {
-            text = text.replaceAll("\t", "    ");
-            super.replace(fb, offset, length, text, attrSet);
+            super.replace(fb, offset, length, replaceTabs(text), attrSet);
         } catch (BadLocationException irrelevant) {
             // do nothing
         }
@@ -118,6 +116,10 @@ class Highlighter extends DocumentFilter {
             }
         }
         return 0;
+    }
+
+    private static String replaceTabs(String text) {
+        return text.replaceAll("\t", GTk.TAB_SPACES);
     }
 
     private int replaceAll(Matcher matcher, String replaceWith) {
