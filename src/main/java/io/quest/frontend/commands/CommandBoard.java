@@ -43,7 +43,7 @@ import io.quest.frontend.MaskingMouseListener;
 import io.quest.frontend.conns.ConnsManager;
 
 
-public class CommandBoard extends TextPanel implements EventProducer<CommandBoard.EventType>, Closeable {
+public class CommandBoard extends QuestPanel implements EventProducer<CommandBoard.EventType>, Closeable {
 
     public enum EventType {
         /**

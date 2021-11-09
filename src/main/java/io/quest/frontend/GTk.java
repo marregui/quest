@@ -16,7 +16,6 @@
 
 package io.quest.frontend;
 
-import io.quest.backend.SQLRow;
 import io.quest.backend.SQLTable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -59,10 +58,10 @@ public final class GTk {
             " | (_| | | |_| | |  __/ \\__ \\ | |_ \n" +
             "  \\__, |  \\__,_|  \\___| |___/  \\__|\n" +
             "     |_|";
-    private static final String QUESTDB_DOCUMENTATION_URL = "https://questdb.io/docs/introduction/";
 
-    private static final Toolkit TK = Toolkit.getDefaultToolkit();
+    private static final String QUESTDB_DOCUMENTATION_URL = "https://questdb.io/docs/introduction/";
     private static final Logger LOGGER = LoggerFactory.getLogger(GTk.class);
+    private static final Toolkit TK = Toolkit.getDefaultToolkit();
 
     public static final Color APP_THEME_COLOR = new Color(200, 50, 100);
     public static final String MAIN_FONT_NAME = "Arial"; // excluding commands' TextPane
@@ -71,11 +70,11 @@ public final class GTk {
     public static final Font TABLE_CELL_FONT = new Font(MAIN_FONT_NAME, Font.PLAIN, 16);
     public static final Color TABLE_HEADER_FONT_COLOR = Color.BLACK;
     public static final String TAB_SPACES = "    ";
+    private static final DataFlavor[] SUPPORTED_COPY_PASTE_FLAVOR = {DataFlavor.stringFlavor};
     public static final int CMD_DOWN_MASK = InputEvent.META_DOWN_MASK;
     public static final int CMD_SHIFT_DOWN_MASK = CMD_DOWN_MASK | InputEvent.SHIFT_DOWN_MASK;
     public static final int NO_KEY_EVENT = -1;
 
-    private static final DataFlavor[] SUPPORTED_COPY_PASTE_FLAVOR = {DataFlavor.stringFlavor};
 
     static {
         // anti-aliased fonts
@@ -140,9 +139,7 @@ public final class GTk {
                 }
             }
             if (sb.length() > 0) {
-                if (selectedRows.length == 1) {
-                    sb.setLength(sb.length() - 1);
-                }
+                sb.setLength(sb.length() - 1);
                 setSystemClipboardContent(sb.toString());
             }
         });

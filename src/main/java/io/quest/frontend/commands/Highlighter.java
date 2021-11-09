@@ -145,7 +145,7 @@ class Highlighter extends DocumentFilter {
         return matchCount;
     }
 
-    private static final Pattern ERROR_HEADER_PATTERN = Pattern.compile(TextPanel.ERROR_HEADER);
+    private static final Pattern ERROR_HEADER_PATTERN = Pattern.compile(QuestPanel.ERROR_HEADER);
     private static final int PATTERN_FLAGS = Pattern.CASE_INSENSITIVE | Pattern.UNICODE_CASE;
     // src/test/python/keywords.py
     // https://docs.oracle.com/javase/tutorial/essential/regex/bounds.html
