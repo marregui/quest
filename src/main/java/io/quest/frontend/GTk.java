@@ -57,7 +57,8 @@ public final class GTk {
             "  / _` | | | | |  / _ \\ / __| | __|\n" +
             " | (_| | | |_| | |  __/ \\__ \\ | |_ \n" +
             "  \\__, |  \\__,_|  \\___| |___/  \\__|\n" +
-            "     |_|";
+            "     |_|\n" +
+            "  Copyright (c) 2019 - 2022\n";
 
     private static final String QUESTDB_DOCUMENTATION_URL = "https://questdb.io/docs/introduction/";
     private static final Logger LOGGER = LoggerFactory.getLogger(GTk.class);
@@ -69,7 +70,6 @@ public final class GTk {
     public static final Font TABLE_HEADER_FONT = new Font(MAIN_FONT_NAME, Font.BOLD, 18);
     public static final Font TABLE_CELL_FONT = new Font(MAIN_FONT_NAME, Font.PLAIN, 16);
     public static final Color TABLE_HEADER_FONT_COLOR = Color.BLACK;
-    public static final String TAB_SPACES = "    ";
     private static final DataFlavor[] SUPPORTED_COPY_PASTE_FLAVOR = {DataFlavor.stringFlavor};
     public static final int CMD_DOWN_MASK = InputEvent.META_DOWN_MASK;
     public static final int CMD_SHIFT_DOWN_MASK = CMD_DOWN_MASK | InputEvent.SHIFT_DOWN_MASK;

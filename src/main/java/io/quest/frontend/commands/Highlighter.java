@@ -20,6 +20,9 @@ import io.quest.frontend.GTk;
 
 import javax.swing.*;
 import javax.swing.text.*;
+import java.io.IOException;
+import java.io.PrintWriter;
+import java.io.StringWriter;
 import java.util.Objects;
 import java.util.WeakHashMap;
 import java.util.regex.Matcher;
@@ -28,108 +31,116 @@ import java.util.regex.PatternSyntaxException;
 
 class Highlighter extends DocumentFilter {
 
-    public final static AttributeSet HIGHLIGHT_NORMAL = GTk.styleForegroundColor(255, 245, 222);
-    public final static AttributeSet HIGHLIGHT_ERROR = GTk.styleForegroundColor(225, 125, 5);
-    public final static AttributeSet HIGHLIGHT_KEYWORD = GTk.styleForegroundColor(200, 50, 100);
-    public final static AttributeSet HIGHLIGHT_TYPE = GTk.styleForegroundColor(240, 10, 140);
-    public final static AttributeSet HIGHLIGHT_MATCH = GTk.styleForegroundColor(50, 200, 185);
+    static final String EVENT_TYPE = "style change";
+
+    static Highlighter of(JTextPane textPane) {
+        Highlighter highlighter = new Highlighter(textPane.getStyledDocument()); // produces EVENT_TYPE
+        AbstractDocument doc = (AbstractDocument) textPane.getDocument();
+        doc.putProperty(DefaultEditorKit.EndOfLineStringProperty, "\n");
+        doc.setDocumentFilter(highlighter);
+        return highlighter;
+    }
 
     private final StyledDocument styledDocument;
+    private final StringBuilder errorBuilder;
+    private final int errorHeaderLen;
     private final WeakHashMap<String, Pattern> findPatternCache;
 
     Highlighter(StyledDocument styledDocument) {
         this.styledDocument = Objects.requireNonNull(styledDocument);
         findPatternCache = new WeakHashMap<>(5, 0.2f); // one at the time
+        errorBuilder = new StringBuilder();
+        errorBuilder.append("\n").append(ERROR_HEADER).append("\n");
+        errorHeaderLen = errorBuilder.length();
     }
 
     @Override
     public void insertString(FilterBypass fb, int offset, String text, AttributeSet attributeSet) {
         try {
-            super.insertString(fb, offset, replaceTabs(text), attributeSet);
+            super.insertString(fb, offset, replaceAllTabs(text), attributeSet);
+            handleTextChanged();
         } catch (BadLocationException irrelevant) {
             // do nothing
         }
-        handleTextChanged();
     }
 
     @Override
     public void remove(FilterBypass fb, int offset, int length) {
         try {
             super.remove(fb, offset, length);
+            handleTextChanged();
         } catch (BadLocationException irrelevant) {
             // do nothing
         }
-        handleTextChanged();
     }
 
     @Override
     public void replace(FilterBypass fb, int offset, int length, String text, AttributeSet attrSet) {
         try {
-            super.replace(fb, offset, length, replaceTabs(text), attrSet);
+            super.replace(fb, offset, length, replaceAllTabs(text), attrSet);
+            handleTextChanged();
         } catch (BadLocationException irrelevant) {
             // do nothing
         }
-        handleTextChanged();
+    }
+
+    String highlightError(Throwable error) {
+        errorBuilder.setLength(errorHeaderLen);
+        try (StringWriter sw = new StringWriter(); PrintWriter pw = new PrintWriter(sw)) {
+            error.printStackTrace(pw);
+            errorBuilder.append(sw);
+            return errorBuilder.toString();
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
     }
 
     int handleTextChanged() {
         return handleTextChanged(null, null);
     }
 
-    int handleTextChanged(String findRegex) {
-        return handleTextChanged(findRegex, null);
-    }
-
     int handleTextChanged(String findRegex, String replaceWith) {
         int len = styledDocument.getLength();
-        String txt;
-        try {
-            txt = styledDocument.getText(0, len);
-        } catch (BadLocationException impossible) {
-            return 0;
-        }
-        if (ERROR_HEADER_PATTERN.matcher(txt).find()) {
-            styledDocument.setCharacterAttributes(0, len, HIGHLIGHT_ERROR, true);
-        } else {
-            styledDocument.setCharacterAttributes(0, len, HIGHLIGHT_NORMAL, true);
-            applyStyle(KEYWORDS_PATTERN.matcher(txt), HIGHLIGHT_KEYWORD, false);
-            applyStyle(TYPES_PATTERN.matcher(txt), HIGHLIGHT_TYPE, false);
-            if (findRegex != null && !findRegex.isBlank()) {
-                Pattern findPattern = findPatternCache.get(findRegex);
-                if (findPattern == null) {
-                    try {
-                        findPattern = Pattern.compile(findRegex, PATTERN_FLAGS);
-                        findPatternCache.put(findRegex, findPattern);
-                    } catch (PatternSyntaxException err) {
-                        JOptionPane.showMessageDialog(null, String.format(
-                                "Not a valid filter: %s", findRegex));
-                        return 0;
-                    }
-                }
-                if (replaceWith != null) {
-                    return replaceAll(findPattern.matcher(txt), replaceWith);
-                }
-                return replaceWith != null ?
-                        replaceAll(findPattern.matcher(txt), replaceWith)
-                        :
-                        applyStyle(findPattern.matcher(txt), HIGHLIGHT_MATCH, true);
+        if (len > 0) {
+            String txt;
+            try {
+                txt = styledDocument.getText(0, len);
+            } catch (BadLocationException impossible) {
+                return 0;
+            }
+            if (ERROR_HEADER_PATTERN.matcher(txt).find()) {
+                styledDocument.setCharacterAttributes(0, len, HIGHLIGHT_ERROR, true);
+            } else {
+                styledDocument.setCharacterAttributes(0, len, HIGHLIGHT_NORMAL, true);
+                applyStyle(KEYWORDS_PATTERN.matcher(txt), HIGHLIGHT_KEYWORD, false);
+                applyStyle(TYPES_PATTERN.matcher(txt), HIGHLIGHT_TYPE, false);
+                return applyFindReplace(findRegex, replaceWith, txt);
             }
         }
         return 0;
     }
 
-    private static String replaceTabs(String text) {
-        return text.replaceAll("\t", GTk.TAB_SPACES);
-    }
-
-    private int replaceAll(Matcher matcher, String replaceWith) {
-        int matchCount = 0;
-        while (matcher.find()) {
-            matchCount++;
+    private int applyFindReplace(String findRegex, String replaceWith, String txt) {
+        if (findRegex != null && !findRegex.isBlank()) {
+            Pattern find = findPatternCache.get(findRegex);
+            if (find == null) {
+                try {
+                    find = Pattern.compile(findRegex, PATTERN_FLAGS);
+                    findPatternCache.put(findRegex, find);
+                } catch (PatternSyntaxException err) {
+                    JOptionPane.showMessageDialog(
+                            null,
+                            String.format("Not a valid regex: %s", findRegex)
+                    );
+                    return 0;
+                }
+            }
+            return replaceWith == null ?
+                    applyStyle(find.matcher(txt), HIGHLIGHT_FIND_MATCH, true)
+                    :
+                    replaceAllWith(find.matcher(txt), replaceWith);
         }
-        matcher.reset();
-        matcher.replaceAll(replaceWith);
-        return matchCount;
+        return 0;
     }
 
     private int applyStyle(Matcher matcher, AttributeSet style, boolean replace) {
@@ -145,17 +156,30 @@ class Highlighter extends DocumentFilter {
         return matchCount;
     }
 
-    private static final Pattern ERROR_HEADER_PATTERN = Pattern.compile(QuestPanel.ERROR_HEADER);
-    private static final int PATTERN_FLAGS = Pattern.CASE_INSENSITIVE | Pattern.UNICODE_CASE;
+    private static String replaceAllTabs(String text) {
+        return text.replaceAll("\t", "    ");
+    }
+
+    private int replaceAllWith(Matcher matcher, String replaceWith) {
+        int matchCount = 0;
+        while (matcher.find()) {
+            matchCount++;
+        }
+        matcher.reset();
+        matcher.replaceAll(replaceWith);
+        return matchCount;
+    }
+
     // src/test/python/keywords.py
     // https://docs.oracle.com/javase/tutorial/essential/regex/bounds.html
-    private static final Pattern TYPES_PATTERN = Pattern.compile(
+    static final int PATTERN_FLAGS = Pattern.CASE_INSENSITIVE | Pattern.UNICODE_CASE;
+    static final Pattern TYPES_PATTERN = Pattern.compile(
             "\\bbinary\\b|\\bint\\b|\\bcapacity\\b|\\bshort\\b|\\btimestamp\\b|"
                     + "\\bboolean\\b|\\bbyte\\b|\\bindex\\b|\\bnocache\\b|\\bcache\\b|\\bnull\\b|"
                     + "\\blong\\b|\\bdate\\b|\\bstring\\b|\\bsymbol\\b|\\bdouble\\b|\\bfloat\\b|"
                     + "\\blong256\\b|\\bchar\\b|\\bgeohash\\b",
             PATTERN_FLAGS);
-    private static final Pattern KEYWORDS_PATTERN = Pattern.compile(
+    static final Pattern KEYWORDS_PATTERN = Pattern.compile(
             "\\bquestdb\\b|\\badd\\b|\\ball\\b|\\balter\\b|\\band\\b|\\bas\\b|"
                     + "\\basc\\b|\\basof\\b|\\bbackup\\b|\\bbetween\\b|\\bby\\b|\\bcase\\b|"
                     + "\\bcast\\b|\\bcolumn\\b|\\bcolumns\\b|\\bcopy\\b|\\bcreate\\b|\\bcross\\b|"
@@ -172,4 +196,11 @@ class Highlighter extends DocumentFilter {
                     + "\\btype\\b|\\bunion\\b|\\bunlock\\b|\\bupdate\\b|\\bvalues\\b|\\bwhen\\b|"
                     + "\\bwhere\\b|\\bwith\\b|\\bwriter\\b",
             PATTERN_FLAGS);
+    static final String ERROR_HEADER = "==========  ERROR  ==========\n";
+    static final Pattern ERROR_HEADER_PATTERN = Pattern.compile(ERROR_HEADER);
+    AttributeSet HIGHLIGHT_NORMAL = GTk.styleForegroundColor(255, 245, 222);
+    AttributeSet HIGHLIGHT_KEYWORD = GTk.styleForegroundColor(200, 50, 100);
+    AttributeSet HIGHLIGHT_TYPE = GTk.styleForegroundColor(240, 10, 140);
+    AttributeSet HIGHLIGHT_FIND_MATCH = GTk.styleForegroundColor(50, 200, 185);
+    AttributeSet HIGHLIGHT_ERROR = GTk.styleForegroundColor(230, 178, 10);
 }

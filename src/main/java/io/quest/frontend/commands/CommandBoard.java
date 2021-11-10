@@ -26,10 +26,13 @@ import java.util.ArrayList;
 import java.util.Map;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
+import java.util.regex.Pattern;
 
 import javax.swing.*;
 import javax.swing.event.UndoableEditEvent;
 import javax.swing.filechooser.FileFilter;
+import javax.swing.text.BadLocationException;
+import javax.swing.text.Document;
 import javax.swing.undo.UndoManager;
 
 import io.quest.backend.StoreEntry;
@@ -69,13 +72,7 @@ public class CommandBoard extends QuestPanel implements EventProducer<CommandBoa
 
         public Content(String name) {
             super(name);
-            setAttr(ATTR_NAME,
-                    "\n" +
-                            "\n" +
-                            GTk.BANNER +
-                            "\n" +
-                            "  Copyright (c) 2019 - 2022\n"
-            );
+            setAttr(ATTR_NAME, GTk.BANNER);
         }
 
         public Content(StoreEntry other) {
@@ -105,6 +102,7 @@ public class CommandBoard extends QuestPanel implements EventProducer<CommandBoa
     private static final Color FIND_FONT_COLOR = new Color(58, 138, 138);
     private static final Cursor HAND_CURSOR = new Cursor(Cursor.HAND_CURSOR);
     private static final String STORE_FILE_NAME = "default-notebook.json";
+    private static final Pattern SPECIAL_REGEX_CHARS = Pattern.compile("[{}()\\[\\].+*?^$\\\\|]");
     private final EventConsumer<CommandBoard, SQLRequest> eventConsumer;
     private final JComboBox<String> boardEntryNames;
     private final List<UndoManager> undoManagers; // same order as boardEntries' model
@@ -115,6 +113,7 @@ public class CommandBoard extends QuestPanel implements EventProducer<CommandBoa
     private final JLabel connLabel;
     private JMenu commandBoardMenu;
     private JPanel findPanel;
+    private JCheckBox findTextIsRegex;
     private JTextField findText;
     private JTextField replaceWithText;
     private JLabel findMatchesLabel;
@@ -152,7 +151,7 @@ public class CommandBoard extends QuestPanel implements EventProducer<CommandBoa
                         cancelButton = GTk.button(
                                 "Cancel", false, GTk.Icon.COMMAND_EXEC_CANCEL,
                                 "Cancel current execution", this::fireCancelEvent)));
-        setupFindPanel();
+        setupFindReplacePanel();
         JPanel controlsPanel = new JPanel(new BorderLayout(0, 0));
         controlsPanel.add(
                 connLabel = createLabel(e -> eventConsumer.onSourceEvent(
@@ -229,7 +228,7 @@ public class CommandBoard extends QuestPanel implements EventProducer<CommandBoa
         store = new Store<>(fileName, Content.class) {
             @Override
             public Content[] defaultStoreEntries() {
-                return new Content[]{new Content("default")};
+                return new Content[]{new Content()};
             }
         };
         store.loadEntriesFromFile();
@@ -239,7 +238,7 @@ public class CommandBoard extends QuestPanel implements EventProducer<CommandBoa
             undoManagers.add(new UndoManager() {
                 @Override
                 public void undoableEditHappened(UndoableEditEvent e) {
-                    if (!"style change".equals(e.getEdit().getPresentationName())) {
+                    if (!Highlighter.EVENT_TYPE.equals(e.getEdit().getPresentationName())) {
                         super.undoableEditHappened(e);
                     }
                 }
@@ -254,7 +253,9 @@ public class CommandBoard extends QuestPanel implements EventProducer<CommandBoa
         } else {
             int matches = matchesCountSupplier.get();
             findMatchesLabel.setText(String.format(
-                    "%d %s", matches, matches == 1 ? "match" : "matches"));
+                    "%4d %s",
+                    matches,
+                    matches == 1 ? "match" : "matches"));
         }
         findText.requestFocusInWindow();
     }
@@ -298,7 +299,7 @@ public class CommandBoard extends QuestPanel implements EventProducer<CommandBoa
         undoManagers.add(new UndoManager() {
             @Override
             public void undoableEditHappened(UndoableEditEvent e) {
-                if (!"style change".equals(e.getEdit().getPresentationName())) {
+                if (!Highlighter.EVENT_TYPE.equals(e.getEdit().getPresentationName())) {
                     super.undoableEditHappened(e);
                 }
             }
@@ -476,26 +477,43 @@ public class CommandBoard extends QuestPanel implements EventProducer<CommandBoa
         cancelButton.setEnabled(true);
     }
 
-    private void setupFindPanel() {
+    private void setupFindReplacePanel() {
         JLabel findLabel = new JLabel("Find");
         findLabel.setFont(HEADER_FONT);
         findLabel.setForeground(GTk.TABLE_HEADER_FONT_COLOR);
-        findText = new JTextField(35);
+        findText = new JTextField(30) {
+            @Override
+            public String getText() {
+                String txt = super.getText();
+                if (txt != null && !findTextIsRegex.isSelected()) {
+                    txt = SPECIAL_REGEX_CHARS.matcher(txt).replaceAll("\\\\$0");
+                }
+                return txt;
+            }
+        };
         setupSearchTextField(findText, this::onFind);
+        findTextIsRegex = new JCheckBox(
+                "regex?",
+                false);
         JLabel replaceWithLabel = new JLabel("replace with");
         replaceWithLabel.setFont(HEADER_FONT);
         replaceWithLabel.setForeground(GTk.TABLE_HEADER_FONT_COLOR);
-        replaceWithText = new JTextField(35);
+        replaceWithText = new JTextField(25);
         setupSearchTextField(replaceWithText, this::onReplace);
-        findMatchesLabel = new JLabel("0 matches");
+        findMatchesLabel = new JLabel("  0 matches");
         findMatchesLabel.setFont(HEADER_FONT);
         findMatchesLabel.setForeground(GTk.TABLE_HEADER_FONT_COLOR);
-        findPanel = GTk.flowPanel(7, 2,
+        findPanel = GTk.flowPanel(
+                BorderFactory.createDashedBorder(Color.LIGHT_GRAY),
+                5, 4,
                 findLabel,
                 findText,
+                findTextIsRegex,
                 replaceWithLabel,
                 replaceWithText,
+                GTk.horizontalSpace(4),
                 findMatchesLabel,
+                GTk.horizontalSpace(4),
                 GTk.button(
                         "Find",
                         GTk.Icon.COMMAND_FIND,

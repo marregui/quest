@@ -19,12 +19,8 @@ package io.quest.frontend.commands;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.KeyEvent;
-import java.io.IOException;
-import java.io.PrintWriter;
-import java.io.StringWriter;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.regex.PatternSyntaxException;
-
 import javax.swing.*;
 import javax.swing.text.*;
 import javax.swing.undo.UndoManager;
@@ -34,10 +30,8 @@ import io.quest.frontend.GTk;
 
 public class QuestPanel extends JPanel {
     private static final long serialVersionUID = 1L;
-    private static final String END_LINE = "\n";
     private static final String MARGIN_TOKEN = ":99999:";
     static final String EMPTY_STR = "";
-    static final String ERROR_HEADER = "==========  [E]  ==========" + END_LINE;
     private static final Font FONT = new Font("Monospaced", Font.BOLD, 14);
     private static final Font LINENO_FONT = new Font(GTk.MAIN_FONT_NAME, Font.ITALIC, 14);
     private static final Color LINENO_COLOR = Color.LIGHT_GRAY.darker().darker();
@@ -49,6 +43,11 @@ public class QuestPanel extends JPanel {
     private final AtomicReference<UndoManager> undoManager; // set by CommandBoard
 
     public QuestPanel() {
+        this(false);
+    }
+
+    public QuestPanel(boolean isErrorPanel) {
+        undoManager = new AtomicReference<>();
         textPane = new JTextPane() {
             public boolean getScrollableTracksViewportWidth() {
                 return getUI().getPreferredSize(this).width <= getParent().getSize().width;
@@ -65,7 +64,6 @@ public class QuestPanel extends JPanel {
         textPane.setFont(FONT);
         textPane.setBackground(BACKGROUND_COLOR);
         textPane.setCaretColor(CARET_COLOR);
-        textPane.setEditable(true);
         textPane.setEditorKit(new StyledEditorKit() {
             @Override
             public ViewFactory getViewFactory() {
@@ -79,11 +77,9 @@ public class QuestPanel extends JPanel {
             }
         });
         textPane.setCaretPosition(0);
-        highlighter = new Highlighter(textPane.getStyledDocument()); // produces "style change" events
-        undoManager = new AtomicReference<>();
-        AbstractDocument doc = (AbstractDocument) textPane.getDocument();
-        doc.putProperty(DefaultEditorKit.EndOfLineStringProperty, END_LINE);
-        doc.setDocumentFilter(highlighter);
+        textPane.setEditable(!isErrorPanel);
+        setupKeyboardActions(isErrorPanel);
+        highlighter = Highlighter.of(textPane); // produces "style change" events
         scrollPane.getViewport().setBackground(BACKGROUND_COLOR);
         scrollPane.getVerticalScrollBar().setUnitIncrement(5);
         scrollPane.getVerticalScrollBar().setBlockIncrement(15);
@@ -91,7 +87,7 @@ public class QuestPanel extends JPanel {
         scrollPane.getHorizontalScrollBar().setBlockIncrement(15);
         setLayout(new BorderLayout());
         add(scrollPane, BorderLayout.CENTER);
-        setupKeyboardActions();
+
     }
 
     private static class ParagraphView extends javax.swing.text.ParagraphView {
@@ -134,15 +130,7 @@ public class QuestPanel extends JPanel {
     }
 
     public void displayError(Throwable error) {
-        StringBuilder sb = new StringBuilder();
-        sb.append("\n").append(ERROR_HEADER).append("\n");
-        try (StringWriter sw = new StringWriter(); PrintWriter pw = new PrintWriter(sw)) {
-            error.printStackTrace(pw);
-            sb.append(sw);
-        } catch (IOException e) {
-            throw new RuntimeException(e);
-        }
-        textPane.setText(sb.toString());
+        textPane.setText(highlighter.highlightError(error));
         repaint();
     }
 
@@ -179,7 +167,7 @@ public class QuestPanel extends JPanel {
     }
 
     protected int highlightContent(String findRegex) {
-        return findRegex != null ? highlighter.handleTextChanged(findRegex) : 0; // number of matches
+        return findRegex != null ? highlighter.handleTextChanged(findRegex, null) : 0; // number of matches
     }
 
     protected int replaceContent(String findRegex, String replaceWith) {
@@ -242,7 +230,7 @@ public class QuestPanel extends JPanel {
             int start = Utilities.getRowStart(textPane, caretPos);
             int end = Utilities.getRowEnd(textPane, caretPos);
             String line = getContent(start, end - start);
-            String insert = line.equals(EMPTY_STR) ? END_LINE : END_LINE + line;
+            String insert = line.equals(EMPTY_STR) ? "\n" : "\n" + line;
             textPane.getStyledDocument().insertString(end, insert, null);
             textPane.setCaretPosition(caretPos + insert.length());
             highlighter.handleTextChanged();
@@ -430,16 +418,7 @@ public class QuestPanel extends JPanel {
         textPane.selectAll();
     }
 
-    private void setupKeyboardActions() {
-        GTk.addCmdKeyAction(KeyEvent.VK_Z, textPane, this::cmdZUndo);
-        GTk.addCmdKeyAction(KeyEvent.VK_Y, textPane, this::cmdYRedo);
-        GTk.addCmdKeyAction(KeyEvent.VK_A, textPane, this::cmdASelectAll);
-        GTk.addCmdKeyAction(KeyEvent.VK_D, textPane, this::cmdDDupLine);
-        GTk.addCmdKeyAction(KeyEvent.VK_C, textPane, this::cmdCCopyToClipboard);
-        GTk.addCmdKeyAction(KeyEvent.VK_V, textPane, this::cmdVPasteFromClipboard);
-        GTk.addCmdKeyAction(KeyEvent.VK_X, textPane, this::cmdXCutToClipboard);
-        GTk.addCmdKeyAction(KeyEvent.VK_SLASH, textPane, this::cmdSlashToggleComment);
-        GTk.addCmdKeyAction(KeyEvent.VK_QUOTE, textPane, this::cmdQuoteToggleQuote);
+    private void setupKeyboardActions(boolean isErrorPanel) {
         GTk.addCmdKeyAction(KeyEvent.VK_UP, textPane, this::cmdUp);
         GTk.addCmdKeyAction(KeyEvent.VK_DOWN, textPane, this::cmdDown);
         GTk.addCmdKeyAction(KeyEvent.VK_LEFT, textPane, this::cmdLeft);
@@ -448,5 +427,17 @@ public class QuestPanel extends JPanel {
         GTk.addCmdShiftKeyAction(KeyEvent.VK_DOWN, textPane, this::cmdShiftDown);
         GTk.addCmdShiftKeyAction(KeyEvent.VK_LEFT, textPane, this::cmdShiftLeft);
         GTk.addCmdShiftKeyAction(KeyEvent.VK_RIGHT, textPane, this::cmdShiftRight);
+
+        GTk.addCmdKeyAction(KeyEvent.VK_A, textPane, this::cmdASelectAll);
+        GTk.addCmdKeyAction(KeyEvent.VK_C, textPane, this::cmdCCopyToClipboard);
+        if (!isErrorPanel) {
+            GTk.addCmdKeyAction(KeyEvent.VK_X, textPane, this::cmdXCutToClipboard);
+            GTk.addCmdKeyAction(KeyEvent.VK_V, textPane, this::cmdVPasteFromClipboard);
+            GTk.addCmdKeyAction(KeyEvent.VK_D, textPane, this::cmdDDupLine);
+            GTk.addCmdKeyAction(KeyEvent.VK_Z, textPane, this::cmdZUndo);
+            GTk.addCmdKeyAction(KeyEvent.VK_Y, textPane, this::cmdYRedo);
+            GTk.addCmdKeyAction(KeyEvent.VK_SLASH, textPane, this::cmdSlashToggleComment);
+            GTk.addCmdKeyAction(KeyEvent.VK_QUOTE, textPane, this::cmdQuoteToggleQuote);
+        }
     }
 }
