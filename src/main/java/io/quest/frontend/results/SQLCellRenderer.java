@@ -38,13 +38,12 @@ class SQLCellRenderer extends CellRenderer {
     }
 
     @Override
-    public Component getTableCellRendererComponent(
-            JTable table,
-            Object value,
-            boolean isSelected,
-            boolean hasFocus,
-            int rowIdx,
-            int colIdx
+    public Component getTableCellRendererComponent(JTable table,
+                                                   Object value,
+                                                   boolean isSelected,
+                                                   boolean hasFocus,
+                                                   int rowIdx,
+                                                   int colIdx
     ) {
         super.getTableCellRendererComponent(table, value, isSelected, hasFocus, rowIdx, colIdx);
         SQLTable sqlTable = tableSupplier.get();

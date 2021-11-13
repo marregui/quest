@@ -25,7 +25,7 @@ import java.awt.event.MouseMotionListener;
  * Extends {@link MouseListener} and {@link MouseMotionListener} overriding all
  * the methods with default behaviour to do nothing.
  */
-public interface MaskingMouseListener extends MouseListener, MouseMotionListener {
+public interface NoopMouseListener extends MouseListener, MouseMotionListener {
 
     /**
      * Invoked when the mouse button has been pressed/released (clicked).

@@ -34,7 +34,7 @@ public class QuestPanel extends JPanel {
     static final String EMPTY_STR = "";
     private static final Font FONT = new Font("Monospaced", Font.BOLD, 14);
     private static final Font LINENO_FONT = new Font(GTk.MAIN_FONT_NAME, Font.ITALIC, 14);
-    private static final Color LINENO_COLOR = Color.LIGHT_GRAY.darker().darker();
+    static final Color LINENO_COLOR = Color.LIGHT_GRAY.darker().darker();
     private static final Color CARET_COLOR = Color.CYAN;
     private static final Color BACKGROUND_COLOR = Color.BLACK;
 
@@ -246,14 +246,14 @@ public class QuestPanel extends JPanel {
             selected = getCurrentLine();
         }
         if (!selected.equals(EMPTY_STR)) {
-            GTk.setSystemClipboardContent(selected);
+            GTk.setClipboardContent(selected);
         }
     }
 
     private void cmdVPasteFromClipboard(ActionEvent event) {
         // cmd-v, paste content of clipboard into selection or caret position
         try {
-            String data = GTk.getSystemClipboardContent();
+            String data = GTk.getClipboardContent();
             if (data != null) {
                 int start = textPane.getSelectionStart();
                 int end = textPane.getSelectionEnd();
@@ -282,7 +282,7 @@ public class QuestPanel extends JPanel {
             Document doc = textPane.getStyledDocument();
             int len = end - start;
             if (len > 0) {
-                GTk.setSystemClipboardContent(doc.getText(start, len));
+                GTk.setClipboardContent(doc.getText(start, len));
                 doc.remove(start, len);
             }
             end = doc.getLength();
@@ -378,6 +378,76 @@ public class QuestPanel extends JPanel {
         }
     }
 
+    private void altUp(ActionEvent event) {
+        // alt-up, select current word under caret
+        try {
+            int caretPos = textPane.getCaretPosition();
+            int wordStart = Utilities.getWordStart(textPane, caretPos);
+            int wordEnd = Utilities.getWordEnd(textPane, caretPos);
+            textPane.select(wordStart, wordEnd);
+        } catch (BadLocationException ignore) {
+            // do nothing
+        }
+    }
+
+    private void altLeft(ActionEvent event) {
+        // alt-left, jump to the beginning of the word
+        try {
+            int caretPos = textPane.getCaretPosition();
+            int wordStart = Utilities.getWordStart(textPane, caretPos);
+            if (caretPos == wordStart && caretPos > 0) {
+                wordStart = Utilities.getWordStart(textPane, caretPos - 1);
+            }
+            textPane.setCaretPosition(wordStart);
+        } catch (BadLocationException ignore) {
+            // do nothing
+        }
+    }
+
+    private void altRight(ActionEvent event) {
+        // alt-right, jump to the end of the word
+        try {
+            int caretPos = textPane.getCaretPosition();
+            int wordEnd = Utilities.getWordEnd(textPane, caretPos);
+            if (caretPos == wordEnd && caretPos < textPane.getDocument().getLength()) {
+                wordEnd = Utilities.getWordEnd(textPane, caretPos + 1);
+            }
+            textPane.setCaretPosition(wordEnd);
+        } catch (BadLocationException ignore) {
+            // do nothing
+        }
+    }
+
+    private void altShiftLeft(ActionEvent event) {
+        // alt-shift-left, select from previous word start to current selection end
+        try {
+            int caretPos = textPane.getCaretPosition();
+            if (caretPos > 0) {
+                int start = Utilities.getWordStart(textPane, caretPos - 1);
+                int end = textPane.getSelectionEnd();
+                textPane.setCaretPosition(end);
+                textPane.moveCaretPosition(start);
+            }
+        } catch (BadLocationException ignore) {
+            // do nothing
+        }
+    }
+
+    private void altShiftRight(ActionEvent event) {
+        // alt-shift-right, select from current selection start to next word end
+        try {
+            int caretPos = textPane.getCaretPosition();
+            if (caretPos < textPane.getDocument().getLength()) {
+                int start = textPane.getSelectionStart();
+                int end = Utilities.getWordEnd(textPane, caretPos + 1);
+                textPane.setCaretPosition(start);
+                textPane.moveCaretPosition(end);
+            }
+        } catch (BadLocationException ignore) {
+            // do nothing
+        }
+    }
+
     private void cmdSlashToggleComment(ActionEvent event) {
         // cmd-fwd-slash, toggle comment
     }
@@ -419,6 +489,7 @@ public class QuestPanel extends JPanel {
     }
 
     private void setupKeyboardActions(boolean isErrorPanel) {
+        // cmd/cmd+shift
         GTk.addCmdKeyAction(KeyEvent.VK_UP, textPane, this::cmdUp);
         GTk.addCmdKeyAction(KeyEvent.VK_DOWN, textPane, this::cmdDown);
         GTk.addCmdKeyAction(KeyEvent.VK_LEFT, textPane, this::cmdLeft);
@@ -427,7 +498,6 @@ public class QuestPanel extends JPanel {
         GTk.addCmdShiftKeyAction(KeyEvent.VK_DOWN, textPane, this::cmdShiftDown);
         GTk.addCmdShiftKeyAction(KeyEvent.VK_LEFT, textPane, this::cmdShiftLeft);
         GTk.addCmdShiftKeyAction(KeyEvent.VK_RIGHT, textPane, this::cmdShiftRight);
-
         GTk.addCmdKeyAction(KeyEvent.VK_A, textPane, this::cmdASelectAll);
         GTk.addCmdKeyAction(KeyEvent.VK_C, textPane, this::cmdCCopyToClipboard);
         if (!isErrorPanel) {
@@ -439,5 +509,13 @@ public class QuestPanel extends JPanel {
             GTk.addCmdKeyAction(KeyEvent.VK_SLASH, textPane, this::cmdSlashToggleComment);
             GTk.addCmdKeyAction(KeyEvent.VK_QUOTE, textPane, this::cmdQuoteToggleQuote);
         }
+        // alt/alt+shift
+        GTk.addAltKeyAction(KeyEvent.VK_UP, textPane, this::altUp);
+        GTk.addAltKeyAction(KeyEvent.VK_LEFT, textPane, this::altLeft);
+        GTk.addAltKeyAction(KeyEvent.VK_RIGHT, textPane, this::altRight);
+//        GTk.addAltShiftKeyAction(KeyEvent.VK_UP, textPane, this::cmdShiftDown);
+//        GTk.addAltShiftKeyAction(KeyEvent.VK_DOWN, textPane, this::cmdShiftDown);
+        GTk.addAltShiftKeyAction(KeyEvent.VK_LEFT, textPane, this::altShiftLeft);
+        GTk.addAltShiftKeyAction(KeyEvent.VK_RIGHT, textPane, this::altShiftRight);
     }
 }

@@ -31,8 +31,6 @@ import java.util.regex.Pattern;
 import javax.swing.*;
 import javax.swing.event.UndoableEditEvent;
 import javax.swing.filechooser.FileFilter;
-import javax.swing.text.BadLocationException;
-import javax.swing.text.Document;
 import javax.swing.undo.UndoManager;
 
 import io.quest.backend.StoreEntry;
@@ -42,7 +40,7 @@ import io.quest.frontend.GTk;
 import io.quest.backend.Conn;
 import io.quest.backend.SQLRequest;
 import io.quest.backend.Store;
-import io.quest.frontend.MaskingMouseListener;
+import io.quest.frontend.NoopMouseListener;
 import io.quest.frontend.conns.ConnsManager;
 
 
@@ -504,7 +502,7 @@ public class CommandBoard extends QuestPanel implements EventProducer<CommandBoa
         findMatchesLabel.setFont(HEADER_FONT);
         findMatchesLabel.setForeground(GTk.TABLE_HEADER_FONT_COLOR);
         findPanel = GTk.flowPanel(
-                BorderFactory.createDashedBorder(Color.LIGHT_GRAY),
+                BorderFactory.createDashedBorder(LINENO_COLOR),
                 5, 4,
                 findLabel,
                 findText,
@@ -544,14 +542,14 @@ public class CommandBoard extends QuestPanel implements EventProducer<CommandBoa
                 selected = field.getText();
             }
             if (!selected.equals(EMPTY_STR)) {
-                GTk.setSystemClipboardContent(selected);
+                GTk.setClipboardContent(selected);
             }
         });
         // cmd-v, paste content of clipboard into selection or caret position
         final StringBuilder sb = new StringBuilder();
         GTk.addCmdKeyAction(KeyEvent.VK_V, field, e -> {
             try {
-                String data = GTk.getSystemClipboardContent();
+                String data = GTk.getClipboardContent();
                 if (data != null && !data.isEmpty()) {
                     int start = field.getSelectionStart();
                     int end = field.getSelectionEnd();
@@ -674,7 +672,7 @@ public class CommandBoard extends QuestPanel implements EventProducer<CommandBoa
         return label;
     }
 
-    private class LabelMouseListener implements MaskingMouseListener {
+    private class LabelMouseListener implements NoopMouseListener {
         private final JLabel label;
 
         private LabelMouseListener(JLabel label) {

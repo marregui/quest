@@ -41,7 +41,7 @@ import javax.swing.JPanel;
  * predefined number of bars. The spinner can be re-started after it has been
  * closed. The panel masks all mouse events.
  */
-public class InfiniteSpinnerPanel extends JPanel implements MaskingMouseListener, Closeable, Runnable {
+public class InfiniteSpinnerPanel extends JPanel implements NoopMouseListener, Closeable, Runnable {
 
     private static final long serialVersionUID = 1L;
     private static final int BAR_COUNT = 24;
@@ -135,7 +135,6 @@ public class InfiniteSpinnerPanel extends JPanel implements MaskingMouseListener
     }
 
     private static class Spinner {
-
         private static final AffineTransform MOVE_ALONG_SPINNER_RADIUS = getTranslateInstance(BAR_SHIFT, -BAR_HEIGHT / 2.0);
 
         private final Area[] bars;

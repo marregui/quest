@@ -40,15 +40,15 @@ import java.net.URL;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
-
 import javax.swing.*;
 import javax.swing.border.Border;
-import javax.swing.text.AttributeSet;
-import javax.swing.text.StyleConstants;
-import javax.swing.text.StyleContext;
-
 
 public final class GTk {
+    static {
+        // anti-aliased fonts
+        System.setProperty("awt.useSystemAAFontSettings", "on");
+        System.setProperty("swing.aatext", "true");
+    }
 
     // https://patorjk.com/software/taag/#p=display&h=0&f=Ivrit&t=quest
     public static final String BANNER = "\n" +
@@ -64,83 +64,106 @@ public final class GTk {
     private static final Logger LOGGER = LoggerFactory.getLogger(GTk.class);
     private static final Toolkit TK = Toolkit.getDefaultToolkit();
 
+    public static final String MAIN_FONT_NAME = "Arial"; // excluding commands' TextPane, which is Monospaced
+
     public static final Color APP_THEME_COLOR = new Color(200, 50, 100);
-    public static final String MAIN_FONT_NAME = "Arial"; // excluding commands' TextPane
-    public static final Font MENU_FONT = new Font(MAIN_FONT_NAME, Font.BOLD, 14);
+    public static final Color TABLE_HEADER_FONT_COLOR = Color.BLACK;
     public static final Font TABLE_HEADER_FONT = new Font(MAIN_FONT_NAME, Font.BOLD, 18);
     public static final Font TABLE_CELL_FONT = new Font(MAIN_FONT_NAME, Font.PLAIN, 16);
-    public static final Color TABLE_HEADER_FONT_COLOR = Color.BLACK;
+    public static final Font MENU_FONT = new Font(MAIN_FONT_NAME, Font.BOLD, 14);
+
     private static final DataFlavor[] SUPPORTED_COPY_PASTE_FLAVOR = {DataFlavor.stringFlavor};
+
     public static final int CMD_DOWN_MASK = InputEvent.META_DOWN_MASK;
     public static final int CMD_SHIFT_DOWN_MASK = CMD_DOWN_MASK | InputEvent.SHIFT_DOWN_MASK;
+    public static final int ALT_DOWN_MASK = InputEvent.ALT_DOWN_MASK;
+    public static final int ALT_SHIFT_DOWN_MASK = ALT_DOWN_MASK | InputEvent.SHIFT_DOWN_MASK;
     public static final int NO_KEY_EVENT = -1;
 
 
-    static {
-        // anti-aliased fonts
-        System.setProperty("awt.useSystemAAFontSettings", "on");
-        System.setProperty("swing.aatext", "true");
+    public static void addCmdKeyAction(int keyEvent, JComponent component, ActionListener action) {
+        Action cmd = createAction(action);
+        component.getInputMap(JComponent.WHEN_FOCUSED).put(
+                KeyStroke.getKeyStroke(keyEvent, CMD_DOWN_MASK),
+                cmd);
+        component.getActionMap().put(cmd, cmd);
     }
 
-    public static void setSystemClipboardContent(final String str) {
-        TK.getSystemClipboard().setContents(
-                new Transferable() {
-                    @Override
-                    public DataFlavor[] getTransferDataFlavors() {
-                        return SUPPORTED_COPY_PASTE_FLAVOR;
-                    }
-
-                    @Override
-                    public boolean isDataFlavorSupported(DataFlavor flavor) {
-                        return DataFlavor.stringFlavor.equals(flavor);
-                    }
-
-                    @Override
-                    public Object getTransferData(DataFlavor flavor) {
-                        return isDataFlavorSupported(flavor) ? str : "";
-                    }
-                },
-                null);
+    public static void addCmdShiftKeyAction(int keyEvent, JComponent component, ActionListener action) {
+        Action cmd = createAction(action);
+        component.getInputMap(JComponent.WHEN_FOCUSED).put(
+                KeyStroke.getKeyStroke(keyEvent, CMD_SHIFT_DOWN_MASK),
+                cmd);
+        component.getActionMap().put(cmd, cmd);
     }
 
-    public static String getSystemClipboardContent() {
-        try {
-            return (String) TK.getSystemClipboard().getData(DataFlavor.stringFlavor);
-        } catch (IOException | UnsupportedFlavorException err) {
-            return "";
-        }
+    public static void addAltKeyAction(int keyEvent, JComponent component, ActionListener action) {
+        Action cmd = createAction(action);
+        component.getInputMap(JComponent.WHEN_FOCUSED).put(
+                KeyStroke.getKeyStroke(keyEvent, ALT_DOWN_MASK),
+                cmd);
+        component.getActionMap().put(cmd, cmd);
+    }
+
+    public static void addAltShiftKeyAction(int keyEvent, JComponent component, ActionListener action) {
+        Action cmd = createAction(action);
+        component.getInputMap(JComponent.WHEN_FOCUSED).put(
+                KeyStroke.getKeyStroke(keyEvent, ALT_SHIFT_DOWN_MASK),
+                cmd);
+        component.getActionMap().put(cmd, cmd);
+    }
+
+    private static Action createAction(ActionListener action) {
+        return new AbstractAction() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                action.actionPerformed(e);
+            }
+        };
     }
 
     public static void setupTableCmdKeyActions(JTable table) {
-        // cmd-a, select the full content
-        GTk.addCmdKeyAction(KeyEvent.VK_A, table, e -> table.selectAll());
-        // cmd-c, copy to clipboard, selection or full page
+        GTk.addCmdKeyAction(KeyEvent.VK_A, table, e -> table.selectAll()); // cmd-a, select all
         final StringBuilder sb = new StringBuilder();
-        GTk.addCmdKeyAction(KeyEvent.VK_C, table, e -> {
+        GTk.addCmdKeyAction(KeyEvent.VK_C, table, e -> { // cmd-c, copy selection/all to clipboard
             int[] selectedRows = table.getSelectedRows();
             int[] selectedCols = table.getSelectedColumns();
             if (selectedRows.length <= 0) {
                 table.selectAll();
                 selectedRows = table.getSelectedRows();
             }
-            sb.setLength(0);
-
-            for (int r = 0; r < selectedRows.length; r++) {
-                int rowIdx = selectedRows[r];
-                for (int c = 0; c < selectedCols.length; c++) {
-                    int colIdx = selectedCols[c];
-                    if (!table.getColumnName(colIdx).equals(SQLTable.ROWID_COL_NAME)) {
-                        sb.append(table.getValueAt(rowIdx, colIdx)).append(", ");
+            int[] widths = new int[selectedCols.length];
+            for (int c = 0; c < selectedCols.length; c++) {
+                for (int r = 0; r < selectedRows.length; r++) {
+                    int len = table.getValueAt(r, c).toString().length();
+                    if (widths[c] < len) {
+                        widths[c] = len;
                     }
                 }
-                if (sb.length() > 0) {
-                    sb.setLength(sb.length() - 2);
-                    sb.append("\n");
+            }
+            sb.setLength(0);
+            int rowIdx;
+            int colIdx;
+            for (int r = 0; r < selectedRows.length; r++) {
+                rowIdx = selectedRows[r];
+                for (int c = 0; c < selectedCols.length; c++) {
+                    colIdx = selectedCols[c];
+                    if (!table.getColumnName(colIdx).equals(SQLTable.ROWID_COL_NAME)) {
+                        String value = table.getValueAt(rowIdx, colIdx).toString();
+                        int len = value.length();
+                        sb.append(value);
+                        for (int i = 0; i < widths[c] - len; i++) {
+                            sb.append(" ");
+                        }
+                        sb.append(", ");
+                    }
                 }
+                sb.setLength(sb.length() - 2);
+                sb.append("\n");
             }
             if (sb.length() > 0) {
-                sb.setLength(sb.length() - 1);
-                setSystemClipboardContent(sb.toString());
+                sb.setLength(sb.length() - 1); // last \n
+                setClipboardContent(sb.toString());
             }
         });
     }
@@ -167,37 +190,33 @@ public final class GTk {
         }
     }
 
-    public static AttributeSet styleForegroundColor(int r, int g, int b) {
-        StyleContext sc = StyleContext.getDefaultStyleContext();
-        return sc.addAttribute(sc.getEmptySet(), StyleConstants.Foreground, new Color(r, g, b));
+    public static void setClipboardContent(final String str) {
+        TK.getSystemClipboard().setContents(
+                new Transferable() {
+                    @Override
+                    public DataFlavor[] getTransferDataFlavors() {
+                        return SUPPORTED_COPY_PASTE_FLAVOR;
+                    }
+
+                    @Override
+                    public boolean isDataFlavorSupported(DataFlavor flavor) {
+                        return DataFlavor.stringFlavor.equals(flavor);
+                    }
+
+                    @Override
+                    public Object getTransferData(DataFlavor flavor) {
+                        return isDataFlavorSupported(flavor) ? str : "";
+                    }
+                },
+                null);
     }
 
-    public static void addCmdKeyAction(int keyEvent,
-                                       JComponent component,
-                                       ActionListener action) {
-        Action cmd = new AbstractAction() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                action.actionPerformed(e);
-            }
-        };
-        component.getInputMap(JComponent.WHEN_FOCUSED)
-                .put(KeyStroke.getKeyStroke(keyEvent, CMD_DOWN_MASK), cmd);
-        component.getActionMap().put(cmd, cmd);
-    }
-
-    public static void addCmdShiftKeyAction(int keyEvent,
-                                            JComponent component,
-                                            ActionListener action) {
-        Action cmd = new AbstractAction() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                action.actionPerformed(e);
-            }
-        };
-        component.getInputMap(JComponent.WHEN_FOCUSED)
-                .put(KeyStroke.getKeyStroke(keyEvent, CMD_SHIFT_DOWN_MASK), cmd);
-        component.getActionMap().put(cmd, cmd);
+    public static String getClipboardContent() {
+        try {
+            return (String) TK.getSystemClipboard().getData(DataFlavor.stringFlavor);
+        } catch (IOException | UnsupportedFlavorException err) {
+            return "";
+        }
     }
 
     public static Dimension frameDimension() {
@@ -237,7 +256,11 @@ public final class GTk {
         return button(text, true, icon, tooltip, listener);
     }
 
-    public static JButton button(String text, boolean isEnabled, Icon icon, String tooltip, ActionListener listener) {
+    public static JButton button(String text,
+                                 boolean isEnabled,
+                                 Icon icon,
+                                 String tooltip,
+                                 ActionListener listener) {
         JButton button = new JButton(Objects.requireNonNull(text));
         if (icon != Icon.NO_ICON) {
             button.setIcon(icon.icon());

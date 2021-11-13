@@ -225,17 +225,15 @@ public class SQLResultsTable extends JPanel implements Closeable {
         header.setBackground(Color.BLACK);
         header.setPreferredSize(new Dimension(0, TABLE_HEADER_HEIGHT));
         SQLTable t = results.get();
-        String[] colNames = t.getColNames();
-        int[] colTypes = t.getColTypes();
         TableColumnModel tcm = table.getColumnModel();
         int numCols = tcm.getColumnCount();
         int tableWidth = 0;
-        for (int i = 0; i < numCols; i++) {
-            TableColumn col = tcm.getColumn(i);
-            int minWidth = SQLType.resolveColWidth(colNames[i], colTypes[i]);
-            tableWidth += minWidth;
-            col.setMinWidth(minWidth);
-            col.setPreferredWidth(minWidth);
+        for (int colIdx = 0; colIdx < numCols; colIdx++) {
+            TableColumn col = tcm.getColumn(colIdx);
+            int width = SQLType.resolveColWidth(t, colIdx);
+            tableWidth += width;
+            col.setMinWidth(width);
+            col.setPreferredWidth(width);
         }
         table.setAutoResizeMode(tableWidth < getWidth() ?
                 JTable.AUTO_RESIZE_ALL_COLUMNS : JTable.AUTO_RESIZE_OFF);

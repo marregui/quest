@@ -25,7 +25,7 @@ import javax.swing.table.DefaultTableCellRenderer;
 
 
 /**
- * Renders rows in alternative colours.
+ * Renders rows in alternate colors.
  */
 public class CellRenderer extends DefaultTableCellRenderer {
 
@@ -48,13 +48,12 @@ public class CellRenderer extends DefaultTableCellRenderer {
     }
 
     @Override
-    public Component getTableCellRendererComponent(
-            JTable table,
-            Object value,
-            boolean isSelected,
-            boolean hasFocus,
-            int rowIdx,
-            int colIdx
+    public Component getTableCellRendererComponent(JTable table,
+                                                   Object value,
+                                                   boolean isSelected,
+                                                   boolean hasFocus,
+                                                   int rowIdx,
+                                                   int colIdx
     ) {
         super.getTableCellRendererComponent(table, value, isSelected, hasFocus, rowIdx, colIdx);
         if (rowIdx >= 0 && rowIdx < table.getModel().getRowCount()) {
@@ -69,7 +68,9 @@ public class CellRenderer extends DefaultTableCellRenderer {
             }
             return this;
         }
-        throw new IndexOutOfBoundsException(
-                String.format("row %d does not exist, there are [0..%d] rows", rowIdx, table.getModel().getRowCount() - 1));
+        throw new IndexOutOfBoundsException(String.format(
+                "row %d does not exist, there are [0..%d] rows",
+                rowIdx,
+                table.getModel().getRowCount() - 1));
     }
 }

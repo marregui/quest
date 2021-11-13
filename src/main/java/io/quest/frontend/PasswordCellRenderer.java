@@ -22,10 +22,9 @@ import javax.swing.JTable;
 
 
 /**
- * Decorator on a {@link CellRenderer} which hides the value of the cell under
- * "*********".
+ * Decorator on a {@link CellRenderer} which hides the value of the cell under "*********".
  */
-public class PasswordRenderer extends CellRenderer {
+public class PasswordCellRenderer extends CellRenderer {
 
     private static final long serialVersionUID = 1L;
     private static final String PASSWORD = "*********";

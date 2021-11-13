@@ -34,15 +34,11 @@ import javax.swing.table.TableColumnModel;
 import io.quest.frontend.GTk;
 import io.quest.backend.Conn;
 import io.quest.backend.ConnAttrs;
-import io.quest.frontend.PasswordRenderer;
+import io.quest.frontend.PasswordCellRenderer;
 import io.quest.frontend.CellRenderer;
 
 
-/**
- * Table model used by the {@link ConnsManager}.
- */
 class ConnsTableModel extends AbstractTableModel implements Closeable {
-
     private static final int NAME_COL_IDX = 0;
     private static final int HOST_COL_IDX = 1;
     private static final int PORT_COL_IDX = 2;
@@ -95,7 +91,7 @@ class ConnsTableModel extends AbstractTableModel implements Closeable {
         colModel.getColumn(USERNAME_COL_IDX).setPreferredWidth(COL_WIDTHS[USERNAME_COL_IDX]);
         colModel.getColumn(PASSWORD_COL_IDX).setPreferredWidth(COL_WIDTHS[PASSWORD_COL_IDX]);
         colModel.getColumn(CONNECTED_COL_IDX).setPreferredWidth(COL_WIDTHS[CONNECTED_COL_IDX]);
-        colModel.getColumn(PASSWORD_COL_IDX).setCellRenderer(new PasswordRenderer());
+        colModel.getColumn(PASSWORD_COL_IDX).setCellRenderer(new PasswordCellRenderer());
         return table;
     }
 

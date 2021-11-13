@@ -19,14 +19,13 @@ package io.quest.frontend.results;
 import java.awt.Color;
 import java.sql.Types;
 
+import io.quest.backend.SQLTable;
 import io.quest.frontend.GTk;
 
-
 /**
- * Resolves {@link java.sql.Types} to their text representation, and rendering color.
+ * Resolves {@link java.sql.Types} to their text representation, column width and rendering color.
  */
 final class SQLType {
-
     static String resolveName(int sqlType) {
         String type;
         switch (sqlType) {
@@ -108,7 +107,8 @@ final class SQLType {
         return type;
     }
 
-    static int resolveColWidth(String name, int sqlType) {
+    static int resolveColWidth(SQLTable table, int colIdx) {
+        int sqlType = table.getColTypes()[colIdx];
         final int width;
         switch (sqlType) {
             case Types.BIT:
@@ -135,13 +135,21 @@ final class SQLType {
                 width = 400;
                 break;
             case Types.VARCHAR:
-                width = 620;
+                int w = 0;
+                for (int rowIdx = 0; rowIdx < Math.min(table.size(), 20); rowIdx++) {
+                    Object value = table.getValueAt(rowIdx, colIdx);
+                    if (value != null) {
+                        w = Math.max(w, 15 * value.toString().length());
+                    }
+                }
+                width = Math.min(w, 620);
                 break;
             default:
                 width = 150;
         }
-        int nameWidth = 15 * (name.length() + resolveName(sqlType).length());
-        return Math.max(width, nameWidth);
+        String colName = table.getColNames()[colIdx];
+        String typeName = resolveName(sqlType);
+        return Math.max(width, 20 * (colName.length() + typeName.length()));
     }
 
     static Color resolveColor(int sqlType) {
