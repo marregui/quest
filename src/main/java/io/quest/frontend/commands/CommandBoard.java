@@ -259,7 +259,7 @@ public class CommandBoard extends QuestPanel implements EventProducer<CommandBoa
                 if (refreshStore()) {
                     if (JOptionPane.YES_OPTION == JOptionPane.showConfirmDialog(
                             this,
-                            "Content has changed, save?, if not -> discard it",
+                            "Content has changed, save?",
                             "Command board changed",
                             JOptionPane.YES_NO_OPTION,
                             JOptionPane.QUESTION_MESSAGE)) {
@@ -305,6 +305,7 @@ public class CommandBoard extends QuestPanel implements EventProducer<CommandBoa
                     "Deleting board",
                     JOptionPane.YES_NO_OPTION)) {
                 store.removeEntry(idx);
+                content = null;
                 boardEntryNames.removeItemAt(idx);
                 undoManagers.remove(idx);
                 boardEntryNames.setSelectedIndex(idx - 1);

@@ -31,7 +31,6 @@ import io.quest.frontend.GTk;
 public class QuestPanel extends JPanel {
     private static final long serialVersionUID = 1L;
     private static final String MARGIN_TOKEN = ":99999:";
-    static final String EMPTY_STR = "";
     private static final Font FONT = new Font("Monospaced", Font.BOLD, 14);
     private static final Font LINENO_FONT = new Font(GTk.MAIN_FONT_NAME, Font.ITALIC, 14);
     static final Color LINENO_COLOR = Color.LIGHT_GRAY.darker().darker();
@@ -41,12 +40,14 @@ public class QuestPanel extends JPanel {
     protected final JTextPane textPane;
     private final Highlighter highlighter;
     private final AtomicReference<UndoManager> undoManager; // set by CommandBoard
+    private final StringBuilder sb;
 
     public QuestPanel() {
         this(false);
     }
 
     public QuestPanel(boolean isErrorPanel) {
+        sb = new StringBuilder();
         undoManager = new AtomicReference<>();
         textPane = new JTextPane() {
             public boolean getScrollableTracksViewportWidth() {
@@ -143,7 +144,7 @@ public class QuestPanel extends JPanel {
         } catch (BadLocationException ignore) {
             // do nothing
         }
-        return EMPTY_STR;
+        return "";
     }
 
     protected String getContent() {
@@ -151,7 +152,7 @@ public class QuestPanel extends JPanel {
     }
 
     protected String getContent(int start, int len) {
-        Document doc = textPane.getStyledDocument();
+        Document doc = textPane.getDocument();
         int length = len < 0 ? doc.getLength() - start : len;
         if (length > 0) {
             try {
@@ -163,7 +164,7 @@ public class QuestPanel extends JPanel {
                 // do nothing
             }
         }
-        return EMPTY_STR;
+        return "";
     }
 
     protected int highlightContent(String findRegex) {
@@ -229,9 +230,10 @@ public class QuestPanel extends JPanel {
             int caretPos = textPane.getCaretPosition();
             int start = Utilities.getRowStart(textPane, caretPos);
             int end = Utilities.getRowEnd(textPane, caretPos);
-            String line = getContent(start, end - start);
-            String insert = line.equals(EMPTY_STR) ? "\n" : "\n" + line;
-            textPane.getStyledDocument().insertString(end, insert, null);
+            Document doc = textPane.getDocument();
+            String line = doc.getText(start, end - start);
+            String insert = line.isEmpty() ? "\n" : "\n" + line;
+            doc.insertString(end, insert, null);
             textPane.setCaretPosition(caretPos + insert.length());
             highlighter.handleTextChanged();
         } catch (BadLocationException ignore) {
@@ -245,7 +247,7 @@ public class QuestPanel extends JPanel {
         if (selected == null) {
             selected = getCurrentLine();
         }
-        if (!selected.equals(EMPTY_STR)) {
+        if (!selected.isEmpty()) {
             GTk.setClipboardContent(selected);
         }
     }
@@ -253,15 +255,15 @@ public class QuestPanel extends JPanel {
     private void cmdVPasteFromClipboard(ActionEvent event) {
         // cmd-v, paste content of clipboard into selection or caret position
         try {
-            String data = GTk.getClipboardContent();
-            if (data != null) {
+            String text = GTk.getClipboardContent();
+            if (text != null) {
                 int start = textPane.getSelectionStart();
                 int end = textPane.getSelectionEnd();
-                Document doc = textPane.getStyledDocument();
+                Document doc = textPane.getDocument();
                 if (end > start) {
                     doc.remove(start, end - start);
                 }
-                doc.insertString(textPane.getCaretPosition(), data, null);
+                doc.insertString(textPane.getCaretPosition(), text, null);
                 highlighter.handleTextChanged();
             }
         } catch (Exception fail) {
@@ -272,25 +274,15 @@ public class QuestPanel extends JPanel {
     private void cmdXCutToClipboard(ActionEvent event) {
         // cmd-x, remove selection or whole line under caret and copy to clipboard
         try {
-            int start = textPane.getSelectionStart();
-            int end = textPane.getSelectionEnd();
-            int caretPos = textPane.getCaretPosition();
-            if (end <= start) {
-                start = Utilities.getRowStart(textPane, caretPos);
-                end = Utilities.getRowEnd(textPane, caretPos);
-            }
-            Document doc = textPane.getStyledDocument();
+            int start = Utilities.getRowStart(textPane, textPane.getSelectionStart());
+            int end = Utilities.getRowEnd(textPane, textPane.getSelectionEnd());
+            Document doc = textPane.getDocument();
             int len = end - start;
             if (len > 0) {
                 GTk.setClipboardContent(doc.getText(start, len));
-                doc.remove(start, len);
             }
-            end = doc.getLength();
-            caretPos = textPane.getCaretPosition();
-            if (caretPos == end) {
-                if (start > 0) {
-                    doc.remove(start - 1, 1);
-                }
+            if (textPane.getCaretPosition() != 0) {
+                doc.remove(start - 1, len + 1);
             } else {
                 doc.remove(start, 1);
             }
@@ -306,7 +298,7 @@ public class QuestPanel extends JPanel {
 
     private void cmdDown(ActionEvent event) {
         // cmd-down, jump to the end of the document
-        textPane.setCaretPosition(textPane.getStyledDocument().getLength());
+        textPane.setCaretPosition(textPane.getDocument().getLength());
     }
 
     private void cmdLeft(ActionEvent event) {
@@ -341,7 +333,7 @@ public class QuestPanel extends JPanel {
     private void cmdShiftDown(ActionEvent event) {
         // cmd-shift-down, jump to the end of the page
         int start = textPane.getSelectionStart();
-        int end = textPane.getStyledDocument().getLength();
+        int end = textPane.getDocument().getLength();
         textPane.setCaretPosition(end);
         if (start != textPane.getSelectionEnd()) {
             textPane.select(start, end);
@@ -448,14 +440,57 @@ public class QuestPanel extends JPanel {
         }
     }
 
+    private void altShiftUp(ActionEvent event) {
+        // alt-shift-up, move selection or line under caret one line up
+    }
+
+    private void altShiftDown(ActionEvent event) {
+        // alt-shift-down, move selection or line under caret one line down
+    }
+
     private void cmdSlashToggleComment(ActionEvent event) {
-        // cmd-fwd-slash, toggle comment
+        // cmd-fwd-slash, toggle comment on line or selection
+        try {
+            int start = Utilities.getRowStart(textPane, textPane.getSelectionStart());
+            int end = Utilities.getRowEnd(textPane, textPane.getSelectionEnd());
+            Document doc = textPane.getDocument();
+            int len = end - start;
+            String lines = doc.getText(start, len);
+            int linesLen = lines.length();
+            sb.setLength(0);
+            int lineStart = 0;
+            for (int i = 0; i < linesLen; i++) {
+                char c = lines.charAt(i);
+                if (c == '\n') {
+                    if (i - lineStart >= 2 &&
+                            lines.charAt(lineStart) == '-' &&
+                            lines.charAt(lineStart + 1) == '-') {
+                        sb.append(lines, lineStart + 2, i + 1);
+                    } else {
+                        sb.append("--").append(lines, lineStart, i + 1);
+                    }
+                    lineStart = i + 1;
+                }
+            }
+            if (linesLen - lineStart >= 2 &&
+                    lines.charAt(lineStart) == '-' &&
+                    lines.charAt(lineStart + 1) == '-') {
+                sb.append(lines, lineStart + 2, linesLen);
+            } else {
+                sb.append("--").append(lines, lineStart, linesLen);
+            }
+            doc.remove(start, len);
+            doc.insertString(start, sb.toString(), null);
+            highlighter.handleTextChanged();
+        } catch (Exception fail) {
+            // do nothing
+        }
     }
 
     private void cmdQuoteToggleQuote(ActionEvent event) {
         // cmd-quote, toggle quote
         try {
-            Document doc = textPane.getStyledDocument();
+            Document doc = textPane.getDocument();
             int docLen = doc.getLength();
             int start = textPane.getSelectionStart();
             int end = textPane.getSelectionEnd();
@@ -513,8 +548,8 @@ public class QuestPanel extends JPanel {
         GTk.addAltKeyAction(KeyEvent.VK_UP, textPane, this::altUp);
         GTk.addAltKeyAction(KeyEvent.VK_LEFT, textPane, this::altLeft);
         GTk.addAltKeyAction(KeyEvent.VK_RIGHT, textPane, this::altRight);
-//        GTk.addAltShiftKeyAction(KeyEvent.VK_UP, textPane, this::cmdShiftDown);
-//        GTk.addAltShiftKeyAction(KeyEvent.VK_DOWN, textPane, this::cmdShiftDown);
+        GTk.addAltShiftKeyAction(KeyEvent.VK_UP, textPane, this::altShiftUp);
+        GTk.addAltShiftKeyAction(KeyEvent.VK_DOWN, textPane, this::altShiftDown);
         GTk.addAltShiftKeyAction(KeyEvent.VK_LEFT, textPane, this::altShiftLeft);
         GTk.addAltShiftKeyAction(KeyEvent.VK_RIGHT, textPane, this::altShiftRight);
     }
