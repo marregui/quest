@@ -281,10 +281,10 @@ public class QuestPanel extends JPanel {
             if (len > 0) {
                 GTk.setClipboardContent(doc.getText(start, len));
             }
-            if (textPane.getCaretPosition() != 0) {
+            if (start > 0) {
                 doc.remove(start - 1, len + 1);
             } else {
-                doc.remove(start, 1);
+                doc.remove(start, len + 1);
             }
         } catch (Exception fail) {
             // do nothing
@@ -440,14 +440,6 @@ public class QuestPanel extends JPanel {
         }
     }
 
-    private void altShiftUp(ActionEvent event) {
-        // alt-shift-up, move selection or line under caret one line up
-    }
-
-    private void altShiftDown(ActionEvent event) {
-        // alt-shift-down, move selection or line under caret one line down
-    }
-
     private void cmdSlashToggleComment(ActionEvent event) {
         // cmd-fwd-slash, toggle comment on line or selection
         try {
@@ -548,8 +540,6 @@ public class QuestPanel extends JPanel {
         GTk.addAltKeyAction(KeyEvent.VK_UP, textPane, this::altUp);
         GTk.addAltKeyAction(KeyEvent.VK_LEFT, textPane, this::altLeft);
         GTk.addAltKeyAction(KeyEvent.VK_RIGHT, textPane, this::altRight);
-        GTk.addAltShiftKeyAction(KeyEvent.VK_UP, textPane, this::altShiftUp);
-        GTk.addAltShiftKeyAction(KeyEvent.VK_DOWN, textPane, this::altShiftDown);
         GTk.addAltShiftKeyAction(KeyEvent.VK_LEFT, textPane, this::altShiftLeft);
         GTk.addAltShiftKeyAction(KeyEvent.VK_RIGHT, textPane, this::altShiftRight);
     }
