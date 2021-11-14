@@ -14,12 +14,11 @@
  * Copyright (c) 2019 - 2022, Miguel Arregui a.k.a. marregui
  */
 
-package io.quest.backend;
+package io.quest.model;
 
 import java.util.Properties;
 
 import io.quest.QuestMain;
-import io.quest.common.WithKey;
 
 
 /**

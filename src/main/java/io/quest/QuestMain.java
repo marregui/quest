@@ -23,8 +23,10 @@ import java.util.Set;
 
 import javax.swing.*;
 
-import io.quest.backend.*;
-import io.quest.common.EventProducer;
+import io.quest.model.SQLExecutor;
+import io.quest.model.SQLRequest;
+import io.quest.model.SQLResponse;
+import io.quest.model.*;
 import io.quest.frontend.GTk;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -57,7 +59,7 @@ public final class QuestMain {
         frame.setIconImage(GTk.Icon.APPLICATION.icon().getImage());
         int width = frame.getWidth();
         int dividerHeight = (int) (frame.getHeight() * 0.6);
-        executor = new SQLExecutor(); // input/output
+        executor = new SQLExecutor(SQLModel.Type.COLUMNS); // input/output
         conns = new ConnsManager(frame, this::dispatchEvent); // input
         commands = new CommandBoard(this::dispatchEvent); // input
         commands.setPreferredSize(new Dimension(0, dividerHeight));

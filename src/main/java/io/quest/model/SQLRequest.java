@@ -14,11 +14,9 @@
  * Copyright (c) 2019 - 2022, Miguel Arregui a.k.a. marregui
  */
 
-package io.quest.backend;
+package io.quest.model;
 
 import java.util.UUID;
-
-import io.quest.common.WithKey;
 
 
 /**
@@ -27,7 +25,7 @@ import io.quest.common.WithKey;
  * Each request carries a SQL command and is be identified by a unique key. Upon
  * execution, the results are returned by means of one or many callbacks delivering
  * instances of {@link SQLResponse}. Responses must be seen as update messages on
- * the loading state of a single instance of {@link SQLTable}.
+ * the loading state of a single instance of {@link SQLTableR}.
  */
 public class SQLRequest implements WithKey<String> {
 

@@ -33,13 +33,13 @@ import javax.swing.event.UndoableEditEvent;
 import javax.swing.filechooser.FileFilter;
 import javax.swing.undo.UndoManager;
 
-import io.quest.backend.StoreEntry;
-import io.quest.common.EventConsumer;
-import io.quest.common.EventProducer;
+import io.quest.model.StoreEntry;
+import io.quest.EventConsumer;
+import io.quest.EventProducer;
 import io.quest.frontend.GTk;
-import io.quest.backend.Conn;
-import io.quest.backend.SQLRequest;
-import io.quest.backend.Store;
+import io.quest.model.Conn;
+import io.quest.model.SQLRequest;
+import io.quest.model.Store;
 import io.quest.frontend.NoopMouseListener;
 import io.quest.frontend.conns.ConnsManager;
 

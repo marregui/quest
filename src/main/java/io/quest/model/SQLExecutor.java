@@ -14,7 +14,7 @@
  * Copyright (c) 2019 - 2022, Miguel Arregui a.k.a. marregui
  */
 
-package io.quest.backend;
+package io.quest.model;
 
 import java.io.Closeable;
 import java.sql.ResultSet;
@@ -28,25 +28,13 @@ import java.util.concurrent.Future;
 import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.TimeUnit;
 
-import io.quest.common.EventConsumer;
-import io.quest.common.EventProducer;
+import io.quest.EventConsumer;
+import io.quest.EventProducer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-
-/**
- * Single threaded SQL statements executor. A daemon thread serialises execution
- * of SQL statements, identifying each by source id. For a given source, only one
- * SQL execution request is allowed to run at the time. Submitting a new request
- * will result in terminating an already running request, or if the request has
- * not been executed yet it will be preempted from running and the new request
- * will take its place.
- */
 public class SQLExecutor implements EventProducer<SQLExecutor.EventType>, Closeable {
 
-    /**
-     * Query execution has the following state machine:
-     */
     public enum EventType {
         /**
          * The connection is valid, execution has started.
@@ -70,19 +58,18 @@ public class SQLExecutor implements EventProducer<SQLExecutor.EventType>, Closea
         FAILURE
     }
 
-    private static final Logger LOGGER = LoggerFactory.getLogger(SQLExecutor.class);
-    static final int QUERY_EXECUTION_TIMEOUT_SECS = 60;
-    static final int MAX_BATCH_SIZE = 20_000;
+    public static final int MAX_BATCH_SIZE = 20_000;
     private static final int START_BATCH_SIZE = 100;
+    public static final int QUERY_EXECUTION_TIMEOUT_SECS = 30;
+    private static final Logger LOGGER = LoggerFactory.getLogger(SQLExecutor.class);
 
     private final ConcurrentMap<String, Future<?>> runningQueries;
     private final ConcurrentMap<String, String> cancelRequests;
+    private final SQLModel.Type model;
     private ExecutorService executor;
 
-    /**
-     * Constructor.
-     */
-    public SQLExecutor() {
+    public SQLExecutor(SQLModel.Type model) {
+        this.model = model;
         runningQueries = new ConcurrentHashMap<>();
         cancelRequests = new ConcurrentHashMap<>();
     }
@@ -125,11 +112,9 @@ public class SQLExecutor implements EventProducer<SQLExecutor.EventType>, Closea
         executor.shutdownNow();
         try {
             executor.awaitTermination(200L, TimeUnit.MILLISECONDS);
-        }
-        catch (InterruptedException e) {
+        } catch (InterruptedException e) {
             Thread.currentThread().interrupt();
-        }
-        finally {
+        } finally {
             executor = null;
             runningQueries.clear();
             cancelRequests.clear();
@@ -141,7 +126,7 @@ public class SQLExecutor implements EventProducer<SQLExecutor.EventType>, Closea
      * Submits a SQL execution request. Executions are identified by the request's
      * source id. If a request by the same source has already been submitted, it is
      * preempted from running, or cancelled if running.
-     * 
+     *
      * @param req           contains the SQL to be executed
      * @param eventConsumer receiver of responses to the request
      */
@@ -150,7 +135,7 @@ public class SQLExecutor implements EventProducer<SQLExecutor.EventType>, Closea
             throw new IllegalStateException("not started");
         }
         if (eventConsumer == null) {
-            throw new IllegalStateException("eventListener cannot be null");
+            throw new IllegalStateException("eventConsumer cannot be null");
         }
         cancelSubmittedRequest(req);
         String sourceId = req.getSourceId();
@@ -179,31 +164,37 @@ public class SQLExecutor implements EventProducer<SQLExecutor.EventType>, Closea
         String sourceId = req.getSourceId();
         Conn conn = req.getConnection();
         String query = req.getSQL();
-        SQLTable table = new SQLTable(req.getKey());
+        SQLTable<? extends SQLModel> table = model == SQLModel.Type.ROWS ?
+                new SQLTableR(req.getKey()) : new SQLTableC(req.getKey());
         if (!conn.isValid()) {
             runningQueries.remove(sourceId);
             cancelRequests.remove(sourceId);
             LOGGER.error("Failed [{}] from [{}], lost connection: {}", req.getKey(), sourceId, conn);
             RuntimeException fail = new RuntimeException(String.format("Connection [%s] is not valid", conn));
-            eventListener.onSourceEvent(SQLExecutor.this, EventType.FAILURE,
-                new SQLResponse(req, ms(System.nanoTime() - start), fail, table));
+            eventListener.onSourceEvent(
+                    SQLExecutor.this,
+                    EventType.FAILURE,
+                    new SQLResponse(req, elapsedMs(start), fail, table));
             return;
         }
         String reqKey = cancelRequests.remove(sourceId);
         if (reqKey != null && reqKey.equals(req.getKey())) {
             runningQueries.remove(sourceId);
-            long totalMs = ms(System.nanoTime() - start);
+            long totalMs = elapsedMs(start);
             LOGGER.info("Cancelled [{}] from [{}], {} ms", reqKey, sourceId, totalMs);
-            eventListener.onSourceEvent(SQLExecutor.this, EventType.CANCELLED,
-                new SQLResponse(req, totalMs, 0L, 0L, table));
-        }
-        else {
+            eventListener.onSourceEvent(
+                    SQLExecutor.this,
+                    EventType.CANCELLED,
+                    new SQLResponse(req, totalMs, 0L, 0L, table));
+        } else {
             LOGGER.info("Executing [{}] from [{}] over [{}]: {}", req.getKey(), sourceId, conn.getKey(), query);
-            eventListener.onSourceEvent(SQLExecutor.this, EventType.STARTED,
-                new SQLResponse(req, ms(System.nanoTime() - start), 0L, 0L, table));
+            eventListener.onSourceEvent(
+                    SQLExecutor.this,
+                    EventType.STARTED,
+                    new SQLResponse(req, elapsedMs(start), 0L, 0L, table));
             final long fetchStart;
             final long execMs;
-            long rowId = 0;
+            int rowIdx = 0;
             int batchSize = START_BATCH_SIZE;
             try (Statement stmt = conn.getConnection().createStatement()) {
                 stmt.setQueryTimeout(QUERY_EXECUTION_TIMEOUT_SECS); // limit query execution time
@@ -211,7 +202,7 @@ public class SQLExecutor implements EventProducer<SQLExecutor.EventType>, Closea
                 fetchStart = System.nanoTime();
                 execMs = ms(fetchStart - start);
                 if (returnsResults) {
-                    for (ResultSet rs = stmt.getResultSet(); rs.next();) {
+                    for (ResultSet rs = stmt.getResultSet(); rs.next(); ) {
                         reqKey = cancelRequests.get(sourceId);
                         if (reqKey != null && reqKey.equals(req.getKey())) {
                             break;
@@ -220,23 +211,26 @@ public class SQLExecutor implements EventProducer<SQLExecutor.EventType>, Closea
                         if (!table.hasColMetadata()) {
                             table.setColMetadata(rs);
                         }
-                        table.addRow(rowId++, rs);
-                        if (0 == rowId % batchSize) {
+                        table.addRow(rowIdx++, rs);
+                        if (0 == rowIdx % batchSize) {
                             batchSize = Math.min(batchSize * 2, MAX_BATCH_SIZE);
                             long totalMs = ms(fetchChk - start);
                             long fetchMs = ms(fetchChk - fetchStart);
-                            eventListener.onSourceEvent(SQLExecutor.this, EventType.RESULTS_AVAILABLE,
-                                new SQLResponse(req, totalMs, execMs, fetchMs, table));
+                            eventListener.onSourceEvent(
+                                    SQLExecutor.this,
+                                    EventType.RESULTS_AVAILABLE,
+                                    new SQLResponse(req, totalMs, execMs, fetchMs, table));
                         }
                     }
                 }
-            }
-            catch (SQLException fail) {
+            } catch (SQLException fail) {
                 runningQueries.remove(sourceId);
                 cancelRequests.remove(sourceId);
                 LOGGER.error("Failed [{}] from [{}]: {}", req.getKey(), sourceId, fail.getMessage());
-                eventListener.onSourceEvent(SQLExecutor.this, EventType.FAILURE,
-                    new SQLResponse(req, ms(System.nanoTime() - start), fail, table));
+                eventListener.onSourceEvent(
+                        SQLExecutor.this,
+                        EventType.FAILURE,
+                        new SQLResponse(req, elapsedMs(start), fail, table));
                 return;
             }
             runningQueries.remove(sourceId);
@@ -248,11 +242,17 @@ public class SQLExecutor implements EventProducer<SQLExecutor.EventType>, Closea
             if (reqKey != null && reqKey.equals(req.getKey())) {
                 eventType = EventType.CANCELLED;
             }
-            LOGGER.info("{} [{}] {} rows, {} ms (exec:{}, fetch:{})", eventType.name(), req.getKey(), table.size(), totalMs,
-                execMs, fetchMs);
-            eventListener.onSourceEvent(SQLExecutor.this, eventType,
-                new SQLResponse(req, totalMs, execMs, fetchMs, table));
+            LOGGER.info("{} [{}] {} rows, {} ms (exec:{}, fetch:{})",
+                    eventType.name(), req.getKey(), table.size(), totalMs, execMs, fetchMs);
+            eventListener.onSourceEvent(
+                    SQLExecutor.this,
+                    eventType,
+                    new SQLResponse(req, totalMs, execMs, fetchMs, table));
         }
+    }
+
+    private static long elapsedMs(long start) {
+        return ms(System.nanoTime() - start);
     }
 
     private static long ms(long nanos) {

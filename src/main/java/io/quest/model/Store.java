@@ -14,7 +14,7 @@
  * Copyright (c) 2019 - 2022, Miguel Arregui a.k.a. marregui
  */
 
-package io.quest.backend;
+package io.quest.model;
 
 import java.io.BufferedReader;
 import java.io.Closeable;

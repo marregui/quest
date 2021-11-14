@@ -14,7 +14,7 @@
  * Copyright (c) 2019 - 2022, Miguel Arregui a.k.a. marregui
  */
 
-package io.quest.backend;
+package io.quest.model;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.is;
@@ -33,7 +33,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 
-public class SQLTableTest {
+public class SQLTableRTest {
     private static final String[] colNames = {"Status", "Source", "Uptime"};
     private static final int[] colTypes = {Types.VARCHAR, Types.VARCHAR, Types.INTEGER};
     private static final Object[] colValues = {"OK", "Entropy generator", 42};
@@ -72,36 +72,37 @@ public class SQLTableTest {
 
     @Test
     public void test_empty_table_no_key() {
-        SQLTable table = new SQLTable(null);
-        assertThat(table.getKey(), nullValue());
-        assertThat(table.getColNames(), nullValue());
-        assertThat(table.getColTypes(), nullValue());
-        assertThat(table.size(), is(0));
-        table.clear();
+        try (SQLTableR table = new SQLTableR(null)) {
+            assertThat(table.getKey(), nullValue());
+            assertThat(table.getColNames(), nullValue());
+            assertThat(table.getColTypes(), nullValue());
+            assertThat(table.size(), is(0));
+        }
     }
 
     @Test
     public void test_extractColumnMetadata() throws SQLException {
-        SQLTable table = new SQLTable(null);
-        table.setColMetadata(rs);
-        assertThat(table.getColNames(), is(expectedColNames));
-        assertThat(table.getColTypes(), is(expectedColTypes));
-        assertThat(table.size(), is(0));
-        table.clear();
-        assertThat(table.getColNames(), nullValue());
-        assertThat(table.getColTypes(), nullValue());
+        try (SQLTableR table = new SQLTableR(null)) {
+            table.setColMetadata(rs);
+            assertThat(table.getColNames(), is(expectedColNames));
+            assertThat(table.getColTypes(), is(expectedColTypes));
+            assertThat(table.size(), is(0));
+            table.close();
+            assertThat(table.getColNames(), nullValue());
+            assertThat(table.getColTypes(), nullValue());
+        }
     }
 
     @Test
     public void test_addRow() throws SQLException {
-        long rowKey = 0L;
-        SQLTable table = new SQLTable(null);
-        table.setColMetadata(rs);
-        table.addRow(rowKey, rs);
-        assertThat(table.getColNames(), is(expectedColNames));
-        assertThat(table.getColTypes(), is(expectedColTypes));
-        assertThat(table.size(), is(1));
-        assertThat(table.getRow(0), Matchers.is(new SQLRow(null, rowKey, expectedColValues)));
-        table.clear();
+        int rowKey = 0;
+        try (SQLTableR table = new SQLTableR(null)) {
+            table.setColMetadata(rs);
+            table.addRow(rowKey, rs);
+            assertThat(table.getColNames(), is(expectedColNames));
+            assertThat(table.getColTypes(), is(expectedColTypes));
+            assertThat(table.size(), is(1));
+            assertThat(table.getRow(0), Matchers.is(new SQLRow(rowKey, expectedColValues)));
+        }
     }
 }

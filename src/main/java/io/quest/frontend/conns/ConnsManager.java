@@ -39,12 +39,12 @@ import javax.swing.WindowConstants;
 import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.TableModelEvent;
 
-import io.quest.common.EventConsumer;
-import io.quest.common.EventProducer;
+import io.quest.EventConsumer;
+import io.quest.EventProducer;
 import io.quest.frontend.GTk;
-import io.quest.backend.Conn;
-import io.quest.backend.ConnsChecker;
-import io.quest.backend.Store;
+import io.quest.model.Conn;
+import io.quest.model.ConnsChecker;
+import io.quest.model.Store;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

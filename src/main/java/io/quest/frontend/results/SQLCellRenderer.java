@@ -23,16 +23,17 @@ import java.util.function.Supplier;
 import javax.swing.JTable;
 
 import io.quest.frontend.GTk;
-import io.quest.backend.SQLTable;
+import io.quest.model.SQLModel;
+import io.quest.model.SQLTable;
 import io.quest.frontend.CellRenderer;
 
 
 class SQLCellRenderer extends CellRenderer {
     private static final long serialVersionUID = 1L;
 
-    private final Supplier<SQLTable> tableSupplier;
+    private final Supplier<SQLTable<? extends SQLModel>> tableSupplier;
 
-    SQLCellRenderer(Supplier<SQLTable> tableSupplier) {
+    SQLCellRenderer(Supplier<SQLTable<? extends SQLModel>> tableSupplier) {
         super(GTk.TABLE_CELL_FONT, Color.BLACK, Color.BLACK);
         this.tableSupplier = tableSupplier;
     }
@@ -46,7 +47,7 @@ class SQLCellRenderer extends CellRenderer {
                                                    int colIdx
     ) {
         super.getTableCellRendererComponent(table, value, isSelected, hasFocus, rowIdx, colIdx);
-        SQLTable sqlTable = tableSupplier.get();
+        SQLTable<? extends SQLModel> sqlTable = tableSupplier.get();
         if (sqlTable != null && !isSelected && rowIdx >= 0 && rowIdx < table.getModel().getRowCount()) {
             if (colIdx >= 0) {
                 int[] columnTypes = sqlTable.getColTypes();
