@@ -26,20 +26,16 @@ import java.util.ArrayList;
 import java.util.Map;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
-import java.util.regex.Pattern;
 
 import javax.swing.*;
 import javax.swing.event.UndoableEditEvent;
 import javax.swing.filechooser.FileFilter;
 import javax.swing.undo.UndoManager;
 
-import io.quest.model.StoreEntry;
+import io.quest.model.*;
 import io.quest.EventConsumer;
 import io.quest.EventProducer;
 import io.quest.frontend.GTk;
-import io.quest.model.Conn;
-import io.quest.model.SQLRequest;
-import io.quest.model.Store;
 import io.quest.frontend.NoopMouseListener;
 import io.quest.frontend.conns.ConnsManager;
 
@@ -96,11 +92,8 @@ public class CommandBoard extends QuestPanel implements EventProducer<CommandBoa
     private static final Font HEADER_FONT = new Font(GTk.MAIN_FONT_NAME, Font.BOLD, 16);
     private static final Font HEADER_UNDERLINE_FONT = HEADER_FONT.deriveFont(Map.of(
             TextAttribute.UNDERLINE, TextAttribute.UNDERLINE_ON));
-    private static final Font FIND_FONT = new Font(GTk.MAIN_FONT_NAME, Font.BOLD, 14);
-    private static final Color FIND_FONT_COLOR = new Color(58, 138, 138);
     private static final Cursor HAND_CURSOR = new Cursor(Cursor.HAND_CURSOR);
     private static final String STORE_FILE_NAME = "default-notebook.json";
-    private static final Pattern SPECIAL_REGEX_CHARS = Pattern.compile("[{}()\\[\\].+*?^$\\\\|]");
     private final EventConsumer<CommandBoard, SQLRequest> eventConsumer;
     private final JComboBox<String> boardEntryNames;
     private final List<UndoManager> undoManagers; // same order as boardEntries' model
@@ -109,12 +102,8 @@ public class CommandBoard extends QuestPanel implements EventProducer<CommandBoa
     private final JButton cancelButton;
     private final JLabel questLabel;
     private final JLabel connLabel;
+    private final FindReplacePanel findPanel;
     private JMenu commandBoardMenu;
-    private JPanel findPanel;
-    private JCheckBox findTextIsRegex;
-    private JTextField findText;
-    private JTextField replaceWithText;
-    private JLabel findMatchesLabel;
     private Store<Content> store;
     private Conn conn; // uses it when set
     private SQLRequest lastRequest;
@@ -149,7 +138,16 @@ public class CommandBoard extends QuestPanel implements EventProducer<CommandBoa
                         cancelButton = GTk.button(
                                 "Cancel", false, GTk.Icon.COMMAND_EXEC_CANCEL,
                                 "Cancel current execution", this::fireCancelEvent)));
-        setupFindReplacePanel();
+        findPanel = new FindReplacePanel((source, event, eventData) -> {
+            switch ((FindReplacePanel.EventType) EventProducer.eventType(event)) {
+                case FIND:
+                    onFind();
+                    break;
+                case REPLACE:
+                    onReplace();
+                    break;
+            }
+        });
         JPanel controlsPanel = new JPanel(new BorderLayout(0, 0));
         controlsPanel.add(
                 connLabel = createLabel(e -> eventConsumer.onSourceEvent(
@@ -186,14 +184,6 @@ public class CommandBoard extends QuestPanel implements EventProducer<CommandBoa
         fireCommandEvent(this::getCurrentLine);
     }
 
-    public void onFind(ActionEvent event) {
-        onFindReplace(() -> highlightContent(findText.getText()));
-    }
-
-    public void onReplace(ActionEvent event) {
-        onFindReplace(() -> replaceContent(findText.getText(), replaceWithText.getText()));
-    }
-
     public void fireCancelEvent(ActionEvent event) {
         if (conn == null || !conn.isOpen()) {
             JOptionPane.showMessageDialog(this, "Not connected");
@@ -203,6 +193,14 @@ public class CommandBoard extends QuestPanel implements EventProducer<CommandBoa
             eventConsumer.onSourceEvent(this, EventType.COMMAND_CANCEL, lastRequest);
             lastRequest = null;
         }
+    }
+
+    public void onFind() {
+        onFindReplace(() -> highlightContent(findPanel.getFind()));
+    }
+
+    public void onReplace() {
+        onFindReplace(() -> replaceContent(findPanel.getFind(), findPanel.getReplace()));
     }
 
     @Override
@@ -249,17 +247,9 @@ public class CommandBoard extends QuestPanel implements EventProducer<CommandBoa
         if (!findPanel.isVisible()) {
             findPanel.setVisible(true);
         } else {
-            int matches = matchesCountSupplier.get();
-            findMatchesLabel.setText(String.format(
-                    "%4d %s",
-                    matches,
-                    matches == 1 ? "match" : "matches"));
+            findPanel.updateMatches(matchesCountSupplier.get());
         }
-        findText.requestFocusInWindow();
-    }
-
-    private void onCloseFindReplaceView(ActionEvent event) {
-        findPanel.setVisible(false);
+        findPanel.requestFocusInWindow();
     }
 
     private void onChangeBoard(ActionEvent event) {
@@ -473,115 +463,6 @@ public class CommandBoard extends QuestPanel implements EventProducer<CommandBoa
         execLineButton.setEnabled(hasText);
         execButton.setEnabled(hasText);
         cancelButton.setEnabled(true);
-    }
-
-    private void setupFindReplacePanel() {
-        JLabel findLabel = new JLabel("Find");
-        findLabel.setFont(HEADER_FONT);
-        findLabel.setForeground(GTk.TABLE_HEADER_FONT_COLOR);
-        findText = new JTextField(30) {
-            @Override
-            public String getText() {
-                String txt = super.getText();
-                if (txt != null && !findTextIsRegex.isSelected()) {
-                    txt = SPECIAL_REGEX_CHARS.matcher(txt).replaceAll("\\\\$0");
-                }
-                return txt;
-            }
-        };
-        setupSearchTextField(findText, this::onFind);
-        findTextIsRegex = new JCheckBox(
-                "regex?",
-                false);
-        JLabel replaceWithLabel = new JLabel("replace with");
-        replaceWithLabel.setFont(HEADER_FONT);
-        replaceWithLabel.setForeground(GTk.TABLE_HEADER_FONT_COLOR);
-        replaceWithText = new JTextField(25);
-        setupSearchTextField(replaceWithText, this::onReplace);
-        findMatchesLabel = new JLabel("  0 matches");
-        findMatchesLabel.setFont(HEADER_FONT);
-        findMatchesLabel.setForeground(GTk.TABLE_HEADER_FONT_COLOR);
-        findPanel = GTk.flowPanel(
-                BorderFactory.createDashedBorder(LINENO_COLOR),
-                5, 4,
-                findLabel,
-                findText,
-                findTextIsRegex,
-                replaceWithLabel,
-                replaceWithText,
-                GTk.horizontalSpace(4),
-                findMatchesLabel,
-                GTk.horizontalSpace(4),
-                GTk.button(
-                        "Find",
-                        GTk.Icon.COMMAND_FIND,
-                        "Find matching text in command board",
-                        this::onFind),
-                GTk.button(
-                        "Replace",
-                        GTk.Icon.COMMAND_REPLACE,
-                        "Replace the matching text in selected area",
-                        this::onReplace),
-                GTk.button(
-                        "X",
-                        GTk.Icon.NO_ICON,
-                        "Close find/replace view",
-                        this::onCloseFindReplaceView));
-        findPanel.setVisible(false);
-    }
-
-    private void setupSearchTextField(JTextField field, ActionListener listener) {
-        field.setFont(FIND_FONT);
-        field.setForeground(FIND_FONT_COLOR);
-        // cmd-a, select the full content
-        GTk.addCmdKeyAction(KeyEvent.VK_A, field, e -> field.selectAll());
-        // cmd-c, copy to clipboard, selection or current line
-        GTk.addCmdKeyAction(KeyEvent.VK_C, field, e -> {
-            String selected = field.getSelectedText();
-            if (selected == null) {
-                selected = field.getText();
-            }
-            if (!selected.equals(EMPTY_STR)) {
-                GTk.setClipboardContent(selected);
-            }
-        });
-        // cmd-v, paste content of clipboard into selection or caret position
-        final StringBuilder sb = new StringBuilder();
-        GTk.addCmdKeyAction(KeyEvent.VK_V, field, e -> {
-            try {
-                String data = GTk.getClipboardContent();
-                if (data != null && !data.isEmpty()) {
-                    int start = field.getSelectionStart();
-                    int end = field.getSelectionEnd();
-                    String text = field.getText();
-                    sb.setLength(0);
-                    sb.append(text, 0, start);
-                    sb.append(data);
-                    sb.append(text, end, text.length());
-                    field.setText(sb.toString());
-                }
-            } catch (Exception fail) {
-                // do nothing
-            }
-        });
-        // cmd-left, jump to the beginning of the line
-        GTk.addCmdKeyAction(KeyEvent.VK_LEFT, field,
-                e -> field.setCaretPosition(0));
-        // cmd-right, jump to the end of the line
-        GTk.addCmdKeyAction(KeyEvent.VK_RIGHT, field,
-                e -> field.setCaretPosition(field.getText().length()));
-        field.addKeyListener(new KeyAdapter() {
-            @Override
-            public void keyReleased(KeyEvent e) {
-                if (e.getKeyCode() == KeyEvent.VK_ENTER) {
-                    listener.actionPerformed(null);
-                } else if (e.getKeyCode() == KeyEvent.VK_TAB) {
-                    replaceWithText.requestFocusInWindow();
-                } else {
-                    super.keyReleased(e);
-                }
-            }
-        });
     }
 
     private void setupBoardMenu() {
