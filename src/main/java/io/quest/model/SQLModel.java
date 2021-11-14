@@ -33,7 +33,7 @@ public abstract class SQLModel implements WithKey<Integer> {
 
     @Override
     public int hashCode() {
-        return Long.hashCode(key) + Arrays.hashCode(values);
+        return Integer.hashCode(key);
     }
 
     @Override
@@ -45,6 +45,6 @@ public abstract class SQLModel implements WithKey<Integer> {
             return false;
         }
         SQLModel that = (SQLModel) o;
-        return key == that.key && Arrays.equals(values, that.values);
+        return key == that.key;
     }
 }
