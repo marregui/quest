@@ -5,10 +5,8 @@ import java.util.Objects;
 
 public abstract class SQLModel implements WithKey<Integer> {
 
-    public enum Type {
-        COLUMNS,
-        ROWS
-    }
+    public enum Type {COLUMNS, ROWS}
+
 
     protected final int key;
     protected Object[] values;

@@ -86,7 +86,7 @@ public abstract class SQLTable<T extends SQLModel> implements WithKey<String>, C
 
     /**
      * Sets the column metadata (names and types) as defined by the result-set's
-     * metadata, and clears the table's rows. It does not change the table's key.
+     * metadata, and clears the table's model. It does not change the table's key.
      * <p>
      * This call needs to happen before {@link SQLTable#addRow(int, ResultSet)}
      * can be called.

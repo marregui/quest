@@ -17,6 +17,8 @@ public class SQLCol extends SQLModel {
         SQLCol col = COLS.get(colIdx);
         if (col == null) {
             COLS.put(colIdx, col = new SQLCol(colIdx));
+        } else {
+            col.reset();
         }
         BUSY_COLS.add(colIdx);
         return col;
@@ -24,7 +26,7 @@ public class SQLCol extends SQLModel {
 
     public static synchronized void checkOut(int colIdx) {
         if (!BUSY_COLS.remove(colIdx)) {
-            throw new RuntimeException(String.format("colIdx %d is not busy", colIdx));
+            throw new RuntimeException(String.format("colIdx %d was not busy", colIdx));
         }
     }
 
@@ -50,10 +52,14 @@ public class SQLCol extends SQLModel {
         return lastRowIdx;
     }
 
+    private void reset() {
+        super.clear();
+        lastRowIdx = 0;
+    }
+
     @Override
     public void clear() {
-        lastRowIdx = 0;
-        super.clear();
+        reset();
         checkOut(key);
     }
 }
