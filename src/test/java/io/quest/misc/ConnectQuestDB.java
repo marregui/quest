@@ -28,8 +28,7 @@ public class ConnectQuestDB {
     public static void main(String... args) throws Exception {
         try (Conn conn = new Conn("questdb")) {
             Connection connection = conn.open();
-            connection.prepareStatement("DROP TABLE testing;").execute();
-            connection.prepareStatement("CREATE TABLE testing(test TIMESTAMP) TIMESTAMP(test);").execute();
+            connection.prepareStatement("CREATE TABLE IF NOT EXISTS testing(test TIMESTAMP) TIMESTAMP(test);").execute();
             // Insert timestamp
             Timestamp timestamp = Timestamp.valueOf("2021-09-11 07:29:59.306");
             System.out.printf("Insert: %s%n", timestamp);

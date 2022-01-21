@@ -16,7 +16,7 @@
 
 package io.quest.frontend;
 
-import io.quest.model.SQLTableR;
+import io.quest.model.SQLTable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -148,7 +148,7 @@ public final class GTk {
                 rowIdx = selectedRows[r];
                 for (int c = 0; c < selectedCols.length; c++) {
                     colIdx = selectedCols[c];
-                    if (!table.getColumnName(colIdx).equals(SQLTableR.ROWID_COL_NAME)) {
+                    if (!table.getColumnName(colIdx).equals(SQLTable.ROWID_COL_NAME)) {
                         String value = table.getValueAt(rowIdx, colIdx).toString();
                         int len = value.length();
                         sb.append(value);

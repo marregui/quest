@@ -22,17 +22,17 @@ package io.quest.model;
  * <p>
  * Each request carries a SQL query. When it is executed, the progress is progressively
  * notified to the listener by means of instances of this class. Responses contain a
- * reference to a unique instance of {@link SQLTableR}.
+ * reference to a unique instance of {@link SQLTable}.
  */
 public class SQLResponse extends SQLRequest {
 
-    private final SQLTable<? extends SQLModel> table;
+    private final SQLTable table;
     private final long totalMs;
     private final long executionMs;
     private final long fetchMs;
     private final Throwable error;
 
-    SQLResponse(SQLRequest request, long totalMs, long execMs, long fetchMs, SQLTable<? extends SQLModel> table) {
+    SQLResponse(SQLRequest request, long totalMs, long execMs, long fetchMs, SQLTable table) {
         super(request);
         this.table = table;
         this.error = null;
@@ -41,7 +41,7 @@ public class SQLResponse extends SQLRequest {
         this.fetchMs = fetchMs;
     }
 
-    SQLResponse(SQLRequest request, long totalMs, Throwable error, SQLTable<? extends SQLModel> table) {
+    SQLResponse(SQLRequest request, long totalMs, Throwable error, SQLTable table) {
         super(request);
         this.totalMs = totalMs;
         this.error = error;
@@ -53,7 +53,7 @@ public class SQLResponse extends SQLRequest {
     /**
      * @return the results table
      */
-    public SQLTable<? extends SQLModel> getTable() {
+    public SQLTable getTable() {
         return table;
     }
 

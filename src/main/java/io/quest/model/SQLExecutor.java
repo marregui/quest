@@ -65,11 +65,9 @@ public class SQLExecutor implements EventProducer<SQLExecutor.EventType>, Closea
 
     private final ConcurrentMap<String, Future<?>> runningQueries;
     private final ConcurrentMap<String, String> cancelRequests;
-    private final SQLModel.Type model;
     private ExecutorService executor;
 
-    public SQLExecutor(SQLModel.Type model) {
-        this.model = model;
+    public SQLExecutor() {
         runningQueries = new ConcurrentHashMap<>();
         cancelRequests = new ConcurrentHashMap<>();
     }
@@ -164,8 +162,7 @@ public class SQLExecutor implements EventProducer<SQLExecutor.EventType>, Closea
         String sourceId = req.getSourceId();
         Conn conn = req.getConnection();
         String query = req.getSQL();
-        SQLTable<? extends SQLModel> table = model == SQLModel.Type.ROWS ?
-                new SQLTableR(req.getKey()) : new SQLTableC(req.getKey());
+        SQLTable table = new SQLTable(req.getKey());
         if (!conn.isValid()) {
             runningQueries.remove(sourceId);
             cancelRequests.remove(sourceId);

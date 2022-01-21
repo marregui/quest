@@ -59,7 +59,7 @@ public final class QuestMain {
         frame.setIconImage(GTk.Icon.APPLICATION.icon().getImage());
         int width = frame.getWidth();
         int dividerHeight = (int) (frame.getHeight() * 0.6);
-        executor = new SQLExecutor(SQLModel.Type.ROWS); // input/output
+        executor = new SQLExecutor(); // input/output
         conns = new ConnsManager(frame, this::dispatchEvent); // input
         commands = new CommandBoard(this::dispatchEvent); // input
         commands.setPreferredSize(new Dimension(0, dividerHeight));

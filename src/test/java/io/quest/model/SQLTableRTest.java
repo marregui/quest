@@ -72,7 +72,7 @@ public class SQLTableRTest {
 
     @Test
     public void test_empty_table_no_key() {
-        try (SQLTableR table = new SQLTableR(null)) {
+        try (SQLTable table = new SQLTable(null)) {
             assertThat(table.getKey(), nullValue());
             assertThat(table.getColNames(), nullValue());
             assertThat(table.getColTypes(), nullValue());
@@ -82,7 +82,7 @@ public class SQLTableRTest {
 
     @Test
     public void test_extractColumnMetadata() throws SQLException {
-        try (SQLTableR table = new SQLTableR(null)) {
+        try (SQLTable table = new SQLTable(null)) {
             table.setColMetadata(rs);
             assertThat(table.getColNames(), is(expectedColNames));
             assertThat(table.getColTypes(), is(expectedColTypes));
@@ -96,7 +96,7 @@ public class SQLTableRTest {
     @Test
     public void test_addRow() throws SQLException {
         int rowKey = 0;
-        try (SQLTableR table = new SQLTableR(null)) {
+        try (SQLTable table = new SQLTable(null)) {
             table.setColMetadata(rs);
             table.addRow(rowKey, rs);
             assertThat(table.getColNames(), is(expectedColNames));

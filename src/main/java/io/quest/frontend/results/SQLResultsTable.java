@@ -38,7 +38,6 @@ import javax.swing.table.TableColumn;
 import javax.swing.table.TableColumnModel;
 
 import io.quest.frontend.GTk;
-import io.quest.model.SQLModel;
 import io.quest.model.SQLResponse;
 import io.quest.model.SQLTable;
 import io.quest.frontend.InfiniteSpinnerPanel;
@@ -58,7 +57,7 @@ public class SQLResultsTable extends JPanel implements Closeable {
     private final JTable table;
     private final JScrollPane tableScrollPanel;
     private final PagedSQLTableModel tableModel;
-    private final AtomicReference<SQLTable<? extends SQLModel>> results;
+    private final AtomicReference<SQLTable> results;
     private final QuestPanel questPanel;
     private final JLabel rowRangeLabel;
     private final JLabel statsLabel;
@@ -148,7 +147,7 @@ public class SQLResultsTable extends JPanel implements Closeable {
     }
 
     public void onRowsAdded(SQLResponse res) {
-        SQLTable<? extends SQLModel> table = res.getTable();
+        SQLTable table = res.getTable();
         if (results.compareAndSet(null, table)) {
             resetTableHeader();
         } else if (table.size() > 0) {
@@ -171,7 +170,7 @@ public class SQLResultsTable extends JPanel implements Closeable {
 
     @Override
     public void close() {
-        SQLTable<? extends SQLModel> table = results.getAndSet(null);
+        SQLTable table = results.getAndSet(null);
         if (table != null) {
             table.close();
         }
@@ -225,7 +224,7 @@ public class SQLResultsTable extends JPanel implements Closeable {
         header.setForeground(Color.WHITE);
         header.setBackground(Color.BLACK);
         header.setPreferredSize(new Dimension(0, TABLE_HEADER_HEIGHT));
-        SQLTable<? extends SQLModel> t = results.get();
+        SQLTable t = results.get();
         TableColumnModel tcm = table.getColumnModel();
         int numCols = tcm.getColumnCount();
         int tableWidth = 0;

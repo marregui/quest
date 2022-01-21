@@ -1,19 +1,51 @@
 package io.quest.model;
 
+import java.util.Arrays;
+import java.util.Objects;
 import java.util.concurrent.atomic.AtomicReference;
 
-public class SQLRow extends SQLModel {
+public class SQLRow implements WithKey<Integer> {
+
+    private final int key;
+    private Object[] values;
     private final AtomicReference<String> toString;
 
     public SQLRow(int key, Object[] values) {
-        super(key, values);
+        this.key = key;
+        this.values = Objects.requireNonNull(values);
         this.toString = new AtomicReference<>();
     }
 
     @Override
+    public Integer getKey() {
+        return key;
+    }
+
+    public Object getValueAt(int idx) {
+        return values[idx];
+    }
+
     public void clear() {
-        super.clear();
+        Arrays.fill(values, null);
         toString.set(null);
+    }
+
+
+    @Override
+    public int hashCode() {
+        return Integer.hashCode(key);
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) {
+            return true;
+        }
+        if (!(o instanceof SQLRow)) {
+            return false;
+        }
+        SQLRow that = (SQLRow) o;
+        return key == that.key;
     }
 
     @Override

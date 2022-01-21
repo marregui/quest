@@ -19,7 +19,6 @@ package io.quest.frontend.results;
 import java.awt.Color;
 import java.sql.Types;
 
-import io.quest.model.SQLModel;
 import io.quest.model.SQLTable;
 import io.quest.frontend.GTk;
 
@@ -108,7 +107,7 @@ final class SQLType {
         return type;
     }
 
-    static int resolveColWidth(SQLTable<? extends SQLModel> table, int colIdx) {
+    static int resolveColWidth(SQLTable table, int colIdx) {
         int sqlType = table.getColTypes()[colIdx];
         final int width;
         switch (sqlType) {
