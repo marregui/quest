@@ -18,8 +18,8 @@ from datetime import datetime as dt
 
 import pytz
 
-TIMESTAMP_FORMAT = '%Y-%m-%d %H:%M:%S.%f'
-DATE_FORMAT_DAY = '%Y-%m-%d'
+TIMESTAMP_FORMAT = "%Y-%m-%d %H:%M:%S.%f"
+DATE_FORMAT_DAY = "%Y-%m-%d"
 
 
 def to_date(date_value: str) -> int:
@@ -36,5 +36,7 @@ def to_timestamp(timestamp_value: str, timestamp_format: str = TIMESTAMP_FORMAT)
     return int(timestamp.timestamp() * 1e6)
 
 
-def from_timestamp(timestamp_micros: int, timestamp_format: str = TIMESTAMP_FORMAT) -> str:
+def from_timestamp(
+    timestamp_micros: int, timestamp_format: str = TIMESTAMP_FORMAT
+) -> str:
     return dt.fromtimestamp(timestamp_micros / 1e6, pytz.utc).strftime(timestamp_format)

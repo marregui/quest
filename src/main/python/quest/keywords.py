@@ -18,27 +18,42 @@
 import psycopg2
 
 CONN_ATTRS = {
-    'user': 'admin',
-    'password': 'quest',
-    'host': '127.0.0.1',
-    'port': '8812',
-    'database': 'qdb'
+    "user": "admin",
+    "password": "quest",
+    "host": "127.0.0.1",
+    "port": "8812",
+    "database": "qdb",
 }
 
 TYPE_KEYWORDS = {
-    'boolean', 'byte', 'short', 'char',
-    'int', 'long', 'date', 'timestamp',
-    'float', 'double', 'string', 'symbol',
-    'long256', 'geohash', 'binary', 'null',
-    'index', 'capacity', 'cache', 'nocache'
+    "boolean",
+    "byte",
+    "short",
+    "char",
+    "int",
+    "long",
+    "date",
+    "timestamp",
+    "float",
+    "double",
+    "string",
+    "symbol",
+    "long256",
+    "geohash",
+    "binary",
+    "null",
+    "index",
+    "capacity",
+    "cache",
+    "nocache",
 }
 
 
 def format_as_java_regex_pattern(keywords):
     indent = 0
-    pattern = ''
+    pattern = ""
     for kw in keywords:
-        pattern += f'\\\\b{kw}\\\\b|'
+        pattern += f"\\\\b{kw}\\\\b|"
         indent += len(kw) + 9  # 2x quote + 2x \\b + 1x pipe
         if indent > 75:
             pattern += '"\n + "'
@@ -46,13 +61,13 @@ def format_as_java_regex_pattern(keywords):
     return f'"{pattern[:-1]}"'
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     with psycopg2.connect(**CONN_ATTRS) as conn:
         with conn.cursor() as stmt_cursor:
-            stmt_cursor.execute(f'pg_catalog.pg_get_keywords();')
+            stmt_cursor.execute("pg_catalog.pg_get_keywords();")
             print(format_as_java_regex_pattern(TYPE_KEYWORDS))
             print("=" * 100)
-            keywords = ['questdb']
+            keywords = ["questdb"]
             for row in stmt_cursor.fetchall():
                 kw = row[0].lower()
                 if kw not in TYPE_KEYWORDS:

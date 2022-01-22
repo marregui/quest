@@ -16,19 +16,14 @@
 
 import unittest
 
-from quest import (
-    to_timestamp,
-    from_timestamp,
-    to_date,
-    from_date
-)
+from quest.ts import from_date, from_timestamp, to_date, to_timestamp
 
 
-class TimestampTest(unittest.TestCase):
-    def test_timestamp(self):
-        timestamp_value = to_timestamp('2021-10-01 09:38:42.123456')
-        self.assertEqual('2021-10-01 09:38:42.123456', from_timestamp(timestamp_value))
+def test_timestamp():
+    timestamp_value = to_timestamp("2021-10-01 09:38:42.123456")
+    assert "2021-10-01 09:38:42.123456" == from_timestamp(timestamp_value)
 
-    def test_date(self):
-        date_value = to_date('2021-10-01')
-        self.assertEqual('2021-10-01', from_date(date_value))
+
+def test_date():
+    date_value = to_date("2021-10-01")
+    assert "2021-10-01" == from_date(date_value)

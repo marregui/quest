@@ -13,10 +13,3 @@
 #
 # Copyright (c) 2019 - 2022, Miguel Arregui a.k.a. marregui
 #
-
-from quest.ts import (
-    to_timestamp,
-    from_timestamp,
-    to_date,
-    from_date
-)
