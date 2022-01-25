@@ -26,7 +26,7 @@ import io.quest.QuestMain;
  */
 public class ConnAttrs extends StoreEntry {
 
-    private static final String JDBC_DRIVER_URL_FORMAT = "jdbc:postgresql://%s:%s/";
+    private static final String JDBC_DRIVER_URL_FORMAT = "jdbc:postgresql://%s:%s/postgres";
 
     /**
      * Attribute names.
