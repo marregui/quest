@@ -166,7 +166,7 @@ public class ConnAttrs extends StoreEntry {
         // For more information see Chapter 4, Using SSL. Setting up the
         // certificates and keys for ssl connection can be tricky see The test
         // documentation for detailed examples.
-        props.put("ssl", false);
+        props.put("ssl", true);
 
         // possible values include disable, allow, prefer, require, verify-ca
         // and verify-full . require, allow and prefer all default to a non
@@ -177,7 +177,7 @@ public class ConnAttrs extends StoreEntry {
         // the certificate. Default is prefer
         // Setting these will necessitate storing the server certificate on the
         // client machine see "Configuring the client" for details.
-        props.setProperty("sslmode", "disable");
+        props.setProperty("sslmode", "prefer");
 
         // Sets SO_RCVBUF on the connection stream
         props.put("receiveBufferSize", 1024 * 1024);
