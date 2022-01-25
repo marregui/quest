@@ -10,4 +10,7 @@ __pycache__/
 *.ipr
 *.txt
 .quest
+test-report.xml
+src/main/java/io/quest/infux/
+src/test/java/io/quest/influx/
 src/main/resources/images/candicates
