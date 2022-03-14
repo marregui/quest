@@ -31,7 +31,7 @@ import io.quest.frontend.GTk;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import io.quest.frontend.commands.CommandBoard;
+import io.quest.frontend.commands.QuestBoard;
 import io.quest.frontend.conns.ConnsManager;
 import io.quest.frontend.results.SQLResultsTable;
 
@@ -47,7 +47,7 @@ public final class QuestMain {
 
     private final ConnsManager conns;
     private final SQLExecutor executor;
-    private final CommandBoard commands;
+    private final QuestBoard commands;
     private final SQLResultsTable results;
     private final JMenuItem toggleConnsWidget;
     private final JMenuItem toggleConn;
@@ -61,7 +61,7 @@ public final class QuestMain {
         int dividerHeight = (int) (frame.getHeight() * 0.6);
         executor = new SQLExecutor(); // input/output
         conns = new ConnsManager(frame, this::dispatchEvent); // input
-        commands = new CommandBoard(this::dispatchEvent); // input
+        commands = new QuestBoard(this::dispatchEvent); // input
         commands.setPreferredSize(new Dimension(0, dividerHeight));
         results = new SQLResultsTable(width, dividerHeight); // output
         JSplitPane splitPane = new JSplitPane(JSplitPane.VERTICAL_SPLIT, false, commands, results);
@@ -101,7 +101,7 @@ public final class QuestMain {
         JMenu commandsMenu = new JMenu("Commands");
         commandsMenu.setFont(GTk.MENU_FONT);
         commandsMenu.setIcon(GTk.Icon.COMMANDS.icon());
-        JMenu commandBoardMenu = commands.getCommandBoardMenu();
+        JMenu commandBoardMenu = commands.getQuestsMenu();
         commandBoardMenu.setText("uest");
         commandBoardMenu.setIcon(GTk.Icon.COMMAND_QUEST.icon());
         commandsMenu.add(commandBoardMenu);
@@ -196,7 +196,7 @@ public final class QuestMain {
     }
 
     private void dispatchEvent(EventProducer<?> source, Enum<?> event, Object data) {
-        if (source instanceof CommandBoard) {
+        if (source instanceof QuestBoard) {
             onCommandBoardEvent(EventProducer.eventType(event), (SQLRequest) data);
         } else if (source instanceof SQLExecutor) {
             onSQLExecutorEvent(EventProducer.eventType(event), (SQLResponse) data);
@@ -205,7 +205,7 @@ public final class QuestMain {
         }
     }
 
-    private void onCommandBoardEvent(CommandBoard.EventType event, SQLRequest req) {
+    private void onCommandBoardEvent(QuestBoard.EventType event, SQLRequest req) {
         switch (event) {
             case COMMAND_AVAILABLE:
                 Conn conn = commands.getConnection();
@@ -218,6 +218,7 @@ public final class QuestMain {
 
             case COMMAND_CANCEL:
                 executor.cancelSubmittedRequest(req);
+                onToggleConn(null);
                 break;
 
             case CONNECTION_STATUS_CLICKED:

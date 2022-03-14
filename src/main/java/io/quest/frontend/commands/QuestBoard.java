@@ -40,7 +40,7 @@ import io.quest.frontend.NoopMouseListener;
 import io.quest.frontend.conns.ConnsManager;
 
 
-public class CommandBoard extends QuestPanel implements EventProducer<CommandBoard.EventType>, Closeable {
+public class QuestBoard extends QuestPanel implements EventProducer<QuestBoard.EventType>, Closeable {
 
     public enum EventType {
         /**
@@ -94,39 +94,39 @@ public class CommandBoard extends QuestPanel implements EventProducer<CommandBoa
             TextAttribute.UNDERLINE, TextAttribute.UNDERLINE_ON));
     private static final Cursor HAND_CURSOR = new Cursor(Cursor.HAND_CURSOR);
     private static final String STORE_FILE_NAME = "default-notebook.json";
-    private final EventConsumer<CommandBoard, SQLRequest> eventConsumer;
-    private final JComboBox<String> boardEntryNames;
-    private final List<UndoManager> undoManagers; // same order as boardEntries' model
+    private final EventConsumer<QuestBoard, SQLRequest> eventConsumer;
+    private final JComboBox<String> questEntryNames;
+    private final List<UndoManager> undoManagers;
     private final JButton execButton;
     private final JButton execLineButton;
     private final JButton cancelButton;
     private final JLabel questLabel;
     private final JLabel connLabel;
     private final FindReplacePanel findPanel;
-    private JMenu commandBoardMenu;
+    private JMenu questsMenu;
     private Store<Content> store;
     private Conn conn; // uses it when set
     private SQLRequest lastRequest;
     private Content content;
 
-    public CommandBoard(EventConsumer<CommandBoard, SQLRequest> eventConsumer) {
+    public QuestBoard(EventConsumer<QuestBoard, SQLRequest> eventConsumer) {
         super();
         this.eventConsumer = eventConsumer;
         undoManagers = new ArrayList<>(5);
-        boardEntryNames = new JComboBox<>();
-        boardEntryNames.setEditable(false);
-        boardEntryNames.setPreferredSize(new Dimension(200, 25));
-        boardEntryNames.addActionListener(this::onChangeBoard);
-        setupBoardMenu();
+        questEntryNames = new JComboBox<>();
+        questEntryNames.setEditable(false);
+        questEntryNames.setPreferredSize(new Dimension(200, 25));
+        questEntryNames.addActionListener(this::onChangeQuest);
+        setupQuestsMenu();
         JPanel topRightPanel = GTk.flowPanel(
                 questLabel = createLabel(
                         GTk.Icon.COMMAND_QUEST,
                         "uest",
-                        e -> commandBoardMenu
+                        e -> questsMenu
                                 .getPopupMenu()
                                 .show(e.getComponent(), e.getX() - 30, e.getY())),
                 GTk.horizontalSpace(4),
-                boardEntryNames,
+                questEntryNames,
                 GTk.horizontalSpace(4),
                 GTk.etchedFlowPanel(
                         execLineButton = GTk.button(
@@ -151,7 +151,7 @@ public class CommandBoard extends QuestPanel implements EventProducer<CommandBoa
         JPanel controlsPanel = new JPanel(new BorderLayout(0, 0));
         controlsPanel.add(
                 connLabel = createLabel(e -> eventConsumer.onSourceEvent(
-                        CommandBoard.this,
+                        QuestBoard.this,
                         EventType.CONNECTION_STATUS_CLICKED,
                         null)),
                 BorderLayout.WEST
@@ -172,8 +172,8 @@ public class CommandBoard extends QuestPanel implements EventProducer<CommandBoa
         refreshControls();
     }
 
-    public JMenu getCommandBoardMenu() {
-        return commandBoardMenu;
+    public JMenu getQuestsMenu() {
+        return questsMenu;
     }
 
     public void onExec(ActionEvent event) {
@@ -211,7 +211,7 @@ public class CommandBoard extends QuestPanel implements EventProducer<CommandBoa
     @Override
     public void close() {
         undoManagers.clear();
-        refreshStore();
+        refreshQuests();
         store.close();
     }
 
@@ -240,7 +240,7 @@ public class CommandBoard extends QuestPanel implements EventProducer<CommandBoa
                 }
             });
         }
-        refreshBoardEntryNames(0);
+        refreshQuestEntryNames(0);
     }
 
     private void onFindReplace(Supplier<Integer> matchesCountSupplier) {
@@ -252,15 +252,15 @@ public class CommandBoard extends QuestPanel implements EventProducer<CommandBoa
         findPanel.requestFocusInWindow();
     }
 
-    private void onChangeBoard(ActionEvent event) {
-        int idx = boardEntryNames.getSelectedIndex();
+    private void onChangeQuest(ActionEvent event) {
+        int idx = questEntryNames.getSelectedIndex();
         if (idx >= 0) {
             if (content != null) {
-                if (refreshStore()) {
+                if (refreshQuests()) {
                     if (JOptionPane.YES_OPTION == JOptionPane.showConfirmDialog(
                             this,
                             "Content has changed, save?",
-                            "Command board changed",
+                            "Quest content changed",
                             JOptionPane.YES_NO_OPTION,
                             JOptionPane.QUESTION_MESSAGE)) {
                         store.asyncSaveToFile();
@@ -273,17 +273,17 @@ public class CommandBoard extends QuestPanel implements EventProducer<CommandBoa
         }
     }
 
-    private void onCreateBoard(ActionEvent event) {
+    private void onCreateQuest(ActionEvent event) {
         String entryName = JOptionPane.showInputDialog(
                 this,
                 "Name",
-                "New Command Board",
+                "New quest",
                 JOptionPane.INFORMATION_MESSAGE);
         if (entryName == null || entryName.isEmpty()) {
             return;
         }
         store.addEntry(new Content(entryName), false);
-        boardEntryNames.addItem(entryName);
+        questEntryNames.addItem(entryName);
         undoManagers.add(new UndoManager() {
             @Override
             public void undoableEditHappened(UndoableEditEvent e) {
@@ -292,46 +292,46 @@ public class CommandBoard extends QuestPanel implements EventProducer<CommandBoa
                 }
             }
         });
-        boardEntryNames.setSelectedItem(entryName);
+        questEntryNames.setSelectedItem(entryName);
     }
 
-    private void onDeleteBoard(ActionEvent event) {
-        int idx = boardEntryNames.getSelectedIndex();
+    private void onDeleteQuest(ActionEvent event) {
+        int idx = questEntryNames.getSelectedIndex();
         if (idx > 0) {
             if (JOptionPane.YES_OPTION == JOptionPane.showConfirmDialog(
                     this,
                     String.format("Delete %s?",
-                            boardEntryNames.getSelectedItem()),
-                    "Deleting board",
+                            questEntryNames.getSelectedItem()),
+                    "Deleting quest",
                     JOptionPane.YES_NO_OPTION)) {
                 store.removeEntry(idx);
                 content = null;
-                boardEntryNames.removeItemAt(idx);
+                questEntryNames.removeItemAt(idx);
                 undoManagers.remove(idx);
-                boardEntryNames.setSelectedIndex(idx - 1);
+                questEntryNames.setSelectedIndex(idx - 1);
             }
         }
     }
 
-    private void onRenameBoard(ActionEvent event) {
-        int idx = boardEntryNames.getSelectedIndex();
+    private void onRenameQuest(ActionEvent event) {
+        int idx = questEntryNames.getSelectedIndex();
         if (idx >= 0) {
-            String currentName = (String) boardEntryNames.getSelectedItem();
+            String currentName = (String) questEntryNames.getSelectedItem();
             String newName = JOptionPane.showInputDialog(
                     this,
                     "New name",
-                    "Renaming board",
+                    "Renaming quest",
                     JOptionPane.QUESTION_MESSAGE);
             if (newName != null && !newName.isBlank() && !newName.equals(currentName)) {
                 store.getEntry(idx, null).setName(newName);
-                refreshBoardEntryNames(idx);
+                refreshQuestEntryNames(idx);
             }
         }
     }
 
-    private void onBackupBoards(ActionEvent event) {
+    private void onBackupQuests(ActionEvent event) {
         JFileChooser choose = new JFileChooser(store.getRootPath());
-        choose.setDialogTitle("Backing up store");
+        choose.setDialogTitle("Backing up quests");
         choose.setDialogType(JFileChooser.SAVE_DIALOG);
         choose.setFileSelectionMode(JFileChooser.FILES_ONLY);
         choose.setMultiSelectionEnabled(false);
@@ -362,9 +362,9 @@ public class CommandBoard extends QuestPanel implements EventProducer<CommandBoa
         }
     }
 
-    private void onLoadBoardsFromBackup(ActionEvent event) {
+    private void onLoadQuestsFromBackup(ActionEvent event) {
         JFileChooser choose = new JFileChooser(store.getRootPath());
-        choose.setDialogTitle("Loading store from backup");
+        choose.setDialogTitle("Loading quests from backup");
         choose.setDialogType(JFileChooser.OPEN_DIALOG);
         choose.setFileSelectionMode(JFileChooser.FILES_ONLY);
         choose.setMultiSelectionEnabled(false);
@@ -398,21 +398,21 @@ public class CommandBoard extends QuestPanel implements EventProducer<CommandBoa
         }
     }
 
-    private void onClearBoard(ActionEvent event) {
+    private void onClearQuest(ActionEvent event) {
         textPane.setText("");
     }
 
-    private void onReloadBoard(ActionEvent event) {
+    private void onReloadQuest(ActionEvent event) {
         textPane.setText(content.getContent());
     }
 
-    private void onSaveBoard(ActionEvent event) {
-        if (refreshStore()) {
+    private void onSaveQuest(ActionEvent event) {
+        if (refreshQuests()) {
             store.asyncSaveToFile();
         }
     }
 
-    private boolean refreshStore() {
+    private boolean refreshQuests() {
         String txt = getContent();
         String current = content.getContent();
         if (current != null && !current.equals(txt)) {
@@ -422,13 +422,13 @@ public class CommandBoard extends QuestPanel implements EventProducer<CommandBoa
         return false;
     }
 
-    private void refreshBoardEntryNames(int idx) {
-        boardEntryNames.removeAllItems();
+    private void refreshQuestEntryNames(int idx) {
+        questEntryNames.removeAllItems();
         for (String item : store.entryNames()) {
-            boardEntryNames.addItem(item);
+            questEntryNames.addItem(item);
         }
-        if (idx >= 0 && idx < boardEntryNames.getItemCount()) {
-            boardEntryNames.setSelectedIndex(idx);
+        if (idx >= 0 && idx < questEntryNames.getItemCount()) {
+            questEntryNames.setSelectedIndex(idx);
         }
     }
 
@@ -466,68 +466,68 @@ public class CommandBoard extends QuestPanel implements EventProducer<CommandBoa
         cancelButton.setEnabled(true);
     }
 
-    private void setupBoardMenu() {
-        commandBoardMenu = new JMenu();
-        commandBoardMenu.setFont(GTk.MENU_FONT);
-        commandBoardMenu.add(
+    private void setupQuestsMenu() {
+        questsMenu = new JMenu();
+        questsMenu.setFont(GTk.MENU_FONT);
+        questsMenu.add(
                 GTk.configureMenuItem(
                         new JMenuItem(),
                         GTk.Icon.COMMAND_CLEAR,
                         "Clear quest",
                         GTk.NO_KEY_EVENT,
-                        this::onClearBoard));
-        commandBoardMenu.add(
+                        this::onClearQuest));
+        questsMenu.add(
                 GTk.configureMenuItem(
                         new JMenuItem(),
                         GTk.Icon.COMMAND_RELOAD,
                         "Reload quest",
                         "Recovers quest from last save",
                         GTk.NO_KEY_EVENT,
-                        this::onReloadBoard));
-        commandBoardMenu.add(
+                        this::onReloadQuest));
+        questsMenu.add(
                 GTk.configureMenuItem(
                         new JMenuItem(),
                         GTk.Icon.COMMAND_SAVE,
                         "Save quest",
                         GTk.NO_KEY_EVENT,
-                        this::onSaveBoard));
-        commandBoardMenu.addSeparator();
-        commandBoardMenu.add(
+                        this::onSaveQuest));
+        questsMenu.addSeparator();
+        questsMenu.add(
                 GTk.configureMenuItem(
                         new JMenuItem(),
                         GTk.Icon.COMMAND_ADD,
                         "New quest",
                         GTk.NO_KEY_EVENT,
-                        this::onCreateBoard));
-        commandBoardMenu.add(
+                        this::onCreateQuest));
+        questsMenu.add(
                 GTk.configureMenuItem(
                         new JMenuItem(),
                         GTk.Icon.COMMAND_EDIT,
                         "Rename quest",
                         GTk.NO_KEY_EVENT,
-                        this::onRenameBoard));
-        commandBoardMenu.add(
+                        this::onRenameQuest));
+        questsMenu.add(
                 GTk.configureMenuItem(
                         new JMenuItem(),
                         GTk.Icon.COMMAND_REMOVE,
                         "Delete quest",
                         GTk.NO_KEY_EVENT,
-                        this::onDeleteBoard));
-        commandBoardMenu.addSeparator();
-        commandBoardMenu.add(
+                        this::onDeleteQuest));
+        questsMenu.addSeparator();
+        questsMenu.add(
                 GTk.configureMenuItem(
                         new JMenuItem(),
                         GTk.Icon.COMMAND_STORE_LOAD,
                         "Load quests from notebook",
                         GTk.NO_KEY_EVENT,
-                        this::onLoadBoardsFromBackup));
-        commandBoardMenu.add(
+                        this::onLoadQuestsFromBackup));
+        questsMenu.add(
                 GTk.configureMenuItem(
                         new JMenuItem(),
                         GTk.Icon.COMMAND_STORE_BACKUP,
                         "Save quests to new notebook",
                         GTk.NO_KEY_EVENT,
-                        this::onBackupBoards));
+                        this::onBackupQuests));
     }
 
     private JLabel createLabel(Consumer<MouseEvent> consumer) {
