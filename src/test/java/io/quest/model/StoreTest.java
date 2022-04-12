@@ -58,7 +58,7 @@ public class StoreTest {
             assertThat(pConn.getUsername(), is("root"));
             assertThat(pConn.getPassword(), is("secret password"));
             assertThat(pConn.getUri(), is("jdbc:postgresql://prometheus:5433/postgres"));
-            assertThat(pConn.getKey(), is("master-node-0 root@prometheus:5433"));
+            assertThat(pConn.getUniqueId(), is("master-node-0 root@prometheus:5433"));
             assertThat(conn, Matchers.is(pConn));
         } finally {
             deleteIfExists(fileName);
@@ -83,7 +83,7 @@ public class StoreTest {
             }
             assertThat(rcontent.getName(), is("default"));
             assertThat(rcontent.getContent(), is("Audentes fortuna  iuvat"));
-            assertThat(rcontent.getKey(), is(rcontent.getName()));
+            assertThat(rcontent.getUniqueId(), is(rcontent.getName()));
             assertThat(rcontent, is(content));
         } finally {
             deleteIfExists(fileName);

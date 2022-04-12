@@ -67,9 +67,11 @@ public final class GTk {
     public static final String MAIN_FONT_NAME = "Arial"; // excluding commands' TextPane, which is Monospaced
 
     public static final Color APP_THEME_COLOR = new Color(200, 50, 100);
+
     public static final Color TABLE_HEADER_FONT_COLOR = Color.BLACK;
     public static final Font TABLE_HEADER_FONT = new Font(MAIN_FONT_NAME, Font.BOLD, 18);
     public static final Font TABLE_CELL_FONT = new Font(MAIN_FONT_NAME, Font.PLAIN, 16);
+
     public static final Font MENU_FONT = new Font(MAIN_FONT_NAME, Font.BOLD, 14);
 
     private static final DataFlavor[] SUPPORTED_COPY_PASTE_FLAVOR = {DataFlavor.stringFlavor};
@@ -403,7 +405,7 @@ public final class GTk {
         COMMAND_FIND("CommandFind.png"),
         COMMAND_REPLACE("CommandReplace.png"),
         COMMAND_EXEC("CommandExec.png"),
-        COMMAND_EXEC_CANCEL("CommandExecCancel.png"),
+        COMMAND_EXEC_ABORT("CommandExecAbort.png"),
         COMMAND_EXEC_LINE("CommandExecLine.png"),
         RESULTS("Results.png"),
         RESULTS_NEXT("ResultsNext.png"),

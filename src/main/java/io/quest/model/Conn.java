@@ -44,15 +44,10 @@ public class Conn extends ConnAttrs implements Closeable {
     private final transient AtomicBoolean isOpen;
     private transient Connection conn;
 
-    /**
-     * Constructor.
-     *
-     * @param name name of the connection
-     */
     public Conn(String name) {
         super(name);
         isOpen = new AtomicBoolean();
-        logger = LoggerFactory.getLogger(String.format("%s [%s]", getClass().getSimpleName(), getKey()));
+        logger = LoggerFactory.getLogger(String.format("%s [%s]", getClass().getSimpleName(), this.getUniqueId()));
     }
 
     /**
@@ -67,6 +62,7 @@ public class Conn extends ConnAttrs implements Closeable {
         if (other != null) {
             setHost(other.getHost());
             setPort(other.getPort());
+            setDatabase(other.getDatabase());
             setUsername(other.getUsername());
             setPassword(other.getPassword());
             setDefault(other.isDefault());
@@ -82,22 +78,13 @@ public class Conn extends ConnAttrs implements Closeable {
     public Conn(StoreEntry other) {
         super(other);
         isOpen = new AtomicBoolean();
-        logger = LoggerFactory.getLogger(String.format("%s [%s]", getClass().getSimpleName(), getKey()));
+        logger = LoggerFactory.getLogger(String.format("%s [%s]", getClass().getSimpleName(), this.getUniqueId()));
     }
 
-    /**
-     * Constructor.
-     *
-     * @param name     of the connection
-     * @param host     of the connection
-     * @param port     of the connection
-     * @param username of the connection
-     * @param password of the connection
-     */
-    public Conn(String name, String host, String port, String username, String password) {
-        super(name, host, port, username, password);
+    public Conn(String name, String host, String port, String database, String username, String password) {
+        super(name, host, port, username, database, password);
         isOpen = new AtomicBoolean();
-        logger = LoggerFactory.getLogger(String.format("%s [%s]", getClass().getSimpleName(), getKey()));
+        logger = LoggerFactory.getLogger(String.format("%s [%s]", getClass().getSimpleName(), this.getUniqueId()));
     }
 
     /**
@@ -191,8 +178,11 @@ public class Conn extends ConnAttrs implements Closeable {
         try {
             testConn = DriverManager.getConnection(getUri(), loginProperties());
             if (!testConn.isValid(ISVALID_TIMEOUT_SECS)) {
-                throw new SQLException(
-                        String.format("connection with %s is not valid (tried for %d secs)", this, ISVALID_TIMEOUT_SECS));
+                throw new SQLException(String.format(
+                        "connection with %s is not valid (tried for %d secs)",
+                        this,
+                        ISVALID_TIMEOUT_SECS
+                ));
             }
         } finally {
             if (testConn != null) {

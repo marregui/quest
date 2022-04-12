@@ -38,7 +38,7 @@ import javax.swing.table.TableColumn;
 import javax.swing.table.TableColumnModel;
 
 import io.quest.frontend.GTk;
-import io.quest.model.SQLResponse;
+import io.quest.backend.SQLResponse;
 import io.quest.model.SQLTable;
 import io.quest.frontend.InfiniteSpinnerPanel;
 import io.quest.frontend.commands.QuestPanel;
@@ -160,7 +160,7 @@ public class SQLResultsTable extends JPanel implements Closeable {
             changeMode(Mode.MESSAGE);
         } else {
             if (table.size() == 0) {
-                questPanel.displayMessage("OK.\n\nNo results for query:\n" + res.getSQL());
+                questPanel.displayMessage("OK.\n\nNo results for query:\n" + res.getSqlCommand());
                 changeMode(Mode.MESSAGE);
             } else {
                 changeMode(Mode.TABLE);

@@ -25,7 +25,7 @@ import java.util.TreeMap;
 /**
  * Base type for the entries persisted by a {@link Store}.
  */
-public class StoreEntry implements WithKey<String>, Comparable<StoreEntry> {
+public class StoreEntry implements WithUniqueId<String>, Comparable<StoreEntry> {
 
     private static final Comparator<String> COMPARING = (k1, k2) -> {
         String[] k1Parts = k1.split("\\.");
@@ -43,11 +43,6 @@ public class StoreEntry implements WithKey<String>, Comparable<StoreEntry> {
     private volatile String name;
     private final Map<String, String> attrs;
 
-    /**
-     * Constructor.
-     *
-     * @param name the name of the store entry
-     */
     public StoreEntry(String name) {
         if (name == null || name.isEmpty()) {
             throw new IllegalArgumentException("name cannot be null or empty");
@@ -71,20 +66,10 @@ public class StoreEntry implements WithKey<String>, Comparable<StoreEntry> {
         attrs = other.attrs;
     }
 
-    /**
-     * The entry's name.
-     *
-     * @return the name of the store's entry
-     */
     public String getName() {
         return name;
     }
 
-    /**
-     * Sets the entry's name.
-     *
-     * @param name of the store's entry
-     */
     public void setName(String name) {
         this.name = name;
     }
@@ -105,8 +90,8 @@ public class StoreEntry implements WithKey<String>, Comparable<StoreEntry> {
      * @param attr an implementor of HasKey
      * @return the value associated with the attribute, or null if it does not exist
      */
-    public String getAttr(WithKey<String> attr) {
-        return attrs.get(attr.getKey());
+    public String getAttr(WithUniqueId<String> attr) {
+        return attrs.get(attr.getUniqueId());
     }
 
     /**
@@ -117,7 +102,7 @@ public class StoreEntry implements WithKey<String>, Comparable<StoreEntry> {
      * @param attr  an implementor of HasKey
      * @param value value for the attribute
      */
-    public void setAttr(WithKey<String> attr, String value) {
+    public void setAttr(WithUniqueId<String> attr, String value) {
         setAttr(attr, value, "");
     }
 
@@ -128,8 +113,8 @@ public class StoreEntry implements WithKey<String>, Comparable<StoreEntry> {
      * @param value        value for the attribute
      * @param defaultValue default value when the supplied value is null or empty
      */
-    public void setAttr(WithKey<String> attr, String value, String defaultValue) {
-        attrs.put(attr.getKey(), null == value || value.isEmpty() ? defaultValue : value);
+    public void setAttr(WithUniqueId<String> attr, String value, String defaultValue) {
+        attrs.put(attr.getUniqueId(), null == value || value.isEmpty() ? defaultValue : value);
     }
 
     /**
@@ -178,16 +163,16 @@ public class StoreEntry implements WithKey<String>, Comparable<StoreEntry> {
         if (null == that) {
             return -1;
         }
-        return COMPARING.compare(getKey(), that.getKey());
+        return COMPARING.compare(getUniqueId(), that.getUniqueId());
     }
 
     /**
-     * The key changes as attributes are changed.
+     * Changes as attributes are changed.
      *
      * @return the entry's key
      */
     @Override
-    public String getKey() {
+    public String getUniqueId() {
         return String.format("%s.%s", name, attrs);
     }
 

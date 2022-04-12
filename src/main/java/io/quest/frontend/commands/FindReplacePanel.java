@@ -16,8 +16,8 @@
 
 package io.quest.frontend.commands;
 
-import io.quest.EventConsumer;
-import io.quest.EventProducer;
+import io.quest.model.EventConsumer;
+import io.quest.model.EventProducer;
 import io.quest.frontend.GTk;
 
 import javax.swing.*;

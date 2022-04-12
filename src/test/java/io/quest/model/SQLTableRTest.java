@@ -73,7 +73,7 @@ public class SQLTableRTest {
     @Test
     public void test_empty_table_no_key() {
         try (SQLTable table = new SQLTable(null)) {
-            assertThat(table.getKey(), nullValue());
+            assertThat(table.getUniqueId(), nullValue());
             assertThat(table.getColNames(), nullValue());
             assertThat(table.getColTypes(), nullValue());
             assertThat(table.size(), is(0));

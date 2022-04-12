@@ -42,22 +42,24 @@ class ConnsTableModel extends AbstractTableModel implements Closeable {
     private static final int NAME_COL_IDX = 0;
     private static final int HOST_COL_IDX = 1;
     private static final int PORT_COL_IDX = 2;
-    private static final int USERNAME_COL_IDX = 3;
-    private static final int PASSWORD_COL_IDX = 4;
-    private static final int CONNECTED_COL_IDX = 5;
+    private static final int DATABASE_COL_IDX = 3;
+    private static final int USERNAME_COL_IDX = 4;
+    private static final int PASSWORD_COL_IDX = 5;
+    private static final int CONNECTED_COL_IDX = 6;
     private static final String NAME_COL = "name";
     private static final String CONNECTED_COL = "connected";
     private static final String[] COL_NAMES = {
             NAME_COL,
             ConnAttrs.AttrName.host.name(),
             ConnAttrs.AttrName.port.name(),
+            ConnAttrs.AttrName.database.name(),
             ConnAttrs.AttrName.username.name(),
             ConnAttrs.AttrName.password.name(),
             CONNECTED_COL
     };
     private static final int ROW_HEIGHT = 22;
     private static final int[] COL_WIDTHS = {
-            200, 400, 100, 200, 200, 200
+            200, 400, 100, 200, 200, 200, 200
     };
 
     /**
@@ -88,6 +90,7 @@ class ConnsTableModel extends AbstractTableModel implements Closeable {
         colModel.getColumn(NAME_COL_IDX).setPreferredWidth(COL_WIDTHS[NAME_COL_IDX]);
         colModel.getColumn(HOST_COL_IDX).setPreferredWidth(COL_WIDTHS[HOST_COL_IDX]);
         colModel.getColumn(PORT_COL_IDX).setPreferredWidth(COL_WIDTHS[PORT_COL_IDX]);
+        colModel.getColumn(DATABASE_COL_IDX).setPreferredWidth(COL_WIDTHS[DATABASE_COL_IDX]);
         colModel.getColumn(USERNAME_COL_IDX).setPreferredWidth(COL_WIDTHS[USERNAME_COL_IDX]);
         colModel.getColumn(PASSWORD_COL_IDX).setPreferredWidth(COL_WIDTHS[PASSWORD_COL_IDX]);
         colModel.getColumn(CONNECTED_COL_IDX).setPreferredWidth(COL_WIDTHS[CONNECTED_COL_IDX]);
@@ -125,7 +128,7 @@ class ConnsTableModel extends AbstractTableModel implements Closeable {
     }
 
     boolean containsConn(Conn conn) {
-        return conn != null && -1 != getRowIdx(conn.getKey());
+        return conn != null && -1 != getRowIdx(conn.getUniqueId());
     }
 
     int addConn(Conn conn) {
@@ -152,7 +155,7 @@ class ConnsTableModel extends AbstractTableModel implements Closeable {
         }
         for (int i = 0; i < conns.size(); i++) {
             Conn conn = conns.get(i);
-            if (conn.getKey().equals(connKey)) {
+            if (conn.getUniqueId().equals(connKey)) {
                 return i;
             }
         }

@@ -39,11 +39,11 @@ import javax.swing.WindowConstants;
 import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.TableModelEvent;
 
-import io.quest.EventConsumer;
-import io.quest.EventProducer;
+import io.quest.model.EventConsumer;
+import io.quest.model.EventProducer;
 import io.quest.frontend.GTk;
 import io.quest.model.Conn;
-import io.quest.model.ConnsChecker;
+import io.quest.backend.ConnsChecker;
 import io.quest.model.Store;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -59,26 +59,11 @@ import io.quest.frontend.commands.QuestBoard;
 public class ConnsManager extends JDialog implements EventProducer<ConnsManager.EventType>, Closeable {
 
     public enum EventType {
-        /**
-         * A connection has been selected.
-         */
-        CONNECTION_SELECTED,
-        /**
-         * A connection has been established.
-         */
-        CONNECTION_ESTABLISHED,
-        /**
-         * A connection has been closed.
-         */
-        CONNECTION_CLOSED,
-        /**
-         * A set of connections, possibly only one, has been lost.
-         */
-        CONNECTIONS_LOST,
-        /**
-         * Request to hide the connection's manager.
-         */
-        HIDE_REQUEST
+        CONNECTION_SELECTED,     // A connection has been selected
+        CONNECTION_ESTABLISHED,  // A connection has been established.
+        CONNECTION_CLOSED,       // A connection has been closed.
+        CONNECTIONS_LOST,        // A set of connections, possibly only one, has been lost.
+        HIDE_REQUEST             // Request to hide the connection's manager.
     }
 
     public static final String STORE_FILE_NAME = "connections.json";
@@ -107,6 +92,7 @@ public class ConnsManager extends JDialog implements EventProducer<ConnsManager.
                         new Conn("Postgres",
                                 "localhost",
                                 "5432",
+                                "postgres",
                                 "postgres",
                                 "password")
                 };
@@ -197,7 +183,7 @@ public class ConnsManager extends JDialog implements EventProducer<ConnsManager.
         if (conn == null) {
             return;
         }
-        int rowIdx = tableModel.getRowIdx(conn.getKey());
+        int rowIdx = tableModel.getRowIdx(conn.getUniqueId());
         if (rowIdx >= 0) {
             table.getSelectionModel().setSelectionInterval(rowIdx, rowIdx);
             eventConsumer.onSourceEvent(this, EventType.CONNECTION_SELECTED, conn);

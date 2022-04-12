@@ -14,7 +14,7 @@
  * Copyright (c) 2019 - 2022, Miguel Arregui a.k.a. marregui
  */
 
-package io.quest;
+package io.quest.model;
 
 /**
  * Marking interface.

@@ -19,39 +19,24 @@ package io.quest.model;
 import java.util.Properties;
 
 import io.quest.QuestMain;
+import io.quest.backend.SQLExecutor;
 
 
-/**
- * Persistent connection attributes, host, port, username and password.
- */
 public class ConnAttrs extends StoreEntry {
 
-    private static final String JDBC_DRIVER_URL_FORMAT = "jdbc:postgresql://%s:%s/postgres";
+    private static final String JDBC_DRIVER_URL_FORMAT = "jdbc:postgresql://%s:%s/%s";
+    private static final String DEFAULT_HOST = "localhost";
+    private static final String DEFAULT_PORT = "8812";
+    private static final String DEFAULT_DATABASE = "main";
+    private static final String DEFAULT_USERNAME = "admin";
+    private static final String DEFAULT_PASSWORD = "quest";
 
-    /**
-     * Attribute names.
-     */
-    public enum AttrName implements WithKey<String> {
-
-        /**
-         * host.
-         */
-        host("localhost"),
-        /**
-         * port.
-         */
-        port("8812"),
-        /**
-         * user name.
-         */
-        username("admin"),
-        /**
-         * password.
-         */
-        password("quest"),
-        /**
-         * isDefault.
-         */
+    public enum AttrName implements WithUniqueId<String> {
+        host(DEFAULT_HOST),
+        port(DEFAULT_PORT),
+        database(DEFAULT_DATABASE),
+        username(DEFAULT_USERNAME),
+        password(DEFAULT_PASSWORD),
         isDefault(String.valueOf(false));
 
         private final String defaultValue;
@@ -61,13 +46,10 @@ public class ConnAttrs extends StoreEntry {
         }
 
         @Override
-        public String getKey() {
+        public String getUniqueId() {
             return name();
         }
 
-        /**
-         * @return default value
-         */
         public String getDefaultValue() {
             return defaultValue;
         }
@@ -83,73 +65,43 @@ public class ConnAttrs extends StoreEntry {
         super(other);
     }
 
-    /**
-     * Constructor .
-     *
-     * @param name name of the connection
-     */
     public ConnAttrs(String name) {
         super(name);
         setAttr(AttrName.host, AttrName.host.getDefaultValue());
         setAttr(AttrName.port, AttrName.port.getDefaultValue());
+        setAttr(AttrName.database, AttrName.database.getDefaultValue());
         setAttr(AttrName.username, AttrName.username.getDefaultValue());
         setAttr(AttrName.password, AttrName.password.getDefaultValue());
         setAttr(AttrName.isDefault, AttrName.isDefault.getDefaultValue());
     }
 
-    /**
-     * Constructor .
-     *
-     * @param name of the connection
-     * @param host of the connection
-     * @param port of the connection
-     * @param username of the connection
-     * @param password of the connection
-     */
-    protected ConnAttrs(String name, String host, String port, String username, String password) {
+    protected ConnAttrs(String name, String host, String port, String database, String username, String password) {
         super(name);
         setAttr(AttrName.host, host);
         setAttr(AttrName.port, port);
+        setAttr(AttrName.database, database);
         setAttr(AttrName.username, username);
         setAttr(AttrName.password, password);
         setAttr(AttrName.isDefault, AttrName.isDefault.getDefaultValue());
     }
 
     @Override
-    public final String getKey() {
-        return String.format("%s %s@%s:%s",
+    public final String getUniqueId() {
+        return String.format("%s %s@%s:%s/%s",
                 getName(),
                 getAttr(AttrName.username),
                 getAttr(AttrName.host),
-                getAttr(AttrName.port));
+                getAttr(AttrName.port),
+                getAttr(AttrName.database));
     }
 
-    /**
-     * @return connection uri
-     */
     public String getUri() {
-        return String.format(JDBC_DRIVER_URL_FORMAT, getHost(), getPort());
+        return String.format(JDBC_DRIVER_URL_FORMAT, getHost(), getPort(), getDatabase());
     }
 
-    /**
-     * Connection properties, includes:
-     * <ul>
-     * <li>user: user name</li>
-     * <li>password: password</li>
-     * <li>ssl: false</li>
-     * <li>sslmode: disable</li>
-     * <li>recvBufferSize: 1 MB</li>
-     * <li>defaultRowFetchSize: 20_000</li>
-     * <li>loginTimeout: 5 seconds</li>
-     * <li>socketTimeout: 60 seconds);
-     * <li>tcpKeepAlive", true);
-     * </ul>
-     *
-     * @return connection properties
-     */
     public Properties loginProperties() {
-        Properties props = new Properties();
         // https://jdbc.postgresql.org/documentation/head/connect.html
+        Properties props = new Properties();
         props.put("user", getUsername());
         props.put("password", getPassword());
 
@@ -180,7 +132,7 @@ public class ConnAttrs extends StoreEntry {
         props.setProperty("sslmode", "prefer");
 
         // Sets SO_RCVBUF on the connection stream
-        props.put("receiveBufferSize", 1024 * 1024);
+        props.put("receiveBufferSize", 8 * 1024 * 1024);
 
         // Sets SO_SNDBUF on the connection stream
         props.put("sendBufferSize", 1024 * 1024);
@@ -231,92 +183,50 @@ public class ConnAttrs extends StoreEntry {
         return props;
     }
 
-    /**
-     * Host name getter.
-     *
-     * @return host name
-     */
     public String getHost() {
         return getAttr(AttrName.host);
     }
 
-    /**
-     * Host name setter, defaults to "localhost" when host is null or empty.
-     *
-     * @param host host name
-     */
     public void setHost(String host) {
         setAttr(AttrName.host, host, AttrName.host.getDefaultValue());
     }
 
-    /**
-     * Port getter.
-     *
-     * @return port
-     */
     public String getPort() {
         return getAttr(AttrName.port);
     }
 
-    /**
-     * Port setter, defaults to "5432" when port is null or empty.
-     *
-     * @param port port
-     */
     public void setPort(String port) {
         setAttr(AttrName.port, port, AttrName.port.getDefaultValue());
     }
 
-    /**
-     * User name getter.
-     *
-     * @return user name
-     */
+    public String getDatabase() {
+        return getAttr(AttrName.database);
+    }
+
+    public void setDatabase(String database) {
+        setAttr(AttrName.database, database, AttrName.database.getDefaultValue());
+    }
+
     public String getUsername() {
         return getAttr(AttrName.username);
     }
 
-    /**
-     * User name setter, defaults to "crate" when host is null or empty.
-     *
-     * @param username user name
-     */
     public void setUsername(String username) {
         setAttr(AttrName.username, username, AttrName.username.getDefaultValue());
     }
 
-    /**
-     * Password getter.
-     *
-     * @return password
-     */
     public String getPassword() {
         return getAttr(AttrName.password);
     }
 
-    /**
-     * Password setter, defaults to "" when host is null.
-     *
-     * @param password password
-     */
     public void setPassword(String password) {
         setAttr(AttrName.password, password, AttrName.password.getDefaultValue());
     }
 
-    /**
-     * Password getter.
-     *
-     * @return is default
-     */
     public boolean isDefault() {
         return Boolean.parseBoolean(getAttr(AttrName.isDefault));
     }
 
-    /**
-     * Default setter, defaults to false.
-     *
-     * @param isDefault is default
-     */
     public void setDefault(boolean isDefault) {
         setAttr(AttrName.isDefault, String.valueOf(isDefault), AttrName.isDefault.getDefaultValue());
     }

@@ -14,7 +14,7 @@
  * Copyright (c) 2019 - 2022, Miguel Arregui a.k.a. marregui
  */
 
-package io.quest.model;
+package io.quest.backend;
 
 import java.io.Closeable;
 import java.util.HashSet;
@@ -30,6 +30,7 @@ import java.util.function.Consumer;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
+import io.quest.model.Conn;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -47,13 +48,13 @@ import org.slf4j.LoggerFactory;
  * When connections are detected to be invalid they are closed and collected into a set
  * which is given back as a callback to a consumer.
  * Supplier and consumer references are provided to the constructor of this class.
- * 
+ *
  * @see Conn#isValid()
  */
 public class ConnsChecker implements Closeable {
 
     private static final int PERIOD_SECS = 30; // validity period
-    private static final int NUM_THREADS = 2; //
+    private static final int NUM_THREADS = 2;
     private static final Logger LOGGER = LoggerFactory.getLogger(ConnsChecker.class);
 
     private final Supplier<List<Conn>> connsSupplier;
@@ -63,11 +64,11 @@ public class ConnsChecker implements Closeable {
 
     /**
      * Constructor.
-     * 
+     *
      * @param connsSupplier     provides a list of connections to be periodically checked.
-     *                          Only open connections participate in the validity check
+     *                          Only open connections participate in the validity check.
      * @param lostConnsConsumer in the presence of invalid connections will get at least
-     *                          one callback carrying a set containing lost connections
+     *                          one callback carrying a set containing lost connections.
      */
     public ConnsChecker(Supplier<List<Conn>> connsSupplier, Consumer<Set<Conn>> lostConnsConsumer) {
         this.connsSupplier = connsSupplier;
@@ -82,9 +83,6 @@ public class ConnsChecker implements Closeable {
         return scheduler != null && !scheduler.isTerminated();
     }
 
-    /**
-     * Starts the periodic connectivity check.
-     */
     public synchronized void start() {
         if (scheduler != null) {
             throw new IllegalStateException("already started");
@@ -94,7 +92,7 @@ public class ConnsChecker implements Closeable {
         LOGGER.info("Check every {} secs", PERIOD_SECS);
     }
 
-    private final List<ScheduledFuture<?>> invalidConnsFutures() {
+    private final List<ScheduledFuture<Conn>> invalidConnsFutures() {
         return connsSupplier.get().stream().filter(Conn::isOpen).map(conn -> scheduler.schedule(() -> {
             return !conn.isValid() ? conn : null; // might block for up DBConnection.VALID_CHECK_TIMEOUT_SECS
         }, 0, TimeUnit.SECONDS)).collect(Collectors.toList());
@@ -105,44 +103,44 @@ public class ConnsChecker implements Closeable {
             return;
         }
         try {
-            List<ScheduledFuture<?>> invalidConns = invalidConnsFutures();
+            List<ScheduledFuture<Conn>> invalidConns = connsSupplier
+                    .get()
+                    .stream()
+                    .filter(Conn::isOpen)
+                    .map(conn -> scheduler.schedule(() -> {
+                        return !conn.isValid() ? conn : null; // might block for up DBConnection.VALID_CHECK_TIMEOUT_SECS
+                    }, 0, TimeUnit.SECONDS))
+                    .collect(Collectors.toList());
             while (invalidConns.size() > 0) {
                 Set<Conn> invalidSet = new HashSet<>();
-                for (Iterator<ScheduledFuture<?>> it = invalidConns.iterator(); it.hasNext();) {
-                    ScheduledFuture<?> invalidConnFuture = it.next();
+                for (Iterator<ScheduledFuture<Conn>> it = invalidConns.iterator(); it.hasNext(); ) {
+                    ScheduledFuture<Conn> invalidConnFuture = it.next();
                     if (invalidConnFuture.isDone()) {
                         try {
-                            Conn conn = (Conn) invalidConnFuture.get();
+                            Conn conn = invalidConnFuture.get();
                             if (conn != null) {
                                 invalidSet.add(conn);
                             }
-                        }
-                        catch (Exception unexpected) {
+                        } catch (Exception unexpected) {
                             LOGGER.error("Unexpected turn of events", unexpected);
-                        }
-                        finally {
+                        } finally {
                             it.remove();
                         }
-                    }
-                    else if (invalidConnFuture.isCancelled()) {
+                    } else if (invalidConnFuture.isCancelled()) {
                         it.remove();
                     }
                 }
-                if (invalidSet.size() > 0) {
+                if (!invalidSet.isEmpty()) {
                     // notify the consumer as invalid connections are found
                     // rather than wait for all connections to be checked
                     lostConnsConsumer.accept(invalidSet);
                 }
             }
-        }
-        finally {
+        } finally {
             isChecking.set(false);
         }
     }
 
-    /**
-     * Terminates the periodic checks.
-     */
     @Override
     public synchronized void close() {
         if (scheduler == null) {
@@ -150,13 +148,10 @@ public class ConnsChecker implements Closeable {
         }
         scheduler.shutdownNow();
         try {
-            // symbolic wait
             scheduler.awaitTermination(200L, TimeUnit.MILLISECONDS);
-        }
-        catch (InterruptedException e) {
+        } catch (InterruptedException e) {
             Thread.currentThread().interrupt();
-        }
-        finally {
+        } finally {
             scheduler = null;
             isChecking.set(false);
             LOGGER.info("Connectivity check stopped");

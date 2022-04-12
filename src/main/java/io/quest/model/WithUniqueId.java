@@ -16,6 +16,6 @@
 
 package io.quest.model;
 
-public interface WithKey<T> {
-    T getKey();
+public interface WithUniqueId<T> {
+    T getUniqueId();
 }

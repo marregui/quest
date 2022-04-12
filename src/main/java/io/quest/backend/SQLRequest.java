@@ -14,7 +14,11 @@
  * Copyright (c) 2019 - 2022, Miguel Arregui a.k.a. marregui
  */
 
-package io.quest.model;
+package io.quest.backend;
+
+import io.quest.model.Conn;
+import io.quest.model.SQLTable;
+import io.quest.model.WithUniqueId;
 
 import java.util.UUID;
 
@@ -22,17 +26,17 @@ import java.util.UUID;
 /**
  * A unit of work for the {@link SQLExecutor}.
  * <p>
- * Each request carries a SQL command and is be identified by a unique key. Upon
- * execution, the results are returned by means of one or many callbacks delivering
- * instances of {@link SQLResponse}. Responses must be seen as update messages on
- * the loading state of a single instance of {@link SQLTableR}.
+ * Each request comes from a source, carries a SQL command, and is be identified by a unique
+ * id. On execution, the results are returned by means of one or many callbacks delivering
+ * instances of {@link SQLResponse}. Responses must be seen as update messages on the loading
+ * state of a single instance of {@link SQLTable}, which is updated by the executor.
  */
-public class SQLRequest implements WithKey<String> {
+public class SQLRequest implements WithUniqueId<String> {
 
     private final String sourceId;
-    private final String key;
+    private final String uniqueId;
     private final Conn conn;
-    private final String sql;
+    private final String sqlCommand;
 
     /**
      * Constructor used by {@link SQLResponse} to keep the relation between
@@ -41,46 +45,37 @@ public class SQLRequest implements WithKey<String> {
      * 
      * @param sourceId command source, or requester, id
      * @param conn will send the command down this connection
-     * @param command SQL statement to execute
+     * @param sqlCommand SQL command to execute
      */
-    public SQLRequest(String sourceId, Conn conn, String command) {
-        this(sourceId, UUID.randomUUID().toString(), conn, command);
+    public SQLRequest(String sourceId, Conn conn, String sqlCommand) {
+        this(sourceId, UUID.randomUUID().toString(), conn, sqlCommand);
     }
 
     SQLRequest(SQLRequest request) {
-        this(request.sourceId, request.key, request.conn, request.sql);
+        this(request.sourceId, request.uniqueId, request.conn, request.sqlCommand);
     }
 
-    private SQLRequest(String sourceId, String key, Conn conn, String command) {
+    private SQLRequest(String sourceId, String uniqueId, Conn conn, String sqlCommand) {
         this.sourceId = sourceId;
-        this.key = key;
+        this.uniqueId = uniqueId;
         this.conn = conn;
-        this.sql = command;
+        this.sqlCommand = sqlCommand;
     }
 
-    /**
-     * @return the identity of the request's source
-     */
     public String getSourceId() {
         return sourceId;
     }
 
-    /**
-     * @return the SQL to execute
-     */
-    public String getSQL() {
-        return sql;
+    public String getSqlCommand() {
+        return sqlCommand;
     }
 
-    /**
-     * @return database connection
-     */
     public Conn getConnection() {
         return conn;
     }
 
     @Override
-    public String getKey() {
-        return key;
+    public String getUniqueId() {
+        return uniqueId;
     }
 }

@@ -31,7 +31,7 @@ import java.util.concurrent.locks.ReentrantReadWriteLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock.ReadLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock.WriteLock;
 
-public class SQLTable implements WithKey<String>, Closeable {
+public class SQLTable implements WithUniqueId<String>, Closeable {
 
     public static final String ROWID_COL_NAME = "#";
 
@@ -53,7 +53,7 @@ public class SQLTable implements WithKey<String>, Closeable {
     }
 
     @Override
-    public String getKey() {
+    public String getUniqueId() {
         return key;
     }
 

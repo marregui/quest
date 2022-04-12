@@ -4,7 +4,7 @@ import java.util.Arrays;
 import java.util.Objects;
 import java.util.concurrent.atomic.AtomicReference;
 
-public class SQLRow implements WithKey<Integer> {
+public class SQLRow implements WithUniqueId<Integer> {
 
     private final int key;
     private Object[] values;
@@ -17,7 +17,7 @@ public class SQLRow implements WithKey<Integer> {
     }
 
     @Override
-    public Integer getKey() {
+    public Integer getUniqueId() {
         return key;
     }
 

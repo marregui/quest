@@ -32,9 +32,12 @@ import javax.swing.event.UndoableEditEvent;
 import javax.swing.filechooser.FileFilter;
 import javax.swing.undo.UndoManager;
 
+import io.quest.backend.SQLRequest;
+import io.quest.model.Store;
+import io.quest.model.StoreEntry;
 import io.quest.model.*;
-import io.quest.EventConsumer;
-import io.quest.EventProducer;
+import io.quest.model.EventConsumer;
+import io.quest.model.EventProducer;
 import io.quest.frontend.GTk;
 import io.quest.frontend.NoopMouseListener;
 import io.quest.frontend.conns.ConnsManager;
@@ -74,7 +77,7 @@ public class QuestBoard extends QuestPanel implements EventProducer<QuestBoard.E
         }
 
         @Override
-        public final String getKey() {
+        public final String getUniqueId() {
             return getName();
         }
 
@@ -136,8 +139,8 @@ public class QuestBoard extends QuestPanel implements EventProducer<QuestBoard.E
                                 "Exec", false, GTk.Icon.COMMAND_EXEC,
                                 "Execute selected text", this::onExec),
                         cancelButton = GTk.button(
-                                "Cancel", false, GTk.Icon.COMMAND_EXEC_CANCEL,
-                                "Cancel current execution", this::fireCancelEvent)));
+                                "Abort", false, GTk.Icon.COMMAND_EXEC_ABORT,
+                                "Abort current execution", this::fireCancelEvent)));
         findPanel = new FindReplacePanel((source, event, eventData) -> {
             switch ((FindReplacePanel.EventType) EventProducer.eventType(event)) {
                 case FIND:
@@ -450,13 +453,13 @@ public class QuestBoard extends QuestPanel implements EventProducer<QuestBoard.E
             eventConsumer.onSourceEvent(this, EventType.COMMAND_CANCEL, lastRequest);
             lastRequest = null;
         }
-        lastRequest = new SQLRequest(content.getKey(), conn, command);
+        lastRequest = new SQLRequest(content.getUniqueId(), conn, command);
         eventConsumer.onSourceEvent(this, EventType.COMMAND_AVAILABLE, lastRequest);
     }
 
     private void refreshControls() {
         boolean isConnected = conn != null && conn.isOpen();
-        String connKey = conn != null ? conn.getKey() : "None set";
+        String connKey = conn != null ? conn.getUniqueId() : "None set";
         connLabel.setText(String.format("[%s]", connKey));
         connLabel.setForeground(isConnected ? CONNECTED_COLOR : Color.BLACK);
         connLabel.setIcon(isConnected ? GTk.Icon.CONN_UP.icon() : GTk.Icon.CONN_DOWN.icon());

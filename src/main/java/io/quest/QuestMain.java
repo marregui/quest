@@ -23,9 +23,9 @@ import java.util.Set;
 
 import javax.swing.*;
 
-import io.quest.model.SQLExecutor;
-import io.quest.model.SQLRequest;
-import io.quest.model.SQLResponse;
+import io.quest.backend.SQLExecutor;
+import io.quest.backend.SQLRequest;
+import io.quest.backend.SQLResponse;
 import io.quest.model.*;
 import io.quest.frontend.GTk;
 import org.slf4j.Logger;
@@ -123,8 +123,8 @@ public final class QuestMain {
         commandsMenu.add(
                 configureMenuItem(
                         new JMenuItem(),
-                        GTk.Icon.COMMAND_EXEC_CANCEL,
-                        "Cancel",
+                        GTk.Icon.COMMAND_EXEC_ABORT,
+                        "Abort",
                         KeyEvent.VK_W,
                         commands::fireCancelEvent));
         commandsMenu.addSeparator();
@@ -217,7 +217,7 @@ public final class QuestMain {
                 break;
 
             case COMMAND_CANCEL:
-                executor.cancelSubmittedRequest(req);
+                executor.cancelExistingRequest(req);
                 onToggleConn(null);
                 break;
 
