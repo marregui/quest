@@ -57,8 +57,8 @@ public class StoreTest {
             assertThat(pConn.getPort(), is("5433"));
             assertThat(pConn.getUsername(), is("root"));
             assertThat(pConn.getPassword(), is("secret password"));
-            assertThat(pConn.getUri(), is("jdbc:postgresql://prometheus:5433/postgres"));
-            assertThat(pConn.getUniqueId(), is("master-node-0 root@prometheus:5433"));
+            assertThat(pConn.getUri(), is("jdbc:postgresql://prometheus:5433/main"));
+            assertThat(pConn.getUniqueId(), is("master-node-0 root@prometheus:5433/main"));
             assertThat(conn, Matchers.is(pConn));
         } finally {
             deleteIfExists(fileName);
