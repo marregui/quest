@@ -169,7 +169,7 @@ public class StoreEntry implements WithUniqueId<String>, Comparable<StoreEntry> 
     /**
      * Changes as attributes are changed.
      *
-     * @return the entry's key
+     * @return the entry's unique id
      */
     @Override
     public String getUniqueId() {
@@ -178,6 +178,6 @@ public class StoreEntry implements WithUniqueId<String>, Comparable<StoreEntry> 
 
     @Override
     public String toString() {
-        return String.format("%s.%s", name, attrs);
+        return getUniqueId();
     }
 }

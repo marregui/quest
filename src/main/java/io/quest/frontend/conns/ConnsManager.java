@@ -48,7 +48,7 @@ import io.quest.model.Store;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import io.quest.frontend.commands.QuestBoard;
+import io.quest.frontend.editor.QuestBoard;
 
 
 /**

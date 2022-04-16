@@ -35,7 +35,7 @@ public class SQLTable implements WithUniqueId<String>, Closeable {
 
     public static final String ROWID_COL_NAME = "#";
 
-    protected final String key;
+    protected final String uniqueId;
     protected final ConcurrentMap<String, Integer> colNameToIdx;
     protected volatile String[] colNames;
     protected volatile int[] colTypes;
@@ -43,8 +43,8 @@ public class SQLTable implements WithUniqueId<String>, Closeable {
     protected final WriteLock writeLock;
     protected final List<SQLRow> model;
 
-    public SQLTable(String key) {
-        this.key = key;
+    public SQLTable(String uniqueId) {
+        this.uniqueId = uniqueId;
         ReentrantReadWriteLock lock = new ReentrantReadWriteLock();
         readLock = lock.readLock();
         writeLock = lock.writeLock();
@@ -54,7 +54,7 @@ public class SQLTable implements WithUniqueId<String>, Closeable {
 
     @Override
     public String getUniqueId() {
-        return key;
+        return uniqueId;
     }
 
     public int getColCount() {

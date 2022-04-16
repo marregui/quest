@@ -24,14 +24,14 @@ import java.util.Set;
 import javax.swing.*;
 
 import io.quest.backend.SQLExecutor;
-import io.quest.backend.SQLRequest;
-import io.quest.backend.SQLResponse;
+import io.quest.backend.SQLExecutionRequest;
+import io.quest.backend.SQLExecutionResponse;
 import io.quest.model.*;
 import io.quest.frontend.GTk;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import io.quest.frontend.commands.QuestBoard;
+import io.quest.frontend.editor.QuestBoard;
 import io.quest.frontend.conns.ConnsManager;
 import io.quest.frontend.results.SQLResultsTable;
 
@@ -197,15 +197,15 @@ public final class QuestMain {
 
     private void dispatchEvent(EventProducer<?> source, Enum<?> event, Object data) {
         if (source instanceof QuestBoard) {
-            onCommandBoardEvent(EventProducer.eventType(event), (SQLRequest) data);
+            onCommandBoardEvent(EventProducer.eventType(event), (SQLExecutionRequest) data);
         } else if (source instanceof SQLExecutor) {
-            onSQLExecutorEvent(EventProducer.eventType(event), (SQLResponse) data);
+            onSQLExecutorEvent(EventProducer.eventType(event), (SQLExecutionResponse) data);
         } else if (source instanceof ConnsManager) {
             onDBConnectionManagerEvent(EventProducer.eventType(event), data);
         }
     }
 
-    private void onCommandBoardEvent(QuestBoard.EventType event, SQLRequest req) {
+    private void onCommandBoardEvent(QuestBoard.EventType event, SQLExecutionRequest req) {
         switch (event) {
             case COMMAND_AVAILABLE:
                 Conn conn = commands.getConnection();
@@ -227,7 +227,7 @@ public final class QuestMain {
         }
     }
 
-    private void onSQLExecutorEvent(SQLExecutor.EventType event, SQLResponse res) {
+    private void onSQLExecutorEvent(SQLExecutor.EventType event, SQLExecutionResponse res) {
         GTk.invokeLater(() -> results.updateStats(event.name(), res));
         switch (event) {
             case STARTED:

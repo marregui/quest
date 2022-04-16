@@ -103,7 +103,7 @@ public class SQLExecutor implements EventProducer<SQLExecutor.EventType>, Closea
      * @param req           contains the SQL to be executed
      * @param eventConsumer receiver of responses to the request
      */
-    public synchronized void submit(SQLRequest req, EventConsumer<SQLExecutor, SQLResponse> eventConsumer) {
+    public synchronized void submit(SQLExecutionRequest req, EventConsumer<SQLExecutor, SQLExecutionResponse> eventConsumer) {
         if (executor == null) {
             throw new IllegalStateException("not started");
         }
@@ -116,7 +116,7 @@ public class SQLExecutor implements EventProducer<SQLExecutor.EventType>, Closea
         LOGGER.info("Execution submitted [{}] from [{}]", req.getUniqueId(), sourceId);
     }
 
-    public synchronized void cancelExistingRequest(SQLRequest req) {
+    public synchronized void cancelExistingRequest(SQLExecutionRequest req) {
         if (executor == null) {
             throw new IllegalStateException("not started");
         }
@@ -128,7 +128,7 @@ public class SQLExecutor implements EventProducer<SQLExecutor.EventType>, Closea
         }
     }
 
-    private void executeRequest(SQLRequest req, EventConsumer<SQLExecutor, SQLResponse> eventListener) {
+    private void executeRequest(SQLExecutionRequest req, EventConsumer<SQLExecutor, SQLExecutionResponse> eventListener) {
         final long startNanos = System.nanoTime();
         final String sourceId = req.getSourceId();
         final Conn conn = req.getConnection();
@@ -141,7 +141,7 @@ public class SQLExecutor implements EventProducer<SQLExecutor.EventType>, Closea
             eventListener.onSourceEvent(
                     SQLExecutor.this,
                     EventType.FAILURE,
-                    new SQLResponse(
+                    new SQLExecutionResponse(
                             req,
                             elapsedMs(startNanos),
                             new RuntimeException(String.format("Connection [%s] is not valid", conn)),
@@ -153,7 +153,7 @@ public class SQLExecutor implements EventProducer<SQLExecutor.EventType>, Closea
         eventListener.onSourceEvent(
                 SQLExecutor.this,
                 EventType.STARTED,
-                new SQLResponse(req, elapsedMs(startNanos), 0L, 0L, table));
+                new SQLExecutionResponse(req, elapsedMs(startNanos), 0L, 0L, table));
         final long fetchStartNanos;
         final long execMs;
         int rowIdx = 0;
@@ -177,7 +177,7 @@ public class SQLExecutor implements EventProducer<SQLExecutor.EventType>, Closea
                         eventListener.onSourceEvent(
                                 SQLExecutor.this,
                                 EventType.RESULTS_AVAILABLE,
-                                new SQLResponse(req, totalMs, execMs, fetchMs, table));
+                                new SQLExecutionResponse(req, totalMs, execMs, fetchMs, table));
                     }
                 }
             }
@@ -187,7 +187,7 @@ public class SQLExecutor implements EventProducer<SQLExecutor.EventType>, Closea
             eventListener.onSourceEvent(
                     SQLExecutor.this,
                     EventType.FAILURE,
-                    new SQLResponse(req, elapsedMs(startNanos), fail, table));
+                    new SQLExecutionResponse(req, elapsedMs(startNanos), fail, table));
             return;
         }
         runningQueries.remove(sourceId);
@@ -200,7 +200,7 @@ public class SQLExecutor implements EventProducer<SQLExecutor.EventType>, Closea
         eventListener.onSourceEvent(
                 SQLExecutor.this,
                 eventType,
-                new SQLResponse(req, totalMs, execMs, fetchMs, table));
+                new SQLExecutionResponse(req, totalMs, execMs, fetchMs, table));
     }
 
     private static long elapsedMs(long start) {

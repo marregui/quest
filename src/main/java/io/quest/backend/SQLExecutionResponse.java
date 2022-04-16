@@ -26,7 +26,7 @@ import io.quest.model.SQLTable;
  * notified to the listener by means of instances of this class. Responses contain a
  * reference to a unique instance of {@link SQLTable} which is updated by the executor.
  */
-public class SQLResponse extends SQLRequest {
+public class SQLExecutionResponse extends SQLExecutionRequest {
 
     private final SQLTable table;
     private final long totalMs;
@@ -34,7 +34,7 @@ public class SQLResponse extends SQLRequest {
     private final long fetchMs;
     private final Throwable error;
 
-    SQLResponse(SQLRequest request, long totalMs, long execMs, long fetchMs, SQLTable table) {
+    SQLExecutionResponse(SQLExecutionRequest request, long totalMs, long execMs, long fetchMs, SQLTable table) {
         super(request);
         this.table = table;
         this.error = null;
@@ -43,7 +43,7 @@ public class SQLResponse extends SQLRequest {
         this.fetchMs = fetchMs;
     }
 
-    SQLResponse(SQLRequest request, long totalMs, Throwable error, SQLTable table) {
+    SQLExecutionResponse(SQLExecutionRequest request, long totalMs, Throwable error, SQLTable table) {
         super(request);
         this.totalMs = totalMs;
         this.error = error;

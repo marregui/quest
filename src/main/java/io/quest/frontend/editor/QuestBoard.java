@@ -14,7 +14,7 @@
  * Copyright (c) 2019 - 2022, Miguel Arregui a.k.a. marregui
  */
 
-package io.quest.frontend.commands;
+package io.quest.frontend.editor;
 
 import java.awt.*;
 import java.awt.event.*;
@@ -32,7 +32,7 @@ import javax.swing.event.UndoableEditEvent;
 import javax.swing.filechooser.FileFilter;
 import javax.swing.undo.UndoManager;
 
-import io.quest.backend.SQLRequest;
+import io.quest.backend.SQLExecutionRequest;
 import io.quest.model.Store;
 import io.quest.model.StoreEntry;
 import io.quest.model.*;
@@ -97,7 +97,7 @@ public class QuestBoard extends QuestPanel implements EventProducer<QuestBoard.E
             TextAttribute.UNDERLINE, TextAttribute.UNDERLINE_ON));
     private static final Cursor HAND_CURSOR = new Cursor(Cursor.HAND_CURSOR);
     private static final String STORE_FILE_NAME = "default-notebook.json";
-    private final EventConsumer<QuestBoard, SQLRequest> eventConsumer;
+    private final EventConsumer<QuestBoard, SQLExecutionRequest> eventConsumer;
     private final JComboBox<String> questEntryNames;
     private final List<UndoManager> undoManagers;
     private final JButton execButton;
@@ -109,10 +109,10 @@ public class QuestBoard extends QuestPanel implements EventProducer<QuestBoard.E
     private JMenu questsMenu;
     private Store<Content> store;
     private Conn conn; // uses it when set
-    private SQLRequest lastRequest;
+    private SQLExecutionRequest lastRequest;
     private Content content;
 
-    public QuestBoard(EventConsumer<QuestBoard, SQLRequest> eventConsumer) {
+    public QuestBoard(EventConsumer<QuestBoard, SQLExecutionRequest> eventConsumer) {
         super();
         this.eventConsumer = eventConsumer;
         undoManagers = new ArrayList<>(5);
@@ -453,7 +453,7 @@ public class QuestBoard extends QuestPanel implements EventProducer<QuestBoard.E
             eventConsumer.onSourceEvent(this, EventType.COMMAND_CANCEL, lastRequest);
             lastRequest = null;
         }
-        lastRequest = new SQLRequest(content.getUniqueId(), conn, command);
+        lastRequest = new SQLExecutionRequest(content.getUniqueId(), conn, command);
         eventConsumer.onSourceEvent(this, EventType.COMMAND_AVAILABLE, lastRequest);
     }
 

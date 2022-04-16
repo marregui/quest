@@ -14,8 +14,6 @@
 # Copyright (c) 2019 - 2022, Miguel Arregui a.k.a. marregui
 #
 
-.DEFAULT_GOAL := build
-
 poetry ?= poetry
 
 test:
@@ -34,5 +32,3 @@ run-code-quality:
 	$(poetry) run isort . --check-only --profile black
 	$(poetry) run bandit .
 	$(poetry) run safety check
-
--include ../Mk/phonies

@@ -37,7 +37,7 @@ public class Conn extends ConnAttrs implements Closeable {
      * Time to wait for the database operation, used to validate the connection, to
      * complete, 10 seconds.
      */
-    private static final int ISVALID_TIMEOUT_SECS = 10;
+    private static final int IS_VALID_TIMEOUT_SECS = 10;
 
     // non persistent attributes, transient:
     private final transient Logger logger;
@@ -121,7 +121,7 @@ public class Conn extends ConnAttrs implements Closeable {
      */
     public boolean isValid() {
         try {
-            isOpen.set(conn != null && conn.isValid(ISVALID_TIMEOUT_SECS));
+            isOpen.set(conn != null && conn.isValid(IS_VALID_TIMEOUT_SECS));
         } catch (SQLException e) {
             isOpen.set(false);
             conn = null;
@@ -177,11 +177,11 @@ public class Conn extends ConnAttrs implements Closeable {
         Connection testConn = null;
         try {
             testConn = DriverManager.getConnection(getUri(), loginProperties());
-            if (!testConn.isValid(ISVALID_TIMEOUT_SECS)) {
+            if (!testConn.isValid(IS_VALID_TIMEOUT_SECS)) {
                 throw new SQLException(String.format(
                         "connection with %s is not valid (tried for %d secs)",
                         this,
-                        ISVALID_TIMEOUT_SECS
+                        IS_VALID_TIMEOUT_SECS
                 ));
             }
         } finally {

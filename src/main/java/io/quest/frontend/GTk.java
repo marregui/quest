@@ -125,9 +125,9 @@ public final class GTk {
     }
 
     public static void setupTableCmdKeyActions(JTable table) {
-        GTk.addCmdKeyAction(KeyEvent.VK_A, table, e -> table.selectAll()); // cmd-a, select all
+        addCmdKeyAction(KeyEvent.VK_A, table, e -> table.selectAll()); // cmd-a, select all
         final StringBuilder sb = new StringBuilder();
-        GTk.addCmdKeyAction(KeyEvent.VK_C, table, e -> { // cmd-c, copy selection/all to clipboard
+        addCmdKeyAction(KeyEvent.VK_C, table, e -> { // cmd-c, copy selection/all to clipboard
             int[] selectedRows = table.getSelectedRows();
             int[] selectedCols = table.getSelectedColumns();
             if (selectedRows.length <= 0) {
@@ -281,10 +281,6 @@ public final class GTk {
 
     public static JPanel flowPanel(JComponent... components) {
         return flowPanel(null, 0, 0, components);
-    }
-
-    public static JPanel flowPanel(int hgap, int vgap, JComponent... components) {
-        return flowPanel(null, hgap, vgap, components);
     }
 
     public static JPanel flowPanel(Border border, int hgap, int vgap, JComponent... components) {

@@ -28,10 +28,10 @@ import java.util.UUID;
  * <p>
  * Each request comes from a source, carries a SQL command, and is be identified by a unique
  * id. On execution, the results are returned by means of one or many callbacks delivering
- * instances of {@link SQLResponse}. Responses must be seen as update messages on the loading
+ * instances of {@link SQLExecutionResponse}. Responses must be seen as update messages on the loading
  * state of a single instance of {@link SQLTable}, which is updated by the executor.
  */
-public class SQLRequest implements WithUniqueId<String> {
+public class SQLExecutionRequest implements WithUniqueId<String> {
 
     private final String sourceId;
     private final String uniqueId;
@@ -39,7 +39,7 @@ public class SQLRequest implements WithUniqueId<String> {
     private final String sqlCommand;
 
     /**
-     * Constructor used by {@link SQLResponse} to keep the relation between
+     * Constructor used by {@link SQLExecutionResponse} to keep the relation between
      * a request and a response. This constructor is used to produce responses for
      * requests whose execution is successful.
      * 
@@ -47,15 +47,15 @@ public class SQLRequest implements WithUniqueId<String> {
      * @param conn will send the command down this connection
      * @param sqlCommand SQL command to execute
      */
-    public SQLRequest(String sourceId, Conn conn, String sqlCommand) {
+    public SQLExecutionRequest(String sourceId, Conn conn, String sqlCommand) {
         this(sourceId, UUID.randomUUID().toString(), conn, sqlCommand);
     }
 
-    SQLRequest(SQLRequest request) {
+    SQLExecutionRequest(SQLExecutionRequest request) {
         this(request.sourceId, request.uniqueId, request.conn, request.sqlCommand);
     }
 
-    private SQLRequest(String sourceId, String uniqueId, Conn conn, String sqlCommand) {
+    private SQLExecutionRequest(String sourceId, String uniqueId, Conn conn, String sqlCommand) {
         this.sourceId = sourceId;
         this.uniqueId = uniqueId;
         this.conn = conn;

@@ -38,10 +38,10 @@ import javax.swing.table.TableColumn;
 import javax.swing.table.TableColumnModel;
 
 import io.quest.frontend.GTk;
-import io.quest.backend.SQLResponse;
+import io.quest.backend.SQLExecutionResponse;
 import io.quest.model.SQLTable;
 import io.quest.frontend.InfiniteSpinnerPanel;
-import io.quest.frontend.commands.QuestPanel;
+import io.quest.frontend.editor.QuestPanel;
 
 
 public class SQLResultsTable extends JPanel implements Closeable {
@@ -133,7 +133,7 @@ public class SQLResultsTable extends JPanel implements Closeable {
         updateRowNavigationComponents();
     }
 
-    public void updateStats(String eventType, SQLResponse res) {
+    public void updateStats(String eventType, SQLExecutionResponse res) {
         if (res != null) {
             statsLabel.setText(String.format(
                     "[%s]  Exec: %5d,  Fetch: %5d,  Total: %6d (ms)",
@@ -146,7 +146,7 @@ public class SQLResultsTable extends JPanel implements Closeable {
         }
     }
 
-    public void onRowsAdded(SQLResponse res) {
+    public void onRowsAdded(SQLExecutionResponse res) {
         SQLTable table = res.getTable();
         if (results.compareAndSet(null, table)) {
             resetTableHeader();

@@ -6,19 +6,19 @@ import java.util.concurrent.atomic.AtomicReference;
 
 public class SQLRow implements WithUniqueId<Integer> {
 
-    private final int key;
+    private final int uniqueId;
     private Object[] values;
     private final AtomicReference<String> toString;
 
-    public SQLRow(int key, Object[] values) {
-        this.key = key;
+    public SQLRow(int uniqueId, Object[] values) {
+        this.uniqueId = uniqueId;
         this.values = Objects.requireNonNull(values);
         this.toString = new AtomicReference<>();
     }
 
     @Override
     public Integer getUniqueId() {
-        return key;
+        return uniqueId;
     }
 
     public Object getValueAt(int idx) {
@@ -33,7 +33,7 @@ public class SQLRow implements WithUniqueId<Integer> {
 
     @Override
     public int hashCode() {
-        return Integer.hashCode(key);
+        return Integer.hashCode(uniqueId);
     }
 
     @Override
@@ -45,7 +45,7 @@ public class SQLRow implements WithUniqueId<Integer> {
             return false;
         }
         SQLRow that = (SQLRow) o;
-        return key == that.key;
+        return uniqueId == that.uniqueId;
     }
 
     @Override

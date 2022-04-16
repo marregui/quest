@@ -33,11 +33,10 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 
-public class SQLTableRTest {
+public class SQLTableTest {
     private static final String[] colNames = {"Status", "Source", "Uptime"};
     private static final int[] colTypes = {Types.VARCHAR, Types.VARCHAR, Types.INTEGER};
     private static final Object[] colValues = {"OK", "Entropy generator", 42};
-
     private static final String[] expectedColNames = new String[colNames.length + 1];
     private static final int[] expectedColTypes = new int[colTypes.length + 1];
     private static final Object[] expectedColValues = new Object[colValues.length + 1];

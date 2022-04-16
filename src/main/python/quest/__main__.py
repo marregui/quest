@@ -69,8 +69,9 @@ def _update_command(branch_name: str, force: bool):
     else:
         subprocess.check_output(["git", "checkout", branch_name], cwd=QDB_CLONE_FOLDER)
         subprocess.check_output(["git", "pull"], cwd=QDB_CLONE_FOLDER)
+    print("Building QuestDB")
     subprocess.check_output(
-        ["mvn", "clean", "install", "-DskipTests", "-Dbuild-web-console"],
+        ["mvn", "clean", "install", "-DskipTests", "-Pbuild-web-console,build-binaries"],
         cwd=QDB_CLONE_FOLDER,
     )
     print("Update completed")
@@ -89,7 +90,6 @@ def _start_command():
             "-Dnoebug",
             "-XX:+UnlockExperimentalVMOptions",
             "-XX:+AlwaysPreTouch",
-            "-XX:+UseParallelOldGC",
             "-Dout=/log.conf",
             "-cp",
             f"{QDB_DB_CONF}:{qdb_jar}",

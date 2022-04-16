@@ -24,7 +24,7 @@ import java.sql.ResultSet;
 import java.sql.Timestamp;
 
 
-public class ConnectQuestDB {
+public class ConnectWithQuestDB {
     public static void main(String... args) throws Exception {
         try (Conn conn = new Conn("questdb")) {
             Connection connection = conn.open();

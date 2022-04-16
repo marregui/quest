@@ -27,7 +27,7 @@ import io.quest.model.SQLTable;
 
 /**
  * Adds paging to a default {@link javax.swing.table.TableModel} wrapping a
- * {@link SQLTableR}. Column metadata are accessed through a table supplier. The
+ * {@link SQLTable}. Column metadata are accessed through a table supplier. The
  * table is built by a {@link SQLExecutor} and thus it will be null until the
  * SQL query execution is started.
  */

@@ -55,9 +55,7 @@ public class Store<T extends StoreEntry> implements Closeable, Iterable<T> {
     private static final Logger LOGGER = LoggerFactory.getLogger(Store.class);
     private static final String STORE_PATH_KEY = "store.path";
     private static final String DEFAULT_STORE_PATH = ".quest";
-    private static final Class<?>[] ITEM_CONSTRUCTOR_SIGNATURE = {
-            StoreEntry.class
-    };
+    private static final Class<?>[] ITEM_CONSTRUCTOR_SIGNATURE = {StoreEntry.class};
     private static final Gson GSON = new GsonBuilder().setPrettyPrinting().create();
     private static final StoreEntry[] EMPTY_STORE = new StoreEntry[0];
     private static final Type STORE_TYPE = new TypeToken<ArrayList<StoreEntry>>() {
