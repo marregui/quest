@@ -38,12 +38,12 @@ import io.quest.frontend.results.SQLResultsTable;
 import static io.quest.frontend.GTk.configureMenuItem;
 
 
-public final class QuestMain {
+public final class Quest {
 
+    private static final Logger LOGGER = LoggerFactory.getLogger(Quest.class);
     public static final String NAME = "quest";
     public static final String VERSION = "1.0";
 
-    private static final Logger LOGGER = LoggerFactory.getLogger(QuestMain.class);
 
     private final ConnsManager conns;
     private final SQLExecutor executor;
@@ -52,9 +52,7 @@ public final class QuestMain {
     private final JMenuItem toggleConnsWidget;
     private final JMenuItem toggleConn;
 
-    private QuestMain() {
-        LOGGER.info(GTk.BANNER);
-        LOGGER.info("{} {}", NAME, VERSION);
+    private Quest() {
         JFrame frame = GTk.createFrame();
         frame.setIconImage(GTk.Icon.APPLICATION.icon().getImage());
         int width = frame.getWidth();
@@ -71,8 +69,8 @@ public final class QuestMain {
         toggleConnsWidget = new JMenuItem();
         toggleConn = new JMenuItem();
         frame.setJMenuBar(createMenuBar());
-        Runtime.getRuntime()
-                .addShutdownHook(new Thread(this::close, getClass().getSimpleName() + "-shutdown-hook"));
+        Runtime.getRuntime().addShutdownHook(new Thread(this::close, "shutdown-hook"));
+        LOGGER.info(GTk.BANNER + "  Version " + VERSION + "\n");
         executor.start();
         conns.start();
         frame.setVisible(true);
@@ -89,14 +87,18 @@ public final class QuestMain {
                         GTk.Icon.CONN_SHOW,
                         "Show connections",
                         KeyEvent.VK_T,
-                        this::onToggleConnsWidget));
+                        this::onToggleConnsWidget
+                )
+        );
         connsMenu.add(
                 configureMenuItem(
                         toggleConn,
                         GTk.Icon.CONN_CONNECT,
                         "Connect",
                         KeyEvent.VK_O,
-                        this::onToggleConn));
+                        this::onToggleConn
+                )
+        );
         // Commands
         JMenu commandsMenu = new JMenu("Commands");
         commandsMenu.setFont(GTk.MENU_FONT);
@@ -112,21 +114,27 @@ public final class QuestMain {
                         GTk.Icon.COMMAND_EXEC_LINE,
                         "L.Exec",
                         KeyEvent.VK_L,
-                        commands::onExecLine));
+                        commands::onExecLine
+                )
+        );
         commandsMenu.add(
                 configureMenuItem(
                         new JMenuItem(),
                         GTk.Icon.COMMAND_EXEC,
                         "Exec",
                         KeyEvent.VK_ENTER,
-                        commands::onExec));
+                        commands::onExec
+                )
+        );
         commandsMenu.add(
                 configureMenuItem(
                         new JMenuItem(),
                         GTk.Icon.COMMAND_EXEC_ABORT,
                         "Abort",
                         KeyEvent.VK_W,
-                        commands::fireCancelEvent));
+                        commands::fireCancelEvent
+                )
+        );
         commandsMenu.addSeparator();
         commandsMenu.add(
                 configureMenuItem(
@@ -134,14 +142,18 @@ public final class QuestMain {
                         GTk.Icon.COMMAND_FIND,
                         "Find",
                         KeyEvent.VK_F,
-                        e -> commands.onFind()));
+                        e -> commands.onFind()
+                )
+        );
         commandsMenu.add(
                 configureMenuItem(
                         new JMenuItem(),
                         GTk.Icon.COMMAND_REPLACE,
                         "Replace",
                         KeyEvent.VK_R,
-                        e -> commands.onReplace()));
+                        e -> commands.onReplace()
+                )
+        );
         // Results
         JMenu resultsMenu = new JMenu("Results");
         resultsMenu.setFont(GTk.MENU_FONT);
@@ -152,14 +164,18 @@ public final class QuestMain {
                         GTk.Icon.RESULTS_PREV,
                         "PREV",
                         KeyEvent.VK_B,
-                        results::onPrevButton));
+                        results::onPrevButton
+                )
+        );
         resultsMenu.add(
                 configureMenuItem(
                         new JMenuItem(),
                         GTk.Icon.RESULTS_NEXT,
                         "NEXT",
                         KeyEvent.VK_N,
-                        results::onNextButton));
+                        results::onNextButton
+                )
+        );
 
         JMenu menu = new JMenu("Menu");
         menu.setFont(GTk.MENU_FONT);
@@ -168,11 +184,13 @@ public final class QuestMain {
         menu.add(resultsMenu);
         menu.addSeparator();
         menu.add(configureMenuItem(
-                new JMenuItem(),
-                GTk.Icon.HELP,
-                "QuestDB Docs",
-                GTk.NO_KEY_EVENT,
-                GTk::openQuestDBDocumentation));
+                        new JMenuItem(),
+                        GTk.Icon.HELP,
+                        "QuestDB Docs",
+                        GTk.NO_KEY_EVENT,
+                        GTk::openQuestDBDocumentation
+                )
+        );
         JMenuBar menuBar = new JMenuBar();
         menuBar.setBorder(BorderFactory.createLoweredSoftBevelBorder());
         menuBar.add(menu);
@@ -306,6 +324,6 @@ public final class QuestMain {
         } catch (Exception e) {
             LOGGER.warn("CrossPlatformLookAndFeel [{}] unavailable", lookAndFeel);
         }
-        GTk.invokeLater(QuestMain::new);
+        GTk.invokeLater(Quest::new);
     }
 }

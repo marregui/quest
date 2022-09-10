@@ -2,8 +2,7 @@
 
 ## Requirements
 
-- [Python 3.9](https://www.python.org/downloads/release/python-390/)
-- [Java Azul](https://www.azul.com/downloads/?package=jdk)
+- [Python 3](https://www.python.org/downloads/)
 - [Maven](https://maven.apache.org/download.cgi)
 - [Git](https://git-scm.com/download)
 

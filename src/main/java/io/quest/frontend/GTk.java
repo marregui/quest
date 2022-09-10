@@ -37,13 +37,12 @@ import java.awt.event.InputEvent;
 import java.awt.event.KeyEvent;
 import java.io.IOException;
 import java.net.URL;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Objects;
+import java.util.*;
 import javax.swing.*;
 import javax.swing.border.Border;
 
 public final class GTk {
+
     static {
         // anti-aliased fonts
         System.setProperty("awt.useSystemAAFontSettings", "on");
@@ -58,36 +57,31 @@ public final class GTk {
             " | (_| | | |_| | |  __/ \\__ \\ | |_ \n" +
             "  \\__, |  \\__,_|  \\___| |___/  \\__|\n" +
             "     |_|\n" +
-            "  Copyright (c) 2019 - 2022\n";
-
-    private static final String QUESTDB_DOCUMENTATION_URL = "https://questdb.io/docs/introduction/";
-    private static final Logger LOGGER = LoggerFactory.getLogger(GTk.class);
-    private static final Toolkit TK = Toolkit.getDefaultToolkit();
-
+            "  Copyright (c) 2019 - " + Calendar.getInstance().get(Calendar.YEAR) + "\n";
     public static final String MAIN_FONT_NAME = "Arial"; // excluding commands' TextPane, which is Monospaced
-
     public static final Color APP_THEME_COLOR = new Color(200, 50, 100);
-
     public static final Color TABLE_HEADER_FONT_COLOR = Color.BLACK;
     public static final Font TABLE_HEADER_FONT = new Font(MAIN_FONT_NAME, Font.BOLD, 18);
     public static final Font TABLE_CELL_FONT = new Font(MAIN_FONT_NAME, Font.PLAIN, 16);
-
     public static final Font MENU_FONT = new Font(MAIN_FONT_NAME, Font.BOLD, 14);
-
-    private static final DataFlavor[] SUPPORTED_COPY_PASTE_FLAVOR = {DataFlavor.stringFlavor};
-
     public static final int CMD_DOWN_MASK = InputEvent.META_DOWN_MASK;
     public static final int CMD_SHIFT_DOWN_MASK = CMD_DOWN_MASK | InputEvent.SHIFT_DOWN_MASK;
     public static final int ALT_DOWN_MASK = InputEvent.ALT_DOWN_MASK;
     public static final int ALT_SHIFT_DOWN_MASK = ALT_DOWN_MASK | InputEvent.SHIFT_DOWN_MASK;
     public static final int NO_KEY_EVENT = -1;
 
+    private static final String QUESTDB_DOCUMENTATION_URL = "https://questdb.io/docs/introduction/";
+    private static final Logger LOGGER = LoggerFactory.getLogger(GTk.class);
+    private static final Toolkit TK = Toolkit.getDefaultToolkit();
+    private static final DataFlavor[] SUPPORTED_COPY_PASTE_FLAVOR = {DataFlavor.stringFlavor};
+
 
     public static void addCmdKeyAction(int keyEvent, JComponent component, ActionListener action) {
         Action cmd = createAction(action);
         component.getInputMap(JComponent.WHEN_FOCUSED).put(
                 KeyStroke.getKeyStroke(keyEvent, CMD_DOWN_MASK),
-                cmd);
+                cmd
+        );
         component.getActionMap().put(cmd, cmd);
     }
 
@@ -95,7 +89,8 @@ public final class GTk {
         Action cmd = createAction(action);
         component.getInputMap(JComponent.WHEN_FOCUSED).put(
                 KeyStroke.getKeyStroke(keyEvent, CMD_SHIFT_DOWN_MASK),
-                cmd);
+                cmd
+        );
         component.getActionMap().put(cmd, cmd);
     }
 
@@ -103,7 +98,8 @@ public final class GTk {
         Action cmd = createAction(action);
         component.getInputMap(JComponent.WHEN_FOCUSED).put(
                 KeyStroke.getKeyStroke(keyEvent, ALT_DOWN_MASK),
-                cmd);
+                cmd
+        );
         component.getActionMap().put(cmd, cmd);
     }
 
@@ -111,7 +107,8 @@ public final class GTk {
         Action cmd = createAction(action);
         component.getInputMap(JComponent.WHEN_FOCUSED).put(
                 KeyStroke.getKeyStroke(keyEvent, ALT_SHIFT_DOWN_MASK),
-                cmd);
+                cmd
+        );
         component.getActionMap().put(cmd, cmd);
     }
 
@@ -210,7 +207,8 @@ public final class GTk {
                         return isDataFlavorSupported(flavor) ? str : "";
                     }
                 },
-                null);
+                null
+        );
     }
 
     public static String getClipboardContent() {
@@ -258,11 +256,13 @@ public final class GTk {
         return button(text, true, icon, tooltip, listener);
     }
 
-    public static JButton button(String text,
-                                 boolean isEnabled,
-                                 Icon icon,
-                                 String tooltip,
-                                 ActionListener listener) {
+    public static JButton button(
+            String text,
+            boolean isEnabled,
+            Icon icon,
+            String tooltip,
+            ActionListener listener
+    ) {
         JButton button = new JButton(Objects.requireNonNull(text));
         if (icon != Icon.NO_ICON) {
             button.setIcon(icon.icon());
@@ -298,20 +298,24 @@ public final class GTk {
         return new JPanel(new FlowLayout(FlowLayout.CENTER, hgap, 0));
     }
 
-    public static JMenuItem configureMenuItem(JMenuItem item,
-                                              GTk.Icon icon,
-                                              String title,
-                                              int keyEvent,
-                                              ActionListener listener) {
+    public static JMenuItem configureMenuItem(
+            JMenuItem item,
+            GTk.Icon icon,
+            String title,
+            int keyEvent,
+            ActionListener listener
+    ) {
         return configureMenuItem(item, icon, title, null, keyEvent, listener);
     }
 
-    public static JMenuItem configureMenuItem(JMenuItem item,
-                                              GTk.Icon icon,
-                                              String title,
-                                              String tooltip,
-                                              int keyEvent,
-                                              ActionListener listener) {
+    public static JMenuItem configureMenuItem(
+            JMenuItem item,
+            GTk.Icon icon,
+            String title,
+            String tooltip,
+            int keyEvent,
+            ActionListener listener
+    ) {
         if (icon != GTk.Icon.NO_ICON) {
             item.setIcon(icon.icon());
         }
@@ -335,11 +339,13 @@ public final class GTk {
             if (os.indexOf("mac") >= 0) {
                 rt.exec(String.format(
                         "open %s",
-                        QUESTDB_DOCUMENTATION_URL));
+                        QUESTDB_DOCUMENTATION_URL
+                ));
             } else if (os.indexOf("win") >= 0) {
                 rt.exec(String.format(
                         "rundll32 url.dll,FileProtocolHandler %s",
-                        QUESTDB_DOCUMENTATION_URL));
+                        QUESTDB_DOCUMENTATION_URL
+                ));
             } else if (os.indexOf("nix") >= 0 || os.indexOf("nux") >= 0) {
                 String[] browsers = {
                         "google-chrome", "firefox", "mozilla",
@@ -352,7 +358,9 @@ public final class GTk {
                         cmd.append(" || ");
                     }
                     cmd.append(browsers[i])
-                            .append("\"").append(QUESTDB_DOCUMENTATION_URL).append("\"");
+                            .append("\"")
+                            .append(QUESTDB_DOCUMENTATION_URL)
+                            .append("\"");
                 }
                 // If the first didn't work, try the next
                 rt.exec(new String[]{"sh", "-c", cmd.toString()});
@@ -364,9 +372,11 @@ public final class GTk {
                             "Failed to open browser [%s:%s]: %s",
                             os,
                             QUESTDB_DOCUMENTATION_URL,
-                            err.getMessage()),
+                            err.getMessage()
+                    ),
                     "Helpless",
-                    JOptionPane.INFORMATION_MESSAGE);
+                    JOptionPane.INFORMATION_MESSAGE
+            );
         }
     }
 

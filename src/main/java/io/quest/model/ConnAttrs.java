@@ -18,7 +18,7 @@ package io.quest.model;
 
 import java.util.Properties;
 
-import io.quest.QuestMain;
+import io.quest.Quest;
 import io.quest.backend.SQLExecutor;
 
 
@@ -109,7 +109,7 @@ public class ConnAttrs extends StoreEntry {
         // This allows a database administrator to see what applications are
         // connected to the server and what resources they are using through
         // views like pgstatactivity.
-        props.put("ApplicationName", QuestMain.NAME + "-" + QuestMain.VERSION);
+        props.put("ApplicationName", Quest.NAME + "-" + Quest.VERSION);
 
         // Connect using SSL. The server must have been compiled with SSL
         // support. This property does not need a value associated with it.

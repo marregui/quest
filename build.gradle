@@ -46,7 +46,7 @@ dependencies {
 }
 
 application {
-    mainClass = 'io.quest.QuestMain'
+    mainClass = 'io.quest.Quest'
     applicationDefaultJvmArgs = [
             '-Xmx2G',
             '-server',
@@ -58,7 +58,7 @@ application {
 jar {
     manifest {
         attributes(
-                'Main-Class': 'io.quest.QuestMain',
+                'Main-Class': 'io.quest.Quest',
                 'Build-Timestamp': new java.text.SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSSZ").format(new Date()),
                 'Build-Branch' : versioning.info.branch,
                 'Build-Revision' : versioning.info.commit,

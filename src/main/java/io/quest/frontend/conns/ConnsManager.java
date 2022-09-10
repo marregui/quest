@@ -253,10 +253,6 @@ public class ConnsManager extends JDialog implements EventProducer<ConnsManager.
         GTk.invokeLater(() -> {
             toggleComponents();
             eventConsumer.onSourceEvent(this, EventType.CONNECTIONS_LOST, lostConns);
-            JOptionPane.showMessageDialog(
-                    this, sb.toString(),
-                    "SQLException",
-                    JOptionPane.ERROR_MESSAGE);
         });
     }
 
