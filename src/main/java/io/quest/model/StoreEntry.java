@@ -25,7 +25,7 @@ import java.util.TreeMap;
 /**
  * Base type for the entries persisted by a {@link Store}.
  */
-public class StoreEntry implements WithUniqueId<String>, Comparable<StoreEntry> {
+public class StoreEntry implements UniqueId<String>, Comparable<StoreEntry> {
 
     private static final Comparator<String> COMPARING = (k1, k2) -> {
         String[] k1Parts = k1.split("\\.");
@@ -90,7 +90,7 @@ public class StoreEntry implements WithUniqueId<String>, Comparable<StoreEntry> 
      * @param attr an implementor of HasKey
      * @return the value associated with the attribute, or null if it does not exist
      */
-    public String getAttr(WithUniqueId<String> attr) {
+    public String getAttr(UniqueId<String> attr) {
         return attrs.get(attr.getUniqueId());
     }
 
@@ -102,7 +102,7 @@ public class StoreEntry implements WithUniqueId<String>, Comparable<StoreEntry> 
      * @param attr  an implementor of HasKey
      * @param value value for the attribute
      */
-    public void setAttr(WithUniqueId<String> attr, String value) {
+    public void setAttr(UniqueId<String> attr, String value) {
         setAttr(attr, value, "");
     }
 
@@ -113,7 +113,7 @@ public class StoreEntry implements WithUniqueId<String>, Comparable<StoreEntry> 
      * @param value        value for the attribute
      * @param defaultValue default value when the supplied value is null or empty
      */
-    public void setAttr(WithUniqueId<String> attr, String value, String defaultValue) {
+    public void setAttr(UniqueId<String> attr, String value, String defaultValue) {
         attrs.put(attr.getUniqueId(), null == value || value.isEmpty() ? defaultValue : value);
     }
 

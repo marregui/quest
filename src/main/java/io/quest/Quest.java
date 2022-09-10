@@ -31,7 +31,7 @@ import io.quest.frontend.GTk;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import io.quest.frontend.editor.QuestBoard;
+import io.quest.frontend.editor.QuestEditor;
 import io.quest.frontend.conns.ConnsManager;
 import io.quest.frontend.results.SQLResultsTable;
 
@@ -47,7 +47,7 @@ public final class Quest {
 
     private final ConnsManager conns;
     private final SQLExecutor executor;
-    private final QuestBoard commands;
+    private final QuestEditor commands;
     private final SQLResultsTable results;
     private final JMenuItem toggleConnsWidget;
     private final JMenuItem toggleConn;
@@ -59,7 +59,7 @@ public final class Quest {
         int dividerHeight = (int) (frame.getHeight() * 0.6);
         executor = new SQLExecutor(); // input/output
         conns = new ConnsManager(frame, this::dispatchEvent); // input
-        commands = new QuestBoard(this::dispatchEvent); // input
+        commands = new QuestEditor(this::dispatchEvent); // input
         commands.setPreferredSize(new Dimension(0, dividerHeight));
         results = new SQLResultsTable(width, dividerHeight); // output
         JSplitPane splitPane = new JSplitPane(JSplitPane.VERTICAL_SPLIT, false, commands, results);
@@ -214,7 +214,7 @@ public final class Quest {
     }
 
     private void dispatchEvent(EventProducer<?> source, Enum<?> event, Object data) {
-        if (source instanceof QuestBoard) {
+        if (source instanceof QuestEditor) {
             onCommandBoardEvent(EventProducer.eventType(event), (SQLExecutionRequest) data);
         } else if (source instanceof SQLExecutor) {
             onSQLExecutorEvent(EventProducer.eventType(event), (SQLExecutionResponse) data);
@@ -223,7 +223,7 @@ public final class Quest {
         }
     }
 
-    private void onCommandBoardEvent(QuestBoard.EventType event, SQLExecutionRequest req) {
+    private void onCommandBoardEvent(QuestEditor.EventType event, SQLExecutionRequest req) {
         switch (event) {
             case COMMAND_AVAILABLE:
                 Conn conn = commands.getConnection();

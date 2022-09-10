@@ -33,7 +33,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 
-public class SQLTableTest {
+public class TableTest {
     private static final String[] colNames = {"Status", "Source", "Uptime"};
     private static final int[] colTypes = {Types.VARCHAR, Types.VARCHAR, Types.INTEGER};
     private static final Object[] colValues = {"OK", "Entropy generator", 42};
@@ -71,7 +71,7 @@ public class SQLTableTest {
 
     @Test
     public void test_empty_table_no_key() {
-        try (SQLTable table = new SQLTable(null)) {
+        try (Table table = new Table(null)) {
             assertThat(table.getUniqueId(), nullValue());
             assertThat(table.getColNames(), nullValue());
             assertThat(table.getColTypes(), nullValue());
@@ -81,7 +81,7 @@ public class SQLTableTest {
 
     @Test
     public void test_extractColumnMetadata() throws SQLException {
-        try (SQLTable table = new SQLTable(null)) {
+        try (Table table = new Table(null)) {
             table.setColMetadata(rs);
             assertThat(table.getColNames(), is(expectedColNames));
             assertThat(table.getColTypes(), is(expectedColTypes));
@@ -95,13 +95,13 @@ public class SQLTableTest {
     @Test
     public void test_addRow() throws SQLException {
         int rowKey = 0;
-        try (SQLTable table = new SQLTable(null)) {
+        try (Table table = new Table(null)) {
             table.setColMetadata(rs);
             table.addRow(rowKey, rs);
             assertThat(table.getColNames(), is(expectedColNames));
             assertThat(table.getColTypes(), is(expectedColTypes));
             assertThat(table.size(), is(1));
-            assertThat(table.getRow(0), Matchers.is(new SQLRow(rowKey, expectedColValues)));
+            assertThat(table.getRow(0), Matchers.is(new Row(rowKey, expectedColValues)));
         }
     }
 }

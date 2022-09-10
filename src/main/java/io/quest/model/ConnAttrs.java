@@ -31,7 +31,7 @@ public class ConnAttrs extends StoreEntry {
     private static final String DEFAULT_USERNAME = "admin";
     private static final String DEFAULT_PASSWORD = "quest";
 
-    public enum AttrName implements WithUniqueId<String> {
+    public enum AttrName implements UniqueId<String> {
         host(DEFAULT_HOST),
         port(DEFAULT_PORT),
         database(DEFAULT_DATABASE),

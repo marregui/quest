@@ -31,7 +31,7 @@ import java.util.concurrent.locks.ReentrantReadWriteLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock.ReadLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock.WriteLock;
 
-public class SQLTable implements WithUniqueId<String>, Closeable {
+public class Table implements UniqueId<String>, Closeable {
 
     public static final String ROWID_COL_NAME = "#";
 
@@ -41,9 +41,9 @@ public class SQLTable implements WithUniqueId<String>, Closeable {
     protected volatile int[] colTypes;
     protected final ReadLock readLock;
     protected final WriteLock writeLock;
-    protected final List<SQLRow> model;
+    protected final List<Row> model;
 
-    public SQLTable(String uniqueId) {
+    public Table(String uniqueId) {
         this.uniqueId = uniqueId;
         ReentrantReadWriteLock lock = new ReentrantReadWriteLock();
         readLock = lock.readLock();
@@ -88,7 +88,7 @@ public class SQLTable implements WithUniqueId<String>, Closeable {
      * Sets the column metadata (names and types) as defined by the result-set's
      * metadata, and clears the table's model. It does not change the table's key.
      * <p>
-     * This call needs to happen before {@link SQLTable#addRow(int, ResultSet)}
+     * This call needs to happen before {@link Table#addRow(int, ResultSet)}
      * can be called.
      *
      * @param rs result-set in response to a SQL execution request
@@ -126,7 +126,7 @@ public class SQLTable implements WithUniqueId<String>, Closeable {
     /**
      * Table rows are added by this method.
      * <p>
-     * A call to {@link SQLTable#setColMetadata(ResultSet)} needs to happen before
+     * A call to {@link Table#setColMetadata(ResultSet)} needs to happen before
      * rows can be added to the table through this method.
      *
      * @param rowIdx the key for the row, usually a monotonic-incremental number
@@ -144,7 +144,7 @@ public class SQLTable implements WithUniqueId<String>, Closeable {
         for (int i = 1; i < types.length; i++) {
             values[i] = rs.getObject(i);
         }
-        SQLRow row = new SQLRow(rowIdx, values);
+        Row row = new Row(rowIdx, values);
         writeLock.lock();
         try {
             model.add(row);
@@ -154,7 +154,7 @@ public class SQLTable implements WithUniqueId<String>, Closeable {
     }
 
     public Object getValueAt(int rowIdx, int colIdx) {
-        SQLRow row = getRow(rowIdx);
+        Row row = getRow(rowIdx);
         return row != null ? row.getValueAt(colIdx) : null;
     }
 
@@ -171,7 +171,7 @@ public class SQLTable implements WithUniqueId<String>, Closeable {
         return size() == 1 && getColCount() == 1 && getColType(0) == Types.VARCHAR;
     }
 
-    public SQLRow getRow(int rowIdx) {
+    public Row getRow(int rowIdx) {
         readLock.lock();
         try {
             return model.get(rowIdx);
@@ -187,7 +187,7 @@ public class SQLTable implements WithUniqueId<String>, Closeable {
             colNames = null;
             colTypes = null;
             colNameToIdx.clear();
-            model.forEach(SQLRow::clear);
+            model.forEach(Row::clear);
             model.clear();
         } finally {
             writeLock.unlock();

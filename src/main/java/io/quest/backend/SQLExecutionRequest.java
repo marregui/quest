@@ -17,8 +17,8 @@
 package io.quest.backend;
 
 import io.quest.model.Conn;
-import io.quest.model.SQLTable;
-import io.quest.model.WithUniqueId;
+import io.quest.model.Table;
+import io.quest.model.UniqueId;
 
 import java.util.UUID;
 
@@ -29,9 +29,9 @@ import java.util.UUID;
  * Each request comes from a source, carries a SQL command, and is be identified by a unique
  * id. On execution, the results are returned by means of one or many callbacks delivering
  * instances of {@link SQLExecutionResponse}. Responses must be seen as update messages on the loading
- * state of a single instance of {@link SQLTable}, which is updated by the executor.
+ * state of a single instance of {@link Table}, which is updated by the executor.
  */
-public class SQLExecutionRequest implements WithUniqueId<String> {
+public class SQLExecutionRequest implements UniqueId<String> {
 
     private final String sourceId;
     private final String uniqueId;

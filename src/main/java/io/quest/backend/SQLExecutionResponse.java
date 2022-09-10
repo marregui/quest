@@ -16,7 +16,7 @@
 
 package io.quest.backend;
 
-import io.quest.model.SQLTable;
+import io.quest.model.Table;
 
 /**
  * The class embodying the responses emitted by the {@link SQLExecutor} as it progresses
@@ -24,17 +24,17 @@ import io.quest.model.SQLTable;
  * <p>
  * Each request carries a SQL query. When it is executed, the progress is progressively
  * notified to the listener by means of instances of this class. Responses contain a
- * reference to a unique instance of {@link SQLTable} which is updated by the executor.
+ * reference to a unique instance of {@link Table} which is updated by the executor.
  */
 public class SQLExecutionResponse extends SQLExecutionRequest {
 
-    private final SQLTable table;
+    private final Table table;
     private final long totalMs;
     private final long executionMs;
     private final long fetchMs;
     private final Throwable error;
 
-    SQLExecutionResponse(SQLExecutionRequest request, long totalMs, long execMs, long fetchMs, SQLTable table) {
+    SQLExecutionResponse(SQLExecutionRequest request, long totalMs, long execMs, long fetchMs, Table table) {
         super(request);
         this.table = table;
         this.error = null;
@@ -43,7 +43,7 @@ public class SQLExecutionResponse extends SQLExecutionRequest {
         this.fetchMs = fetchMs;
     }
 
-    SQLExecutionResponse(SQLExecutionRequest request, long totalMs, Throwable error, SQLTable table) {
+    SQLExecutionResponse(SQLExecutionRequest request, long totalMs, Throwable error, Table table) {
         super(request);
         this.totalMs = totalMs;
         this.error = error;
@@ -52,7 +52,7 @@ public class SQLExecutionResponse extends SQLExecutionRequest {
         this.fetchMs = -1L;
     }
 
-    public SQLTable getTable() {
+    public Table getTable() {
         return table;
     }
 

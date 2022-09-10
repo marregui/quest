@@ -23,7 +23,7 @@ import java.awt.BorderLayout;
 import javax.swing.JButton;
 import javax.swing.JFrame;
 
-import io.quest.frontend.editor.QuestBoard;
+import io.quest.frontend.editor.QuestEditor;
 import io.quest.frontend.conns.ConnsManager;
 
 
@@ -59,7 +59,7 @@ public class WidgetTester {
     }
 
     public static void test_CommandBoard() {
-        QuestBoard board = new QuestBoard((owner, event, request) -> {
+        QuestEditor board = new QuestEditor((owner, event, request) -> {
 
         });
         JFrame frame = createFrame("CommandBoard");

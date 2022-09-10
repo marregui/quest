@@ -43,7 +43,7 @@ import io.quest.frontend.NoopMouseListener;
 import io.quest.frontend.conns.ConnsManager;
 
 
-public class QuestBoard extends QuestPanel implements EventProducer<QuestBoard.EventType>, Closeable {
+public class QuestEditor extends QuestPanel implements EventProducer<QuestEditor.EventType>, Closeable {
 
     public enum EventType {
         /**
@@ -97,7 +97,7 @@ public class QuestBoard extends QuestPanel implements EventProducer<QuestBoard.E
             TextAttribute.UNDERLINE, TextAttribute.UNDERLINE_ON));
     private static final Cursor HAND_CURSOR = new Cursor(Cursor.HAND_CURSOR);
     private static final String STORE_FILE_NAME = "default-notebook.json";
-    private final EventConsumer<QuestBoard, SQLExecutionRequest> eventConsumer;
+    private final EventConsumer<QuestEditor, SQLExecutionRequest> eventConsumer;
     private final JComboBox<String> questEntryNames;
     private final List<UndoManager> undoManagers;
     private final JButton execButton;
@@ -112,7 +112,7 @@ public class QuestBoard extends QuestPanel implements EventProducer<QuestBoard.E
     private SQLExecutionRequest lastRequest;
     private Content content;
 
-    public QuestBoard(EventConsumer<QuestBoard, SQLExecutionRequest> eventConsumer) {
+    public QuestEditor(EventConsumer<QuestEditor, SQLExecutionRequest> eventConsumer) {
         super();
         this.eventConsumer = eventConsumer;
         undoManagers = new ArrayList<>(5);
@@ -154,7 +154,7 @@ public class QuestBoard extends QuestPanel implements EventProducer<QuestBoard.E
         JPanel controlsPanel = new JPanel(new BorderLayout(0, 0));
         controlsPanel.add(
                 connLabel = createLabel(e -> eventConsumer.onSourceEvent(
-                        QuestBoard.this,
+                        QuestEditor.this,
                         EventType.CONNECTION_STATUS_CLICKED,
                         null)),
                 BorderLayout.WEST

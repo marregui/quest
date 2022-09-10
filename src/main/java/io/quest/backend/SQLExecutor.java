@@ -31,7 +31,7 @@ import java.util.concurrent.TimeUnit;
 import io.quest.model.EventConsumer;
 import io.quest.model.EventProducer;
 import io.quest.model.Conn;
-import io.quest.model.SQLTable;
+import io.quest.model.Table;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -133,7 +133,7 @@ public class SQLExecutor implements EventProducer<SQLExecutor.EventType>, Closea
         final String sourceId = req.getSourceId();
         final Conn conn = req.getConnection();
         final String query = req.getSqlCommand();
-        final SQLTable table = new SQLTable(req.getUniqueId());
+        final Table table = new Table(req.getUniqueId());
 
         if (!conn.isValid()) {
             runningQueries.remove(sourceId);

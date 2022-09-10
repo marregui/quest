@@ -39,7 +39,7 @@ import javax.swing.table.TableColumnModel;
 
 import io.quest.frontend.GTk;
 import io.quest.backend.SQLExecutionResponse;
-import io.quest.model.SQLTable;
+import io.quest.model.Table;
 import io.quest.frontend.InfiniteSpinnerPanel;
 import io.quest.frontend.editor.QuestPanel;
 
@@ -56,8 +56,8 @@ public class SQLResultsTable extends JPanel implements Closeable {
 
     private final JTable table;
     private final JScrollPane tableScrollPanel;
-    private final PagedSQLTableModel tableModel;
-    private final AtomicReference<SQLTable> results;
+    private final SQLPagedTableModel tableModel;
+    private final AtomicReference<Table> results;
     private final QuestPanel questPanel;
     private final JLabel rowRangeLabel;
     private final JLabel statsLabel;
@@ -70,7 +70,7 @@ public class SQLResultsTable extends JPanel implements Closeable {
     public SQLResultsTable(int width, int height) {
         Dimension size = new Dimension(width, height);
         results = new AtomicReference<>();
-        tableModel = new PagedSQLTableModel(results::get);
+        tableModel = new SQLPagedTableModel(results::get);
         table = new JTable(tableModel);
         table.setAutoCreateRowSorter(false);
         table.setRowSelectionAllowed(true);
@@ -147,7 +147,7 @@ public class SQLResultsTable extends JPanel implements Closeable {
     }
 
     public void onRowsAdded(SQLExecutionResponse res) {
-        SQLTable table = res.getTable();
+        Table table = res.getTable();
         if (results.compareAndSet(null, table)) {
             resetTableHeader();
         } else if (table.size() > 0) {
@@ -170,7 +170,7 @@ public class SQLResultsTable extends JPanel implements Closeable {
 
     @Override
     public void close() {
-        SQLTable table = results.getAndSet(null);
+        Table table = results.getAndSet(null);
         if (table != null) {
             table.close();
         }
@@ -224,7 +224,7 @@ public class SQLResultsTable extends JPanel implements Closeable {
         header.setForeground(Color.WHITE);
         header.setBackground(Color.BLACK);
         header.setPreferredSize(new Dimension(0, TABLE_HEADER_HEIGHT));
-        SQLTable t = results.get();
+        Table t = results.get();
         TableColumnModel tcm = table.getColumnModel();
         int numCols = tcm.getColumnCount();
         int tableWidth = 0;

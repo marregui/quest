@@ -26,7 +26,7 @@ import java.util.List;
 import org.hamcrest.Matchers;
 import org.junit.jupiter.api.Test;
 
-import static io.quest.frontend.editor.QuestBoard.Content;
+import static io.quest.frontend.editor.QuestEditor.Content;
 
 /**
  * Exemplifies the use of {@link Store} and tests that {@link ConnAttrs}

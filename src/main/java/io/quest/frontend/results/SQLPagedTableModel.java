@@ -22,26 +22,26 @@ import java.util.function.Supplier;
 import javax.swing.table.AbstractTableModel;
 
 import io.quest.backend.SQLExecutor;
-import io.quest.model.SQLTable;
+import io.quest.model.Table;
 
 
 /**
  * Adds paging to a default {@link javax.swing.table.TableModel} wrapping a
- * {@link SQLTable}. Column metadata are accessed through a table supplier. The
+ * {@link Table}. Column metadata are accessed through a table supplier. The
  * table is built by a {@link SQLExecutor} and thus it will be null until the
  * SQL query execution is started.
  */
-class PagedSQLTableModel extends AbstractTableModel {
+class SQLPagedTableModel extends AbstractTableModel {
     private static final long serialVersionUID = 1L;
     private static final int PAGE_SIZE = 1000; // number of rows
 
-    private final Supplier<SQLTable> tableSupplier;
+    private final Supplier<Table> tableSupplier;
     private int currentPage;
     private int maxPage;
     private int pageStartOffset;
     private int pageEndOffset;
 
-    PagedSQLTableModel(Supplier<SQLTable> tableSupplier) {
+    SQLPagedTableModel(Supplier<Table> tableSupplier) {
         this.tableSupplier = Objects.requireNonNull(tableSupplier);
     }
 
@@ -79,7 +79,7 @@ class PagedSQLTableModel extends AbstractTableModel {
 
     @Override
     public void fireTableDataChanged() {
-        SQLTable table = tableSupplier.get();
+        Table table = tableSupplier.get();
         if (table != null) {
             int size = table.size();
             pageStartOffset = PAGE_SIZE * currentPage;
@@ -107,13 +107,13 @@ class PagedSQLTableModel extends AbstractTableModel {
 
     @Override
     public int getRowCount() {
-        SQLTable table = tableSupplier.get();
+        Table table = tableSupplier.get();
         return table != null ? pageEndOffset - pageStartOffset : 0;
     }
 
     @Override
     public Object getValueAt(int rowIdx, int colIdx) {
-        SQLTable table = tableSupplier.get();
+        Table table = tableSupplier.get();
         if (table == null) {
             return "";
         }
@@ -125,19 +125,19 @@ class PagedSQLTableModel extends AbstractTableModel {
     }
 
     public int getTableSize() {
-        SQLTable table = tableSupplier.get();
+        Table table = tableSupplier.get();
         return table != null ? table.size() : 0;
     }
 
     @Override
     public int getColumnCount() {
-        SQLTable table = tableSupplier.get();
+        Table table = tableSupplier.get();
         return table != null ? table.getColCount() : 0;
     }
 
     @Override
     public String getColumnName(int colIdx) {
-        SQLTable table = tableSupplier.get();
+        Table table = tableSupplier.get();
         if (table == null) {
             return "";
         }
