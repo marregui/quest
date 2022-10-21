@@ -2,7 +2,7 @@
 
 ## Requirements
 
-- [Python 3](https://www.python.org/downloads/)
+- [Python 3.10](https://www.python.org/downloads/)
 - [Maven](https://maven.apache.org/download.cgi)
 - [Git](https://git-scm.com/download)
 
