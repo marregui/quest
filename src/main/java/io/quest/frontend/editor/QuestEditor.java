@@ -260,14 +260,7 @@ public class QuestEditor extends QuestPanel implements EventProducer<QuestEditor
         if (idx >= 0) {
             if (content != null) {
                 if (refreshQuests()) {
-                    if (JOptionPane.YES_OPTION == JOptionPane.showConfirmDialog(
-                            this,
-                            "Content has changed, save?",
-                            "Quest content changed",
-                            JOptionPane.YES_NO_OPTION,
-                            JOptionPane.QUESTION_MESSAGE)) {
-                        store.asyncSaveToFile();
-                    }
+                    store.asyncSaveToFile();
                 }
             }
             content = store.getEntry(idx, Content::new);
