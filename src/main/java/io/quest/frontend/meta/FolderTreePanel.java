@@ -56,6 +56,16 @@ class FolderTreePanel extends JPanel {
 
         JButton setRootButton = new JButton("Set Root");
         setRootButton.addActionListener(e -> {
+            String root = JOptionPane.showInputDialog(null, "Root:", null, JOptionPane.QUESTION_MESSAGE);
+            if (root != null) {
+                File file = new File(root);
+                if (file.exists() && file.isDirectory()) {
+                    setRoot(file.getAbsoluteFile());
+                }
+            }
+        });
+        JButton selectRootButton = new JButton("Select Root");
+        selectRootButton.addActionListener(e -> {
             if (FolderTreePanel.this.chooser.showOpenDialog(this) == JFileChooser.APPROVE_OPTION) {
                 setRoot(chooser.getSelectedFile());
             }
@@ -64,6 +74,7 @@ class FolderTreePanel extends JPanel {
         refreshButton.addActionListener(e -> reloadModel());
         JPanel buttonPanel = new JPanel();
         buttonPanel.add(setRootButton);
+        buttonPanel.add(selectRootButton);
         buttonPanel.add(refreshButton);
 
         add(buttonPanel, BorderLayout.NORTH);

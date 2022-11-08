@@ -16,6 +16,7 @@
 
 package io.quest.frontend.meta;
 
+import io.quest.frontend.GTk;
 import io.questdb.cairo.*;
 import io.questdb.cairo.sql.RowCursor;
 import io.questdb.std.*;
@@ -46,10 +47,30 @@ public class MetaExaminer {
 
 
     public MetaExaminer() {
-        frame = createFrame(this::onExit);
+        frame = new JFrame() {
+            @Override
+            public void dispose() {
+                super.dispose();
+                onExit();
+            }
+        };
+        frame.setDefaultCloseOperation(WindowConstants.DISPOSE_ON_CLOSE);
+
+        Dimension screenSize = Toolkit.getDefaultToolkit().getScreenSize();
+        int width = (int) (screenSize.getWidth() * 0.9);
+        int height = (int) (screenSize.getHeight() * 0.9);
+        int x = (int) (screenSize.getWidth() - width) / 2;
+        int y = (int) (screenSize.getHeight() - height) / 2;
+        Dimension dimension = GTk.frameDimension();
+        Dimension location = GTk.frameLocation(dimension);
+        frame.setSize(dimension.width, dimension.height);
+        frame.setLocation(location.width, location.height);
+
         console = new ConsolePanel();
         treeView = new FolderTreePanel(this::onRootSet, this::onSelectedFile);
         treeView.setPreferredSize(new Dimension(frame.getWidth() / 4, 0));
+
+        frame.setLayout(new BorderLayout());
         frame.add(BorderLayout.CENTER, console);
         frame.add(BorderLayout.WEST, treeView);
         frame.setVisible(true);
@@ -374,27 +395,5 @@ public class MetaExaminer {
             return i == len;
         }
         return false;
-    }
-
-    private static JFrame createFrame(Runnable onExit) {
-        JFrame frame = new JFrame() {
-            @Override
-            public void dispose() {
-                super.dispose();
-                onExit.run();
-                System.exit(0);
-            }
-        };
-        frame.setDefaultCloseOperation(WindowConstants.DISPOSE_ON_CLOSE);
-        frame.setType(Window.Type.NORMAL);
-        frame.setLayout(new BorderLayout());
-        Dimension screenSize = Toolkit.getDefaultToolkit().getScreenSize();
-        int width = (int) (screenSize.getWidth() * 0.9);
-        int height = (int) (screenSize.getHeight() * 0.9);
-        int x = (int) (screenSize.getWidth() - width) / 2;
-        int y = (int) (screenSize.getHeight() - height) / 2;
-        frame.setSize(width, height);
-        frame.setLocation(x, y);
-        return frame;
     }
 }

@@ -19,6 +19,7 @@ package io.quest;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.KeyEvent;
+import java.io.File;
 import java.util.Set;
 
 import javax.swing.*;
@@ -26,6 +27,7 @@ import javax.swing.*;
 import io.quest.backend.SQLExecutor;
 import io.quest.backend.SQLExecutionRequest;
 import io.quest.backend.SQLExecutionResponse;
+import io.quest.frontend.meta.MetaExaminer;
 import io.quest.model.*;
 import io.quest.frontend.GTk;
 import org.slf4j.Logger;
@@ -189,6 +191,21 @@ public final class Quest {
                         "QuestDB Docs",
                         GTk.NO_KEY_EVENT,
                         GTk::openQuestDBDocumentation
+                )
+        );
+        menu.add(configureMenuItem(
+                        new JMenuItem(),
+                        GTk.Icon.HELP,
+                        "QuestDB Meta",
+                        GTk.NO_KEY_EVENT,
+                        ignore -> {
+                            EventQueue.invokeLater(() -> {
+                                MetaExaminer examiner = new MetaExaminer();
+//                                if (args.length == 1) {
+//                                    examiner.setRoot(new File(args[0]));
+//                                }
+                            });
+                        }
                 )
         );
         JMenuBar menuBar = new JMenuBar();
