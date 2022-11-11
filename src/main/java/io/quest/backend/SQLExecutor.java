@@ -58,40 +58,38 @@ public class SQLExecutor implements EventProducer<SQLExecutor.EventType>, Closea
     }
 
     public synchronized void start() {
-        if (executor != null) {
-            throw new IllegalStateException("already started");
+        if (executor == null) {
+            runningQueries.clear();
+            final ThreadFactory threads = Executors.defaultThreadFactory();
+            final String name = getClass().getSimpleName();
+            executor = Executors.newFixedThreadPool(1, runnable -> {
+                Thread thread = threads.newThread(runnable);
+                thread.setDaemon(true);
+                thread.setName(name);
+                return thread;
+            });
+            LOGGER.info("{} is running", name);
         }
-        runningQueries.clear();
-        final ThreadFactory threads = Executors.defaultThreadFactory();
-        final String name = getClass().getSimpleName();
-        executor = Executors.newFixedThreadPool(1, runnable -> {
-            Thread thread = threads.newThread(runnable);
-            thread.setDaemon(true);
-            thread.setName(name);
-            return thread;
-        });
-        LOGGER.info("{} is running", name);
     }
 
     @Override
     public synchronized void close() {
-        if (executor == null) {
-            throw new IllegalStateException("already closed");
-        }
-        for (Future<?> query : runningQueries.values()) {
-            if (!query.isDone() && !query.isCancelled()) {
-                query.cancel(true);
+        if (executor != null) {
+            for (Future<?> query : runningQueries.values()) {
+                if (!query.isDone() && !query.isCancelled()) {
+                    query.cancel(true);
+                }
             }
-        }
-        executor.shutdownNow();
-        try {
-            executor.awaitTermination(400L, TimeUnit.MILLISECONDS);
-        } catch (InterruptedException e) {
-            Thread.currentThread().interrupt();
-        } finally {
-            executor = null;
-            runningQueries.clear();
-            LOGGER.info("has finished");
+            executor.shutdownNow();
+            try {
+                executor.awaitTermination(400L, TimeUnit.MILLISECONDS);
+            } catch (InterruptedException e) {
+                Thread.currentThread().interrupt();
+            } finally {
+                executor = null;
+                runningQueries.clear();
+                LOGGER.info("has finished");
+            }
         }
     }
 

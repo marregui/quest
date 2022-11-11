@@ -27,7 +27,6 @@ import io.quest.model.Table;
  * reference to a unique instance of {@link Table} which is updated by the executor.
  */
 public class SQLExecutionResponse extends SQLExecutionRequest {
-
     private final Table table;
     private final long totalMs;
     private final long executionMs;

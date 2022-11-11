@@ -100,23 +100,34 @@ class MessageSink {
             long partitionNameTxn,
             long partitionSize,
             long partitionColumnVersion,
-            long partitionSymbolValueCount
+            long partitionSymbolValueCount,
+            long partitionMask,
+            boolean partitionIsRO,
+            long partitionAvailable0,
+            long partitionAvailable1,
+            long partitionAvailable2
     ) {
         sink.put(" - partition ").put(partitionIndex)
-                .put(" -> txn: ").put(partitionNameTxn)
-                .put(", column version: ").put(partitionColumnVersion)
-                .put(", size: ").put(partitionSize)
-                .put(", symbol value count: ").put(partitionSymbolValueCount)
-                .put(", timestamp: ").put(partitionTimestamp).put(" (");
+                .put(" / ts: ").put(partitionTimestamp).put(" (");
         DATE_FORMATTER.format(partitionTimestamp, null, "Z", sink);
-        sink.put(')').put(System.lineSeparator());
+        sink.put(')')
+                .put(", size: ").put(partitionSize)
+                .put(", txn: ").put(partitionNameTxn)
+                .put(", column version: ").put(partitionColumnVersion)
+                .put(System.lineSeparator())
+                .put("   symbol value count: ").put(partitionSymbolValueCount)
+                .put(", isRO: ").put(partitionIsRO)
+                .put(", mask: ").put(partitionMask)
+                .put(", av0: ").put(partitionAvailable0)
+                .put(", av1: ").put(partitionAvailable1)
+                .put(", av2: ").put(partitionAvailable2)
+                .put(System.lineSeparator());
     }
 
 
     void addColumnLn(
             int columnIndex,
             CharSequence columnName,
-            long columnHash,
             int columnType,
             boolean columnIsIndexed,
             int columnIndexBlockCapacity,
@@ -128,7 +139,6 @@ class MessageSink {
         sink.put("column ").put(columnIndex)
                 .put(" -> name: ").put(columnName)
                 .put(", type: ").put(ColumnType.nameOf(columnType))
-                .put(", hash: ").put(columnHash)
                 .put(", indexed: ").put(columnIsIndexed)
                 .put(", indexBlockCapacity: ").put(columnIndexBlockCapacity)
                 .put(System.lineSeparator());

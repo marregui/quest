@@ -32,7 +32,6 @@ import java.util.UUID;
  * state of a single instance of {@link Table}, which is updated by the executor.
  */
 public class SQLExecutionRequest implements UniqueId<String> {
-
     private final String sourceId;
     private final String uniqueId;
     private final Conn conn;

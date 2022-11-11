@@ -220,9 +220,14 @@ public final class GTk {
     }
 
     public static Dimension frameDimension() {
+        return frameDimension(0.9F);
+    }
+
+    public static Dimension frameDimension(float scale) {
+        assert scale > 0.5 && scale < 1.0; // 50..99% percent of screen
         Dimension screenSize = TK.getScreenSize();
-        int width = (int) (screenSize.getWidth() * 0.9);
-        int height = (int) (screenSize.getHeight() * 0.9);
+        int width = (int) (screenSize.getWidth() * scale);
+        int height = (int) (screenSize.getHeight() * scale);
         return new Dimension(width, height);
     }
 
@@ -233,14 +238,19 @@ public final class GTk {
         return new Dimension(x, y);
     }
 
-    public static JFrame createFrame() {
-        return createFrame(null);
-    }
-
-    public static JFrame createFrame(String title) {
-        JFrame frame = new JFrame();
+    public static JFrame createFrame(String title, Runnable onExit) {
+        JFrame frame = new JFrame() {
+            @Override
+            public void dispose() {
+                super.dispose();
+                if (onExit != null) {
+                    onExit.run();
+                }
+                System.exit(0);
+            }
+        };
+        frame.setDefaultCloseOperation(WindowConstants.DISPOSE_ON_CLOSE);
         frame.setType(Window.Type.NORMAL);
-        frame.setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
         if (title != null && !title.isEmpty()) {
             frame.setTitle(title);
         }
@@ -413,6 +423,7 @@ public final class GTk {
         COMMAND_EXEC("CommandExec.png"),
         COMMAND_EXEC_ABORT("CommandExecAbort.png"),
         COMMAND_EXEC_LINE("CommandExecLine.png"),
+        META("Meta.png"),
         RESULTS("Results.png"),
         RESULTS_NEXT("ResultsNext.png"),
         RESULTS_PREV("ResultsPrev.png");

@@ -17,6 +17,9 @@
 package io.quest.frontend.meta;
 
 import io.quest.frontend.GTk;
+import io.quest.frontend.conns.ConnsManager;
+import io.quest.model.EventConsumer;
+import io.quest.model.EventProducer;
 import io.questdb.cairo.*;
 import io.questdb.cairo.sql.RowCursor;
 import io.questdb.std.*;
@@ -26,54 +29,73 @@ import io.questdb.std.str.Path;
 import javax.swing.*;
 import javax.swing.tree.TreePath;
 import java.awt.*;
+import java.awt.event.WindowAdapter;
+import java.awt.event.WindowEvent;
+import java.io.Closeable;
 import java.io.File;
 import java.util.function.Consumer;
 
-public class MetaExaminer {
+public class MetaExaminer extends JDialog implements EventProducer<ConnsManager.EventType>, Closeable {
+
+    private static final long serialVersionUID = 1L;
+
+    public enum EventType {
+        HIDE_REQUEST // Request to hide the metadata files explorer
+    }
 
     private final CairoConfiguration configuration = new DefaultCairoConfiguration("");
     private final FilesFacade ff = configuration.getFilesFacade();
-    private final TableReaderMetadata metaReader = new TableReaderMetadata(FilesFacadeImpl.INSTANCE);
+    private final TableReaderMetadata metaReader = new TableReaderMetadata(configuration);
     private final TxReader txReader = new TxReader(FilesFacadeImpl.INSTANCE);
     private final ColumnVersionReader cvReader = new ColumnVersionReader();
     private int rootLen;
     private String potentialPartitionFolderName;
     private final Path selectedPath = new Path();
     private final Path auxPath = new Path();
-    private final JFrame frame;
     private final FolderTreePanel treeView;
     private final ConsolePanel console;
     private final MessageSink ms = new MessageSink();
+    private final EventConsumer<MetaExaminer, Object> eventConsumer;
 
 
-    public MetaExaminer() {
-        frame = new JFrame() {
-            @Override
-            public void dispose() {
-                super.dispose();
-                onExit();
-            }
-        };
-        frame.setDefaultCloseOperation(WindowConstants.DISPOSE_ON_CLOSE);
+    public MetaExaminer(Frame owner, EventConsumer<MetaExaminer, Object> eventConsumer) {
+        super(owner, "Metadata files explorer", false); // does not block use of the main app
 
-        Dimension screenSize = Toolkit.getDefaultToolkit().getScreenSize();
-        int width = (int) (screenSize.getWidth() * 0.9);
-        int height = (int) (screenSize.getHeight() * 0.9);
-        int x = (int) (screenSize.getWidth() - width) / 2;
-        int y = (int) (screenSize.getHeight() - height) / 2;
-        Dimension dimension = GTk.frameDimension();
+        this.eventConsumer = eventConsumer;
+        Dimension dimension = GTk.frameDimension(0.6F);
         Dimension location = GTk.frameLocation(dimension);
-        frame.setSize(dimension.width, dimension.height);
-        frame.setLocation(location.width, location.height);
+        setSize(dimension);
+        setPreferredSize(dimension);
+        setLocation(location.width, location.height);
+        setVisible(false);
+        setAlwaysOnTop(false);
+        setModal(false);
+        setDefaultCloseOperation(WindowConstants.HIDE_ON_CLOSE);
+        addWindowListener(new WindowAdapter() {
+            @Override
+            public void windowClosing(WindowEvent we) {
+                eventConsumer.onSourceEvent(
+                        MetaExaminer.this, MetaExaminer.EventType.HIDE_REQUEST, null);
+            }
+        });
 
         console = new ConsolePanel();
         treeView = new FolderTreePanel(this::onRootSet, this::onSelectedFile);
-        treeView.setPreferredSize(new Dimension(frame.getWidth() / 4, 0));
+        treeView.setPreferredSize(new Dimension(dimension.width / 4, 0));
 
-        frame.setLayout(new BorderLayout());
-        frame.add(BorderLayout.CENTER, console);
-        frame.add(BorderLayout.WEST, treeView);
-        frame.setVisible(true);
+        Container contentPane = getContentPane();
+        contentPane.setLayout(new BorderLayout());
+        contentPane.add(BorderLayout.CENTER, console);
+        contentPane.add(BorderLayout.WEST, treeView);
+    }
+
+    @Override
+    public void close() {
+        Misc.free(metaReader);
+        Misc.free(txReader);
+        Misc.free(cvReader);
+        Misc.free(selectedPath);
+        Misc.free(auxPath);
     }
 
     public void setRoot(File root) {
@@ -87,14 +109,6 @@ public class MetaExaminer {
         String absolutePath = root.getAbsolutePath();
         selectedPath.trimTo(0).put(absolutePath).put(Files.SEPARATOR);
         rootLen = selectedPath.length();
-    }
-
-    private void onExit() {
-        Misc.free(metaReader);
-        Misc.free(txReader);
-        Misc.free(cvReader);
-        Misc.free(selectedPath);
-        Misc.free(auxPath);
     }
 
     private void onSelectedFile(TreePath treePath) {
@@ -121,7 +135,7 @@ public class MetaExaminer {
             }
         }
         selectedPath.put(fileName).$(); // last node
-        frame.setTitle("Current path: " + selectedPath);
+        setTitle("Current path: " + selectedPath);
         try {
             if (fileName.contains(TableUtils.META_FILE_NAME)) {
                 displayMetaFileContent();
@@ -154,10 +168,9 @@ public class MetaExaminer {
     }
 
     private void displayMetaFileContent() {
-        metaReader.deferredInit(selectedPath, ColumnType.VERSION);
+        metaReader.load0(selectedPath, ColumnType.VERSION);
         ms.clear();
-        ms.addLn("tableId: ", metaReader.getId());
-        ms.addLn("version: ", metaReader.getVersion());
+        ms.addLn("tableId: ", metaReader.getTableId());
         ms.addLn("structureVersion: ", metaReader.getStructureVersion());
         ms.addLn("timestampIndex: ", metaReader.getTimestampIndex());
         ms.addLn("partitionBy: ", PartitionBy.toString(metaReader.getPartitionBy()));
@@ -171,7 +184,6 @@ public class MetaExaminer {
             ms.addColumnLn(
                     i,
                     metaReader.getColumnName(i),
-                    metaReader.getColumnHash(i),
                     columnType,
                     columnType > 0 && metaReader.isColumnIndexed(i),
                     columnType > 0 ? metaReader.getIndexValueBlockCapacity(i) : 0,
@@ -237,7 +249,12 @@ public class MetaExaminer {
                         txReader.getPartitionNameTxn(i),
                         txReader.getPartitionSize(i),
                         txReader.getPartitionColumnVersion(i),
-                        txReader.getSymbolValueCount(i)
+                        txReader.getSymbolValueCount(i),
+                        txReader.getPartitionMask(i),
+                        txReader.getPartitionIsRO(i),
+                        txReader.getPartitionAvailable0(i),
+                        txReader.getPartitionAvailable1(i),
+                        txReader.getPartitionAvailable2(i)
                 );
             }
             console.display(ms.toString());
@@ -266,7 +283,6 @@ public class MetaExaminer {
             ms.addColumnLn(
                     colIdx,
                     metaReader.getColumnName(colIdx),
-                    metaReader.getColumnHash(colIdx),
                     metaReader.getColumnType(colIdx),
                     metaReader.isColumnIndexed(colIdx),
                     metaReader.getIndexValueBlockCapacity(colIdx),
@@ -353,7 +369,7 @@ public class MetaExaminer {
 
     private boolean openRequiredMetaFile(int levelUpCount) {
         return onRequiredFile(levelUpCount, TableUtils.META_FILE_NAME, p -> {
-            metaReader.deferredInit(p, ColumnType.VERSION);
+            metaReader.load0(p, ColumnType.VERSION);
         });
     }
 

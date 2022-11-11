@@ -58,6 +58,8 @@ import io.quest.frontend.editor.QuestEditor;
  */
 public class ConnsManager extends JDialog implements EventProducer<ConnsManager.EventType>, Closeable {
 
+    private static final long serialVersionUID = 1L;
+
     public enum EventType {
         CONNECTION_SELECTED,     // A connection has been selected
         CONNECTION_ESTABLISHED,  // A connection has been established.
@@ -67,7 +69,6 @@ public class ConnsManager extends JDialog implements EventProducer<ConnsManager.
     }
 
     public static final String STORE_FILE_NAME = "connections.json";
-    private static final long serialVersionUID = 1L;
     private static final Logger LOGGER = LoggerFactory.getLogger(ConnsManager.class);
     private final EventConsumer<ConnsManager, Object> eventConsumer;
     private final Store<Conn> store;

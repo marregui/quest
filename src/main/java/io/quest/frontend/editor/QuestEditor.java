@@ -409,11 +409,13 @@ public class QuestEditor extends QuestPanel implements EventProducer<QuestEditor
     }
 
     private boolean refreshQuests() {
-        String txt = getContent();
-        String current = content.getContent();
-        if (current != null && !current.equals(txt)) {
-            content.setContent(txt);
-            return true;
+        if (content != null) {
+            String txt = getContent();
+            String current = content.getContent();
+            if (current != null && !current.equals(txt)) {
+                content.setContent(txt);
+                return true;
+            }
         }
         return false;
     }

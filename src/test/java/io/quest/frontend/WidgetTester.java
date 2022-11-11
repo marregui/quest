@@ -42,7 +42,7 @@ public class WidgetTester {
                 button.setText("Close");
             }
         });
-        JFrame frame = createFrame("InfiniteSpinnerPanel");
+        JFrame frame = createFrame("InfiniteSpinnerPanel", null);
         frame.add(spinner, BorderLayout.CENTER);
         frame.add(button, BorderLayout.SOUTH);
         frame.setVisible(true);
@@ -62,7 +62,7 @@ public class WidgetTester {
         QuestEditor board = new QuestEditor((owner, event, request) -> {
 
         });
-        JFrame frame = createFrame("CommandBoard");
+        JFrame frame = createFrame("CommandBoard", null);
         frame.add(board, BorderLayout.CENTER);
         frame.setVisible(true);
     }

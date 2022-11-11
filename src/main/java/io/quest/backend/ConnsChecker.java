@@ -52,7 +52,6 @@ import org.slf4j.LoggerFactory;
  * @see Conn#isValid()
  */
 public class ConnsChecker implements Closeable {
-
     private static final int PERIOD_SECS = 30; // validity period
     private static final int NUM_THREADS = 2;
     private static final Logger LOGGER = LoggerFactory.getLogger(ConnsChecker.class);
@@ -84,18 +83,11 @@ public class ConnsChecker implements Closeable {
     }
 
     public synchronized void start() {
-        if (scheduler != null) {
-            throw new IllegalStateException("already started");
+        if (scheduler == null) {
+            scheduler = Executors.newScheduledThreadPool(NUM_THREADS);
+            scheduler.scheduleAtFixedRate(this::dbConnsValidityCheck, PERIOD_SECS, PERIOD_SECS, TimeUnit.SECONDS);
+            LOGGER.info("Check every {} secs", PERIOD_SECS);
         }
-        scheduler = Executors.newScheduledThreadPool(NUM_THREADS);
-        scheduler.scheduleAtFixedRate(this::dbConnsValidityCheck, PERIOD_SECS, PERIOD_SECS, TimeUnit.SECONDS);
-        LOGGER.info("Check every {} secs", PERIOD_SECS);
-    }
-
-    private final List<ScheduledFuture<Conn>> invalidConnsFutures() {
-        return connsSupplier.get().stream().filter(Conn::isOpen).map(conn -> scheduler.schedule(() -> {
-            return !conn.isValid() ? conn : null; // might block for up DBConnection.VALID_CHECK_TIMEOUT_SECS
-        }, 0, TimeUnit.SECONDS)).collect(Collectors.toList());
     }
 
     private void dbConnsValidityCheck() {
@@ -143,18 +135,17 @@ public class ConnsChecker implements Closeable {
 
     @Override
     public synchronized void close() {
-        if (scheduler == null) {
-            throw new IllegalStateException("not started");
-        }
-        scheduler.shutdownNow();
-        try {
-            scheduler.awaitTermination(200L, TimeUnit.MILLISECONDS);
-        } catch (InterruptedException e) {
-            Thread.currentThread().interrupt();
-        } finally {
-            scheduler = null;
-            isChecking.set(false);
-            LOGGER.info("Connectivity check stopped");
+        if (scheduler != null) {
+            scheduler.shutdownNow();
+            try {
+                scheduler.awaitTermination(200L, TimeUnit.MILLISECONDS);
+            } catch (InterruptedException e) {
+                Thread.currentThread().interrupt();
+            } finally {
+                scheduler = null;
+                isChecking.set(false);
+                LOGGER.info("Connectivity check stopped");
+            }
         }
     }
 }
