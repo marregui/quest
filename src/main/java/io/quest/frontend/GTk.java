@@ -242,10 +242,10 @@ public final class GTk {
         JFrame frame = new JFrame() {
             @Override
             public void dispose() {
-                super.dispose();
                 if (onExit != null) {
                     onExit.run();
                 }
+                super.dispose();
                 System.exit(0);
             }
         };

@@ -4,20 +4,20 @@ import java.util.Arrays;
 import java.util.Objects;
 import java.util.concurrent.atomic.AtomicReference;
 
-public class Row implements UniqueId<Integer> {
+public class Row implements UniqueId<Long> {
 
-    private final int uniqueId;
+    private final long uniqueId;
     private Object[] values;
     private final AtomicReference<String> toString;
 
-    public Row(int uniqueId, Object[] values) {
+    public Row(long uniqueId, Object[] values) {
         this.uniqueId = uniqueId;
         this.values = Objects.requireNonNull(values);
         this.toString = new AtomicReference<>();
     }
 
     @Override
-    public Integer getUniqueId() {
+    public Long getUniqueId() {
         return uniqueId;
     }
 
@@ -33,7 +33,7 @@ public class Row implements UniqueId<Integer> {
 
     @Override
     public int hashCode() {
-        return Integer.hashCode(uniqueId);
+        return Long.hashCode(uniqueId);
     }
 
     @Override

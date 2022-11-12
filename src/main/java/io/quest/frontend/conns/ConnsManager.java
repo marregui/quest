@@ -48,13 +48,13 @@ import io.quest.model.Store;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import io.quest.frontend.editor.QuestEditor;
+import io.quest.frontend.editor.QuestPanel;
 
 
 /**
  * Dialog that presents a table where each row is a {@link Conn}, allowing the
  * user to test, connect, disconnect, edit, as well as to assign them to the
- * {@link QuestEditor}. Connections are loaded/saved from/to a {@link Store}.
+ * {@link QuestPanel}. Connections are loaded/saved from/to a {@link Store}.
  */
 public class ConnsManager extends JDialog implements EventProducer<ConnsManager.EventType>, Closeable {
 

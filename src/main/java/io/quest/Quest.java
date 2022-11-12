@@ -32,7 +32,7 @@ import io.quest.frontend.GTk;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import io.quest.frontend.editor.QuestEditor;
+import io.quest.frontend.editor.QuestPanel;
 import io.quest.frontend.conns.ConnsManager;
 import io.quest.frontend.results.SQLResultsTable;
 
@@ -48,12 +48,12 @@ public final class Quest {
 
     private final ConnsManager conns;
     private final SQLExecutor executor;
-    private final QuestEditor commands;
+    private final QuestPanel commands;
     private final SQLResultsTable results;
+    private final MetaExaminer metaExaminer;
     private final JMenuItem toggleConnsWidget;
     private final JMenuItem toggleMetaExaminerWidget;
     private final JMenuItem toggleConn;
-    private final MetaExaminer metaExaminer;
 
     private Quest() {
         JFrame frame = GTk.createFrame(null, this::close);
@@ -63,10 +63,10 @@ public final class Quest {
         executor = new SQLExecutor(); // input/output
         conns = new ConnsManager(frame, this::dispatchEvent); // input
         metaExaminer = new MetaExaminer(frame, this::dispatchEvent);
-        commands = new QuestEditor(this::dispatchEvent); // input
+        commands = new QuestPanel(this::dispatchEvent); // input
         commands.setPreferredSize(new Dimension(0, dividerHeight));
         results = new SQLResultsTable(width, dividerHeight); // output
-        JSplitPane splitPane = new JSplitPane(JSplitPane.VERTICAL_SPLIT, false, commands, results);
+        JSplitPane splitPane = new JSplitPane(JSplitPane.VERTICAL_SPLIT, true, commands, results);
         splitPane.setDividerLocation(dividerHeight);
         frame.add(splitPane, BorderLayout.CENTER);
         frame.setTitle(String.format("%s %s [store: %s]", NAME, VERSION, conns.getStorePath()));
@@ -215,7 +215,7 @@ public final class Quest {
     }
 
     private void dispatchEvent(EventProducer<?> source, Enum<?> event, Object data) {
-        if (source instanceof QuestEditor) {
+        if (source instanceof QuestPanel) {
             onCommandBoardEvent(EventProducer.eventType(event), (SQLExecutionRequest) data);
         } else if (source instanceof SQLExecutor) {
             onSQLExecutorEvent(EventProducer.eventType(event), (SQLExecutionResponse) data);
@@ -226,7 +226,7 @@ public final class Quest {
         }
     }
 
-    private void onCommandBoardEvent(QuestEditor.EventType event, SQLExecutionRequest req) {
+    private void onCommandBoardEvent(QuestPanel.EventType event, SQLExecutionRequest req) {
         switch (event) {
             case COMMAND_AVAILABLE:
                 Conn conn = commands.getConnection();

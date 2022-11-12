@@ -26,10 +26,10 @@ import java.util.UUID;
 /**
  * A unit of work for the {@link SQLExecutor}.
  * <p>
- * Each request comes from a source, carries a SQL command, and is be identified by a unique
+ * Each request comes from a source, carries a SQL statement, and is identified by a unique
  * id. On execution, the results are returned by means of one or many callbacks delivering
- * instances of {@link SQLExecutionResponse}. Responses must be seen as update messages on the loading
- * state of a single instance of {@link Table}, which is updated by the executor.
+ * instances of {@link SQLExecutionResponse}. Responses must be seen as delta updates on the
+ * loading state of a single instance of {@link Table} updated by the executor.
  */
 public class SQLExecutionRequest implements UniqueId<String> {
     private final String sourceId;
@@ -40,7 +40,7 @@ public class SQLExecutionRequest implements UniqueId<String> {
     /**
      * Constructor used by {@link SQLExecutionResponse} to keep the relation between
      * a request and a response. This constructor is used to produce responses for
-     * requests whose execution is successful.
+     * requests which execution are successful.
      * 
      * @param sourceId command source, or requester, id
      * @param conn will send the command down this connection

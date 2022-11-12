@@ -17,530 +17,559 @@
 package io.quest.frontend.editor;
 
 import java.awt.*;
-import java.awt.event.ActionEvent;
-import java.awt.event.KeyEvent;
-import java.util.concurrent.atomic.AtomicReference;
-import java.util.regex.PatternSyntaxException;
+import java.awt.event.*;
+import java.awt.font.TextAttribute;
+import java.io.Closeable;
+import java.io.File;
+import java.util.List;
+import java.util.ArrayList;
+import java.util.Map;
+import java.util.function.Consumer;
+import java.util.function.Supplier;
+
 import javax.swing.*;
-import javax.swing.text.*;
+import javax.swing.event.UndoableEditEvent;
+import javax.swing.filechooser.FileFilter;
 import javax.swing.undo.UndoManager;
 
+import io.quest.backend.SQLExecutionRequest;
+import io.quest.model.Store;
+import io.quest.model.StoreEntry;
+import io.quest.model.*;
+import io.quest.model.EventConsumer;
+import io.quest.model.EventProducer;
 import io.quest.frontend.GTk;
+import io.quest.frontend.NoopMouseListener;
+import io.quest.frontend.conns.ConnsManager;
 
 
-public class QuestPanel extends JPanel {
-    private static final long serialVersionUID = 1L;
-    private static final String MARGIN_TOKEN = ":99999:";
-    private static final Font FONT = new Font("Monospaced", Font.BOLD, 14);
-    private static final Font LINENO_FONT = new Font(GTk.MAIN_FONT_NAME, Font.ITALIC, 14);
-    static final Color LINENO_COLOR = Color.LIGHT_GRAY.darker().darker();
-    private static final Color CARET_COLOR = Color.CYAN;
-    private static final Color BACKGROUND_COLOR = Color.BLACK;
+public class QuestPanel extends Editor implements EventProducer<QuestPanel.EventType>, Closeable {
 
-    protected final JTextPane textPane;
-    private final Highlighter highlighter;
-    private final AtomicReference<UndoManager> undoManager; // set by CommandBoard
-    private final StringBuilder sb;
-
-    public QuestPanel() {
-        this(false);
+    public enum EventType {
+        /**
+         * L.Exec, or Exec, has been clicked.
+         */
+        COMMAND_AVAILABLE,
+        /**
+         * Previous command has been cancelled.
+         */
+        COMMAND_CANCEL,
+        /**
+         * User clicked on the connection status label.
+         */
+        CONNECTION_STATUS_CLICKED
     }
 
-    public QuestPanel(boolean isErrorPanel) {
-        sb = new StringBuilder();
-        undoManager = new AtomicReference<>();
-        textPane = new JTextPane() {
-            public boolean getScrollableTracksViewportWidth() {
-                return getUI().getPreferredSize(this).width <= getParent().getSize().width;
-            }
-        };
-        final FontMetrics metrics = textPane.getFontMetrics(FONT);
-        final int topMargin = metrics.getHeight() / 2;
-        final int bottomMargin = metrics.getHeight() / 2;
-        final int leftMargin = metrics.stringWidth(MARGIN_TOKEN);
-        final int rightMargin = metrics.stringWidth(":");
-        final Insets margin = new Insets(topMargin, leftMargin, bottomMargin, rightMargin);
-        final JScrollPane scrollPane = new JScrollPane(textPane);
-        textPane.setMargin(margin);
-        textPane.setFont(FONT);
-        textPane.setBackground(BACKGROUND_COLOR);
-        textPane.setCaretColor(CARET_COLOR);
-        textPane.setEditorKit(new StyledEditorKit() {
-            @Override
-            public ViewFactory getViewFactory() {
-                final ViewFactory defaultViewFactory = super.getViewFactory();
-                return elem -> {
-                    if (elem.getName().equals(AbstractDocument.ParagraphElementName)) {
-                        return new ParagraphView(elem, topMargin / 2);
-                    }
-                    return defaultViewFactory.create(elem);
-                };
-            }
-        });
-        textPane.setCaretPosition(0);
-        textPane.setEditable(!isErrorPanel);
-        setupKeyboardActions(isErrorPanel);
-        highlighter = Highlighter.of(textPane); // produces "style change" events
-        scrollPane.getViewport().setBackground(BACKGROUND_COLOR);
-        scrollPane.getVerticalScrollBar().setUnitIncrement(5);
-        scrollPane.getVerticalScrollBar().setBlockIncrement(15);
-        scrollPane.getHorizontalScrollBar().setUnitIncrement(5);
-        scrollPane.getHorizontalScrollBar().setBlockIncrement(15);
-        setLayout(new BorderLayout());
-        add(scrollPane, BorderLayout.CENTER);
+    public static class Content extends StoreEntry {
+        private static final String ATTR_NAME = "content";
 
-    }
+        public Content() {
+            this("default");
+        }
 
-    private static class ParagraphView extends javax.swing.text.ParagraphView {
-        private final int topMargin;
+        public Content(String name) {
+            super(name);
+            setAttr(ATTR_NAME, GTk.BANNER);
+        }
 
-        public ParagraphView(Element element, int topMargin) {
-            super(element);
-            this.topMargin = topMargin;
+        public Content(StoreEntry other) {
+            super(other);
         }
 
         @Override
-        public void paintChild(Graphics g, Rectangle alloc, int index) {
-            super.paintChild(g, alloc, index);
-            g.setFont(LINENO_FONT);
-            g.setColor(LINENO_COLOR);
-            int line = getLineNumber() + 1;
-            String lineStr = String.valueOf(line);
-            FontMetrics metrics = g.getFontMetrics();
-            int strWidth = metrics.stringWidth(lineStr);
-            int marginWidth = metrics.stringWidth(MARGIN_TOKEN);
-            int x = marginWidth - strWidth;
-            int y = topMargin + line * metrics.getHeight();
-            g.drawString(String.valueOf(line), x, y);
+        public final String getUniqueId() {
+            return getName();
         }
 
-        private int getLineNumber() {
-            Element root = getDocument().getDefaultRootElement();
-            for (int i = 0; i < root.getElementCount(); i++) {
-                if (root.getElement(i) == getElement()) {
-                    return i;
-                }
+        public String getContent() {
+            return getAttr(ATTR_NAME);
+        }
+
+        public void setContent(String content) {
+            setAttr(ATTR_NAME, content);
+        }
+    }
+
+    private static final long serialVersionUID = 1L;
+    private static final Color CONNECTED_COLOR = new Color(69, 191, 84);
+    private static final Font HEADER_FONT = new Font(GTk.MAIN_FONT_NAME, Font.BOLD, 16);
+    private static final Font HEADER_UNDERLINE_FONT = HEADER_FONT.deriveFont(Map.of(
+            TextAttribute.UNDERLINE, TextAttribute.UNDERLINE_ON));
+    private static final Cursor HAND_CURSOR = new Cursor(Cursor.HAND_CURSOR);
+    private static final String STORE_FILE_NAME = "default-notebook.json";
+    private final EventConsumer<QuestPanel, SQLExecutionRequest> eventConsumer;
+    private final JComboBox<String> questEntryNames;
+    private final List<UndoManager> undoManagers;
+    private final JButton execButton;
+    private final JButton execLineButton;
+    private final JButton cancelButton;
+    private final JLabel questLabel;
+    private final JLabel connLabel;
+    private final FindReplacePanel findPanel;
+    private JMenu questsMenu;
+    private Store<Content> store;
+    private Conn conn; // uses it when set
+    private SQLExecutionRequest lastRequest;
+    private Content content;
+
+    public QuestPanel(EventConsumer<QuestPanel, SQLExecutionRequest> eventConsumer) {
+        super();
+        this.eventConsumer = eventConsumer;
+        undoManagers = new ArrayList<>(5);
+        questEntryNames = new JComboBox<>();
+        questEntryNames.setEditable(false);
+        questEntryNames.setPreferredSize(new Dimension(400, 25));
+        questEntryNames.addActionListener(this::onChangeQuest);
+        setupQuestsMenu();
+        JPanel topLeftPanel = GTk.flowPanel(
+                GTk.horizontalSpace(5),
+                questLabel = createLabel(
+                        GTk.Icon.COMMAND_QUEST,
+                        "uest",
+                        e -> questsMenu
+                                .getPopupMenu()
+                                .show(e.getComponent(), e.getX() - 30, e.getY())),
+                GTk.horizontalSpace(4),
+                questEntryNames);
+        execLineButton = GTk.button(
+                "L.Exec", false, GTk.Icon.COMMAND_EXEC_LINE,
+                "Execute entire line under caret", this::onExecLine);
+        execLineButton.setVisible(false);
+        execButton = GTk.button(
+                "Exec", false, GTk.Icon.COMMAND_EXEC,
+                "Execute selected text", this::onExec);
+        execButton.setVisible(false);
+        cancelButton = GTk.button(
+                "Abort", false, GTk.Icon.COMMAND_EXEC_ABORT,
+                "Abort current execution", this::fireCancelEvent);
+        cancelButton.setVisible(false);
+        findPanel = new FindReplacePanel((source, event, eventData) -> {
+            switch ((FindReplacePanel.EventType) EventProducer.eventType(event)) {
+                case FIND:
+                    onFind();
+                    break;
+                case REPLACE:
+                    onReplace();
+                    break;
             }
-            return 0;
+        });
+        JPanel controlsPanel = new JPanel(new BorderLayout(0, 0));
+        controlsPanel.add(topLeftPanel, BorderLayout.WEST);
+        controlsPanel.add(
+                GTk.flowPanel(
+                        connLabel = createLabel(e -> eventConsumer.onSourceEvent(
+                                QuestPanel.this,
+                                EventType.CONNECTION_STATUS_CLICKED,
+                                null)),
+                        GTk.horizontalSpace(4)
+                ),
+                BorderLayout.EAST
+        );
+        controlsPanel.add(findPanel, BorderLayout.SOUTH);
+        add(controlsPanel, BorderLayout.NORTH);
+        refreshControls();
+        loadStoreEntries(STORE_FILE_NAME);
+    }
+
+    public Conn getConnection() {
+        return conn;
+    }
+
+    public void setConnection(Conn conn) {
+        this.conn = conn;
+        refreshControls();
+    }
+
+    public JMenu getQuestsMenu() {
+        return questsMenu;
+    }
+
+    public void onExec(ActionEvent event) {
+        fireCommandEvent(this::getCommand);
+    }
+
+    public void onExecLine(ActionEvent event) {
+        fireCommandEvent(this::getCurrentLine);
+    }
+
+    public void fireCancelEvent(ActionEvent event) {
+        if (conn == null || !conn.isOpen()) {
+            JOptionPane.showMessageDialog(this, "Not connected");
+            return;
+        }
+        if (lastRequest != null) {
+            eventConsumer.onSourceEvent(this, EventType.COMMAND_CANCEL, lastRequest);
+            lastRequest = null;
         }
     }
 
-    public void displayMessage(String message) {
-        textPane.setText(message);
-        repaint();
+    public void onFind() {
+        onFindReplace(() -> highlightContent(findPanel.getFind()));
     }
 
-    public void displayError(Throwable error) {
-        textPane.setText(highlighter.highlightError(error));
-        repaint();
+    public void onReplace() {
+        onFindReplace(() -> replaceContent(findPanel.getFind(), findPanel.getReplace()));
     }
 
-    protected String getCurrentLine() {
-        try {
-            int caretPos = textPane.getCaretPosition();
-            int start = Utilities.getRowStart(textPane, caretPos);
-            int end = Utilities.getRowEnd(textPane, caretPos);
-            return getContent(start, end - start);
-        } catch (BadLocationException ignore) {
-            // do nothing
-        }
-        return "";
+    @Override
+    public boolean requestFocusInWindow() {
+        return super.requestFocusInWindow() && textPane.requestFocusInWindow();
     }
 
-    protected String getContent() {
-        return getContent(0, -1);
+    @Override
+    public void close() {
+        undoManagers.clear();
+        refreshQuests();
+        store.close();
     }
 
-    protected String getContent(int start, int len) {
-        Document doc = textPane.getDocument();
-        int length = len < 0 ? doc.getLength() - start : len;
-        if (length > 0) {
-            try {
-                String txt = doc.getText(start, length);
-                if (txt != null) {
-                    return txt;
-                }
-            } catch (BadLocationException ignore) {
-                // do nothing
+    private String getCommand() {
+        String cmd = textPane.getSelectedText();
+        return cmd != null ? cmd : getText();
+    }
+
+    private void loadStoreEntries(String fileName) {
+        store = new Store<>(fileName, Content.class) {
+            @Override
+            public Content[] defaultStoreEntries() {
+                return new Content[]{new Content()};
             }
-        }
-        return "";
-    }
-
-    protected int highlightContent(String findRegex) {
-        return findRegex != null ? highlighter.handleTextChanged(findRegex, null) : 0; // number of matches
-    }
-
-    protected int replaceContent(String findRegex, String replaceWith) {
-        if (findRegex != null) {
-            try {
-                textPane.setText(getContent().replaceAll(findRegex, replaceWith));
-                return highlighter.handleTextChanged();
-            } catch (PatternSyntaxException err) {
-                JOptionPane.showMessageDialog(
-                        null,
-                        String.format(
-                                "Not a valid filter: %s",
-                                err.getMessage()));
-            }
-        }
-        return 0;
-    }
-
-    protected void setUndoManager(UndoManager undoManager) {
-        AbstractDocument doc = (AbstractDocument) textPane.getDocument();
-        UndoManager current = this.undoManager.get();
-        if (current != null) {
-            doc.removeUndoableEditListener(current);
-        }
-        undoManager.discardAllEdits();
-        this.undoManager.set(undoManager);
-        doc.addUndoableEditListener(undoManager);
-    }
-
-    private void cmdZUndo(ActionEvent event) {
-        // cmd-z, undo edit
-        UndoManager undoManager = this.undoManager.get();
-        if (undoManager != null && undoManager.canUndo()) {
-            try {
-                undoManager.undo();
-                highlighter.handleTextChanged();
-            } catch (Throwable ignore) {
-                // do nothing
-            }
-        }
-    }
-
-    private void cmdYRedo(ActionEvent event) {
-        // cmd-y, redo last undo edit
-        UndoManager undoManager = this.undoManager.get();
-        if (undoManager != null && undoManager.canRedo()) {
-            try {
-                undoManager.redo();
-                highlighter.handleTextChanged();
-            } catch (Throwable ignore) {
-                // do nothing
-            }
-        }
-    }
-
-    private void cmdDDupLine(ActionEvent event) {
-        // cmd-d, duplicate line under caret, and append it under
-        try {
-            int caretPos = textPane.getCaretPosition();
-            int start = Utilities.getRowStart(textPane, caretPos);
-            int end = Utilities.getRowEnd(textPane, caretPos);
-            Document doc = textPane.getDocument();
-            String line = doc.getText(start, end - start);
-            String insert = line.isEmpty() ? "\n" : "\n" + line;
-            doc.insertString(end, insert, null);
-            textPane.setCaretPosition(caretPos + insert.length());
-            highlighter.handleTextChanged();
-        } catch (BadLocationException ignore) {
-            // do nothing
-        }
-    }
-
-    private void cmdCCopyToClipboard(ActionEvent event) {
-        // cmd-c, copy to clipboard, selection or current line
-        String selected = textPane.getSelectedText();
-        if (selected == null) {
-            selected = getCurrentLine();
-        }
-        if (!selected.isEmpty()) {
-            GTk.setClipboardContent(selected);
-        }
-    }
-
-    private void cmdVPasteFromClipboard(ActionEvent event) {
-        // cmd-v, paste content of clipboard into selection or caret position
-        try {
-            String text = GTk.getClipboardContent();
-            if (text != null) {
-                int start = textPane.getSelectionStart();
-                int end = textPane.getSelectionEnd();
-                Document doc = textPane.getDocument();
-                if (end > start) {
-                    doc.remove(start, end - start);
-                }
-                doc.insertString(textPane.getCaretPosition(), text, null);
-                highlighter.handleTextChanged();
-            }
-        } catch (Exception fail) {
-            // do nothing
-        }
-    }
-
-    private void cmdXCutToClipboard(ActionEvent event) {
-        // cmd-x, remove selection or whole line under caret and copy to clipboard
-        try {
-            int start = Utilities.getRowStart(textPane, textPane.getSelectionStart());
-            int end = Utilities.getRowEnd(textPane, textPane.getSelectionEnd());
-            Document doc = textPane.getDocument();
-            int len = end - start;
-            if (len > 0) {
-                GTk.setClipboardContent(doc.getText(start, len));
-            }
-            if (start > 0) {
-                doc.remove(start - 1, len + 1);
-            } else {
-                doc.remove(start, len + 1);
-            }
-        } catch (Exception fail) {
-            // do nothing
-        }
-    }
-
-    private void cmdUp(ActionEvent event) {
-        // cmd-up, jump to the beginning of the document
-        textPane.setCaretPosition(0);
-    }
-
-    private void cmdDown(ActionEvent event) {
-        // cmd-down, jump to the end of the document
-        textPane.setCaretPosition(textPane.getDocument().getLength());
-    }
-
-    private void cmdLeft(ActionEvent event) {
-        // cmd-left, jump to the beginning of the line
-        try {
-            int caretPos = textPane.getCaretPosition();
-            textPane.setCaretPosition(Utilities.getRowStart(textPane, caretPos));
-        } catch (BadLocationException ignore) {
-            // do nothing
-        }
-    }
-
-    private void cmdRight(ActionEvent event) {
-        // cmd-right, jump to the end of the line
-        try {
-            int caretPos = textPane.getCaretPosition();
-            textPane.setCaretPosition(Utilities.getRowEnd(textPane, caretPos));
-        } catch (BadLocationException ignore) {
-            // do nothing
-        }
-    }
-
-    private void cmdShiftUp(ActionEvent event) {
-        // cmd-shift-up, jump to the beginning of the page
-        int end = textPane.getSelectionEnd();
-        textPane.setCaretPosition(0);
-        if (textPane.getSelectionStart() != end) {
-            textPane.select(0, end);
-        }
-    }
-
-    private void cmdShiftDown(ActionEvent event) {
-        // cmd-shift-down, jump to the end of the page
-        int start = textPane.getSelectionStart();
-        int end = textPane.getDocument().getLength();
-        textPane.setCaretPosition(end);
-        if (start != textPane.getSelectionEnd()) {
-            textPane.select(start, end);
-        }
-    }
-
-    private void cmdShiftLeft(ActionEvent event) {
-        // cmd-shift-left, jump to the beginning of the line
-        try {
-            int caretPos = textPane.getCaretPosition();
-            int start = Utilities.getRowStart(textPane, caretPos);
-            int end = textPane.getSelectionEnd();
-            textPane.setCaretPosition(start);
-            if (textPane.getSelectionStart() != end) {
-                textPane.select(start, end);
-            }
-        } catch (BadLocationException ignore) {
-            // do nothing
-        }
-    }
-
-    private void cmdShiftRight(ActionEvent event) {
-        // cmd-shift-right, jump to the end of the line
-        try {
-            int caretPos = textPane.getCaretPosition();
-            int start = textPane.getSelectionStart();
-            int end = Utilities.getRowEnd(textPane, caretPos);
-            textPane.setCaretPosition(end);
-            if (start != textPane.getSelectionEnd()) {
-                textPane.select(start, end);
-            }
-        } catch (BadLocationException ignore) {
-            // do nothing
-        }
-    }
-
-    private void altUp(ActionEvent event) {
-        // alt-up, select current word under caret
-        try {
-            int caretPos = textPane.getCaretPosition();
-            int wordStart = Utilities.getWordStart(textPane, caretPos);
-            int wordEnd = Utilities.getWordEnd(textPane, caretPos);
-            textPane.select(wordStart, wordEnd);
-        } catch (BadLocationException ignore) {
-            // do nothing
-        }
-    }
-
-    private void altLeft(ActionEvent event) {
-        // alt-left, jump to the beginning of the word
-        try {
-            int caretPos = textPane.getCaretPosition();
-            int wordStart = Utilities.getWordStart(textPane, caretPos);
-            if (caretPos == wordStart && caretPos > 0) {
-                wordStart = Utilities.getWordStart(textPane, caretPos - 1);
-            }
-            textPane.setCaretPosition(wordStart);
-        } catch (BadLocationException ignore) {
-            // do nothing
-        }
-    }
-
-    private void altRight(ActionEvent event) {
-        // alt-right, jump to the end of the word
-        try {
-            int caretPos = textPane.getCaretPosition();
-            int wordEnd = Utilities.getWordEnd(textPane, caretPos);
-            if (caretPos == wordEnd && caretPos < textPane.getDocument().getLength()) {
-                wordEnd = Utilities.getWordEnd(textPane, caretPos + 1);
-            }
-            textPane.setCaretPosition(wordEnd);
-        } catch (BadLocationException ignore) {
-            // do nothing
-        }
-    }
-
-    private void altShiftLeft(ActionEvent event) {
-        // alt-shift-left, select from previous word start to current selection end
-        try {
-            int caretPos = textPane.getCaretPosition();
-            if (caretPos > 0) {
-                int start = Utilities.getWordStart(textPane, caretPos - 1);
-                int end = textPane.getSelectionEnd();
-                textPane.setCaretPosition(end);
-                textPane.moveCaretPosition(start);
-            }
-        } catch (BadLocationException ignore) {
-            // do nothing
-        }
-    }
-
-    private void altShiftRight(ActionEvent event) {
-        // alt-shift-right, select from current selection start to next word end
-        try {
-            int caretPos = textPane.getCaretPosition();
-            if (caretPos < textPane.getDocument().getLength()) {
-                int start = textPane.getSelectionStart();
-                int end = Utilities.getWordEnd(textPane, caretPos + 1);
-                textPane.setCaretPosition(start);
-                textPane.moveCaretPosition(end);
-            }
-        } catch (BadLocationException ignore) {
-            // do nothing
-        }
-    }
-
-    private void cmdSlashToggleComment(ActionEvent event) {
-        // cmd-fwd-slash, toggle comment on line or selection
-        try {
-            int start = Utilities.getRowStart(textPane, textPane.getSelectionStart());
-            int end = Utilities.getRowEnd(textPane, textPane.getSelectionEnd());
-            Document doc = textPane.getDocument();
-            int len = end - start;
-            String lines = doc.getText(start, len);
-            int linesLen = lines.length();
-            sb.setLength(0);
-            int lineStart = 0;
-            for (int i = 0; i < linesLen; i++) {
-                char c = lines.charAt(i);
-                if (c == '\n') {
-                    if (i - lineStart >= 2 &&
-                            lines.charAt(lineStart) == '-' &&
-                            lines.charAt(lineStart + 1) == '-') {
-                        sb.append(lines, lineStart + 2, i + 1);
-                    } else {
-                        sb.append("--").append(lines, lineStart, i + 1);
+        };
+        store.loadEntriesFromFile();
+        questLabel.setToolTipText(String.format("notebook: %s", fileName));
+        undoManagers.clear();
+        for (int idx = 0; idx < store.size(); idx++) {
+            undoManagers.add(new UndoManager() {
+                @Override
+                public void undoableEditHappened(UndoableEditEvent e) {
+                    if (!Highlighter.EVENT_TYPE.equals(e.getEdit().getPresentationName())) {
+                        super.undoableEditHappened(e);
                     }
-                    lineStart = i + 1;
                 }
+            });
+        }
+        refreshQuestEntryNames(0);
+    }
+
+    private void onFindReplace(Supplier<Integer> matchesCountSupplier) {
+        if (!findPanel.isVisible()) {
+            findPanel.setVisible(true);
+        } else {
+            findPanel.updateMatches(matchesCountSupplier.get());
+        }
+        findPanel.requestFocusInWindow();
+    }
+
+    private void onChangeQuest(ActionEvent event) {
+        int idx = questEntryNames.getSelectedIndex();
+        if (idx >= 0) {
+            if (refreshQuests()) {
+                store.asyncSaveToFile();
             }
-            if (linesLen - lineStart >= 2 &&
-                    lines.charAt(lineStart) == '-' &&
-                    lines.charAt(lineStart + 1) == '-') {
-                sb.append(lines, lineStart + 2, linesLen);
-            } else {
-                sb.append("--").append(lines, lineStart, linesLen);
-            }
-            doc.remove(start, len);
-            doc.insertString(start, sb.toString(), null);
-            highlighter.handleTextChanged();
-        } catch (Exception fail) {
-            // do nothing
+            content = store.getEntry(idx, Content::new);
+            textPane.setText(content.getContent());
+            setUndoManager(undoManagers.get(idx));
         }
     }
 
-    private void cmdQuoteToggleQuote(ActionEvent event) {
-        // cmd-quote, toggle quote
-        try {
-            Document doc = textPane.getDocument();
-            int docLen = doc.getLength();
-            int start = textPane.getSelectionStart();
-            int end = textPane.getSelectionEnd();
-            int len = end - start;
-            if (len == 0 && (start == 0 || end == docLen)) {
-                doc.insertString(textPane.getCaretPosition(), "''", null);
-            } else if (start > 0 && len <= docLen) {
-                String targetText = doc.getText(start, len);
-                String window = doc.getText(start - 1, len + 2);
-                char first = window.charAt(0);
-                char last = window.charAt(len + 1);
-                String finalText;
-                if ((first == '\'' || first == '"') && first == last) {
-                    finalText = targetText;
-                    start--;
-                    len += 2;
+    private void onCreateQuest(ActionEvent event) {
+        String entryName = JOptionPane.showInputDialog(
+                this,
+                "Name",
+                "New quest",
+                JOptionPane.INFORMATION_MESSAGE);
+        if (entryName == null || entryName.isEmpty()) {
+            return;
+        }
+        store.addEntry(new Content(entryName), false);
+        questEntryNames.addItem(entryName);
+        undoManagers.add(new UndoManager() {
+            @Override
+            public void undoableEditHappened(UndoableEditEvent e) {
+                if (!Highlighter.EVENT_TYPE.equals(e.getEdit().getPresentationName())) {
+                    super.undoableEditHappened(e);
+                }
+            }
+        });
+        questEntryNames.setSelectedItem(entryName);
+    }
+
+    private void onDeleteQuest(ActionEvent event) {
+        int idx = questEntryNames.getSelectedIndex();
+        if (idx > 0) {
+            if (JOptionPane.YES_OPTION == JOptionPane.showConfirmDialog(
+                    this,
+                    String.format("Delete %s?",
+                            questEntryNames.getSelectedItem()),
+                    "Deleting quest",
+                    JOptionPane.YES_NO_OPTION)) {
+                store.removeEntry(idx);
+                content = null;
+                questEntryNames.removeItemAt(idx);
+                undoManagers.remove(idx);
+                questEntryNames.setSelectedIndex(idx - 1);
+            }
+        }
+    }
+
+    private void onRenameQuest(ActionEvent event) {
+        int idx = questEntryNames.getSelectedIndex();
+        if (idx >= 0) {
+            String currentName = (String) questEntryNames.getSelectedItem();
+            String newName = JOptionPane.showInputDialog(
+                    this,
+                    "New name",
+                    "Renaming quest",
+                    JOptionPane.QUESTION_MESSAGE);
+            if (newName != null && !newName.isBlank() && !newName.equals(currentName)) {
+                store.getEntry(idx, null).setName(newName);
+                refreshQuestEntryNames(idx);
+            }
+        }
+    }
+
+    private void onBackupQuests(ActionEvent event) {
+        JFileChooser choose = new JFileChooser(store.getRootPath());
+        choose.setDialogTitle("Backing up quests");
+        choose.setDialogType(JFileChooser.SAVE_DIALOG);
+        choose.setFileSelectionMode(JFileChooser.FILES_ONLY);
+        choose.setMultiSelectionEnabled(false);
+        if (JFileChooser.APPROVE_OPTION == choose.showSaveDialog(this)) {
+            File selectedFile = choose.getSelectedFile();
+            try {
+                if (!selectedFile.exists()) {
+                    store.saveToFile(selectedFile);
                 } else {
-                    finalText = "'" + targetText + "'";
+                    if (JOptionPane.YES_OPTION == JOptionPane.showConfirmDialog(
+                            this,
+                            "Override file?",
+                            "Dilemma",
+                            JOptionPane.YES_NO_OPTION)) {
+                        store.saveToFile(selectedFile);
+                    }
                 }
-                doc.remove(start, len);
-                doc.insertString(textPane.getCaretPosition(), finalText, null);
+            } catch (Throwable t) {
+                JOptionPane.showMessageDialog(
+                        this,
+                        String.format("Could not save file '%s': %s",
+                                selectedFile.getAbsolutePath(),
+                                t.getMessage()),
+                        "Error",
+                        JOptionPane.ERROR_MESSAGE
+                );
             }
-        } catch (Exception fail) {
-            // do nothing
         }
     }
 
-    private void cmdASelectAll(ActionEvent event) {
-        // cmd-a, select all
-        textPane.selectAll();
+    private void onLoadQuestsFromBackup(ActionEvent event) {
+        JFileChooser choose = new JFileChooser(store.getRootPath());
+        choose.setDialogTitle("Loading quests from backup");
+        choose.setDialogType(JFileChooser.OPEN_DIALOG);
+        choose.setFileSelectionMode(JFileChooser.FILES_ONLY);
+        choose.setMultiSelectionEnabled(false);
+        choose.setFileFilter(new FileFilter() {
+            @Override
+            public boolean accept(File f) {
+                String name = f.getName();
+                return name.endsWith(".json") && !name.equals(ConnsManager.STORE_FILE_NAME);
+            }
+
+            @Override
+            public String getDescription() {
+                return "JSON files";
+            }
+        });
+
+        if (JFileChooser.APPROVE_OPTION == choose.showOpenDialog(this)) {
+            File selectedFile = choose.getSelectedFile();
+            try {
+                loadStoreEntries(selectedFile.getName());
+            } catch (Throwable t) {
+                JOptionPane.showMessageDialog(
+                        this,
+                        String.format("Could not load file '%s': %s",
+                                selectedFile.getAbsolutePath(),
+                                t.getMessage()),
+                        "Error",
+                        JOptionPane.ERROR_MESSAGE
+                );
+            }
+        }
     }
 
-    private void setupKeyboardActions(boolean isErrorPanel) {
-        // cmd/cmd+shift
-        GTk.addCmdKeyAction(KeyEvent.VK_UP, textPane, this::cmdUp);
-        GTk.addCmdKeyAction(KeyEvent.VK_DOWN, textPane, this::cmdDown);
-        GTk.addCmdKeyAction(KeyEvent.VK_LEFT, textPane, this::cmdLeft);
-        GTk.addCmdKeyAction(KeyEvent.VK_RIGHT, textPane, this::cmdRight);
-        GTk.addCmdShiftKeyAction(KeyEvent.VK_UP, textPane, this::cmdShiftUp);
-        GTk.addCmdShiftKeyAction(KeyEvent.VK_DOWN, textPane, this::cmdShiftDown);
-        GTk.addCmdShiftKeyAction(KeyEvent.VK_LEFT, textPane, this::cmdShiftLeft);
-        GTk.addCmdShiftKeyAction(KeyEvent.VK_RIGHT, textPane, this::cmdShiftRight);
-        GTk.addCmdKeyAction(KeyEvent.VK_A, textPane, this::cmdASelectAll);
-        GTk.addCmdKeyAction(KeyEvent.VK_C, textPane, this::cmdCCopyToClipboard);
-        if (!isErrorPanel) {
-            GTk.addCmdKeyAction(KeyEvent.VK_X, textPane, this::cmdXCutToClipboard);
-            GTk.addCmdKeyAction(KeyEvent.VK_V, textPane, this::cmdVPasteFromClipboard);
-            GTk.addCmdKeyAction(KeyEvent.VK_D, textPane, this::cmdDDupLine);
-            GTk.addCmdKeyAction(KeyEvent.VK_Z, textPane, this::cmdZUndo);
-            GTk.addCmdKeyAction(KeyEvent.VK_Y, textPane, this::cmdYRedo);
-            GTk.addCmdKeyAction(KeyEvent.VK_SLASH, textPane, this::cmdSlashToggleComment);
-            GTk.addCmdKeyAction(KeyEvent.VK_QUOTE, textPane, this::cmdQuoteToggleQuote);
+    private void onClearQuest(ActionEvent event) {
+        textPane.setText("");
+    }
+
+    private void onReloadQuest(ActionEvent event) {
+        textPane.setText(content.getContent());
+    }
+
+    private void onSaveQuest(ActionEvent event) {
+        if (refreshQuests()) {
+            store.asyncSaveToFile();
         }
-        // alt/alt+shift
-        GTk.addAltKeyAction(KeyEvent.VK_UP, textPane, this::altUp);
-        GTk.addAltKeyAction(KeyEvent.VK_LEFT, textPane, this::altLeft);
-        GTk.addAltKeyAction(KeyEvent.VK_RIGHT, textPane, this::altRight);
-        GTk.addAltShiftKeyAction(KeyEvent.VK_LEFT, textPane, this::altShiftLeft);
-        GTk.addAltShiftKeyAction(KeyEvent.VK_RIGHT, textPane, this::altShiftRight);
+    }
+
+    private boolean refreshQuests() {
+        String text = getText();
+        String currentContent = content != null ? content.getContent() : null;
+        if (currentContent != null && !currentContent.equals(text)) {
+            content.setContent(text);
+            return true;
+        }
+        return false;
+    }
+
+    private void refreshQuestEntryNames(int idx) {
+        questEntryNames.removeAllItems();
+        for (String item : store.entryNames()) {
+            questEntryNames.addItem(item);
+        }
+        if (idx >= 0 && idx < questEntryNames.getItemCount()) {
+            questEntryNames.setSelectedIndex(idx);
+        }
+    }
+
+    private void fireCommandEvent(Supplier<String> commandSupplier) {
+        if (conn == null) {
+            JOptionPane.showMessageDialog(
+                    this,
+                    "Connection not set, assign one");
+            return;
+        }
+        String command = commandSupplier.get();
+        if (command == null || command.isEmpty()) {
+            JOptionPane.showMessageDialog(
+                    this,
+                    "Command not available, type something");
+            return;
+        }
+        if (lastRequest != null) {
+            eventConsumer.onSourceEvent(this, EventType.COMMAND_CANCEL, lastRequest);
+            lastRequest = null;
+        }
+        lastRequest = new SQLExecutionRequest(content.getUniqueId(), conn, command);
+        eventConsumer.onSourceEvent(this, EventType.COMMAND_AVAILABLE, lastRequest);
+    }
+
+    private void refreshControls() {
+        boolean isConnected = conn != null && conn.isOpen();
+        String connKey = conn != null ? conn.getUniqueId() : "None set";
+        connLabel.setText(String.format("[%s]", connKey));
+        connLabel.setForeground(isConnected ? CONNECTED_COLOR : Color.BLACK);
+        connLabel.setIcon(isConnected ? GTk.Icon.CONN_UP.icon() : GTk.Icon.CONN_DOWN.icon());
+        boolean hasText = textPane.getStyledDocument().getLength() > 0;
+        execLineButton.setEnabled(hasText);
+        execButton.setEnabled(hasText);
+        cancelButton.setEnabled(true);
+    }
+
+    private void setupQuestsMenu() {
+        questsMenu = new JMenu();
+        questsMenu.setFont(GTk.MENU_FONT);
+        questsMenu.add(
+                GTk.configureMenuItem(
+                        new JMenuItem(),
+                        GTk.Icon.COMMAND_CLEAR,
+                        "Clear quest",
+                        GTk.NO_KEY_EVENT,
+                        this::onClearQuest));
+        questsMenu.add(
+                GTk.configureMenuItem(
+                        new JMenuItem(),
+                        GTk.Icon.COMMAND_RELOAD,
+                        "Reload quest",
+                        "Recovers quest from last save",
+                        GTk.NO_KEY_EVENT,
+                        this::onReloadQuest));
+        questsMenu.add(
+                GTk.configureMenuItem(
+                        new JMenuItem(),
+                        GTk.Icon.COMMAND_SAVE,
+                        "Save quest",
+                        GTk.NO_KEY_EVENT,
+                        this::onSaveQuest));
+        questsMenu.addSeparator();
+        questsMenu.add(
+                GTk.configureMenuItem(
+                        new JMenuItem(),
+                        GTk.Icon.COMMAND_ADD,
+                        "New quest",
+                        GTk.NO_KEY_EVENT,
+                        this::onCreateQuest));
+        questsMenu.add(
+                GTk.configureMenuItem(
+                        new JMenuItem(),
+                        GTk.Icon.COMMAND_EDIT,
+                        "Rename quest",
+                        GTk.NO_KEY_EVENT,
+                        this::onRenameQuest));
+        questsMenu.add(
+                GTk.configureMenuItem(
+                        new JMenuItem(),
+                        GTk.Icon.COMMAND_REMOVE,
+                        "Delete quest",
+                        GTk.NO_KEY_EVENT,
+                        this::onDeleteQuest));
+        questsMenu.addSeparator();
+        questsMenu.add(
+                GTk.configureMenuItem(
+                        new JMenuItem(),
+                        GTk.Icon.COMMAND_STORE_LOAD,
+                        "Load quests from notebook",
+                        GTk.NO_KEY_EVENT,
+                        this::onLoadQuestsFromBackup));
+        questsMenu.add(
+                GTk.configureMenuItem(
+                        new JMenuItem(),
+                        GTk.Icon.COMMAND_STORE_BACKUP,
+                        "Save quests to new notebook",
+                        GTk.NO_KEY_EVENT,
+                        this::onBackupQuests));
+    }
+
+    private JLabel createLabel(Consumer<MouseEvent> consumer) {
+        return createLabel(GTk.Icon.NO_ICON, null, consumer);
+    }
+
+    private JLabel createLabel(GTk.Icon icon, String text, Consumer<MouseEvent> consumer) {
+        JLabel label = new JLabel();
+        if (text != null) {
+            label.setText(text);
+        }
+        if (icon != GTk.Icon.NO_ICON) {
+            label.setIcon(icon.icon());
+        }
+        label.setFont(HEADER_FONT);
+        label.setForeground(GTk.TABLE_HEADER_FONT_COLOR);
+        label.addMouseListener(new LabelMouseListener(label) {
+            @Override
+            public void mouseClicked(MouseEvent e) {
+                super.mouseClicked(e);
+                consumer.accept(e);
+            }
+        });
+        return label;
+    }
+
+    private class LabelMouseListener implements NoopMouseListener {
+        private final JLabel label;
+
+        private LabelMouseListener(JLabel label) {
+            this.label = label;
+        }
+
+        @Override
+        public void mouseEntered(MouseEvent e) {
+            setCursor(HAND_CURSOR);
+            label.setFont(HEADER_UNDERLINE_FONT);
+        }
+
+        @Override
+        public void mouseExited(MouseEvent e) {
+            setCursor(Cursor.getDefaultCursor());
+            label.setFont(HEADER_FONT);
+        }
     }
 }

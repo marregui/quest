@@ -49,21 +49,19 @@ public class SQLExecutor implements EventProducer<SQLExecutor.EventType>, Closea
     private static final int START_BATCH_SIZE = 100;
     public static final int QUERY_EXECUTION_TIMEOUT_SECS = 30;
     private static final Logger LOGGER = LoggerFactory.getLogger(SQLExecutor.class);
+    private static final ThreadFactory THREAD_FACTORY = Executors.defaultThreadFactory();
+    private static final int NUMBER_OF_THREADS = 1;
 
-    private final ConcurrentMap<String, Future<?>> runningQueries;
+
+    private final ConcurrentMap<String, Future<?>> runningQueries = new ConcurrentHashMap<>();
     private ExecutorService executor;
-
-    public SQLExecutor() {
-        runningQueries = new ConcurrentHashMap<>();
-    }
 
     public synchronized void start() {
         if (executor == null) {
             runningQueries.clear();
-            final ThreadFactory threads = Executors.defaultThreadFactory();
             final String name = getClass().getSimpleName();
-            executor = Executors.newFixedThreadPool(1, runnable -> {
-                Thread thread = threads.newThread(runnable);
+            executor = Executors.newFixedThreadPool(NUMBER_OF_THREADS, runnable -> {
+                Thread thread = THREAD_FACTORY.newThread(runnable);
                 thread.setDaemon(true);
                 thread.setName(name);
                 return thread;
@@ -93,14 +91,6 @@ public class SQLExecutor implements EventProducer<SQLExecutor.EventType>, Closea
         }
     }
 
-    /**
-     * Submits a SQL execution request. Executions are identified by the request's
-     * source id. If a request by the same source has already been submitted, it is
-     * preempted from running, or cancelled if running.
-     *
-     * @param req           contains the SQL to be executed
-     * @param eventConsumer receiver of responses to the request
-     */
     public synchronized void submit(SQLExecutionRequest req, EventConsumer<SQLExecutor, SQLExecutionResponse> eventConsumer) {
         if (executor == null) {
             throw new IllegalStateException("not started");
@@ -141,26 +131,28 @@ public class SQLExecutor implements EventProducer<SQLExecutor.EventType>, Closea
                     EventType.FAILURE,
                     new SQLExecutionResponse(
                             req,
-                            elapsedMs(startNanos),
-                            new RuntimeException(String.format("Connection [%s] is not valid", conn)),
-                            table
+                            table,
+                            elapsedMillis(startNanos),
+                            new RuntimeException(String.format("Connection [%s] is not valid", conn))
                     ));
             return;
         }
+
         LOGGER.info("Executing [{}] from [{}] over [{}]: {}", req.getUniqueId(), sourceId, conn.getUniqueId(), query);
         eventListener.onSourceEvent(
                 SQLExecutor.this,
                 EventType.STARTED,
-                new SQLExecutionResponse(req, elapsedMs(startNanos), 0L, 0L, table));
+                new SQLExecutionResponse(req, table, elapsedMillis(startNanos), 0L, 0L));
+
         final long fetchStartNanos;
-        final long execMs;
-        int rowIdx = 0;
+        final long execMillis;
+        long rowIdx = 0;
         int batchSize = START_BATCH_SIZE;
         try (Statement stmt = conn.getConnection().createStatement()) {
             stmt.setQueryTimeout(QUERY_EXECUTION_TIMEOUT_SECS);
             final boolean returnsResults = stmt.execute(query);
             fetchStartNanos = System.nanoTime();
-            execMs = ms(fetchStartNanos - startNanos);
+            execMillis = millis(fetchStartNanos - startNanos);
             if (returnsResults) {
                 for (ResultSet rs = stmt.getResultSet(); rs.next(); ) {
                     final long fetchChkNanos = System.nanoTime();
@@ -168,14 +160,14 @@ public class SQLExecutor implements EventProducer<SQLExecutor.EventType>, Closea
                         table.setColMetadata(rs);
                     }
                     table.addRow(rowIdx++, rs);
-                    if (0 == rowIdx % batchSize) {
+                    if (0 == (rowIdx + 1) % batchSize) {
                         batchSize = Math.min(batchSize * 2, MAX_BATCH_SIZE);
-                        final long totalMs = ms(fetchChkNanos - startNanos);
-                        final long fetchMs = ms(fetchChkNanos - fetchStartNanos);
+                        final long totalMs = millis(fetchChkNanos - startNanos);
+                        final long fetchMs = millis(fetchChkNanos - fetchStartNanos);
                         eventListener.onSourceEvent(
                                 SQLExecutor.this,
                                 EventType.RESULTS_AVAILABLE,
-                                new SQLExecutionResponse(req, totalMs, execMs, fetchMs, table));
+                                new SQLExecutionResponse(req, table, totalMs, execMillis, fetchMs));
                     }
                 }
             }
@@ -185,27 +177,27 @@ public class SQLExecutor implements EventProducer<SQLExecutor.EventType>, Closea
             eventListener.onSourceEvent(
                     SQLExecutor.this,
                     EventType.FAILURE,
-                    new SQLExecutionResponse(req, elapsedMs(startNanos), fail, table));
+                    new SQLExecutionResponse(req, table, elapsedMillis(startNanos), fail));
             return;
         }
         runningQueries.remove(sourceId);
         EventType eventType = EventType.COMPLETED;
         final long endNanos = System.nanoTime();
-        final long totalMs = ms(endNanos - startNanos);
-        final long fetchMs = ms(endNanos - fetchStartNanos);
+        final long totalMs = millis(endNanos - startNanos);
+        final long fetchMs = millis(endNanos - fetchStartNanos);
         LOGGER.info("{} [{}] {} rows, {} ms (exec:{}, fetch:{})",
-                eventType.name(), req.getUniqueId(), table.size(), totalMs, execMs, fetchMs);
+                eventType.name(), req.getUniqueId(), table.size(), totalMs, execMillis, fetchMs);
         eventListener.onSourceEvent(
                 SQLExecutor.this,
                 eventType,
-                new SQLExecutionResponse(req, totalMs, execMs, fetchMs, table));
+                new SQLExecutionResponse(req, table, totalMs, execMillis, fetchMs));
     }
 
-    private static long elapsedMs(long start) {
-        return ms(System.nanoTime() - start);
+    private static long elapsedMillis(long start) {
+        return millis(System.nanoTime() - start);
     }
 
-    private static long ms(long nanos) {
+    private static long millis(long nanos) {
         return TimeUnit.MILLISECONDS.convert(nanos, TimeUnit.NANOSECONDS);
     }
 }

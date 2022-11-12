@@ -22,9 +22,6 @@ import java.util.Objects;
 import java.util.TreeMap;
 
 
-/**
- * Base type for the entries persisted by a {@link Store}.
- */
 public class StoreEntry implements UniqueId<String>, Comparable<StoreEntry> {
 
     private static final Comparator<String> COMPARING = (k1, k2) -> {

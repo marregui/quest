@@ -22,33 +22,33 @@ import io.quest.model.Table;
  * The class embodying the responses emitted by the {@link SQLExecutor} as it progresses
  * through its query execution life cycle.
  * <p>
- * Each request carries a SQL query. When it is executed, the progress is progressively
+ * Each request carries a SQL statement. When it is executed, the progress is progressively
  * notified to the listener by means of instances of this class. Responses contain a
  * reference to a unique instance of {@link Table} which is updated by the executor.
  */
 public class SQLExecutionResponse extends SQLExecutionRequest {
     private final Table table;
-    private final long totalMs;
-    private final long executionMs;
-    private final long fetchMs;
+    private final long totalMillis;
+    private final long execMillis;
+    private final long fetchMillis;
     private final Throwable error;
 
-    SQLExecutionResponse(SQLExecutionRequest request, long totalMs, long execMs, long fetchMs, Table table) {
+    SQLExecutionResponse(SQLExecutionRequest request, Table table, long totalMillis, long execMillis, long fetchMillis) {
         super(request);
         this.table = table;
+        this.totalMillis = totalMillis;
+        this.execMillis = execMillis;
+        this.fetchMillis = fetchMillis;
         this.error = null;
-        this.totalMs = totalMs;
-        this.executionMs = execMs;
-        this.fetchMs = fetchMs;
     }
 
-    SQLExecutionResponse(SQLExecutionRequest request, long totalMs, Throwable error, Table table) {
+    SQLExecutionResponse(SQLExecutionRequest request, Table table, long totalMillis, Throwable error) {
         super(request);
-        this.totalMs = totalMs;
+        this.totalMillis = totalMillis;
         this.error = error;
         this.table = table;
-        this.executionMs = -1L;
-        this.fetchMs = -1L;
+        this.execMillis = -1L;
+        this.fetchMillis = -1L;
     }
 
     public Table getTable() {
@@ -66,21 +66,21 @@ public class SQLExecutionResponse extends SQLExecutionRequest {
      * @return total time elapsed since the start of the execution up until the
      *         moment the response is emitted (milliseconds)
      */
-    public long getTotalMs() {
-        return totalMs;
+    public long getTotalMillis() {
+        return totalMillis;
     }
 
     /**
-     * @return total time it took to execute the SQL query (milliseconds)
+     * @return total time it took to execute the SQL statement (milliseconds)
      */
-    public long getExecMs() {
-        return executionMs;
+    public long getExecMillis() {
+        return execMillis;
     }
 
     /**
-     * @return total time it took to fetch the results of executing the SQL query (milliseconds)
+     * @return total time it took to fetch the results of executing the SQL statement (milliseconds)
      */
-    public long getFetchMs() {
-        return fetchMs;
+    public long getFetchMillis() {
+        return fetchMillis;
     }
 }
