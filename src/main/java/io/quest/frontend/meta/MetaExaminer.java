@@ -45,7 +45,8 @@ public class MetaExaminer extends JDialog implements EventProducer<ConnsManager.
 
     private final CairoConfiguration configuration = new DefaultCairoConfiguration("");
     private final FilesFacade ff = configuration.getFilesFacade();
-    private final TableReaderMetadata metaReader = new TableReaderMetadata(configuration);
+    private final TableReaderMetadata metaReader = new TableReaderMetadata(ff);
+    //private final TableReaderMetadata metaReader = new TableReaderMetadata(configuration);
     private final TxReader txReader = new TxReader(FilesFacadeImpl.INSTANCE);
     private final ColumnVersionReader cvReader = new ColumnVersionReader();
     private int rootLen;
@@ -168,9 +169,11 @@ public class MetaExaminer extends JDialog implements EventProducer<ConnsManager.
     }
 
     private void displayMetaFileContent() {
-        metaReader.load0(selectedPath, ColumnType.VERSION);
+        //metaReader.load0(selectedPath, ColumnType.VERSION);
+        metaReader.deferredInit(selectedPath, ColumnType.VERSION);
         ms.clear();
-        ms.addLn("tableId: ", metaReader.getTableId());
+        ms.addLn("tableId: ", metaReader.getId());
+        //ms.addLn("tableId: ", metaReader.getTableId());
         ms.addLn("structureVersion: ", metaReader.getStructureVersion());
         ms.addLn("timestampIndex: ", metaReader.getTimestampIndex());
         ms.addLn("partitionBy: ", PartitionBy.toString(metaReader.getPartitionBy()));
@@ -249,12 +252,12 @@ public class MetaExaminer extends JDialog implements EventProducer<ConnsManager.
                         txReader.getPartitionNameTxn(i),
                         txReader.getPartitionSize(i),
                         txReader.getPartitionColumnVersion(i),
-                        txReader.getSymbolValueCount(i),
-                        txReader.getPartitionMask(i),
-                        txReader.getPartitionIsRO(i),
-                        txReader.getPartitionAvailable0(i),
-                        txReader.getPartitionAvailable1(i),
-                        txReader.getPartitionAvailable2(i)
+                        txReader.getSymbolValueCount(i)//,
+                        //txReader.getPartitionMask(i),
+                        //txReader.getPartitionIsRO(i),
+                        //txReader.getPartitionAvailable0(i),
+                        //txReader.getPartitionAvailable1(i),
+                        //txReader.getPartitionAvailable2(i)
                 );
             }
             console.display(ms.toString());
@@ -369,7 +372,8 @@ public class MetaExaminer extends JDialog implements EventProducer<ConnsManager.
 
     private boolean openRequiredMetaFile(int levelUpCount) {
         return onRequiredFile(levelUpCount, TableUtils.META_FILE_NAME, p -> {
-            metaReader.load0(p, ColumnType.VERSION);
+            metaReader.deferredInit(p, ColumnType.VERSION);
+            //metaReader.load0(p, ColumnType.VERSION);
         });
     }
 

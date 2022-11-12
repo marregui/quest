@@ -124,6 +124,25 @@ class MessageSink {
                 .put(System.lineSeparator());
     }
 
+    void addPartitionLn(
+            int partitionIndex,
+            long partitionTimestamp,
+            long partitionNameTxn,
+            long partitionSize,
+            long partitionColumnVersion,
+            long partitionSymbolValueCount
+    ) {
+        sink.put(" - partition ").put(partitionIndex)
+                .put(" / ts: ").put(partitionTimestamp).put(" (");
+        DATE_FORMATTER.format(partitionTimestamp, null, "Z", sink);
+        sink.put(')')
+                .put(", size: ").put(partitionSize)
+                .put(", txn: ").put(partitionNameTxn)
+                .put(", column version: ").put(partitionColumnVersion)
+                .put("   symbol value count: ").put(partitionSymbolValueCount)
+                .put(System.lineSeparator());
+    }
+
 
     void addColumnLn(
             int columnIndex,
