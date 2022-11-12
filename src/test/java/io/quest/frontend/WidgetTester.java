@@ -23,7 +23,7 @@ import java.awt.BorderLayout;
 import javax.swing.JButton;
 import javax.swing.JFrame;
 
-import io.quest.frontend.editor.QuestEditor;
+import io.quest.frontend.editor.QuestPanel;
 import io.quest.frontend.conns.ConnsManager;
 
 
@@ -42,7 +42,7 @@ public class WidgetTester {
                 button.setText("Close");
             }
         });
-        JFrame frame = createFrame("InfiniteSpinnerPanel");
+        JFrame frame = createFrame("InfiniteSpinnerPanel", null);
         frame.add(spinner, BorderLayout.CENTER);
         frame.add(button, BorderLayout.SOUTH);
         frame.setVisible(true);
@@ -59,10 +59,10 @@ public class WidgetTester {
     }
 
     public static void test_CommandBoard() {
-        QuestEditor board = new QuestEditor((owner, event, request) -> {
+        QuestPanel board = new QuestPanel((owner, event, request) -> {
 
         });
-        JFrame frame = createFrame("CommandBoard");
+        JFrame frame = createFrame("CommandBoard", null);
         frame.add(board, BorderLayout.CENTER);
         frame.setVisible(true);
     }

@@ -36,8 +36,6 @@ import org.slf4j.LoggerFactory;
 
 
 /**
- * Periodic database connections validity checker.
- * <p>
  * A connection is not valid when it was open and then it became unresponsive perhaps
  * due to a server side failure, or network latency.
  * <p>
@@ -52,7 +50,6 @@ import org.slf4j.LoggerFactory;
  * @see Conn#isValid()
  */
 public class ConnsChecker implements Closeable {
-
     private static final int PERIOD_SECS = 30; // validity period
     private static final int NUM_THREADS = 2;
     private static final Logger LOGGER = LoggerFactory.getLogger(ConnsChecker.class);
@@ -84,77 +81,69 @@ public class ConnsChecker implements Closeable {
     }
 
     public synchronized void start() {
-        if (scheduler != null) {
-            throw new IllegalStateException("already started");
+        if (scheduler == null) {
+            scheduler = Executors.newScheduledThreadPool(NUM_THREADS);
+            scheduler.scheduleAtFixedRate(this::dbConnsValidityCheck, PERIOD_SECS, PERIOD_SECS, TimeUnit.SECONDS);
+            LOGGER.info("Check every {} secs", PERIOD_SECS);
         }
-        scheduler = Executors.newScheduledThreadPool(NUM_THREADS);
-        scheduler.scheduleAtFixedRate(this::dbConnsValidityCheck, PERIOD_SECS, PERIOD_SECS, TimeUnit.SECONDS);
-        LOGGER.info("Check every {} secs", PERIOD_SECS);
-    }
-
-    private final List<ScheduledFuture<Conn>> invalidConnsFutures() {
-        return connsSupplier.get().stream().filter(Conn::isOpen).map(conn -> scheduler.schedule(() -> {
-            return !conn.isValid() ? conn : null; // might block for up DBConnection.VALID_CHECK_TIMEOUT_SECS
-        }, 0, TimeUnit.SECONDS)).collect(Collectors.toList());
     }
 
     private void dbConnsValidityCheck() {
-        if (!isChecking.compareAndSet(false, true)) {
-            return;
-        }
-        try {
-            List<ScheduledFuture<Conn>> invalidConns = connsSupplier
-                    .get()
-                    .stream()
-                    .filter(Conn::isOpen)
-                    .map(conn -> scheduler.schedule(() -> {
-                        return !conn.isValid() ? conn : null; // might block for up DBConnection.VALID_CHECK_TIMEOUT_SECS
-                    }, 0, TimeUnit.SECONDS))
-                    .collect(Collectors.toList());
-            while (invalidConns.size() > 0) {
-                Set<Conn> invalidSet = new HashSet<>();
-                for (Iterator<ScheduledFuture<Conn>> it = invalidConns.iterator(); it.hasNext(); ) {
-                    ScheduledFuture<Conn> invalidConnFuture = it.next();
-                    if (invalidConnFuture.isDone()) {
-                        try {
-                            Conn conn = invalidConnFuture.get();
-                            if (conn != null) {
-                                invalidSet.add(conn);
+        if (isChecking.compareAndSet(false, true)) {
+            try {
+                List<ScheduledFuture<Conn>> invalidConns = connsSupplier.get()
+                        .stream()
+                        .filter(Conn::isOpen)
+                        .map(conn -> scheduler.schedule(
+                                // might block for up DBConnection.VALID_CHECK_TIMEOUT_SECS
+                                () -> !conn.isValid() ? conn : null,
+                                0, // start immediately
+                                TimeUnit.SECONDS
+                        )).collect(Collectors.toList());
+                while (invalidConns.size() > 0) {
+                    Set<Conn> invalidSet = new HashSet<>();
+                    for (Iterator<ScheduledFuture<Conn>> it = invalidConns.iterator(); it.hasNext(); ) {
+                        ScheduledFuture<Conn> invalidConnFuture = it.next();
+                        if (invalidConnFuture.isDone()) {
+                            try {
+                                Conn conn = invalidConnFuture.get();
+                                if (conn != null) {
+                                    invalidSet.add(conn);
+                                }
+                            } catch (Exception unexpected) {
+                                LOGGER.error("Unexpected turn of events", unexpected);
+                            } finally {
+                                it.remove();
                             }
-                        } catch (Exception unexpected) {
-                            LOGGER.error("Unexpected turn of events", unexpected);
-                        } finally {
+                        } else if (invalidConnFuture.isCancelled()) {
                             it.remove();
                         }
-                    } else if (invalidConnFuture.isCancelled()) {
-                        it.remove();
+                    }
+                    if (!invalidSet.isEmpty()) {
+                        // notify the consumer as invalid connections are found
+                        // rather than wait for all connections to be checked
+                        lostConnsConsumer.accept(invalidSet);
                     }
                 }
-                if (!invalidSet.isEmpty()) {
-                    // notify the consumer as invalid connections are found
-                    // rather than wait for all connections to be checked
-                    lostConnsConsumer.accept(invalidSet);
-                }
+            } finally {
+                isChecking.set(false);
             }
-        } finally {
-            isChecking.set(false);
         }
     }
 
     @Override
     public synchronized void close() {
-        if (scheduler == null) {
-            throw new IllegalStateException("not started");
-        }
-        scheduler.shutdownNow();
-        try {
-            scheduler.awaitTermination(200L, TimeUnit.MILLISECONDS);
-        } catch (InterruptedException e) {
-            Thread.currentThread().interrupt();
-        } finally {
-            scheduler = null;
-            isChecking.set(false);
-            LOGGER.info("Connectivity check stopped");
+        if (scheduler != null) {
+            scheduler.shutdownNow();
+            try {
+                scheduler.awaitTermination(200L, TimeUnit.MILLISECONDS);
+            } catch (InterruptedException e) {
+                Thread.currentThread().interrupt();
+            } finally {
+                scheduler = null;
+                isChecking.set(false);
+                LOGGER.info("Connectivity check stopped");
+            }
         }
     }
 }

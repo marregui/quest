@@ -88,7 +88,7 @@ public class Table implements UniqueId<String>, Closeable {
      * Sets the column metadata (names and types) as defined by the result-set's
      * metadata, and clears the table's model. It does not change the table's key.
      * <p>
-     * This call needs to happen before {@link Table#addRow(int, ResultSet)}
+     * This call needs to happen before {@link Table#addRow(long, ResultSet)}
      * can be called.
      *
      * @param rs result-set in response to a SQL execution request
@@ -134,7 +134,7 @@ public class Table implements UniqueId<String>, Closeable {
      * @throws SQLException could not access the result-set's data as defined by the
      *                      metadata
      */
-    public void addRow(int rowIdx, ResultSet rs) throws SQLException {
+    public void addRow(long rowIdx, ResultSet rs) throws SQLException {
         int[] types = colTypes;
         if (types == null) {
             throw new IllegalArgumentException("column metadata (names, types) not defined");

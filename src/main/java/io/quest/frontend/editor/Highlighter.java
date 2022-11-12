@@ -197,11 +197,11 @@ class Highlighter extends DocumentFilter {
             PATTERN_FLAGS);
     static final String ERROR_HEADER = "==========  ERROR  ==========\n";
     static final Pattern ERROR_HEADER_PATTERN = Pattern.compile(ERROR_HEADER);
-    AttributeSet HIGHLIGHT_NORMAL = styleForegroundColor(255, 245, 222);
+    AttributeSet HIGHLIGHT_NORMAL = styleForegroundColor(55, 190, 55);
     AttributeSet HIGHLIGHT_KEYWORD = styleForegroundColor(200, 50, 100);
     AttributeSet HIGHLIGHT_TYPE = styleForegroundColor(240, 10, 140);
     AttributeSet HIGHLIGHT_FIND_MATCH = styleForegroundColor(50, 200, 185);
-    AttributeSet HIGHLIGHT_ERROR = styleForegroundColor(230, 178, 10);
+    AttributeSet HIGHLIGHT_ERROR = styleForegroundColor(255, 55, 5);
 
     private static AttributeSet styleForegroundColor(int r, int g, int b) {
         StyleContext sc = StyleContext.getDefaultStyleContext();

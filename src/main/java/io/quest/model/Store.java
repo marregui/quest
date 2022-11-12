@@ -59,7 +59,7 @@ public class Store<T extends StoreEntry> implements Closeable, Iterable<T> {
     private static final Gson GSON = new GsonBuilder().setPrettyPrinting().create();
     private static final StoreEntry[] EMPTY_STORE = new StoreEntry[0];
     private static final Type STORE_TYPE = new TypeToken<ArrayList<StoreEntry>>() {
-        /* just want the type */
+        /* type */
     }.getType();
 
     /**
@@ -77,7 +77,7 @@ public class Store<T extends StoreEntry> implements Closeable, Iterable<T> {
     private final String fileName;
     private final Class<? extends StoreEntry> entryClass;
     private final List<T> entries;
-    private final ExecutorService asyncPersister;
+    private final ExecutorService asyncPersist;
 
     /**
      * Constructor.
@@ -96,7 +96,7 @@ public class Store<T extends StoreEntry> implements Closeable, Iterable<T> {
         this.fileName = fileName;
         this.entryClass = entryClass;
         entries = new ArrayList<>();
-        asyncPersister = Executors.newSingleThreadExecutor(runnable -> {
+        asyncPersist = Executors.newSingleThreadExecutor(runnable -> {
             Thread t = new Thread(runnable);
             t.setName("Store-" + fileName);
             return t;
@@ -279,7 +279,7 @@ public class Store<T extends StoreEntry> implements Closeable, Iterable<T> {
      * This is a non blocking call.
      */
     public void asyncSaveToFile() {
-        asyncPersister.submit(() -> saveEntriesToFile(null));
+        asyncPersist.submit(() -> saveEntriesToFile(null));
     }
 
     public void saveToFile(File file) {
@@ -297,9 +297,9 @@ public class Store<T extends StoreEntry> implements Closeable, Iterable<T> {
      */
     @Override
     public void close() {
-        asyncPersister.shutdown();
+        asyncPersist.shutdown();
         try {
-            asyncPersister.awaitTermination(400L, TimeUnit.MILLISECONDS);
+            asyncPersist.awaitTermination(400L, TimeUnit.MILLISECONDS);
         } catch (InterruptedException e) {
             Thread.currentThread().interrupt();
         }

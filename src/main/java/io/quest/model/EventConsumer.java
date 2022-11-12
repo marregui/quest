@@ -17,8 +17,6 @@
 package io.quest.model;
 
 /**
- * Marking interface.
- * <p>
  * Implementors consume events produced by {@link EventProducer}s. An event can be
  * conceptually thought of as a triplet:
  * <ul>

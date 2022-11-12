@@ -17,8 +17,6 @@
 package io.quest.model;
 
 /**
- * Marking interface.
- * <p>
  * Implementors produce events defined by the functional signature declared by {@link EventConsumer}.
  * An event can be conceptually thought of as a triplet:
  * <ul>

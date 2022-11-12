@@ -41,7 +41,7 @@ import io.quest.frontend.GTk;
 import io.quest.backend.SQLExecutionResponse;
 import io.quest.model.Table;
 import io.quest.frontend.InfiniteSpinnerPanel;
-import io.quest.frontend.editor.QuestPanel;
+import io.quest.frontend.editor.Editor;
 
 
 public class SQLResultsTable extends JPanel implements Closeable {
@@ -58,7 +58,7 @@ public class SQLResultsTable extends JPanel implements Closeable {
     private final JScrollPane tableScrollPanel;
     private final SQLPagedTableModel tableModel;
     private final AtomicReference<Table> results;
-    private final QuestPanel questPanel;
+    private final Editor questPanel;
     private final JLabel rowRangeLabel;
     private final JLabel statsLabel;
     private final JButton prevButton;
@@ -114,7 +114,7 @@ public class SQLResultsTable extends JPanel implements Closeable {
         nextButton.setForeground(GTk.TABLE_HEADER_FONT_COLOR);
         nextButton.setPreferredSize(NAVIGATION_BUTTON_SIZE);
         nextButton.setHorizontalTextPosition(SwingConstants.LEFT);
-        questPanel = new QuestPanel(true);
+        questPanel = new Editor(true);
         tableScrollPanel = new JScrollPane(
                 table,
                 JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED,
@@ -138,9 +138,9 @@ public class SQLResultsTable extends JPanel implements Closeable {
             statsLabel.setText(String.format(
                     "[%s]  Exec: %5d,  Fetch: %5d,  Total: %6d (ms)",
                     eventType,
-                    res.getExecMs(),
-                    res.getFetchMs(),
-                    res.getTotalMs()));
+                    res.getExecMillis(),
+                    res.getFetchMillis(),
+                    res.getTotalMillis()));
         } else {
             statsLabel.setText("");
         }
