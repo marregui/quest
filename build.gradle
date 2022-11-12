@@ -21,7 +21,7 @@ plugins {
 }
 
 group = 'io.quest'
-version = '1.0.0'
+version = '1.0.0-SNAPSHOT'
 description = 'Desktop user interface to common Postgres Wire Protocol compatible databases.'
 
 repositories {
@@ -30,8 +30,8 @@ repositories {
 }
 
 java {
-    sourceCompatibility = JavaVersion.VERSION_17
-    targetCompatibility = JavaVersion.VERSION_17
+    sourceCompatibility = JavaVersion.VERSION_19
+    targetCompatibility = JavaVersion.VERSION_19
 }
 
 dependencies {
