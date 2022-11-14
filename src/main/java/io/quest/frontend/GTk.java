@@ -424,6 +424,8 @@ public final class GTk {
         COMMAND_EXEC_ABORT("CommandExecAbort.png"),
         COMMAND_EXEC_LINE("CommandExecLine.png"),
         META("Meta.png"),
+        PLOT_CHANGE_RANGES("PlotChangeRanges.png"),
+        PLOT_RESTORE_RANGES("PlotRestoreRanges.png"),
         RESULTS("Results.png"),
         RESULTS_NEXT("ResultsNext.png"),
         RESULTS_PREV("ResultsPrev.png");
