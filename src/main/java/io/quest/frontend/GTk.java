@@ -220,14 +220,15 @@ public final class GTk {
     }
 
     public static Dimension frameDimension() {
-        return frameDimension(0.9F);
+        return frameDimension(0.9F, 0.9F);
     }
 
-    public static Dimension frameDimension(float scale) {
-        assert scale > 0.5 && scale < 1.0; // 50..99% percent of screen
+    public static Dimension frameDimension(float xScale, float yScale) {
+        assert xScale > 0.5 && xScale < 1.0; // 50..99% percent of screen
+        assert yScale > 0.5 && yScale < 1.0;
         Dimension screenSize = TK.getScreenSize();
-        int width = (int) (screenSize.getWidth() * scale);
-        int height = (int) (screenSize.getHeight() * scale);
+        int width = (int) (screenSize.getWidth() * xScale);
+        int height = (int) (screenSize.getHeight() * yScale);
         return new Dimension(width, height);
     }
 

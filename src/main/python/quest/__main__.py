@@ -25,7 +25,7 @@ from pathlib import Path
 VERSION = "1.0"
 
 # User local QuestDB installation folder
-QDB_HOME = Path.home() / ".quest"
+QDB_HOME = Path.home() / "QUEST"
 
 # QuestBD's storage root folder contains db, conf
 QDB_DB_ROOT = QDB_HOME / "ROOT"

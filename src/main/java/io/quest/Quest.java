@@ -26,7 +26,7 @@ import javax.swing.*;
 import io.quest.backend.SQLExecutor;
 import io.quest.backend.SQLExecutionRequest;
 import io.quest.backend.SQLExecutionResponse;
-import io.quest.frontend.meta.MetaExaminer;
+import io.quest.frontend.meta.Meta;
 import io.quest.model.*;
 import io.quest.frontend.GTk;
 import org.slf4j.Logger;
@@ -50,7 +50,7 @@ public final class Quest {
     private final SQLExecutor executor;
     private final QuestPanel commands;
     private final SQLResultsTable results;
-    private final MetaExaminer metaExaminer;
+    private final Meta meta;
     private final JMenuItem toggleConnsWidget;
     private final JMenuItem toggleMetaExaminerWidget;
     private final JMenuItem toggleConn;
@@ -62,7 +62,7 @@ public final class Quest {
         int dividerHeight = (int) (frame.getHeight() * 0.6);
         executor = new SQLExecutor(); // input/output
         conns = new ConnsManager(frame, this::dispatchEvent); // input
-        metaExaminer = new MetaExaminer(frame, this::dispatchEvent);
+        meta = new Meta(frame, this::dispatchEvent);
         commands = new QuestPanel(this::dispatchEvent); // input
         commands.setPreferredSize(new Dimension(0, dividerHeight));
         results = new SQLResultsTable(width, dividerHeight); // output
@@ -104,11 +104,6 @@ public final class Quest {
         JMenu commandsMenu = new JMenu("Commands");
         commandsMenu.setFont(GTk.MENU_FONT);
         commandsMenu.setIcon(GTk.Icon.COMMANDS.icon());
-        JMenu commandBoardMenu = commands.getQuestsMenu();
-        commandBoardMenu.setText("uest");
-        commandBoardMenu.setIcon(GTk.Icon.COMMAND_QUEST.icon());
-        commandsMenu.add(commandBoardMenu);
-        commandsMenu.addSeparator();
         commandsMenu.add(configureMenuItem(
                 new JMenuItem(),
                 GTk.Icon.COMMAND_EXEC_LINE,
@@ -206,11 +201,11 @@ public final class Quest {
     }
 
     private void onToggleMetaExaminerWidget(ActionEvent event) {
-        boolean wasVisible = metaExaminer.isVisible();
+        boolean wasVisible = meta.isVisible();
         if (!wasVisible) {
-            metaExaminer.setLocation(MouseInfo.getPointerInfo().getLocation());
+            meta.setLocation(MouseInfo.getPointerInfo().getLocation());
         }
-        metaExaminer.setVisible(!wasVisible);
+        meta.setVisible(!wasVisible);
         toggleMetaExaminerWidget.setText(wasVisible ? "Show MetaExplorer" : "Hide MetaExplorer");
     }
 
@@ -221,7 +216,7 @@ public final class Quest {
             onSQLExecutorEvent(EventProducer.eventType(event), (SQLExecutionResponse) data);
         } else if (source instanceof ConnsManager) {
             onDBConnectionManagerEvent(EventProducer.eventType(event), data);
-        } else if (source instanceof MetaExaminer) {
+        } else if (source instanceof Meta) {
             onMetaExaminerEvent(EventProducer.eventType(event), data);
         }
     }
@@ -270,7 +265,7 @@ public final class Quest {
         }
     }
 
-    private void onMetaExaminerEvent(MetaExaminer.EventType event, Object data) {
+    private void onMetaExaminerEvent(Meta.EventType event, Object data) {
         switch (event) {
             case HIDE_REQUEST:
                 onToggleMetaExaminerWidget(null);
@@ -321,7 +316,7 @@ public final class Quest {
         executor.close();
         conns.close();
         results.close();
-        metaExaminer.close();
+        meta.close();
     }
 
     public static void main(String[] args) {

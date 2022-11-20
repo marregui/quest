@@ -17,33 +17,51 @@
 package io.quest.frontend.meta;
 
 import io.questdb.cairo.ColumnType;
+import io.questdb.cairo.PartitionBy;
+import io.questdb.cairo.TableReaderMetadata;
 import io.questdb.std.datetime.DateFormat;
 import io.questdb.std.datetime.microtime.TimestampFormatCompiler;
-import io.questdb.std.str.Path;
 import io.questdb.std.str.StringSink;
 
+import javax.swing.*;
+import java.awt.*;
 import java.util.concurrent.TimeUnit;
 
-class MessageSink {
-    private static final DateFormat DATE_FORMATTER = new TimestampFormatCompiler().compile(
+class Display extends JPanel {
+    private static final long serialVersionUID = 1L;
+    private static final Font FONT = new Font("Monospaced", Font.BOLD, 14);
+    private static final Color FONT_COLOR = new Color(200, 50, 100);
+    private static final DateFormat TS_FORMATTER = new TimestampFormatCompiler().compile(
             "yyyy-MM-ddTHH:mm:ss.SSSz"
+    );
+
+    private static final DateFormat DATE_FORMATTER = new TimestampFormatCompiler().compile(
+            "yyyy-MM-dd"
     );
 
     static {
         // preload, which compiles the pattern and is costly, penalising startup time
-        DATE_FORMATTER.format(0, null, "Z", new StringSink());
+        TS_FORMATTER.format(0, null, "Z", new StringSink());
     }
 
+    private final JTextPane textPane = new JTextPane();
     private final StringSink sink = new StringSink();
 
-    void failedToOpenFile(Path file, Throwable error) {
-        sink.clear();
-        sink.put("Failed to open [").put(file)
-                .put("]: ").put(error.getMessage())
-                .put(System.lineSeparator());
+    public Display() {
+        super(new BorderLayout());
+        FontMetrics metrics = textPane.getFontMetrics(FONT);
+        int vMargin = metrics.getHeight();
+        int hMargin = metrics.stringWidth("####");
+        Insets margin = new Insets(vMargin, hMargin, vMargin, hMargin);
+        textPane.setMargin(margin);
+        textPane.setFont(FONT);
+        textPane.setForeground(FONT_COLOR);
+        textPane.setBackground(Color.BLACK);
+        textPane.setEditable(false);
+        add(new JScrollPane(textPane), BorderLayout.CENTER);
     }
 
-    void clear() {
+    public void clear() {
         sink.clear();
     }
 
@@ -52,34 +70,43 @@ class MessageSink {
         return sink.toString();
     }
 
-    void addLn() {
+    public void render() {
+        render(toString());
+    }
+
+    public void render(String message) {
+        textPane.setText(message);
+        repaint();
+    }
+
+    public void addLn() {
         sink.put(System.lineSeparator());
     }
 
-    void addLn(String name, int value) {
+    public void addLn(String name, int value) {
         sink.put(name).put(value).put(System.lineSeparator());
     }
 
-    void addLn(String name, long value) {
+    public void addLn(String name, long value) {
         sink.put(name).put(value).put(System.lineSeparator());
     }
 
-    void addLn(String name, boolean value) {
+    public void addLn(String name, boolean value) {
         sink.put(name).put(value).put(System.lineSeparator());
     }
 
-    void addLn(String name, String value) {
+    public void addLn(String name, String value) {
         sink.put(name).put(value).put(System.lineSeparator());
     }
 
-    void addIndexedSymbolLn(int index, CharSequence value, boolean indented) {
+    public void addIndexedSymbolLn(int index, CharSequence value, boolean indented) {
         if (indented) {
             sink.put(" - ");
         }
         sink.put(index).put(": ").put(value).put(System.lineSeparator());
     }
 
-    void addTimeLn(String name, long value) {
+    public void addTimeLn(String name, long value) {
         sink.put(name).put(value).put(" micros (")
                 .put(TimeUnit.MICROSECONDS.toSeconds(value))
                 .put(" sec, or ")
@@ -88,13 +115,13 @@ class MessageSink {
                 .put(System.lineSeparator());
     }
 
-    void addTimestampLn(String name, long timestamp) {
+    public void addTimestampLn(String name, long timestamp) {
         sink.put(name).put(timestamp).put(" (");
-        DATE_FORMATTER.format(timestamp, null, "Z", sink);
+        TS_FORMATTER.format(timestamp, null, "Z", sink);
         sink.put(')').put(System.lineSeparator());
     }
 
-    void addPartitionLn(
+    public void addPartitionLn(
             int partitionIndex,
             long partitionTimestamp,
             long partitionNameTxn,
@@ -124,7 +151,7 @@ class MessageSink {
                 .put(System.lineSeparator());
     }
 
-    void addPartitionLn(
+    public void addPartitionLn(
             int partitionIndex,
             long partitionTimestamp,
             long partitionNameTxn,
@@ -144,7 +171,7 @@ class MessageSink {
     }
 
 
-    void addColumnLn(
+    public void addColumnLn(
             int columnIndex,
             CharSequence columnName,
             int columnType,
@@ -161,5 +188,31 @@ class MessageSink {
                 .put(", indexed: ").put(columnIsIndexed)
                 .put(", indexBlockCapacity: ").put(columnIndexBlockCapacity)
                 .put(System.lineSeparator());
+    }
+
+    public void addCreateTableLn(TableReaderMetadata metadata) {
+        sink.put("CREATE TABLE IF NOT EXISTS change_me (").put(System.lineSeparator());
+        for (int i=0, n=metadata.getColumnCount(); i < n; i++) {
+            String colName = metadata.getColumnName(i);
+            int colType = metadata.getColumnType(i);
+            sink.put("    ").put(colName).put(' ').put(ColumnType.nameOf(colType));
+            if (colType == ColumnType.SYMBOL && metadata.isColumnIndexed(i)) {
+                sink.put(" INDEX CAPACITY ").put(metadata.getIndexValueBlockCapacity(i));
+            }
+            if (i < n - 1) {
+                sink.put(',');
+            }
+            sink.put(System.lineSeparator());
+        }
+        sink.put(')');
+        int timestampIdx = metadata.getTimestampIndex();
+        if (timestampIdx != -1) {
+            sink.put(" TIMESTAMP(").put(metadata.getColumnName(timestampIdx)).put(')');
+            int partitionBy = metadata.getPartitionBy();
+            if (partitionBy != PartitionBy.NONE ) {
+                sink.put(" PARTITION BY ").put(PartitionBy.toString(partitionBy));
+            }
+        }
+        sink.put(';').put(System.lineSeparator());
     }
 }

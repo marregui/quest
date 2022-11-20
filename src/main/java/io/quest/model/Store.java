@@ -35,12 +35,15 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Supplier;
 
+import io.quest.frontend.meta.Meta;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.reflect.TypeToken;
+
+import javax.swing.*;
 
 
 /**
@@ -52,9 +55,26 @@ import com.google.gson.reflect.TypeToken;
  */
 public class Store<T extends StoreEntry> implements Closeable, Iterable<T> {
 
+    public static final File DEFAULT_STORE_PATH;
+
+    static {
+        synchronized (Meta.class) {
+            String userHome = System.getProperty("user.home");
+            DEFAULT_STORE_PATH = new File(userHome != null ? userHome : ".", "QUEST").getAbsoluteFile();
+            if (!DEFAULT_STORE_PATH.exists()) {
+                if (!DEFAULT_STORE_PATH.mkdirs()) {
+                    JOptionPane.showMessageDialog(
+                            null,
+                            "Could not create folder: " + DEFAULT_STORE_PATH,
+                            "Notice",
+                            JOptionPane.ERROR_MESSAGE);
+                }
+            }
+        }
+    }
+
     private static final Logger LOGGER = LoggerFactory.getLogger(Store.class);
     private static final String STORE_PATH_KEY = "store.path";
-    private static final String DEFAULT_STORE_PATH = ".quest";
     private static final Class<?>[] ITEM_CONSTRUCTOR_SIGNATURE = {StoreEntry.class};
     private static final Gson GSON = new GsonBuilder().setPrettyPrinting().create();
     private static final StoreEntry[] EMPTY_STORE = new StoreEntry[0];
@@ -70,7 +90,7 @@ public class Store<T extends StoreEntry> implements Closeable, Iterable<T> {
      * @return the default store path
      */
     public static File getDefaultRootPath() {
-        return new File(System.getProperty(STORE_PATH_KEY, DEFAULT_STORE_PATH));
+        return new File(System.getProperty(STORE_PATH_KEY, DEFAULT_STORE_PATH.getAbsolutePath()));
     }
 
     private final File rootPath;
