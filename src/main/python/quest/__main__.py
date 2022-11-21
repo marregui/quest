@@ -28,7 +28,7 @@ VERSION = "1.0"
 QDB_HOME = Path.home() / "QUEST"
 
 # QuestBD's storage root folder contains db, conf
-QDB_DB_ROOT = QDB_HOME / "ROOT"
+QDB_DB_ROOT = QDB_HOME
 
 # QuestBD's storage data folder
 QDB_DB_DATA = QDB_DB_ROOT / "db"
@@ -37,7 +37,7 @@ QDB_DB_DATA = QDB_DB_ROOT / "db"
 QDB_DB_CONF = QDB_DB_ROOT / "conf"
 
 # Git clone, automatically checked out on server start, or on module command 'update'
-QDB_CLONE_FOLDER = QDB_HOME / "clone"
+QDB_CLONE_FOLDER = QDB_HOME / "questdb"
 
 
 def _update_command(branch_name: str, force: bool):

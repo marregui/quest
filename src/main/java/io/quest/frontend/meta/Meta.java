@@ -59,10 +59,10 @@ public class Meta extends JDialog implements EventProducer<ConnsManager.EventTyp
 
     public Meta(Frame owner, EventConsumer<Meta, Object> eventConsumer) {
         super(owner, "Metadata Files Explorer", false); // does not block use of the main app
-
+        setDefaultLookAndFeelDecorated(true);
         setAlwaysOnTop(false);
         setDefaultCloseOperation(WindowConstants.HIDE_ON_CLOSE);
-        Dimension dimension = GTk.frameDimension(0.9F, 0.8F);
+        Dimension dimension = GTk.frameDimension(0.75F, 0.6F);
         setSize(dimension);
         setPreferredSize(dimension);
         Dimension location = GTk.frameLocation(dimension);

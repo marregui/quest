@@ -178,6 +178,8 @@ class Highlighter extends DocumentFilter {
                     + "\\blong\\b|\\bdate\\b|\\bstring\\b|\\bsymbol\\b|\\bdouble\\b|\\bfloat\\b|"
                     + "\\blong256\\b|\\bchar\\b|\\bgeohash\\b",
             PATTERN_FLAGS);
+
+    private static final String NON_KEYWORDS = "|\\b;|\\b,|\\(|\\)";
     static final Pattern KEYWORDS_PATTERN = Pattern.compile(
             "\\bquestdb\\b|\\badd\\b|\\ball\\b|\\balter\\b|\\band\\b|\\bas\\b|"
                     + "\\basc\\b|\\basof\\b|\\bbackup\\b|\\bbetween\\b|\\bby\\b|\\bcase\\b|"
@@ -193,7 +195,7 @@ class Highlighter extends DocumentFilter {
                     + "\\bright\\b|\\bsample\\b|\\bselect\\b|\\bshow\\b|\\bsplice\\b|\\bsystem\\b|"
                     + "\\btable\\b|\\btables\\b|\\bthen\\b|\\bto\\b|\\btransaction\\b|\\btruncate\\b|"
                     + "\\btype\\b|\\bunion\\b|\\bunlock\\b|\\bupdate\\b|\\bvalues\\b|\\bwhen\\b|"
-                    + "\\bwhere\\b|\\bwith\\b|\\bwriter\\b",
+                    + "\\bwhere\\b|\\bwith\\b|\\bwriter\\b" + NON_KEYWORDS,
             PATTERN_FLAGS);
     static final String ERROR_HEADER = "==========  ERROR  ==========\n";
     static final Pattern ERROR_HEADER_PATTERN = Pattern.compile(ERROR_HEADER);
