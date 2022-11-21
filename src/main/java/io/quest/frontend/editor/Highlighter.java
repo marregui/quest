@@ -16,6 +16,8 @@
 
 package io.quest.frontend.editor;
 
+import io.quest.frontend.GTk;
+
 import javax.swing.*;
 import javax.swing.text.*;
 import java.awt.*;
@@ -28,11 +30,10 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.regex.PatternSyntaxException;
 
-class Highlighter extends DocumentFilter {
+public class Highlighter extends DocumentFilter {
+    public static final String EVENT_TYPE = "style change";
 
-    static final String EVENT_TYPE = "style change";
-
-    static Highlighter of(JTextPane textPane) {
+    public static Highlighter of(JTextPane textPane) {
         Highlighter highlighter = new Highlighter(textPane.getStyledDocument()); // produces EVENT_TYPE
         AbstractDocument doc = (AbstractDocument) textPane.getDocument();
         doc.putProperty(DefaultEditorKit.EndOfLineStringProperty, "\n");
@@ -40,12 +41,12 @@ class Highlighter extends DocumentFilter {
         return highlighter;
     }
 
-    private final StyledDocument styledDocument;
+    protected final StyledDocument styledDocument;
     private final StringBuilder errorBuilder;
     private final int errorHeaderLen;
     private final WeakHashMap<String, Pattern> findPatternCache;
 
-    Highlighter(StyledDocument styledDocument) {
+    protected Highlighter(StyledDocument styledDocument) {
         this.styledDocument = Objects.requireNonNull(styledDocument);
         findPatternCache = new WeakHashMap<>(5, 0.2f); // one at the time
         errorBuilder = new StringBuilder();
@@ -83,7 +84,7 @@ class Highlighter extends DocumentFilter {
         }
     }
 
-    String highlightError(Throwable error) {
+    public String highlightError(Throwable error) {
         errorBuilder.setLength(errorHeaderLen);
         try (StringWriter sw = new StringWriter(); PrintWriter pw = new PrintWriter(sw)) {
             error.printStackTrace(pw);
@@ -94,11 +95,17 @@ class Highlighter extends DocumentFilter {
         }
     }
 
-    int handleTextChanged() {
+    public String highlightError(String error) {
+        errorBuilder.setLength(errorHeaderLen);
+        errorBuilder.append(error);
+        return errorBuilder.toString();
+    }
+
+    public int handleTextChanged() {
         return handleTextChanged(null, null);
     }
 
-    int handleTextChanged(String findRegex, String replaceWith) {
+    public int handleTextChanged(String findRegex, String replaceWith) {
         int len = styledDocument.getLength();
         if (len > 0) {
             String txt;
@@ -111,12 +118,28 @@ class Highlighter extends DocumentFilter {
                 styledDocument.setCharacterAttributes(0, len, HIGHLIGHT_ERROR, true);
             } else {
                 styledDocument.setCharacterAttributes(0, len, HIGHLIGHT_NORMAL, true);
-                applyStyle(KEYWORDS_PATTERN.matcher(txt), HIGHLIGHT_KEYWORD, false);
-                applyStyle(TYPES_PATTERN.matcher(txt), HIGHLIGHT_TYPE, false);
+                handleTextChanged(txt);
                 return applyFindReplace(findRegex, replaceWith, txt);
             }
         }
         return 0;
+    }
+
+    protected int handleTextChanged(String txt) {
+        return applyStyle(KEYWORDS_PATTERN.matcher(txt), HIGHLIGHT_KEYWORD, false);
+    }
+
+    protected int applyStyle(Matcher matcher, AttributeSet style, boolean replace) {
+        int matchCount = 0;
+        while (matcher.find()) {
+            styledDocument.setCharacterAttributes(
+                    matcher.start(),
+                    matcher.end() - matcher.start(),
+                    style,
+                    replace);
+            matchCount++;
+        }
+        return matchCount;
     }
 
     private int applyFindReplace(String findRegex, String replaceWith, String txt) {
@@ -142,19 +165,6 @@ class Highlighter extends DocumentFilter {
         return 0;
     }
 
-    private int applyStyle(Matcher matcher, AttributeSet style, boolean replace) {
-        int matchCount = 0;
-        while (matcher.find()) {
-            styledDocument.setCharacterAttributes(
-                    matcher.start(),
-                    matcher.end() - matcher.start(),
-                    style,
-                    replace);
-            matchCount++;
-        }
-        return matchCount;
-    }
-
     private static String replaceAllTabs(String text) {
         return text.replaceAll("\t", "    ");
     }
@@ -169,43 +179,50 @@ class Highlighter extends DocumentFilter {
         return matchCount;
     }
 
-    // src/test/python/keywords.py
+
+    // | Boundary Construct | Description             |
+    // | ================== | ======================= |
+    // |       ^            | The beginning of a line |
+    // |       $            | The end of a line       |
+    // |       \\b          | A word boundary         |
+    // |       \\B          | A non-word boundary     |
     // https://docs.oracle.com/javase/tutorial/essential/regex/bounds.html
-    static final int PATTERN_FLAGS = Pattern.CASE_INSENSITIVE | Pattern.UNICODE_CASE;
-    static final Pattern TYPES_PATTERN = Pattern.compile(
-            "\\bbinary\\b|\\bint\\b|\\bcapacity\\b|\\bshort\\b|\\btimestamp\\b|"
-                    + "\\bboolean\\b|\\bbyte\\b|\\bindex\\b|\\bnocache\\b|\\bcache\\b|\\bnull\\b|"
-                    + "\\blong\\b|\\bdate\\b|\\bstring\\b|\\bsymbol\\b|\\bdouble\\b|\\bfloat\\b|"
-                    + "\\blong256\\b|\\bchar\\b|\\bgeohash\\b",
-            PATTERN_FLAGS);
 
-    private static final String NON_KEYWORDS = "|\\b;|\\b,|\\(|\\)";
-    static final Pattern KEYWORDS_PATTERN = Pattern.compile(
-            "\\bquestdb\\b|\\badd\\b|\\ball\\b|\\balter\\b|\\band\\b|\\bas\\b|"
-                    + "\\basc\\b|\\basof\\b|\\bbackup\\b|\\bbetween\\b|\\bby\\b|\\bcase\\b|"
-                    + "\\bcast\\b|\\bcolumn\\b|\\bcolumns\\b|\\bcopy\\b|\\bcreate\\b|\\bcross\\b|"
-                    + "\\bdatabase\\b|\\bdefault\\b|\\bdelete\\b|\\bdesc\\b|\\bdistinct\\b|"
-                    + "\\bdrop\\b|\\belse\\b|\\bend\\b|\\bexcept\\b|\\bexists\\b|\\bfill\\b|"
-                    + "\\bforeign\\b|\\bfrom\\b|\\bgrant\\b|\\bgroup\\b|\\bheader\\b|\\bif\\b|"
-                    + "\\bin\\b|\\binner\\b|\\binsert\\b|\\bintersect\\b|\\binto\\b|\\bisolation\\b|"
-                    + "\\bjoin\\b|\\bkey\\b|\\blatest\\b|\\bleft\\b|\\blevel\\b|\\blimit\\b|"
-                    + "\\block\\b|\\blt\\b|\\bnan\\b|\\bnatural\\b|\\bnone\\b|\\bnot\\b|"
-                    + "\\bon\\b|\\bonly\\b|\\bor\\b|\\border\\b|\\bouter\\b|\\bover\\b|"
-                    + "\\bpartition\\b|\\bprimary\\b|\\breferences\\b|\\brename\\b|\\brepair\\b|"
-                    + "\\bright\\b|\\bsample\\b|\\bselect\\b|\\bshow\\b|\\bsplice\\b|\\bsystem\\b|"
-                    + "\\btable\\b|\\btables\\b|\\bthen\\b|\\bto\\b|\\btransaction\\b|\\btruncate\\b|"
-                    + "\\btype\\b|\\bunion\\b|\\bunlock\\b|\\bupdate\\b|\\bvalues\\b|\\bwhen\\b|"
-                    + "\\bwhere\\b|\\bwith\\b|\\bwriter\\b" + NON_KEYWORDS,
+    protected static final int PATTERN_FLAGS = Pattern.CASE_INSENSITIVE | Pattern.UNICODE_CASE;
+    private static final String NON_KEYWORDS = "|;|,|\\.|\\(|\\)";
+    private static final Pattern KEYWORDS_PATTERN = Pattern.compile(
+            // src/main/python/keywords.py
+            "\\bindex\\b|\\bday\\b|\\bdouble\\b|\\bas\\b|\\blt\\b|\\block\\b|"
+                    + "\\bexcept\\b|\\bisolation\\b|\\bgrant\\b|\\bdrop\\b|\\bintersect\\b|"
+                    + "\\bcopy\\b|\\bnot\\b|\\bover\\b|\\bwith\\b|\\bdate\\b|\\brepair\\b|"
+                    + "\\bright\\b|\\bnocache\\b|\\bbackup\\b|\\bouter\\b|\\bif\\b|\\bshow\\b|"
+                    + "\\bby\\b|\\bfrom\\b|\\btransaction\\b|\\blevel\\b|\\bselect\\b|\\bbyte\\b|"
+                    + "\\bmonth\\b|\\bjoin\\b|\\basc\\b|\\binto\\b|\\bnan\\b|\\bcolumns\\b|"
+                    + "\\breferences\\b|\\btable\\b|\\bhour\\b|\\bcast\\b|\\bsample\\b|\\bdistinct\\b|"
+                    + "\\btruncate\\b|\\basof\\b|\\bpartition\\b|\\ball\\b|\\bdefault\\b|"
+                    + "\\bon\\b|\\bdelete\\b|\\bforeign\\b|\\belse\\b|\\bin\\b|\\bcreate\\b|"
+                    + "\\bheader\\b|\\balter\\b|\\bto\\b|\\bleft\\b|\\bvalues\\b|\\bquestdb\\b|"
+                    + "\\bcache\\b|\\bbetween\\b|\\bnatural\\b|\\bdesc\\b|\\bonly\\b|\\bbinary\\b|"
+                    + "\\bnone\\b|\\bcross\\b|\\bunion\\b|\\bupdate\\b|\\bcolumn\\b|\\brename\\b|"
+                    + "\\bthen\\b|\\bwhere\\b|\\badd\\b|\\blong\\b|\\bgeohash\\b|\\bboolean\\b|"
+                    + "\\bint\\b|\\btables\\b|\\bwhen\\b|\\bgroup\\b|\\bnull\\b|\\bshort\\b|"
+                    + "\\bkey\\b|\\binner\\b|\\btype\\b|\\bexists\\b|\\bfloat\\b|\\bunlock\\b|"
+                    + "\\bchar\\b|\\bsymbol\\b|\\border\\b|\\bwriter\\b|\\bstring\\b|\\bcase\\b|"
+                    + "\\blatest\\b|\\bsplice\\b|\\bdatabase\\b|\\bor\\b|\\bcapacity\\b|\\band\\b|"
+                    + "\\bend\\b|\\bfill\\b|\\bprimary\\b|\\binsert\\b|\\bsystem\\b|\\blong256\\b|"
+                    + "\\blimit\\b|\\btimestamp\\b" + NON_KEYWORDS,
             PATTERN_FLAGS);
-    static final String ERROR_HEADER = "==========  ERROR  ==========\n";
-    static final Pattern ERROR_HEADER_PATTERN = Pattern.compile(ERROR_HEADER);
-    AttributeSet HIGHLIGHT_NORMAL = styleForegroundColor(55, 190, 55);
-    AttributeSet HIGHLIGHT_KEYWORD = styleForegroundColor(200, 50, 100);
-    AttributeSet HIGHLIGHT_TYPE = styleForegroundColor(240, 10, 140);
-    AttributeSet HIGHLIGHT_FIND_MATCH = styleForegroundColor(50, 200, 185);
-    AttributeSet HIGHLIGHT_ERROR = styleForegroundColor(255, 55, 5);
+    private static final String ERROR_HEADER = "==========  ERROR  ==========\n";
+    private static final Pattern ERROR_HEADER_PATTERN = Pattern.compile(ERROR_HEADER);
+    protected AttributeSet HIGHLIGHT_NORMAL = styleForegroundColor(95, 235, 150); // terminal green
+    protected AttributeSet HIGHLIGHT_KEYWORD = styleForegroundColor(
+            GTk.APP_THEME_COLOR.getRed(),
+            GTk.APP_THEME_COLOR.getGreen(),
+            GTk.APP_THEME_COLOR.getBlue()); // red
+    private AttributeSet HIGHLIGHT_FIND_MATCH = styleForegroundColor(50, 200, 185); // blue-ish
+    private AttributeSet HIGHLIGHT_ERROR = styleForegroundColor(255, 55, 5); // bright red
 
-    private static AttributeSet styleForegroundColor(int r, int g, int b) {
+    protected static AttributeSet styleForegroundColor(int r, int g, int b) {
         StyleContext sc = StyleContext.getDefaultStyleContext();
         return sc.addAttribute(sc.getEmptySet(), StyleConstants.Foreground, new Color(r, g, b));
     }

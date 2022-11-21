@@ -26,7 +26,7 @@ import javax.swing.*;
 import io.quest.backend.SQLExecutor;
 import io.quest.backend.SQLExecutionRequest;
 import io.quest.backend.SQLExecutionResponse;
-import io.quest.frontend.meta.Meta;
+import io.quest.frontend.editor.meta.Meta;
 import io.quest.model.*;
 import io.quest.frontend.GTk;
 import org.slf4j.Logger;
@@ -36,6 +36,7 @@ import io.quest.frontend.editor.QuestPanel;
 import io.quest.frontend.conns.ConnsManager;
 import io.quest.frontend.results.SQLResultsTable;
 
+import static io.quest.frontend.GTk.NO_KEY_EVENT;
 import static io.quest.frontend.GTk.configureMenuItem;
 
 
@@ -160,22 +161,26 @@ public final class Quest {
 
         JMenu menu = new JMenu("Menu");
         menu.setFont(GTk.MENU_FONT);
+        JMenu questsMenu = commands.getQuestsMenu();
+        menu.add(questsMenu);
+        menu.addSeparator();
+        menu.add(configureMenuItem(
+                toggleMetaExaminerWidget,
+                GTk.Icon.META,
+                "MetaExplorer",
+                KeyEvent.VK_M,
+                this::onToggleMetaExaminerWidget
+        ));
+        menu.addSeparator();
         menu.add(connsMenu);
         menu.add(commandsMenu);
         menu.add(resultsMenu);
         menu.addSeparator();
         menu.add(configureMenuItem(
-                toggleMetaExaminerWidget,
-                GTk.Icon.META,
-                "Show MetaExplorer",
-                KeyEvent.VK_M,
-                this::onToggleMetaExaminerWidget
-        ));
-        menu.add(configureMenuItem(
                 new JMenuItem(),
                 GTk.Icon.HELP,
                 "QuestDB Docs",
-                GTk.NO_KEY_EVENT,
+                NO_KEY_EVENT,
                 GTk::openQuestDBDocumentation
         ));
         JMenuBar menuBar = new JMenuBar();
@@ -206,7 +211,7 @@ public final class Quest {
             meta.setLocation(MouseInfo.getPointerInfo().getLocation());
         }
         meta.setVisible(!wasVisible);
-        toggleMetaExaminerWidget.setText(wasVisible ? "Show MetaExplorer" : "Hide MetaExplorer");
+        toggleMetaExaminerWidget.setText(wasVisible ? "MetaExplorer" : "Close MetaExplorer");
     }
 
     private void dispatchEvent(EventProducer<?> source, Enum<?> event, Object data) {

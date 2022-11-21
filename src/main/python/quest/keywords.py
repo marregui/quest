@@ -46,6 +46,10 @@ TYPE_KEYWORDS = {
     "capacity",
     "cache",
     "nocache",
+    "day",
+    "hour",
+    "month",
+    "none",
 }
 
 
@@ -65,11 +69,9 @@ if __name__ == "__main__":
     with psycopg2.connect(**CONN_ATTRS) as conn:
         with conn.cursor() as stmt_cursor:
             stmt_cursor.execute("pg_catalog.pg_get_keywords();")
-            print(format_as_java_regex_pattern(TYPE_KEYWORDS))
-            print("=" * 100)
             keywords = ["questdb"]
             for row in stmt_cursor.fetchall():
                 kw = row[0].lower()
                 if kw not in TYPE_KEYWORDS:
                     keywords.append(kw)
-            print(format_as_java_regex_pattern(keywords))
+            print(format_as_java_regex_pattern(TYPE_KEYWORDS.union(keywords)))

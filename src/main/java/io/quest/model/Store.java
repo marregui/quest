@@ -35,7 +35,7 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Supplier;
 
-import io.quest.frontend.meta.Meta;
+import io.quest.frontend.editor.meta.Meta;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

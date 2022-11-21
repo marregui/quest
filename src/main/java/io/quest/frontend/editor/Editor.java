@@ -20,6 +20,7 @@ import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.KeyEvent;
 import java.util.concurrent.atomic.AtomicReference;
+import java.util.function.Function;
 import java.util.regex.PatternSyntaxException;
 import javax.swing.*;
 import javax.swing.text.*;
@@ -31,8 +32,9 @@ import io.quest.frontend.GTk;
 public class Editor extends JPanel {
     private static final long serialVersionUID = 1L;
     private static final String MARGIN_TOKEN = ":99999:";
-    private static final Font FONT = new Font("Monospaced", Font.BOLD, 14);
-    private static final Font LINENO_FONT = new Font(GTk.MAIN_FONT_NAME, Font.ITALIC, 14);
+    private static final int FONT_SIZE = 17;
+    private static final Font FONT = new Font("Monospaced", Font.BOLD, FONT_SIZE);
+    private static final Font LINENO_FONT = new Font(GTk.MAIN_FONT_NAME, Font.ITALIC, FONT_SIZE);
     static final Color LINENO_COLOR = Color.LIGHT_GRAY.darker().darker();
     private static final Color CARET_COLOR = Color.CYAN;
     private static final Color BACKGROUND_COLOR = Color.BLACK;
@@ -43,10 +45,14 @@ public class Editor extends JPanel {
     private final StringBuilder sb;
 
     public Editor() {
-        this(false);
+        this(false, Highlighter::of);
     }
 
     public Editor(boolean isErrorPanel) {
+        this(isErrorPanel, Highlighter::of);
+    }
+
+    public Editor(boolean isErrorPanel, Function<JTextPane, Highlighter> highlighterFactory) {
         sb = new StringBuilder();
         undoManager = new AtomicReference<>();
         textPane = new JTextPane() {
@@ -80,7 +86,7 @@ public class Editor extends JPanel {
         textPane.setCaretPosition(0);
         textPane.setEditable(!isErrorPanel);
         setupKeyboardActions(isErrorPanel);
-        highlighter = Highlighter.of(textPane); // produces "style change" events
+        highlighter = highlighterFactory.apply(textPane); // produces "style change" events
         scrollPane.getViewport().setBackground(BACKGROUND_COLOR);
         scrollPane.getVerticalScrollBar().setUnitIncrement(5);
         scrollPane.getVerticalScrollBar().setBlockIncrement(15);
@@ -126,6 +132,11 @@ public class Editor extends JPanel {
 
     public void displayMessage(String message) {
         textPane.setText(message);
+        repaint();
+    }
+
+    public void displayError(String error) {
+        textPane.setText(highlighter.highlightError(error));
         repaint();
     }
 

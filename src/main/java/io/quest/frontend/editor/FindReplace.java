@@ -26,7 +26,7 @@ import java.awt.event.*;
 import java.util.regex.Pattern;
 
 
-public class FindReplacePanel extends JPanel implements EventProducer<FindReplacePanel.EventType> {
+public class FindReplace extends JPanel implements EventProducer<FindReplace.EventType> {
 
     public enum EventType {
         FIND, REPLACE
@@ -36,13 +36,13 @@ public class FindReplacePanel extends JPanel implements EventProducer<FindReplac
     private static final Font FIND_FONT = new Font(GTk.MAIN_FONT_NAME, Font.BOLD, 14);
     private static final Color FIND_FONT_COLOR = new Color(58, 138, 138);
     private static final Pattern SPECIAL_REGEX_CHARS = Pattern.compile("[{}()\\[\\].+*?^$\\\\|]");
-    private final EventConsumer<FindReplacePanel, Object> eventConsumer;
+    private final EventConsumer<FindReplace, Object> eventConsumer;
     private final JTextField findText;
     private final JCheckBox findTextIsRegex;
     private final JTextField replaceWithText;
     private final JLabel findMatchesLabel;
 
-    public FindReplacePanel(EventConsumer<FindReplacePanel, Object> eventConsumer) {
+    public FindReplace(EventConsumer<FindReplace, Object> eventConsumer) {
         this.eventConsumer = eventConsumer;
         JLabel findLabel = new JLabel("Find");
         findLabel.setFont(FIND_FONT);
