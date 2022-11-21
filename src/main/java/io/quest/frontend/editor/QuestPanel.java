@@ -135,8 +135,7 @@ public class QuestPanel extends Editor implements EventProducer<QuestPanel.Event
                 Component c = super.getListCellRendererComponent(list, value, index, isSelected, cellHasFocus);
                 c.setForeground(Color.YELLOW);
                 list.setSelectionBackground(Color.BLACK);
-                boolean isConnected = conn != null && conn.isOpen();
-                list.setSelectionForeground(isConnected ? CONNECTED_COLOR : NOT_CONNECTED_COLOR);
+                list.setSelectionForeground(CONNECTED_COLOR);
                 return c;
             }
         });

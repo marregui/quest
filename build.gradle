@@ -52,8 +52,7 @@ application {
     applicationDefaultJvmArgs = [
             '-Xmx2G',
             '-server',
-            '-Dfile.encoding=UTF-8',
-            '-Dstore.path=.quest'
+            '-Dfile.encoding=UTF-8'
     ]
 }
 
