@@ -219,7 +219,10 @@ public class Highlighter extends DocumentFilter {
             GTk.APP_THEME_COLOR.getRed(),
             GTk.APP_THEME_COLOR.getGreen(),
             GTk.APP_THEME_COLOR.getBlue()); // red
-    private AttributeSet HIGHLIGHT_FIND_MATCH = styleForegroundColor(50, 200, 185); // blue-ish
+    private AttributeSet HIGHLIGHT_FIND_MATCH = styleForegroundColor(
+            Color.YELLOW.getRed(),
+            Color.YELLOW.getGreen(),
+            Color.YELLOW.getBlue());
     private AttributeSet HIGHLIGHT_ERROR = styleForegroundColor(255, 55, 5); // bright red
 
     protected static AttributeSet styleForegroundColor(int r, int g, int b) {

@@ -86,15 +86,15 @@ public class SQLResultsTable extends JPanel implements Closeable {
         JTableHeader header = table.getTableHeader();
         header.setReorderingAllowed(false);
         header.setFont(GTk.TABLE_HEADER_FONT);
-        header.setForeground(GTk.TABLE_HEADER_FONT_COLOR);
+        header.setForeground(Color.BLACK);
         statsLabel = new JLabel();
         statsLabel.setFont(GTk.MENU_FONT);
-        statsLabel.setForeground(GTk.TABLE_HEADER_FONT_COLOR);
+        statsLabel.setForeground(Color.BLACK);
         statsLabel.setPreferredSize(STATUS_LABEL_SIZE);
         statsLabel.setHorizontalAlignment(JLabel.RIGHT);
         rowRangeLabel = new JLabel();
         rowRangeLabel.setFont(GTk.MENU_FONT);
-        rowRangeLabel.setForeground(GTk.TABLE_HEADER_FONT_COLOR);
+        rowRangeLabel.setForeground(Color.BLACK);
         rowRangeLabel.setPreferredSize(NAVIGATION_LABEL_SIZE);
         rowRangeLabel.setHorizontalAlignment(JLabel.RIGHT);
         prevButton = GTk.button(
@@ -103,7 +103,7 @@ public class SQLResultsTable extends JPanel implements Closeable {
                 "Go to previous page",
                 this::onPrevButton);
         prevButton.setFont(GTk.MENU_FONT);
-        prevButton.setForeground(GTk.TABLE_HEADER_FONT_COLOR);
+        prevButton.setForeground(Color.BLACK);
         prevButton.setPreferredSize(NAVIGATION_BUTTON_SIZE);
         nextButton = GTk.button(
                 "Next",
@@ -111,7 +111,7 @@ public class SQLResultsTable extends JPanel implements Closeable {
                 "Go to next page",
                 this::onNextButton);
         nextButton.setFont(GTk.MENU_FONT);
-        nextButton.setForeground(GTk.TABLE_HEADER_FONT_COLOR);
+        nextButton.setForeground(Color.BLACK);
         nextButton.setPreferredSize(NAVIGATION_BUTTON_SIZE);
         nextButton.setHorizontalTextPosition(SwingConstants.LEFT);
         questPanel = new Editor(true);
@@ -119,7 +119,7 @@ public class SQLResultsTable extends JPanel implements Closeable {
                 table,
                 JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED,
                 JScrollPane.HORIZONTAL_SCROLLBAR_AS_NEEDED);
-        tableScrollPanel.getViewport().setBackground(GTk.TABLE_HEADER_FONT_COLOR);
+        tableScrollPanel.getViewport().setBackground(Color.BLACK);
         infiniteSpinner = new InfiniteSpinnerPanel();
         infiniteSpinner.setSize(size);
         changeMode(Mode.TABLE);

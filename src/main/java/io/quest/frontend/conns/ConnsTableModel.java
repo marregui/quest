@@ -16,6 +16,7 @@
 
 package io.quest.frontend.conns;
 
+import java.awt.*;
 import java.io.Closeable;
 import java.util.ArrayList;
 import java.util.List;
@@ -84,7 +85,7 @@ class ConnsTableModel extends AbstractTableModel implements Closeable {
         JTableHeader header = table.getTableHeader();
         header.setReorderingAllowed(false);
         header.setFont(GTk.TABLE_HEADER_FONT);
-        header.setForeground(GTk.TABLE_HEADER_FONT_COLOR);
+        header.setForeground(Color.BLACK);
         TableColumnModel colModel = table.getTableHeader().getColumnModel();
         colModel.setColumnSelectionAllowed(false);
         colModel.getColumn(NAME_COL_IDX).setPreferredWidth(COL_WIDTHS[NAME_COL_IDX]);

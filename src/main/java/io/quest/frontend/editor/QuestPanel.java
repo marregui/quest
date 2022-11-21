@@ -115,7 +115,6 @@ public class QuestPanel extends Editor implements EventProducer<QuestPanel.Event
         super();
         this.eventConsumer = eventConsumer;
         undoManagers = new ArrayList<>(5);
-
         questEntryNames = new JComboBox<>();
         questEntryNames.setFont(GTk.TABLE_CELL_FONT);
         questEntryNames.setBackground(Color.BLACK);
@@ -136,7 +135,8 @@ public class QuestPanel extends Editor implements EventProducer<QuestPanel.Event
                 Component c = super.getListCellRendererComponent(list, value, index, isSelected, cellHasFocus);
                 c.setForeground(Color.YELLOW);
                 list.setSelectionBackground(Color.BLACK);
-                list.setSelectionForeground(CONNECTED_COLOR);
+                boolean isConnected = conn != null && conn.isOpen();
+                list.setSelectionForeground(isConnected ? CONNECTED_COLOR : NOT_CONNECTED_COLOR);
                 return c;
             }
         });
@@ -553,7 +553,6 @@ public class QuestPanel extends Editor implements EventProducer<QuestPanel.Event
             label.setText(text);
         }
         label.setFont(GTk.TABLE_HEADER_FONT);
-        label.setVerticalAlignment(JLabel.BOTTOM);
         if (consumer != null) {
             label.addMouseListener(new LabelMouseListener(label) {
                 @Override

@@ -60,10 +60,9 @@ public final class GTk {
             "  Copyright (c) 2019 - " + Calendar.getInstance().get(Calendar.YEAR) + "\n";
     public static final String MAIN_FONT_NAME = "Arial"; // excluding commands' TextPane, which is Monospaced
     public static final Color APP_THEME_COLOR = new Color(200, 50, 90);
-    public static final Color TABLE_HEADER_FONT_COLOR = Color.BLACK;
     public static final Font TABLE_HEADER_FONT = new Font(MAIN_FONT_NAME, Font.BOLD, 18);
-    public static final Font TABLE_CELL_FONT = new Font(MAIN_FONT_NAME, Font.PLAIN, 17);
-    public static final Font MENU_FONT = new Font(MAIN_FONT_NAME, Font.BOLD, 14);
+    public static final Font TABLE_CELL_FONT = new Font(MAIN_FONT_NAME, Font.PLAIN, 16);
+    public static final Font MENU_FONT = new Font(MAIN_FONT_NAME, Font.BOLD, 15);
     public static final int CMD_DOWN_MASK = InputEvent.META_DOWN_MASK;
     public static final int CMD_SHIFT_DOWN_MASK = CMD_DOWN_MASK | InputEvent.SHIFT_DOWN_MASK;
     public static final int ALT_DOWN_MASK = InputEvent.ALT_DOWN_MASK;

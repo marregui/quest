@@ -33,7 +33,6 @@ public class FindReplace extends JPanel implements EventProducer<FindReplace.Eve
     }
 
     private static final long serialVersionUID = 1L;
-    private static final Font FIND_FONT = new Font(GTk.MAIN_FONT_NAME, Font.BOLD, 14);
     private static final Color FIND_FONT_COLOR = new Color(58, 138, 138);
     private static final Pattern SPECIAL_REGEX_CHARS = Pattern.compile("[{}()\\[\\].+*?^$\\\\|]");
     private final EventConsumer<FindReplace, Object> eventConsumer;
@@ -44,10 +43,7 @@ public class FindReplace extends JPanel implements EventProducer<FindReplace.Eve
 
     public FindReplace(EventConsumer<FindReplace, Object> eventConsumer) {
         this.eventConsumer = eventConsumer;
-        JLabel findLabel = new JLabel("Find");
-        findLabel.setFont(FIND_FONT);
-        findLabel.setForeground(GTk.TABLE_HEADER_FONT_COLOR);
-        findText = new JTextField(30) {
+        findText = new JTextField(20) {
             @Override
             public String getText() {
                 String txt = super.getText();
@@ -59,38 +55,26 @@ public class FindReplace extends JPanel implements EventProducer<FindReplace.Eve
         };
         setupSearchTextField(findText, this::fireFindEvent);
         findTextIsRegex = new JCheckBox("regex?", false);
-        JLabel replaceWithLabel = new JLabel("replace with");
-        replaceWithLabel.setFont(FIND_FONT);
-        replaceWithLabel.setForeground(GTk.TABLE_HEADER_FONT_COLOR);
-        replaceWithText = new JTextField(25);
+        findTextIsRegex.setBackground(Color.BLACK);
+        findTextIsRegex.setForeground(Color.WHITE);
+        replaceWithText = new JTextField(20);
         setupSearchTextField(replaceWithText, this::fireReplaceEvent);
-        findMatchesLabel = new JLabel("  0 matches");
-        findMatchesLabel.setFont(FIND_FONT);
-        findMatchesLabel.setForeground(GTk.TABLE_HEADER_FONT_COLOR);
+        findMatchesLabel = createLabel("  0 matches");
         setLayout(new FlowLayout(FlowLayout.RIGHT, 5, 4));
         setBorder(BorderFactory.createDashedBorder(Color.LIGHT_GRAY.darker()));
-        add(findLabel);
+        add(createLabel("Find"));
         add(findText);
         add(findTextIsRegex);
-        add(replaceWithLabel);
+        add(createLabel("replace All with"));
         add(replaceWithText);
         add(GTk.horizontalSpace(4));
         add(findMatchesLabel);
         add(GTk.horizontalSpace(4));
-        add(GTk.button(
-                "Find",
-                GTk.Icon.COMMAND_FIND,
-                "Find matching text in command board",
-                this::fireFindEvent));
-        add(GTk.button(
-                "Replace",
-                GTk.Icon.COMMAND_REPLACE,
-                "Replace the matching text in selected area",
-                this::fireReplaceEvent));
-        add(GTk.button(
+        add(createButton(
                 "X",
                 GTk.Icon.NO_ICON,
                 "Close find/replace view",
+                75,
                 this::onCloseFindReplaceView));
         setVisible(false);
     }
@@ -128,8 +112,10 @@ public class FindReplace extends JPanel implements EventProducer<FindReplace.Eve
     }
 
     private void setupSearchTextField(JTextField field, ActionListener listener) {
-        field.setFont(FIND_FONT);
-        field.setForeground(FIND_FONT_COLOR);
+        field.setFont(GTk.TABLE_HEADER_FONT);
+        field.setBackground(Color.BLACK);
+        field.setForeground(Color.YELLOW);
+
         // cmd-a, select the full content
         GTk.addCmdKeyAction(KeyEvent.VK_A, field, e -> field.selectAll());
         // cmd-c, copy to clipboard, selection or current line
@@ -179,5 +165,23 @@ public class FindReplace extends JPanel implements EventProducer<FindReplace.Eve
                 }
             }
         });
+    }
+
+
+    private static JButton createButton(String text, GTk.Icon icon, String tooltip, int width, ActionListener listener) {
+        JButton button = GTk.button(text, icon, tooltip, listener);
+        button.setFont(GTk.MENU_FONT);
+        button.setBackground(Color.BLACK);
+        button.setForeground(FIND_FONT_COLOR);
+        button.setPreferredSize(new Dimension(width, 22));
+        return button;
+    }
+
+    private static JLabel createLabel(String title) {
+        JLabel label = new JLabel(title);
+        label.setFont(GTk.MENU_FONT);
+        label.setBackground(Color.BLACK);
+        label.setForeground(FIND_FONT_COLOR);
+        return label;
     }
 }
