@@ -34,7 +34,7 @@ public class Editor extends JPanel {
     private static final String MARGIN_TOKEN = ":99999:";
     private static final int FONT_SIZE = 17;
     private static final Font FONT = new Font("Monospaced", Font.BOLD, FONT_SIZE);
-    private static final Font LINENO_FONT = new Font(GTk.MAIN_FONT_NAME, Font.ITALIC, FONT_SIZE);
+    private static final Font LINENO_FONT = new Font("Monospaced", Font.ITALIC, FONT_SIZE);
     static final Color LINENO_COLOR = Color.LIGHT_GRAY.darker().darker();
     private static final Color CARET_COLOR = Color.CYAN;
     private static final Color BACKGROUND_COLOR = Color.BLACK;
@@ -114,7 +114,7 @@ public class Editor extends JPanel {
             FontMetrics metrics = g.getFontMetrics();
             int strWidth = metrics.stringWidth(lineStr);
             int marginWidth = metrics.stringWidth(MARGIN_TOKEN);
-            int x = marginWidth - strWidth;
+            int x = marginWidth - strWidth - 10;
             int y = topMargin + line * metrics.getHeight();
             g.drawString(String.valueOf(line), x, y);
         }
