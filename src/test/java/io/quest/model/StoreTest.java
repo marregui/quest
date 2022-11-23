@@ -28,11 +28,19 @@ import org.junit.jupiter.api.Test;
 
 import static io.quest.frontend.editor.QuestPanel.Content;
 
-/**
- * Exemplifies the use of {@link Store} and tests that {@link ConnAttrs}
- * instances are loaded/saved from/to the backing file correctly.
- */
 public class StoreTest {
+
+    private static class TStore<T extends StoreEntry> extends Store<T> {
+        public TStore(String fileName, Class<? extends StoreEntry> clazz) {
+            super(fileName, clazz);
+        }
+
+        @Override
+        public T[] defaultStoreEntries() {
+            return null;
+        }
+    }
+
     @Test
     public void test_persist_load_DBConnection() {
         String fileName = deleteIfExists("test-db-connection-persistence.json");
@@ -42,13 +50,13 @@ public class StoreTest {
             conn.setAttr("port", "5433");
             conn.setAttr("username", "root");
             conn.setAttr("password", "secret password");
-            try (Store<ConnAttrs> store = new Store<>(fileName, ConnAttrs.class)) {
+            try (Store<ConnAttrs> store = new TStore<>(fileName, ConnAttrs.class)) {
                 store.addEntry(conn, true);
             }
 
             ConnAttrs pConn;
-            try (Store<ConnAttrs> store = new Store<>(fileName, ConnAttrs.class)) {
-                store.loadEntriesFromFile();
+            try (Store<ConnAttrs> store = new TStore<>(fileName, ConnAttrs.class)) {
+                store.loadFromFile();
                 assertThat(store.size(), is(1));
                 pConn = store.entries().get(0);
             }
@@ -71,13 +79,13 @@ public class StoreTest {
         try {
             Content content = new Content();
             content.setContent("Audentes fortuna  iuvat");
-            try (Store<Content> store = new Store<>(fileName, Content.class)) {
+            try (Store<Content> store = new TStore<>(fileName, Content.class)) {
                 store.addEntry(content, true);
             }
 
             Content rcontent;
-            try (Store<Content> store = new Store<>(fileName, Content.class)) {
-                store.loadEntriesFromFile();
+            try (Store<Content> store = new TStore<>(fileName, Content.class)) {
+                store.loadFromFile();
                 assertThat(store.size(), is(1));
                 rcontent = store.entries().get(0);
             }
@@ -94,7 +102,7 @@ public class StoreTest {
     public void test_iterator() {
         String fileName = deleteIfExists("test-store-iterator.json");
         try {
-            try (Store<StoreEntry> store = new Store<>(fileName, StoreEntry.class)) {
+            try (Store<StoreEntry> store = new TStore<>(fileName, StoreEntry.class)) {
                 for (int i = 0; i < 10; i++) {
                     StoreEntry entry = new StoreEntry("entry_" + i);
                     entry.setAttr("id", String.valueOf(i));
@@ -103,8 +111,8 @@ public class StoreTest {
                 }
             }
             List<StoreEntry> entries;
-            try (Store<StoreEntry> store = new Store<>(fileName, StoreEntry.class)) {
-                store.loadEntriesFromFile();
+            try (Store<StoreEntry> store = new TStore<>(fileName, StoreEntry.class)) {
+                store.loadFromFile();
                 assertThat(store.size(), is(10));
                 entries = store.entries();
                 int i = 0;
@@ -123,7 +131,7 @@ public class StoreTest {
 
     private static String deleteIfExists(String fileName) {
         if (fileName != null) {
-            File file = new File(Store.getDefaultRootPath(), fileName);
+            File file = new File(Store.ROOT_PATH, fileName);
             if (file.exists()) {
                 file.delete();
             }

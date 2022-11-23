@@ -37,8 +37,8 @@ public class MetaHighlighter extends Highlighter {
     }
 
     @Override
-    public int handleTextChanged(String txt) {
-        return applyStyle(KEY_PATTERN.matcher(txt), HIGHLIGHT_KEYWORD, false);
+    public void handleTextChanged(String txt) {
+        applyStyle(KEY_PATTERN.matcher(txt), HIGHLIGHT_KEYWORD, false);
     }
 
     // https://docs.oracle.com/javase/tutorial/essential/regex/bounds.html

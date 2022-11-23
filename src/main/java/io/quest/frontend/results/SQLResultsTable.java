@@ -25,14 +25,12 @@ import java.io.Closeable;
 import java.util.concurrent.atomic.AtomicReference;
 
 import javax.swing.SwingConstants;
-import javax.swing.BorderFactory;
 import javax.swing.JButton;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JTable;
 import javax.swing.ListSelectionModel;
-import javax.swing.border.BevelBorder;
 import javax.swing.table.JTableHeader;
 import javax.swing.table.TableColumn;
 import javax.swing.table.TableColumnModel;
@@ -89,31 +87,29 @@ public class SQLResultsTable extends JPanel implements Closeable {
         header.setForeground(Color.BLACK);
         statsLabel = new JLabel();
         statsLabel.setFont(GTk.MENU_FONT);
-        statsLabel.setForeground(Color.BLACK);
+        statsLabel.setBackground(Color.BLACK);
+        statsLabel.setForeground(Color.WHITE);
         statsLabel.setPreferredSize(STATUS_LABEL_SIZE);
         statsLabel.setHorizontalAlignment(JLabel.RIGHT);
         rowRangeLabel = new JLabel();
         rowRangeLabel.setFont(GTk.MENU_FONT);
-        rowRangeLabel.setForeground(Color.BLACK);
+        rowRangeLabel.setBackground(Color.BLACK);
+        rowRangeLabel.setForeground(Color.WHITE);
         rowRangeLabel.setPreferredSize(NAVIGATION_LABEL_SIZE);
         rowRangeLabel.setHorizontalAlignment(JLabel.RIGHT);
-        prevButton = GTk.button(
-                "Prev",
-                GTk.Icon.RESULTS_PREV,
-                "Go to previous page",
-                this::onPrevButton);
+        prevButton = GTk.button(GTk.Icon.RESULTS_PREV, "Go to previous page", this::onPrevButton);
         prevButton.setFont(GTk.MENU_FONT);
-        prevButton.setForeground(Color.BLACK);
+        prevButton.setBackground(Color.BLACK);
+        prevButton.setForeground(Color.WHITE);
         prevButton.setPreferredSize(NAVIGATION_BUTTON_SIZE);
-        nextButton = GTk.button(
-                "Next",
-                GTk.Icon.RESULTS_NEXT,
-                "Go to next page",
-                this::onNextButton);
+        nextButton = GTk.button(GTk.Icon.RESULTS_NEXT, "Go to next page", this::onNextButton);
         nextButton.setFont(GTk.MENU_FONT);
-        nextButton.setForeground(Color.BLACK);
+        nextButton.setBackground(Color.BLACK);
+        nextButton.setForeground(Color.WHITE);
         nextButton.setPreferredSize(NAVIGATION_BUTTON_SIZE);
         nextButton.setHorizontalTextPosition(SwingConstants.LEFT);
+        JPanel southPanel = GTk.flowPanel(statsLabel, rowRangeLabel, prevButton, nextButton);
+        southPanel.setBackground(Color.BLACK);
         questPanel = new Editor(true);
         tableScrollPanel = new JScrollPane(
                 table,
@@ -125,11 +121,9 @@ public class SQLResultsTable extends JPanel implements Closeable {
         changeMode(Mode.TABLE);
         setLayout(new BorderLayout());
         setPreferredSize(size);
-        setBorder(BorderFactory.createBevelBorder(BevelBorder.RAISED));
+        setBackground(Color.BLACK);
         add(currentModePanel, BorderLayout.CENTER);
-        add(GTk.flowPanel(
-                        statsLabel, rowRangeLabel, prevButton, nextButton),
-                BorderLayout.SOUTH);
+        add(southPanel, BorderLayout.SOUTH);
         updateRowNavigationComponents();
     }
 
@@ -179,6 +173,11 @@ public class SQLResultsTable extends JPanel implements Closeable {
         updateStats(null, null);
         updateRowNavigationComponents();
         changeMode(Mode.TABLE);
+    }
+
+    public void displayMessage(String message) {
+        questPanel.displayMessage(message);
+        changeMode(Mode.MESSAGE);
     }
 
     public void displayError(Throwable error) {

@@ -38,13 +38,11 @@ import java.util.function.Consumer;
 
 public class Meta extends JDialog implements EventProducer<ConnsManager.EventType>, Closeable {
 
-    private static final long serialVersionUID = 1L;
-
     public enum EventType {
         HIDE_REQUEST // Request to hide the metadata files explorer
     }
 
-    private final CairoConfiguration configuration = new DefaultCairoConfiguration(Store.DEFAULT_STORE_PATH.getAbsolutePath());
+    private final CairoConfiguration configuration = new DefaultCairoConfiguration(Store.ROOT_PATH.getAbsolutePath());
     private final FilesFacade ff = configuration.getFilesFacade();
     private final TableReaderMetadata metaReader = new TableReaderMetadata(ff);
     //private final TableReaderMetadata metaReader = new TableReaderMetadata(configuration);
@@ -58,7 +56,7 @@ public class Meta extends JDialog implements EventProducer<ConnsManager.EventTyp
     private final FolderView treeView;
 
     public Meta(Frame owner, EventConsumer<Meta, Object> eventConsumer) {
-        super(owner, "Metadata Files Explorer", false); // does not block use of the main app
+        super(owner, "Metadata Files Explorer", false);
         setAlwaysOnTop(false);
         setDefaultCloseOperation(WindowConstants.HIDE_ON_CLOSE);
         Dimension dimension = GTk.frameDimension(0.85F, 0.66F);
@@ -78,9 +76,10 @@ public class Meta extends JDialog implements EventProducer<ConnsManager.EventTyp
         treeView.setPreferredSize(new Dimension(dimension.width / 4, 0));
         Container contentPane = getContentPane();
         contentPane.setLayout(new BorderLayout());
-        contentPane.add(BorderLayout.CENTER, display);
-        contentPane.add(BorderLayout.WEST, treeView);
-        setRoot(Store.DEFAULT_STORE_PATH);
+        JSplitPane splitPane = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT, true, treeView, display);
+        splitPane.setDividerLocation(0.2);
+        contentPane.add(BorderLayout.CENTER, splitPane);
+        setRoot(Store.ROOT_PATH);
     }
 
     @Override
@@ -129,7 +128,7 @@ public class Meta extends JDialog implements EventProducer<ConnsManager.EventTyp
             }
         }
         selectedPath.put(fileName).$(); // last node
-        FolderView.FileType fileType = FolderView.FileType.of(fileName);
+        FileType fileType = FileType.of(fileName);
         setTitle(String.format("[%s] %s", fileType, selectedPath));
 
         // display file content

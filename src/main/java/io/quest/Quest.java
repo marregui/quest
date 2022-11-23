@@ -29,6 +29,8 @@ import io.quest.backend.SQLExecutionResponse;
 import io.quest.frontend.editor.meta.Meta;
 import io.quest.model.*;
 import io.quest.frontend.GTk;
+import io.questdb.ServerMain;
+import io.questdb.std.Misc;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -41,7 +43,6 @@ import static io.quest.frontend.GTk.configureMenuItem;
 
 
 public final class Quest {
-
     private static final Logger LOGGER = LoggerFactory.getLogger(Quest.class);
     public static final String NAME = "quest";
     public static final String VERSION = "1.0";
@@ -53,26 +54,30 @@ public final class Quest {
     private final SQLResultsTable results;
     private final Meta meta;
     private final JMenuItem toggleConnsWidget;
+    private final JMenuItem toggleQuestDB;
     private final JMenuItem toggleMetaExaminerWidget;
     private final JMenuItem toggleConn;
 
+    private ServerMain questdb;
+
     private Quest() {
-        JFrame frame = GTk.createFrame(null, this::close);
+        JFrame frame = GTk.frame(null, this::close);
         frame.setIconImage(GTk.Icon.APPLICATION.icon().getImage());
         int width = frame.getWidth();
         int dividerHeight = (int) (frame.getHeight() * 0.6);
-        executor = new SQLExecutor(); // input/output
-        conns = new ConnsManager(frame, this::dispatchEvent); // input
-        meta = new Meta(frame, this::dispatchEvent);
-        commands = new QuestPanel(this::dispatchEvent); // input
+        executor = new SQLExecutor();
+        conns = new ConnsManager(frame, this::dispatchEvent);
+        commands = new QuestPanel(this::dispatchEvent);
         commands.setPreferredSize(new Dimension(0, dividerHeight));
-        results = new SQLResultsTable(width, dividerHeight); // output
+        results = new SQLResultsTable(width, dividerHeight);
+        meta = new Meta(frame, this::dispatchEvent);
         JSplitPane splitPane = new JSplitPane(JSplitPane.VERTICAL_SPLIT, true, commands, results);
         splitPane.setDividerLocation(dividerHeight);
         frame.add(splitPane, BorderLayout.CENTER);
-        frame.setTitle(String.format("%s %s [store: %s]", NAME, VERSION, conns.getStorePath()));
+        frame.setTitle(String.format("%s %s [store: %s]", NAME, VERSION, Store.ROOT_PATH));
         toggleConnsWidget = new JMenuItem();
         toggleConn = new JMenuItem();
+        toggleQuestDB = new JMenuItem();
         toggleMetaExaminerWidget = new JMenuItem();
         frame.setJMenuBar(createMenuBar());
         Runtime.getRuntime().addShutdownHook(new Thread(this::close, "shutdown-hook"));
@@ -84,13 +89,11 @@ public final class Quest {
 
     private JMenuBar createMenuBar() {
         // Connections
-        JMenu connsMenu = new JMenu("Connections");
-        connsMenu.setFont(GTk.MENU_FONT);
-        connsMenu.setIcon(GTk.Icon.CONNS.icon());
+        JMenu connsMenu = GTk.jmenu("Connections", GTk.Icon.CONNS);
         connsMenu.add(configureMenuItem(
                 toggleConnsWidget,
                 GTk.Icon.CONN_SHOW,
-                "Show connections",
+                "Connections",
                 KeyEvent.VK_T,
                 this::onToggleConnsWidget
         ));
@@ -101,10 +104,9 @@ public final class Quest {
                 KeyEvent.VK_O,
                 this::onToggleConn
         ));
+
         // Commands
-        JMenu commandsMenu = new JMenu("Commands");
-        commandsMenu.setFont(GTk.MENU_FONT);
-        commandsMenu.setIcon(GTk.Icon.COMMANDS.icon());
+        JMenu commandsMenu = GTk.jmenu("Commands", GTk.Icon.COMMANDS);
         commandsMenu.add(configureMenuItem(
                 new JMenuItem(),
                 GTk.Icon.COMMAND_EXEC_LINE,
@@ -141,10 +143,9 @@ public final class Quest {
                 KeyEvent.VK_R,
                 e -> commands.onReplace()
         ));
+
         // Results
-        JMenu resultsMenu = new JMenu("Results");
-        resultsMenu.setFont(GTk.MENU_FONT);
-        resultsMenu.setIcon(GTk.Icon.RESULTS.icon());
+        JMenu resultsMenu = GTk.jmenu("Results", GTk.Icon.RESULTS);
         resultsMenu.add(configureMenuItem(new JMenuItem(),
                 GTk.Icon.RESULTS_PREV,
                 "PREV",
@@ -159,15 +160,21 @@ public final class Quest {
                 results::onNextButton
         ));
 
-        JMenu menu = new JMenu("Menu");
-        menu.setFont(GTk.MENU_FONT);
-        JMenu questsMenu = commands.getQuestsMenu();
-        menu.add(questsMenu);
+        JMenu menu = GTk.jmenu("Menu", GTk.Icon.NO_ICON);
+        menu.add(commands.getQuestsMenu()); // Quests Menu
+        menu.addSeparator();
+        menu.add(configureMenuItem(
+                toggleQuestDB,
+                GTk.Icon.ROCKET,
+                "Run QuestDB",
+                KeyEvent.VK_PERIOD,
+                this::onToggleQuestDB
+        ));
         menu.addSeparator();
         menu.add(configureMenuItem(
                 toggleMetaExaminerWidget,
                 GTk.Icon.META,
-                "MetaExplorer",
+                "Meta Explorer",
                 KeyEvent.VK_M,
                 this::onToggleMetaExaminerWidget
         ));
@@ -181,8 +188,9 @@ public final class Quest {
                 GTk.Icon.HELP,
                 "QuestDB Docs",
                 NO_KEY_EVENT,
-                GTk::openQuestDBDocumentation
+                GTk::openQuestDBDocs
         ));
+
         JMenuBar menuBar = new JMenuBar();
         menuBar.setBorder(BorderFactory.createLoweredSoftBevelBorder());
         menuBar.add(menu);
@@ -201,7 +209,7 @@ public final class Quest {
             conns.setLocation(MouseInfo.getPointerInfo().getLocation());
         }
         conns.setVisible(!wasVisible);
-        toggleConnsWidget.setText(wasVisible ? "Show connections" : "Hide connections");
+        toggleConnsWidget.setText(wasVisible ? "Connections" : "Hide Connections");
         toggleConnsWidget.setIcon((wasVisible ? GTk.Icon.CONN_SHOW : GTk.Icon.CONN_HIDE).icon());
     }
 
@@ -211,7 +219,26 @@ public final class Quest {
             meta.setLocation(MouseInfo.getPointerInfo().getLocation());
         }
         meta.setVisible(!wasVisible);
-        toggleMetaExaminerWidget.setText(wasVisible ? "MetaExplorer" : "Close MetaExplorer");
+        toggleMetaExaminerWidget.setText(wasVisible ? "Meta Explorer" : "Close Meta Explorer");
+    }
+
+    private void onToggleQuestDB(ActionEvent event) {
+        if (questdb == null) {
+            questdb = new ServerMain("-d", Store.ROOT_PATH.getAbsolutePath());
+            questdb.start(false);
+            toggleQuestDB.setText("Shutdown QuestDB");
+            results.displayMessage("QuestDB is UP");
+            Conn conn = commands.getConnection();
+            if (conn == null || !conn.isValid()) {
+                onToggleConn(null);
+            }
+        } else {
+            questdb.close();
+            questdb = null;
+            toggleQuestDB.setText("Run QuestDB");
+            results.displayMessage("QuestDB is DOWN");
+            onToggleConn(null);
+        }
     }
 
     private void dispatchEvent(EventProducer<?> source, Enum<?> event, Object data) {
@@ -222,7 +249,7 @@ public final class Quest {
         } else if (source instanceof ConnsManager) {
             onDBConnectionManagerEvent(EventProducer.eventType(event), data);
         } else if (source instanceof Meta) {
-            onMetaExaminerEvent(EventProducer.eventType(event), data);
+            onMetaExaminerEvent(EventProducer.eventType(event));
         }
     }
 
@@ -270,7 +297,7 @@ public final class Quest {
         }
     }
 
-    private void onMetaExaminerEvent(Meta.EventType event, Object data) {
+    private void onMetaExaminerEvent(Meta.EventType event) {
         switch (event) {
             case HIDE_REQUEST:
                 onToggleMetaExaminerWidget(null);
@@ -317,11 +344,12 @@ public final class Quest {
     }
 
     private void close() {
-        commands.close();
-        executor.close();
-        conns.close();
-        results.close();
-        meta.close();
+        Misc.free(commands);
+        Misc.free(executor);
+        Misc.free(conns);
+        Misc.free(results);
+        Misc.free(meta);
+        Misc.free(questdb);
     }
 
     public static void main(String[] args) {

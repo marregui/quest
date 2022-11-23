@@ -21,9 +21,6 @@ import java.awt.Component;
 import javax.swing.JTable;
 
 
-/**
- * Decorator on a {@link CellRenderer} which hides the value of the cell under "*********".
- */
 public class PasswordCellRenderer extends CellRenderer {
 
     private static final long serialVersionUID = 1L;

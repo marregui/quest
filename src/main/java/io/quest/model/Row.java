@@ -7,7 +7,7 @@ import java.util.concurrent.atomic.AtomicReference;
 public class Row implements UniqueId<Long> {
 
     private final long uniqueId;
-    private Object[] values;
+    private final Object[] values;
     private final AtomicReference<String> toString;
 
     public Row(long uniqueId, Object[] values) {

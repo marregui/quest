@@ -31,13 +31,12 @@ import java.awt.Window;
 import java.awt.datatransfer.DataFlavor;
 import java.awt.datatransfer.Transferable;
 import java.awt.datatransfer.UnsupportedFlavorException;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
-import java.awt.event.InputEvent;
-import java.awt.event.KeyEvent;
+import java.awt.event.*;
+import java.awt.font.TextAttribute;
 import java.io.IOException;
 import java.net.URL;
 import java.util.*;
+import java.util.function.Consumer;
 import javax.swing.*;
 import javax.swing.border.Border;
 
@@ -60,7 +59,10 @@ public final class GTk {
             "  Copyright (c) 2019 - " + Calendar.getInstance().get(Calendar.YEAR) + "\n";
     public static final String MAIN_FONT_NAME = "Arial"; // excluding commands' TextPane, which is Monospaced
     public static final Color APP_THEME_COLOR = new Color(200, 50, 90);
+    public static final Color TERMINAL_COLOR = new Color(95, 235, 150);
     public static final Font TABLE_HEADER_FONT = new Font(MAIN_FONT_NAME, Font.BOLD, 18);
+    private static final Font TABLE_HEADER_UNDERLINE_FONT = TABLE_HEADER_FONT.deriveFont(Map.of(
+            TextAttribute.UNDERLINE, TextAttribute.UNDERLINE_ON));
     public static final Font TABLE_CELL_FONT = new Font(MAIN_FONT_NAME, Font.PLAIN, 16);
     public static final Font MENU_FONT = new Font(MAIN_FONT_NAME, Font.BOLD, 15);
     public static final int CMD_DOWN_MASK = InputEvent.META_DOWN_MASK;
@@ -69,7 +71,7 @@ public final class GTk {
     public static final int ALT_SHIFT_DOWN_MASK = ALT_DOWN_MASK | InputEvent.SHIFT_DOWN_MASK;
     public static final int NO_KEY_EVENT = -1;
 
-    private static final String QUESTDB_DOCUMENTATION_URL = "https://questdb.io/docs/introduction/";
+    private static final String DOCUMENTATION_URL = "https://questdb.io/docs/introduction/";
     private static final Logger LOGGER = LoggerFactory.getLogger(GTk.class);
     private static final Toolkit TK = Toolkit.getDefaultToolkit();
     private static final DataFlavor[] SUPPORTED_COPY_PASTE_FLAVOR = {DataFlavor.stringFlavor};
@@ -126,7 +128,7 @@ public final class GTk {
         addCmdKeyAction(KeyEvent.VK_C, table, e -> { // cmd-c, copy selection/all to clipboard
             int[] selectedRows = table.getSelectedRows();
             int[] selectedCols = table.getSelectedColumns();
-            if (selectedRows.length <= 0) {
+            if (selectedRows.length == 0) {
                 table.selectAll();
                 selectedRows = table.getSelectedRows();
             }
@@ -238,7 +240,7 @@ public final class GTk {
         return new Dimension(x, y);
     }
 
-    public static JFrame createFrame(String title, Runnable onExit) {
+    public static JFrame frame(String title, Runnable onExit) {
         JFrame frame = new JFrame() {
             @Override
             public void dispose() {
@@ -262,8 +264,26 @@ public final class GTk {
         return frame;
     }
 
-    public static JButton button(String text, Icon icon, String tooltip, ActionListener listener) {
-        return button(text, true, icon, tooltip, listener);
+    public static JButton button(Icon icon, String tooltip, ActionListener listener) {
+        return button(icon.getText(), true, icon, tooltip, listener);
+    }
+
+    public static JButton button(String text, Runnable runnable) {
+        return button(text, true, Icon.NO_ICON, null, e -> runnable.run());
+    }
+
+    public static JButton button(
+            String text,
+            String tooltip,
+            int width,
+            int height,
+            Color foregroundColor,
+            ActionListener listener
+    ) {
+        JButton button = button(text, true, GTk.Icon.NO_ICON, tooltip, listener);
+        button.setPreferredSize(new Dimension(width, height));
+        button.setForeground(foregroundColor);
+        return button;
     }
 
     public static JButton button(
@@ -274,6 +294,9 @@ public final class GTk {
             ActionListener listener
     ) {
         JButton button = new JButton(Objects.requireNonNull(text));
+        button.setFont(GTk.MENU_FONT);
+        button.setBackground(Color.BLACK);
+        button.setForeground(Color.WHITE);
         if (icon != Icon.NO_ICON) {
             button.setIcon(icon.icon());
         }
@@ -285,16 +308,15 @@ public final class GTk {
         return button;
     }
 
-    public static JPanel etchedFlowPanel(JComponent... components) {
-        return flowPanel(BorderFactory.createEtchedBorder(), 0, 0, components);
-    }
-
     public static JPanel flowPanel(JComponent... components) {
-        return flowPanel(null, 0, 0, components);
+        return flowPanel(null, Color.BLACK, 0, 0, components);
     }
 
-    public static JPanel flowPanel(Border border, int hgap, int vgap, JComponent... components) {
+    public static JPanel flowPanel(Border border, Color backgroundColor, int hgap, int vgap, JComponent... components) {
         JPanel panel = new JPanel(new FlowLayout(FlowLayout.RIGHT, hgap, vgap));
+        if (backgroundColor != null) {
+            panel.setBackground(backgroundColor);
+        }
         if (border != null) {
             panel.setBorder(border);
         }
@@ -305,7 +327,18 @@ public final class GTk {
     }
 
     public static JPanel horizontalSpace(int hgap) {
-        return new JPanel(new FlowLayout(FlowLayout.CENTER, hgap, 0));
+        JPanel panel = new JPanel(new FlowLayout(FlowLayout.CENTER, hgap, 0));
+        panel.setBackground(Color.BLACK);
+        return panel;
+    }
+
+    public static JMenu jmenu(String title, Icon icon) {
+        JMenu connsMenu = new JMenu(title);
+        connsMenu.setFont(GTk.MENU_FONT);
+        if (icon != Icon.NO_ICON) {
+            connsMenu.setIcon(icon.icon());
+        }
+        return connsMenu;
     }
 
     public static JMenuItem configureMenuItem(
@@ -342,19 +375,48 @@ public final class GTk {
         return item;
     }
 
-    public static void openQuestDBDocumentation(ActionEvent ignore) {
+    public static JLabel label(String text, Color foregroundColor) {
+        JLabel label = label(Icon.NO_ICON, text, null);
+        label.setBackground(Color.BLACK);
+        label.setForeground(foregroundColor);
+        return label;
+    }
+
+    public static JLabel label(GTk.Icon icon, String text, Consumer<MouseEvent> consumer) {
+        JLabel label = new JLabel();
+        label.setFont(GTk.TABLE_HEADER_FONT);
+        label.setBackground(Color.BLACK);
+        if (icon != GTk.Icon.NO_ICON) {
+            label.setIcon(icon.icon());
+        }
+        if (text != null) {
+            label.setText(text);
+        }
+        if (consumer != null) {
+            label.addMouseListener(new LabelMouseListener(label) {
+                @Override
+                public void mouseClicked(MouseEvent e) {
+                    super.mouseClicked(e);
+                    consumer.accept(e);
+                }
+            });
+        }
+        return label;
+    }
+
+    public static void openQuestDBDocs(ActionEvent ignore) {
         Runtime rt = Runtime.getRuntime();
         String os = System.getProperty("os.name").toLowerCase();
         try {
             if (os.indexOf("mac") >= 0) {
                 rt.exec(String.format(
                         "open %s",
-                        QUESTDB_DOCUMENTATION_URL
+                        DOCUMENTATION_URL
                 ));
             } else if (os.indexOf("win") >= 0) {
                 rt.exec(String.format(
                         "rundll32 url.dll,FileProtocolHandler %s",
-                        QUESTDB_DOCUMENTATION_URL
+                        DOCUMENTATION_URL
                 ));
             } else if (os.indexOf("nix") >= 0 || os.indexOf("nux") >= 0) {
                 String[] browsers = {
@@ -369,7 +431,7 @@ public final class GTk {
                     }
                     cmd.append(browsers[i])
                             .append("\"")
-                            .append(QUESTDB_DOCUMENTATION_URL)
+                            .append(DOCUMENTATION_URL)
                             .append("\"");
                 }
                 // If the first didn't work, try the next
@@ -381,7 +443,7 @@ public final class GTk {
                     String.format(
                             "Failed to open browser [%s:%s]: %s",
                             os,
-                            QUESTDB_DOCUMENTATION_URL,
+                            DOCUMENTATION_URL,
                             err.getMessage()
                     ),
                     "Helpless",
@@ -393,21 +455,21 @@ public final class GTk {
     public enum Icon {
         // https://p.yusukekamiyamane.com/
         // 16x16 icons
-        NO_ICON(null),
+        NO_ICON(null, null),
         APPLICATION("Application.png"),
         HELP("Help.png"),
         CONNS("Conns.png"),
         CONN_UP("ConnUp.png"),
         CONN_DOWN("ConnDown.png"),
-        CONN_ADD("ConnAdd.png"),
-        CONN_ASSIGN("ConnAssign.png"),
-        CONN_CLONE("ConnClone.png"),
-        CONN_CONNECT("ConnConnect.png"),
+        CONN_ADD("ConnAdd.png", "Add"),
+        CONN_ASSIGN("ConnAssign.png", "ASSIGN"),
+        CONN_CLONE("ConnClone.png", "Clone"),
+        CONN_CONNECT("ConnConnect.png", "Connect"),
         CONN_DISCONNECT("ConnDisconnect.png"),
-        CONN_REMOVE("ConnRemove.png"),
+        CONN_REMOVE("ConnRemove.png", "Remove"),
         CONN_SHOW("ConnShow.png"),
         CONN_HIDE("ConnHide.png"),
-        CONN_TEST("ConnTest.png"),
+        CONN_TEST("ConnTest.png", "Test"),
         COMMANDS("Commands.png"),
         COMMAND_QUEST("CommandQuestDB.png"),
         COMMAND_ADD("CommandAdd.png"),
@@ -415,7 +477,7 @@ public final class GTk {
         COMMAND_EDIT("CommandEdit.png"),
         COMMAND_CLEAR("CommandClear.png"),
         COMMAND_SAVE("CommandSave.png"),
-        COMMAND_RELOAD("CommandReload.png"),
+        COMMAND_RELOAD("CommandReload.png", "Reload"),
         COMMAND_STORE_BACKUP("CommandStoreBackup.png"),
         COMMAND_STORE_LOAD("CommandStoreLoad.png"),
         COMMAND_FIND("CommandFind.png"),
@@ -424,19 +486,33 @@ public final class GTk {
         COMMAND_EXEC_ABORT("CommandExecAbort.png"),
         COMMAND_EXEC_LINE("CommandExecLine.png"),
         META("Meta.png"),
+        META_FILE("MetaFile.png"),
+        META_FOLDER("MetaFolder.png"),
         PLOT_CHANGE_RANGES("PlotChangeRanges.png"),
         PLOT_RESTORE_RANGES("PlotRestoreRanges.png"),
         RESULTS("Results.png"),
-        RESULTS_NEXT("ResultsNext.png"),
-        RESULTS_PREV("ResultsPrev.png");
+        RESULTS_NEXT("ResultsNext.png", "Next"),
+        RESULTS_PREV("ResultsPrev.png", "Prev"),
+        ROCKET("Rocket.png");
 
         private static final String FOLDER = "images";
         private static final Map<String, ImageIcon> ICON_MAP = new HashMap<>();
 
         private final String iconName;
+        private final String text;
 
         Icon(String iconName) {
             this.iconName = iconName;
+            this.text = null;
+        }
+
+        Icon(String iconName, String text) {
+            this.iconName = iconName;
+            this.text = text;
+        }
+
+        public String getText() {
+            return text != null ? text : iconName;
         }
 
         public ImageIcon icon() {
@@ -453,6 +529,24 @@ public final class GTk {
                 LOGGER.error("Icon not available: [/{}/{}] -> {}", FOLDER, iconName, err.getMessage());
             }
             return icon;
+        }
+    }
+
+    private static class LabelMouseListener implements NoopMouseListener {
+        private final JLabel label;
+
+        private LabelMouseListener(JLabel label) {
+            this.label = label;
+        }
+
+        @Override
+        public void mouseEntered(MouseEvent e) {
+            label.setFont(TABLE_HEADER_UNDERLINE_FONT);
+        }
+
+        @Override
+        public void mouseExited(MouseEvent e) {
+            label.setFont(TABLE_HEADER_FONT);
         }
     }
 

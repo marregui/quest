@@ -125,8 +125,8 @@ public class Highlighter extends DocumentFilter {
         return 0;
     }
 
-    protected int handleTextChanged(String txt) {
-        return applyStyle(KEYWORDS_PATTERN.matcher(txt), HIGHLIGHT_KEYWORD, false);
+    protected void handleTextChanged(String txt) {
+        applyStyle(KEYWORDS_PATTERN.matcher(txt), HIGHLIGHT_KEYWORD, false);
     }
 
     protected int applyStyle(Matcher matcher, AttributeSet style, boolean replace) {
@@ -214,16 +214,19 @@ public class Highlighter extends DocumentFilter {
             PATTERN_FLAGS);
     private static final String ERROR_HEADER = "==========  ERROR  ==========\n";
     private static final Pattern ERROR_HEADER_PATTERN = Pattern.compile(ERROR_HEADER);
-    protected AttributeSet HIGHLIGHT_NORMAL = styleForegroundColor(95, 235, 150); // terminal green
-    protected AttributeSet HIGHLIGHT_KEYWORD = styleForegroundColor(
+    protected static final AttributeSet HIGHLIGHT_NORMAL = styleForegroundColor(
+            GTk.TERMINAL_COLOR.getRed(),
+            GTk.TERMINAL_COLOR.getGreen(),
+            GTk.TERMINAL_COLOR.getBlue()); // terminal green
+    protected static final AttributeSet HIGHLIGHT_KEYWORD = styleForegroundColor(
             GTk.APP_THEME_COLOR.getRed(),
             GTk.APP_THEME_COLOR.getGreen(),
             GTk.APP_THEME_COLOR.getBlue()); // red
-    private AttributeSet HIGHLIGHT_FIND_MATCH = styleForegroundColor(
+    private static final AttributeSet HIGHLIGHT_FIND_MATCH = styleForegroundColor(
             Color.YELLOW.getRed(),
             Color.YELLOW.getGreen(),
             Color.YELLOW.getBlue());
-    private AttributeSet HIGHLIGHT_ERROR = styleForegroundColor(255, 55, 5); // bright red
+    private static final AttributeSet HIGHLIGHT_ERROR = styleForegroundColor(255, 55, 5); // bright red
 
     protected static AttributeSet styleForegroundColor(int r, int g, int b) {
         StyleContext sc = StyleContext.getDefaultStyleContext();

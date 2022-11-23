@@ -42,8 +42,6 @@ import javax.swing.JPanel;
  * closed. The panel masks all mouse events.
  */
 public class InfiniteSpinnerPanel extends JPanel implements NoopMouseListener, Closeable, Runnable {
-
-    private static final long serialVersionUID = 1L;
     private static final int BAR_COUNT = 24;
     private static final int BAR_HEIGHT = 5;
     private static final int BAR_WIDTH = BAR_HEIGHT * 10;
@@ -65,16 +63,10 @@ public class InfiniteSpinnerPanel extends JPanel implements NoopMouseListener, C
         addMouseListener(this);
     }
 
-    /**
-     * @return true if it is running and thus you can call stop()
-     */
     public boolean isRunning() {
         return animation.get() != null;
     }
 
-    /**
-     * Starts the animation.
-     */
     public void start() {
         if (animation.compareAndSet(null, new Thread(this))) {
             Thread t = animation.get();
@@ -87,9 +79,6 @@ public class InfiniteSpinnerPanel extends JPanel implements NoopMouseListener, C
         }
     }
 
-    /**
-     * Ends the animation. You can call start() to restart the animation.
-     */
     @Override
     public void close() {
         Thread t = animation.getAndSet(null);

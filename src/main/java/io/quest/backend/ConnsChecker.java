@@ -28,7 +28,6 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
-import java.util.stream.Collectors;
 
 import io.quest.model.Conn;
 import org.slf4j.Logger;
@@ -99,7 +98,7 @@ public class ConnsChecker implements Closeable {
                                 () -> !conn.isValid() ? conn : null,
                                 0, // start immediately
                                 TimeUnit.SECONDS
-                        )).collect(Collectors.toList());
+                        )).toList();
                 while (invalidConns.size() > 0) {
                     Set<Conn> invalidSet = new HashSet<>();
                     for (Iterator<ScheduledFuture<Conn>> it = invalidConns.iterator(); it.hasNext(); ) {

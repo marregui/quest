@@ -32,7 +32,6 @@ public class FindReplace extends JPanel implements EventProducer<FindReplace.Eve
         FIND, REPLACE
     }
 
-    private static final long serialVersionUID = 1L;
     private static final Color FIND_FONT_COLOR = new Color(58, 138, 138);
     private static final Pattern SPECIAL_REGEX_CHARS = Pattern.compile("[{}()\\[\\].+*?^$\\\\|]");
     private final EventConsumer<FindReplace, Object> eventConsumer;
@@ -59,22 +58,24 @@ public class FindReplace extends JPanel implements EventProducer<FindReplace.Eve
         findTextIsRegex.setForeground(Color.WHITE);
         replaceWithText = new JTextField(20);
         setupSearchTextField(replaceWithText, this::fireReplaceEvent);
-        findMatchesLabel = createLabel("  0 matches");
+        findMatchesLabel = GTk.label("  0 matches", FIND_FONT_COLOR);
         setLayout(new FlowLayout(FlowLayout.RIGHT, 5, 4));
+        setBackground(Color.BLACK);
         setBorder(BorderFactory.createDashedBorder(Color.LIGHT_GRAY.darker()));
-        add(createLabel("Find"));
+        add(GTk.label("Find", FIND_FONT_COLOR));
         add(findText);
         add(findTextIsRegex);
-        add(createLabel("replace All with"));
+        add(GTk.label("replace All with", FIND_FONT_COLOR));
         add(replaceWithText);
         add(GTk.horizontalSpace(4));
         add(findMatchesLabel);
         add(GTk.horizontalSpace(4));
-        add(createButton(
+        add(GTk.button(
                 "X",
-                GTk.Icon.NO_ICON,
                 "Close find/replace view",
                 75,
+                22,
+                FIND_FONT_COLOR,
                 this::onCloseFindReplaceView));
         setVisible(false);
     }
@@ -114,7 +115,9 @@ public class FindReplace extends JPanel implements EventProducer<FindReplace.Eve
     private void setupSearchTextField(JTextField field, ActionListener listener) {
         field.setFont(GTk.TABLE_HEADER_FONT);
         field.setBackground(Color.BLACK);
-        field.setForeground(Color.YELLOW);
+        field.setForeground(FIND_FONT_COLOR);
+        field.setCaretColor(Color.CYAN);
+        field.setCaretPosition(0);
 
         // cmd-a, select the full content
         GTk.addCmdKeyAction(KeyEvent.VK_A, field, e -> field.selectAll());
@@ -165,23 +168,5 @@ public class FindReplace extends JPanel implements EventProducer<FindReplace.Eve
                 }
             }
         });
-    }
-
-
-    private static JButton createButton(String text, GTk.Icon icon, String tooltip, int width, ActionListener listener) {
-        JButton button = GTk.button(text, icon, tooltip, listener);
-        button.setFont(GTk.MENU_FONT);
-        button.setBackground(Color.BLACK);
-        button.setForeground(FIND_FONT_COLOR);
-        button.setPreferredSize(new Dimension(width, 22));
-        return button;
-    }
-
-    private static JLabel createLabel(String title) {
-        JLabel label = new JLabel(title);
-        label.setFont(GTk.MENU_FONT);
-        label.setBackground(Color.BLACK);
-        label.setForeground(FIND_FONT_COLOR);
-        return label;
     }
 }

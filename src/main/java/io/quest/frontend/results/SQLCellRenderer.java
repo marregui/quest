@@ -16,24 +16,19 @@
 
 package io.quest.frontend.results;
 
-import java.awt.Color;
 import java.awt.Component;
 import java.util.function.Supplier;
 
 import javax.swing.JTable;
 
-import io.quest.frontend.GTk;
 import io.quest.model.Table;
 import io.quest.frontend.CellRenderer;
 
 
 class SQLCellRenderer extends CellRenderer {
-    private static final long serialVersionUID = 1L;
-
     private final Supplier<Table> tableSupplier;
 
     SQLCellRenderer(Supplier<Table> tableSupplier) {
-        super(GTk.TABLE_CELL_FONT, Color.BLACK, Color.BLACK);
         this.tableSupplier = tableSupplier;
     }
 

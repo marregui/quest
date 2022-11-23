@@ -16,7 +16,7 @@
 
 package io.quest.frontend;
 
-import static io.quest.frontend.GTk.createFrame;
+import static io.quest.frontend.GTk.frame;
 
 import java.awt.BorderLayout;
 
@@ -42,7 +42,7 @@ public class WidgetTester {
                 button.setText("Close");
             }
         });
-        JFrame frame = createFrame("InfiniteSpinnerPanel", null);
+        JFrame frame = frame("InfiniteSpinnerPanel", null);
         frame.add(spinner, BorderLayout.CENTER);
         frame.add(button, BorderLayout.SOUTH);
         frame.setVisible(true);
@@ -62,7 +62,7 @@ public class WidgetTester {
         QuestPanel board = new QuestPanel((owner, event, request) -> {
 
         });
-        JFrame frame = createFrame("CommandBoard", null);
+        JFrame frame = frame("CommandBoard", null);
         frame.add(board, BorderLayout.CENTER);
         frame.setVisible(true);
     }

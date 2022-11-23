@@ -18,13 +18,10 @@ package io.quest.frontend.editor;
 
 import java.awt.*;
 import java.awt.event.*;
-import java.awt.font.TextAttribute;
 import java.io.Closeable;
 import java.io.File;
 import java.util.List;
 import java.util.ArrayList;
-import java.util.Map;
-import java.util.function.Consumer;
 import java.util.function.Supplier;
 
 import javax.swing.*;
@@ -33,30 +30,15 @@ import javax.swing.filechooser.FileFilter;
 import javax.swing.undo.UndoManager;
 
 import io.quest.backend.SQLExecutionRequest;
-import io.quest.model.Store;
-import io.quest.model.StoreEntry;
 import io.quest.model.*;
-import io.quest.model.EventConsumer;
-import io.quest.model.EventProducer;
 import io.quest.frontend.GTk;
-import io.quest.frontend.NoopMouseListener;
 import io.quest.frontend.conns.ConnsManager;
-
 
 public class QuestPanel extends Editor implements EventProducer<QuestPanel.EventType>, Closeable {
 
     public enum EventType {
-        /**
-         * L.Exec, or Exec, has been clicked.
-         */
         COMMAND_AVAILABLE,
-        /**
-         * Previous command has been cancelled.
-         */
         COMMAND_CANCEL,
-        /**
-         * User clicked on the connection status label.
-         */
         CONNECTION_STATUS_CLICKED
     }
 
@@ -90,12 +72,8 @@ public class QuestPanel extends Editor implements EventProducer<QuestPanel.Event
         }
     }
 
-    private static final long serialVersionUID = 1L;
     private static final Color CONNECTED_COLOR = new Color(69, 191, 84); //  green
     private static final Color NOT_CONNECTED_COLOR = GTk.APP_THEME_COLOR;
-    private static final Font TABLE_HEADER_UNDERLINE_FONT = GTk.TABLE_HEADER_FONT.deriveFont(Map.of(
-            TextAttribute.UNDERLINE, TextAttribute.UNDERLINE_ON));
-    private static final Cursor HAND_CURSOR = new Cursor(Cursor.HAND_CURSOR);
     private static final int COMPONENT_HEIGHT = 33;
     private static final String STORE_FILE_NAME = "default-notebook.json";
 
@@ -120,18 +98,12 @@ public class QuestPanel extends Editor implements EventProducer<QuestPanel.Event
         questEntryNames.setBackground(Color.BLACK);
         questEntryNames.setForeground(CONNECTED_COLOR);
         questEntryNames.setEditable(false);
-        questEntryNames.setPreferredSize(new Dimension(440, COMPONENT_HEIGHT));
+        questEntryNames.setPreferredSize(new Dimension(490, COMPONENT_HEIGHT));
         questEntryNames.addActionListener(this::onChangeQuest);
         questEntryNames.setBorder(BorderFactory.createEmptyBorder());
         questEntryNames.setRenderer(new DefaultListCellRenderer() {
             @Override
-            public Component getListCellRendererComponent(
-                    JList list,
-                    Object value,
-                    int index,
-                    boolean isSelected,
-                    boolean cellHasFocus
-            ) {
+            public Component getListCellRendererComponent(JList list, Object value, int index, boolean isSelected, boolean cellHasFocus) {
                 Component c = super.getListCellRendererComponent(list, value, index, isSelected, cellHasFocus);
                 c.setForeground(Color.YELLOW);
                 list.setSelectionBackground(Color.BLACK);
@@ -140,24 +112,19 @@ public class QuestPanel extends Editor implements EventProducer<QuestPanel.Event
             }
         });
 
-        JPanel topLeftPanel = GTk.flowPanel(
+        JPanel questsPanel = GTk.flowPanel(
                 GTk.horizontalSpace(24),
-                questLabel = createLabel(GTk.Icon.COMMAND_QUEST, "uest", null),
+                questLabel = GTk.label(GTk.Icon.COMMAND_QUEST, "uest", null),
                 GTk.horizontalSpace(6),
                 questEntryNames);
-        questLabel.setBackground(Color.BLACK);
         questLabel.setForeground(Color.WHITE);
-        topLeftPanel.setBackground(Color.BLACK);
-
         JPanel connectionPanel = GTk.flowPanel(
-                connLabel = createLabel(e -> eventConsumer.onSourceEvent(
+                connLabel = GTk.label(GTk.Icon.NO_ICON, null, e -> eventConsumer.onSourceEvent(
                         QuestPanel.this,
                         EventType.CONNECTION_STATUS_CLICKED,
                         null)),
                 GTk.horizontalSpace(24)
         );
-        connectionPanel.setBackground(Color.BLACK);
-
         questsMenu = setupQuestsMenu();
         findPanel = new FindReplace((source, event, eventData) -> {
             switch ((FindReplace.EventType) EventProducer.eventType(event)) {
@@ -169,12 +136,11 @@ public class QuestPanel extends Editor implements EventProducer<QuestPanel.Event
                     break;
             }
         });
-        findPanel.setBackground(Color.BLACK);
 
         JPanel topPanel = new JPanel(new BorderLayout(0, 0));
         topPanel.setPreferredSize(new Dimension(0, COMPONENT_HEIGHT + 2));
         topPanel.setBackground(Color.BLACK);
-        topPanel.add(topLeftPanel, BorderLayout.WEST);
+        topPanel.add(questsPanel, BorderLayout.WEST);
         topPanel.add(connectionPanel, BorderLayout.EAST);
         topPanel.add(findPanel, BorderLayout.SOUTH);
         add(topPanel, BorderLayout.NORTH);
@@ -206,7 +172,6 @@ public class QuestPanel extends Editor implements EventProducer<QuestPanel.Event
 
     public void fireCancelEvent(ActionEvent event) {
         if (conn == null || !conn.isOpen()) {
-            JOptionPane.showMessageDialog(this, "Not connected");
             return;
         }
         if (lastRequest != null) {
@@ -232,6 +197,7 @@ public class QuestPanel extends Editor implements EventProducer<QuestPanel.Event
     public void close() {
         undoManagers.clear();
         refreshQuests();
+        store.saveToFile();
         store.close();
     }
 
@@ -247,7 +213,7 @@ public class QuestPanel extends Editor implements EventProducer<QuestPanel.Event
                 return new Content[]{new Content()};
             }
         };
-        store.loadEntriesFromFile();
+        store.loadFromFile();
         questLabel.setToolTipText(String.format("notebook: %s", fileName));
         undoManagers.clear();
         for (int idx = 0; idx < store.size(); idx++) {
@@ -474,9 +440,7 @@ public class QuestPanel extends Editor implements EventProducer<QuestPanel.Event
     }
 
     private JMenu setupQuestsMenu() {
-        final JMenu questsMenu = new JMenu("uest"); // the Q comes from an icon
-        questsMenu.setIcon(GTk.Icon.COMMAND_QUEST.icon());
-        questsMenu.setFont(GTk.MENU_FONT);
+        final JMenu questsMenu = GTk.jmenu("uest", GTk.Icon.COMMAND_QUEST); // the Q comes from an icon
         questsMenu.add(
                 GTk.configureMenuItem(
                         new JMenuItem(),
@@ -537,50 +501,5 @@ public class QuestPanel extends Editor implements EventProducer<QuestPanel.Event
                         GTk.NO_KEY_EVENT,
                         this::onBackupQuests));
         return questsMenu;
-    }
-
-    private JLabel createLabel(Consumer<MouseEvent> consumer) {
-        return createLabel(GTk.Icon.NO_ICON, null, consumer);
-    }
-
-    private JLabel createLabel(GTk.Icon icon, String text, Consumer<MouseEvent> consumer) {
-        JLabel label = new JLabel();
-        if (icon != GTk.Icon.NO_ICON) {
-            label.setIcon(icon.icon());
-        }
-        if (text != null) {
-            label.setText(text);
-        }
-        label.setFont(GTk.TABLE_HEADER_FONT);
-        if (consumer != null) {
-            label.addMouseListener(new LabelMouseListener(label) {
-                @Override
-                public void mouseClicked(MouseEvent e) {
-                    super.mouseClicked(e);
-                    consumer.accept(e);
-                }
-            });
-        }
-        return label;
-    }
-
-    private class LabelMouseListener implements NoopMouseListener {
-        private final JLabel label;
-
-        private LabelMouseListener(JLabel label) {
-            this.label = label;
-        }
-
-        @Override
-        public void mouseEntered(MouseEvent e) {
-            setCursor(HAND_CURSOR);
-            label.setFont(TABLE_HEADER_UNDERLINE_FONT);
-        }
-
-        @Override
-        public void mouseExited(MouseEvent e) {
-            setCursor(Cursor.getDefaultCursor());
-            label.setFont(GTk.TABLE_HEADER_FONT);
-        }
     }
 }

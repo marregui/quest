@@ -1,0 +1,1975 @@
+2022-11-23T14:28:50.572855Z A server-main QuestDB server 6.5.5. Copyright (C) 2014-2022, all rights reserved.
+2022-11-23T14:28:50.573291Z A server-main OS/Arch apple/apple-silicon [AVX512,1418516136, 64 bits, 8 processors]
+2022-11-23T14:28:50.574889Z I server-main Web Console is up to date
+2022-11-23T14:28:50.574970Z A server-main Server config: /Users/marregui/QUEST/conf/server.conf
+2022-11-23T14:28:50.610771Z A server-main Config:
+2022-11-23T14:28:50.610795Z A server-main  - http.enabled : true
+2022-11-23T14:28:50.610815Z A server-main  - tcp.enabled  : true
+2022-11-23T14:28:50.610832Z A server-main  - pg.enabled   : true
+2022-11-23T14:28:50.610849Z A server-main  - open database [id=963880947576877442.4482852230280459206]
+2022-11-23T14:28:50.610942Z A server-main  - db root: [path=/Users/marregui/QUEST/db, magic=0x1a] -> UNSUPPORTED (SYSTEM COULD BE UNSTABLE)
+2022-11-23T14:28:50.610977Z A server-main  - backup root: NOT SET
+2022-11-23T14:28:50.611018Z A server-main  - snapshot root: [path=/Users/marregui/QUEST/snapshot, magic=0x00] -> UNSUPPORTED (SYSTEM COULD BE UNSTABLE)
+2022-11-23T14:28:50.611044Z A server-main  - sql copy input root: NOT SET
+2022-11-23T14:28:50.611058Z A server-main  - sql copy input worker root: NOT SET
+2022-11-23T14:28:50.612619Z A server-main Metrics are disabled, health check endpoint will not consider unhandled errors
+2022-11-23T14:28:50.631162Z I i.q.c.m.EngineMigration table structures are up to date
+2022-11-23T14:28:50.631801Z I i.q.g.FunctionFactoryCache loading functions [test=false]
+2022-11-23T14:28:50.728332Z I i.q.c.p.WriterPool open [table=`sys.column_versions_purge_log`, thread=20]
+2022-11-23T14:28:50.732758Z I i.q.c.TableWriter open 'sys.column_versions_purge_log'
+2022-11-23T14:28:50.740147Z I i.q.c.TableWriter switched partition [path='/Users/marregui/QUEST/db/sys.column_versions_purge_log/2022-11']
+2022-11-23T14:28:50.741613Z I i.q.c.TableWriter purging non attached partitions [path=/Users/marregui/QUEST/db/sys.column_versions_purge_log]
+2022-11-23T14:28:50.742308Z I i.q.c.p.WriterPool >> [table=`sys.column_versions_purge_log`, thread=20]
+2022-11-23T14:28:50.742831Z I i.q.c.p.ReaderPool open 'sys.column_versions_purge_log' [at=0:0]
+2022-11-23T14:28:50.746013Z I i.q.g.SqlCompiler plan [q=`select-choose ts, table_name, column_name, table_id, truncate_version, columnType, table_partition_by, updated_txn, column_version, partition_timestamp, partition_name_txn, completed from (select [ts, table_name, column_name, table_id, truncate_version, columnType, table_partition_by, updated_txn, column_version, partition_timestamp, partition_name_txn, completed] from sys.column_versions_purge_log timestamp (ts) where completed = null)`, fd=-1]
+2022-11-23T14:28:50.751481Z I i.q.c.TableReader open partition /Users/marregui/QUEST/db/sys.column_versions_purge_log/2022-11 [rowCount=1, partitionNameTxn=-1, transientRowCount=1, partitionIndex=0, partitionCount=1]
+2022-11-23T14:28:50.802444Z I i.q.c.TableWriter truncated [name=sys.column_versions_purge_log]
+2022-11-23T14:28:50.810329Z I i.q.c.p.ReaderPool open 'telemetry_config' [at=0:0]
+2022-11-23T14:28:50.887435Z I i.q.TelemetryJob Failed to alter telemetry table [table=telemetry_config,error=column 'version' already exists]
+2022-11-23T14:28:50.887557Z I i.q.TelemetryJob Failed to alter telemetry table [table=telemetry_config,error=column 'os' already exists]
+2022-11-23T14:28:50.887618Z I i.q.TelemetryJob Failed to alter telemetry table [table=telemetry_config,error=column 'package' already exists]
+2022-11-23T14:28:50.887647Z I i.q.c.p.WriterPool open [table=`telemetry_config`, thread=20]
+2022-11-23T14:28:50.887701Z I i.q.c.TableWriter open 'telemetry_config'
+2022-11-23T14:28:50.889058Z I i.q.c.TableWriter switched partition [path='/Users/marregui/QUEST/db/telemetry_config/default']
+2022-11-23T14:28:50.922219Z I i.q.c.p.WriterPool >> [table=`telemetry_config`, thread=20]
+2022-11-23T14:28:50.922652Z I i.q.g.SqlCompiler plan [q=`select-choose id, enabled, version, os, package from (select [id, enabled, version, os, package] from telemetry_config) limit -(1)`, fd=-1]
+2022-11-23T14:28:50.923356Z I i.q.c.TableReader open partition /Users/marregui/QUEST/db/telemetry_config/default [rowCount=1, partitionNameTxn=-1, transientRowCount=1, partitionIndex=0, partitionCount=1]
+2022-11-23T14:28:50.929278Z A i.q.TelemetryJob instance config changes [id=0x05ede534efb72f00004a160642fb88, enabled=false]
+2022-11-23T14:28:50.930388Z I i.q.WorkerPoolManager using SHARED pool [requester=http, workers=7]
+2022-11-23T14:28:50.933334Z A http-server listening on 0.0.0.0:9000 [fd=111 backlog=64]
+2022-11-23T14:28:50.984709Z I i.q.WorkerPoolManager using SHARED pool [requester=min-http, workers=7]
+2022-11-23T14:28:50.984847Z A http-min-server listening on 0.0.0.0:9003 [fd=21 backlog=4]
+2022-11-23T14:28:50.985327Z I i.q.WorkerPoolManager using SHARED pool [requester=pg-wire, workers=7]
+2022-11-23T14:28:50.987043Z A pg-server listening on 0.0.0.0:8812 [fd=114 backlog=64]
+2022-11-23T14:28:51.003224Z I i.q.WorkerPoolManager using SHARED pool [requester=line-tcp-io, workers=7]
+2022-11-23T14:28:51.003268Z I i.q.WorkerPoolManager new DEDICATED pool [name=ilpwriter, requester=line-tcp-writer, workers=1]
+2022-11-23T14:28:51.004138Z I i.q.c.l.t.LineTcpReceiver using default context
+2022-11-23T14:28:51.004492Z A tcp-line-server listening on 0.0.0.0:9009 [fd=116 backlog=256]
+2022-11-23T14:28:51.009522Z E i.q.c.l.u.AbstractLineProtoUdpReceiver could not set receive buffer size [fd=118, size=8388608, errno=55]
+2022-11-23T14:28:51.011816Z I i.q.c.l.u.AbstractLineProtoUdpReceiver receiving multicast from 232.1.2.3:9009 via 0.0.0.0 [fd=118, commitRate=1000000]
+2022-11-23T14:28:51.114851Z A server-main bootstrap complete
+2022-11-23T14:28:51.115218Z I server-main os scheduled worker started [name=questdb-shared-4]
+2022-11-23T14:28:51.115285Z I server-main os scheduled worker started [name=questdb-shared-5]
+2022-11-23T14:28:51.115362Z I server-main os scheduled worker started [name=questdb-shared-6]
+2022-11-23T14:28:51.115463Z I server-main os scheduled worker started [name=questdb-shared-7]
+2022-11-23T14:28:51.115494Z I server-main worker pool started [pool=shared]
+2022-11-23T14:28:51.115506Z I i.q.WorkerPoolManager started shared pool [name=shared, workers=7]
+2022-11-23T14:28:51.115538Z I server-main os scheduled worker started [name=questdb-shared-9]
+2022-11-23T14:28:51.115566Z I server-main worker pool started [pool=ilpwriter]
+2022-11-23T14:28:51.115575Z I i.q.WorkerPoolManager started dedicated pool [name=ilpwriter, workers=1]
+2022-11-23T14:28:51.115584Z I server-main os scheduled worker started [name=questdb-ilpwriter-10]
+2022-11-23T14:28:51.115588Z I server-main 
+     ___                  _   ____  ____
+    / _ \ _   _  ___  ___| |_|  _ \| __ )
+   | | | | | | |/ _ \/ __| __| | | |  _ \
+   | |_| | |_| |  __/\__ \ |_| |_| | |_) |
+    \__\_\\__,_|\___||___/\__|____/|____/
+
+Web Console URL(s):
+
+	http://192.168.1.57:9000
+	http://127.0.0.1:9000
+
+
+2022-11-23T14:28:51.225953Z A server-main enjoy
+2022-11-23T14:28:59.550462Z I pg-server connected [ip=127.0.0.1, fd=120]
+2022-11-23T14:28:59.552412Z I i.q.c.p.PGConnectionContext protocol [major=3, minor=0]
+2022-11-23T14:28:59.552470Z I i.q.c.p.PGConnectionContext property [name=user, value=admin]
+2022-11-23T14:28:59.552488Z I i.q.c.p.PGConnectionContext property [name=database, value=main]
+2022-11-23T14:28:59.552499Z I i.q.c.p.PGConnectionContext property [name=client_encoding, value=UTF8]
+2022-11-23T14:28:59.552510Z I i.q.c.p.PGConnectionContext property [name=DateStyle, value=ISO]
+2022-11-23T14:28:59.552521Z I i.q.c.p.PGConnectionContext property [name=TimeZone, value=Europe/Madrid]
+2022-11-23T14:28:59.552533Z I i.q.c.p.PGConnectionContext property [name=extra_float_digits, value=2]
+2022-11-23T14:28:59.569993Z I i.q.c.p.PGConnectionContext parse [fd=120, q=BEGIN]
+2022-11-23T14:28:59.570421Z I i.q.c.p.PGConnectionContext parse [fd=120, q=SET extra_float_digits = 3]
+2022-11-23T14:28:59.570689Z I i.q.c.p.PGConnectionContext parse [fd=120, q=SET application_name = 'quest-1.0']
+2022-11-23T14:28:59.570894Z I i.q.c.p.PGConnectionContext parse [fd=120, q=COMMIT]
+2022-11-23T14:28:59.581883Z I i.q.c.p.PGConnectionContext parse [fd=120, q=]
+2022-11-23T14:28:59.583951Z I i.q.c.p.PGConnectionContext parse [fd=120, q=show tables]
+2022-11-23T14:29:03.757514Z I i.q.WorkerPoolManager closing dedicated pool [name=ilpwriter, workers=1]
+2022-11-23T14:29:03.851293Z I server-main cleaned worker [name=ilpwriter, worker=0, total=1]
+2022-11-23T14:29:03.851455Z I server-main os scheduled worker stopped [name=questdb-ilpwriter-10]
+2022-11-23T14:29:03.851529Z I i.q.c.l.t.LineTcpWriterJob line protocol writer closing [threadId=0]
+2022-11-23T14:29:03.851670Z I i.q.WorkerPoolManager closing shared pool [name=shared, workers=7]
+2022-11-23T14:29:03.852408Z I i.q.c.h.p.QueryCache closed
+2022-11-23T14:29:03.852565Z I i.q.c.h.p.QueryCache closed
+2022-11-23T14:29:03.852910Z I server-main cleaned worker [name=shared, worker=3, total=7]
+2022-11-23T14:29:03.852969Z I server-main os scheduled worker stopped [name=questdb-shared-6]
+2022-11-23T14:29:03.879816Z I i.q.c.h.p.QueryCache closed
+2022-11-23T14:29:03.879828Z I i.q.c.h.p.QueryCache closed
+2022-11-23T14:29:03.880053Z I i.q.c.h.p.QueryCache closed
+2022-11-23T14:29:03.880062Z I i.q.c.h.p.QueryCache closed
+2022-11-23T14:29:03.880375Z I server-main cleaned worker [name=shared, worker=4, total=7]
+2022-11-23T14:29:03.880391Z I server-main cleaned worker [name=shared, worker=6, total=7]
+2022-11-23T14:29:03.880419Z I server-main os scheduled worker stopped [name=questdb-shared-7]
+2022-11-23T14:29:03.880430Z I server-main os scheduled worker stopped [name=questdb-shared-9]
+2022-11-23T14:29:03.909529Z I i.q.c.h.p.QueryCache closed
+2022-11-23T14:29:03.909604Z I i.q.c.h.p.QueryCache closed
+2022-11-23T14:29:03.909779Z I server-main cleaned worker [name=shared, worker=0, total=7]
+2022-11-23T14:29:03.909800Z I server-main os scheduled worker stopped [name=questdb-shared-3]
+2022-11-23T14:29:03.914328Z I i.q.c.h.p.QueryCache closed
+2022-11-23T14:29:03.914385Z I i.q.c.h.p.QueryCache closed
+2022-11-23T14:29:03.914479Z I server-main cleaned worker [name=shared, worker=1, total=7]
+2022-11-23T14:29:03.914495Z I server-main os scheduled worker stopped [name=questdb-shared-4]
+2022-11-23T14:29:03.925134Z I i.q.c.h.p.QueryCache closed
+2022-11-23T14:29:03.925209Z I i.q.c.h.p.QueryCache closed
+2022-11-23T14:29:03.925339Z I server-main cleaned worker [name=shared, worker=5, total=7]
+2022-11-23T14:29:03.925358Z I server-main os scheduled worker stopped [name=questdb-shared-8]
+2022-11-23T14:29:03.929509Z I i.q.c.h.p.QueryCache closed
+2022-11-23T14:29:03.929573Z I i.q.c.h.p.QueryCache closed
+2022-11-23T14:29:03.929720Z I server-main cleaned worker [name=shared, worker=2, total=7]
+2022-11-23T14:29:03.929747Z I server-main os scheduled worker stopped [name=questdb-shared-5]
+2022-11-23T14:29:03.929901Z I i.q.c.p.WriterPool << [table=`sys.column_versions_purge_log`, thread=20]
+2022-11-23T14:29:03.931402Z I i.q.c.l.u.AbstractLineProtoUdpReceiver closed [fd=118]
+2022-11-23T14:29:03.931452Z I i.q.c.l.u.AbstractLineProtoUdpReceiver closed [fd=118]
+2022-11-23T14:29:03.931636Z I tcp-line-server closed
+2022-11-23T14:29:03.931675Z I pg-server disconnected [ip=127.0.0.1, fd=120, src=shutdown]
+2022-11-23T14:29:03.931999Z I pg-server closed
+2022-11-23T14:29:03.932065Z I http-min-server closed
+2022-11-23T14:29:03.932136Z I http-server closed
+2022-11-23T14:29:03.933882Z I i.q.c.p.WriterPool << [table=`telemetry_config`, thread=20]
+2022-11-23T14:29:03.937259Z I i.q.c.TableWriter closed 'sys.column_versions_purge_log'
+2022-11-23T14:29:03.937292Z I i.q.c.p.WriterPool closed [table=`sys.column_versions_purge_log`, reason=POOL_CLOSED, by=20]
+2022-11-23T14:29:03.939177Z I i.q.c.TableWriter closed 'telemetry_config'
+2022-11-23T14:29:03.939199Z I i.q.c.p.WriterPool closed [table=`telemetry_config`, reason=POOL_CLOSED, by=20]
+2022-11-23T14:29:03.939236Z I i.q.c.p.WriterPool closed
+2022-11-23T14:29:03.940091Z I i.q.c.p.ReaderPool closed 'sys.column_versions_purge_log' [at=0:0, reason=POOL_CLOSED]
+2022-11-23T14:29:03.940404Z I i.q.c.p.ReaderPool closed 'telemetry_config' [at=0:0, reason=POOL_CLOSED]
+2022-11-23T14:29:03.940451Z I i.q.c.p.ReaderPool closed
+2022-11-23T14:29:08.269450Z A server-main QuestDB server 6.5.5. Copyright (C) 2014-2022, all rights reserved.
+2022-11-23T14:29:08.269574Z A server-main OS/Arch apple/apple-silicon [AVX512,1418516136, 64 bits, 8 processors]
+2022-11-23T14:29:08.273095Z I server-main Web Console is up to date
+2022-11-23T14:29:08.273193Z A server-main Server config: /Users/marregui/QUEST/conf/server.conf
+2022-11-23T14:29:08.286785Z A server-main Config:
+2022-11-23T14:29:08.286812Z A server-main  - http.enabled : true
+2022-11-23T14:29:08.286822Z A server-main  - tcp.enabled  : true
+2022-11-23T14:29:08.286830Z A server-main  - pg.enabled   : true
+2022-11-23T14:29:08.286838Z A server-main  - open database [id=963880947576877442.4482852230280459206]
+2022-11-23T14:29:08.286893Z A server-main  - db root: [path=/Users/marregui/QUEST/db, magic=0x1a] -> UNSUPPORTED (SYSTEM COULD BE UNSTABLE)
+2022-11-23T14:29:08.286910Z A server-main  - backup root: NOT SET
+2022-11-23T14:29:08.286935Z A server-main  - snapshot root: [path=/Users/marregui/QUEST/snapshot, magic=0x00] -> UNSUPPORTED (SYSTEM COULD BE UNSTABLE)
+2022-11-23T14:29:08.286948Z A server-main  - sql copy input root: NOT SET
+2022-11-23T14:29:08.286955Z A server-main  - sql copy input worker root: NOT SET
+2022-11-23T14:29:08.287552Z A server-main Metrics are disabled, health check endpoint will not consider unhandled errors
+2022-11-23T14:29:08.313655Z A http-server listening on 0.0.0.0:9000 [fd=98 backlog=64]
+2022-11-23T14:29:08.350142Z A http-min-server listening on 0.0.0.0:9003 [fd=100 backlog=4]
+2022-11-23T14:29:08.350630Z A pg-server listening on 0.0.0.0:8812 [fd=102 backlog=64]
+2022-11-23T14:29:08.371508Z A tcp-line-server listening on 0.0.0.0:9009 [fd=104 backlog=256]
+2022-11-23T14:29:08.483451Z A server-main bootstrap complete
+2022-11-23T14:29:08.483786Z I server-main os scheduled worker started [name=questdb-shared-12]
+2022-11-23T14:29:08.483788Z I server-main os scheduled worker started [name=questdb-shared-13]
+2022-11-23T14:29:08.483845Z I server-main os scheduled worker started [name=questdb-shared-14]
+2022-11-23T14:29:08.484007Z I server-main os scheduled worker started [name=questdb-shared-15]
+2022-11-23T14:29:08.484030Z I server-main os scheduled worker started [name=questdb-shared-16]
+2022-11-23T14:29:08.484632Z I server-main os scheduled worker started [name=questdb-shared-17]
+2022-11-23T14:29:08.484713Z I server-main worker pool started [pool=shared]
+2022-11-23T14:29:08.484797Z I server-main os scheduled worker started [name=questdb-shared-18]
+2022-11-23T14:29:08.484908Z I server-main worker pool started [pool=ilpwriter]
+2022-11-23T14:29:08.484922Z I server-main 
+     ___                  _   ____  ____
+    / _ \ _   _  ___  ___| |_|  _ \| __ )
+   | | | | | | |/ _ \/ __| __| | | |  _ \
+   | |_| | |_| |  __/\__ \ |_| |_| | |_) |
+    \__\_\\__,_|\___||___/\__|____/|____/
+
+Web Console URL(s):
+
+	http://192.168.1.57:9000
+	http://127.0.0.1:9000
+
+
+2022-11-23T14:29:08.484978Z I server-main os scheduled worker started [name=questdb-ilpwriter-19]
+2022-11-23T14:29:08.578737Z A server-main enjoy
+2022-11-23T14:33:01.064415Z A server-main QuestDB server 6.5.5. Copyright (C) 2014-2022, all rights reserved.
+2022-11-23T14:33:01.065382Z A server-main OS/Arch apple/apple-silicon [AVX512,960048808, 64 bits, 8 processors]
+2022-11-23T14:33:01.068247Z I server-main Web Console is up to date
+2022-11-23T14:33:01.068401Z A server-main Server config: /Users/marregui/QUEST/conf/server.conf
+2022-11-23T14:33:01.118404Z A server-main Config:
+2022-11-23T14:33:01.118434Z A server-main  - http.enabled : true
+2022-11-23T14:33:01.118456Z A server-main  - tcp.enabled  : true
+2022-11-23T14:33:01.118476Z A server-main  - pg.enabled   : true
+2022-11-23T14:33:01.118496Z A server-main  - open database [id=963880947576877442.4482852230280459206]
+2022-11-23T14:33:01.118593Z A server-main  - db root: [path=/Users/marregui/QUEST/db, magic=0x1a] -> UNSUPPORTED (SYSTEM COULD BE UNSTABLE)
+2022-11-23T14:33:01.118635Z A server-main  - backup root: NOT SET
+2022-11-23T14:33:01.118671Z A server-main  - snapshot root: [path=/Users/marregui/QUEST/snapshot, magic=0x00] -> UNSUPPORTED (SYSTEM COULD BE UNSTABLE)
+2022-11-23T14:33:01.118699Z A server-main  - sql copy input root: NOT SET
+2022-11-23T14:33:01.118714Z A server-main  - sql copy input worker root: NOT SET
+2022-11-23T14:33:01.120513Z A server-main Metrics are disabled, health check endpoint will not consider unhandled errors
+2022-11-23T14:33:01.141672Z I i.q.c.m.EngineMigration table structures are up to date
+2022-11-23T14:33:01.142363Z I i.q.g.FunctionFactoryCache loading functions [test=false]
+2022-11-23T14:33:01.240120Z I i.q.c.p.WriterPool open [table=`sys.column_versions_purge_log`, thread=20]
+2022-11-23T14:33:01.244798Z I i.q.c.TableWriter open 'sys.column_versions_purge_log'
+2022-11-23T14:33:01.248955Z I i.q.c.TableWriter purging non attached partitions [path=/Users/marregui/QUEST/db/sys.column_versions_purge_log]
+2022-11-23T14:33:01.249454Z I i.q.c.p.WriterPool >> [table=`sys.column_versions_purge_log`, thread=20]
+2022-11-23T14:33:01.249946Z I i.q.c.p.ReaderPool open 'sys.column_versions_purge_log' [at=0:0]
+2022-11-23T14:33:01.253022Z I i.q.g.SqlCompiler plan [q=`select-choose ts, table_name, column_name, table_id, truncate_version, columnType, table_partition_by, updated_txn, column_version, partition_timestamp, partition_name_txn, completed from (select [ts, table_name, column_name, table_id, truncate_version, columnType, table_partition_by, updated_txn, column_version, partition_timestamp, partition_name_txn, completed] from sys.column_versions_purge_log timestamp (ts) where completed = null)`, fd=-1]
+2022-11-23T14:33:01.267113Z I i.q.c.p.ReaderPool open 'telemetry_config' [at=0:0]
+2022-11-23T14:33:01.268627Z I i.q.TelemetryJob Failed to alter telemetry table [table=telemetry_config,error=column 'version' already exists]
+2022-11-23T14:33:01.268714Z I i.q.TelemetryJob Failed to alter telemetry table [table=telemetry_config,error=column 'os' already exists]
+2022-11-23T14:33:01.268773Z I i.q.TelemetryJob Failed to alter telemetry table [table=telemetry_config,error=column 'package' already exists]
+2022-11-23T14:33:01.268803Z I i.q.c.p.WriterPool open [table=`telemetry_config`, thread=20]
+2022-11-23T14:33:01.268858Z I i.q.c.TableWriter open 'telemetry_config'
+2022-11-23T14:33:01.269831Z I i.q.c.TableWriter switched partition [path='/Users/marregui/QUEST/db/telemetry_config/default']
+2022-11-23T14:33:01.270213Z I i.q.c.p.WriterPool >> [table=`telemetry_config`, thread=20]
+2022-11-23T14:33:01.270510Z I i.q.g.SqlCompiler plan [q=`select-choose id, enabled, version, os, package from (select [id, enabled, version, os, package] from telemetry_config) limit -(1)`, fd=-1]
+2022-11-23T14:33:01.271192Z I i.q.c.TableReader open partition /Users/marregui/QUEST/db/telemetry_config/default [rowCount=2, partitionNameTxn=-1, transientRowCount=2, partitionIndex=0, partitionCount=1]
+2022-11-23T14:33:01.271516Z A i.q.TelemetryJob instance [id=0x05ede534efb72f00004a160642fb88, enabled=false]
+2022-11-23T14:33:01.272646Z I i.q.WorkerPoolManager using SHARED pool [requester=http, workers=7]
+2022-11-23T14:33:01.275749Z A http-server listening on 0.0.0.0:9000 [fd=99 backlog=64]
+2022-11-23T14:33:01.315684Z I i.q.WorkerPoolManager using SHARED pool [requester=min-http, workers=7]
+2022-11-23T14:33:01.315863Z A http-min-server listening on 0.0.0.0:9003 [fd=101 backlog=4]
+2022-11-23T14:33:01.316639Z I i.q.WorkerPoolManager using SHARED pool [requester=pg-wire, workers=7]
+2022-11-23T14:33:01.318690Z A pg-server listening on 0.0.0.0:8812 [fd=103 backlog=64]
+2022-11-23T14:33:01.336010Z I i.q.WorkerPoolManager using SHARED pool [requester=line-tcp-io, workers=7]
+2022-11-23T14:33:01.336052Z I i.q.WorkerPoolManager new DEDICATED pool [name=ilpwriter, requester=line-tcp-writer, workers=1]
+2022-11-23T14:33:01.336983Z I i.q.c.l.t.LineTcpReceiver using default context
+2022-11-23T14:33:01.337340Z A tcp-line-server listening on 0.0.0.0:9009 [fd=105 backlog=256]
+2022-11-23T14:33:01.342044Z E i.q.c.l.u.AbstractLineProtoUdpReceiver could not set receive buffer size [fd=107, size=8388608, errno=55]
+2022-11-23T14:33:01.344475Z I i.q.c.l.u.AbstractLineProtoUdpReceiver receiving multicast from 232.1.2.3:9009 via 0.0.0.0 [fd=107, commitRate=1000000]
+2022-11-23T14:33:01.484881Z A server-main bootstrap complete
+2022-11-23T14:33:01.485309Z I server-main os scheduled worker started [name=questdb-shared-3]
+2022-11-23T14:33:01.485589Z I server-main os scheduled worker started [name=questdb-shared-4]
+2022-11-23T14:33:01.485764Z I server-main os scheduled worker started [name=questdb-shared-5]
+2022-11-23T14:33:01.485925Z I server-main os scheduled worker started [name=questdb-shared-6]
+2022-11-23T14:33:01.485960Z I server-main os scheduled worker started [name=questdb-shared-7]
+2022-11-23T14:33:01.486092Z I server-main os scheduled worker started [name=questdb-shared-8]
+2022-11-23T14:33:01.486167Z I server-main worker pool started [pool=shared]
+2022-11-23T14:33:01.486180Z I i.q.WorkerPoolManager started shared pool [name=shared, workers=7]
+2022-11-23T14:33:01.486217Z I server-main os scheduled worker started [name=questdb-shared-9]
+2022-11-23T14:33:01.486371Z I server-main worker pool started [pool=ilpwriter]
+2022-11-23T14:33:01.486378Z I i.q.WorkerPoolManager started dedicated pool [name=ilpwriter, workers=1]
+2022-11-23T14:33:01.486391Z I server-main 
+     ___                  _   ____  ____
+    / _ \ _   _  ___  ___| |_|  _ \| __ )
+   | | | | | | |/ _ \/ __| __| | | |  _ \
+   | |_| | |_| |  __/\__ \ |_| |_| | |_) |
+    \__\_\\__,_|\___||___/\__|____/|____/
+
+Web Console URL(s):
+
+	http://192.168.1.57:9000
+	http://127.0.0.1:9000
+
+
+2022-11-23T14:33:01.582216Z A server-main enjoy
+2022-11-23T14:33:01.610786Z I pg-server connected [ip=127.0.0.1, fd=108]
+2022-11-23T14:33:01.616586Z I i.q.c.p.PGConnectionContext protocol [major=3, minor=0]
+2022-11-23T14:33:01.616630Z I i.q.c.p.PGConnectionContext property [name=user, value=admin]
+2022-11-23T14:33:01.616642Z I i.q.c.p.PGConnectionContext property [name=database, value=main]
+2022-11-23T14:33:01.616653Z I i.q.c.p.PGConnectionContext property [name=client_encoding, value=UTF8]
+2022-11-23T14:33:01.616660Z I i.q.c.p.PGConnectionContext property [name=DateStyle, value=ISO]
+2022-11-23T14:33:01.616666Z I i.q.c.p.PGConnectionContext property [name=TimeZone, value=Europe/Madrid]
+2022-11-23T14:33:01.616674Z I i.q.c.p.PGConnectionContext property [name=extra_float_digits, value=2]
+2022-11-23T14:33:01.628775Z I i.q.c.p.PGConnectionContext parse [fd=108, q=BEGIN]
+2022-11-23T14:33:01.629099Z I i.q.c.p.PGConnectionContext parse [fd=108, q=SET extra_float_digits = 3]
+2022-11-23T14:33:01.629306Z I i.q.c.p.PGConnectionContext parse [fd=108, q=SET application_name = 'quest-1.0']
+2022-11-23T14:33:01.629488Z I i.q.c.p.PGConnectionContext parse [fd=108, q=COMMIT]
+2022-11-23T14:33:05.357511Z I i.q.WorkerPoolManager closing dedicated pool [name=ilpwriter, workers=1]
+2022-11-23T14:33:05.408075Z I server-main cleaned worker [name=ilpwriter, worker=0, total=1]
+2022-11-23T14:33:05.408299Z I server-main os scheduled worker stopped [name=questdb-ilpwriter-10]
+2022-11-23T14:33:05.408338Z I i.q.c.l.t.LineTcpWriterJob line protocol writer closing [threadId=0]
+2022-11-23T14:33:05.408444Z I i.q.WorkerPoolManager closing shared pool [name=shared, workers=7]
+2022-11-23T14:33:18.355425Z A server-main QuestDB server 6.5.5. Copyright (C) 2014-2022, all rights reserved.
+2022-11-23T14:33:18.356884Z A server-main OS/Arch apple/apple-silicon [AVX512,548805800, 64 bits, 8 processors]
+2022-11-23T14:33:18.358255Z I server-main Web Console is up to date
+2022-11-23T14:33:18.358366Z A server-main Server config: /Users/marregui/QUEST/conf/server.conf
+2022-11-23T14:33:18.404056Z A server-main Config:
+2022-11-23T14:33:18.404080Z A server-main  - http.enabled : true
+2022-11-23T14:33:18.404101Z A server-main  - tcp.enabled  : true
+2022-11-23T14:33:18.404121Z A server-main  - pg.enabled   : true
+2022-11-23T14:33:18.404142Z A server-main  - open database [id=963880947576877442.4482852230280459206]
+2022-11-23T14:33:18.404243Z A server-main  - db root: [path=/Users/marregui/QUEST/db, magic=0x1a] -> UNSUPPORTED (SYSTEM COULD BE UNSTABLE)
+2022-11-23T14:33:18.404283Z A server-main  - backup root: NOT SET
+2022-11-23T14:33:18.404318Z A server-main  - snapshot root: [path=/Users/marregui/QUEST/snapshot, magic=0x00] -> UNSUPPORTED (SYSTEM COULD BE UNSTABLE)
+2022-11-23T14:33:18.404353Z A server-main  - sql copy input root: NOT SET
+2022-11-23T14:33:18.404368Z A server-main  - sql copy input worker root: NOT SET
+2022-11-23T14:33:18.406382Z A server-main Metrics are disabled, health check endpoint will not consider unhandled errors
+2022-11-23T14:33:18.427332Z I i.q.c.m.EngineMigration table structures are up to date
+2022-11-23T14:33:18.428019Z I i.q.g.FunctionFactoryCache loading functions [test=false]
+2022-11-23T14:33:18.524907Z I i.q.c.p.WriterPool open [table=`sys.column_versions_purge_log`, thread=20]
+2022-11-23T14:33:18.529231Z I i.q.c.TableWriter open 'sys.column_versions_purge_log'
+2022-11-23T14:33:18.531899Z I i.q.c.TableWriter purging non attached partitions [path=/Users/marregui/QUEST/db/sys.column_versions_purge_log]
+2022-11-23T14:33:18.532303Z I i.q.c.p.WriterPool >> [table=`sys.column_versions_purge_log`, thread=20]
+2022-11-23T14:33:18.532752Z I i.q.c.p.ReaderPool open 'sys.column_versions_purge_log' [at=0:0]
+2022-11-23T14:33:18.535601Z I i.q.g.SqlCompiler plan [q=`select-choose ts, table_name, column_name, table_id, truncate_version, columnType, table_partition_by, updated_txn, column_version, partition_timestamp, partition_name_txn, completed from (select [ts, table_name, column_name, table_id, truncate_version, columnType, table_partition_by, updated_txn, column_version, partition_timestamp, partition_name_txn, completed] from sys.column_versions_purge_log timestamp (ts) where completed = null)`, fd=-1]
+2022-11-23T14:33:18.548819Z I i.q.c.p.ReaderPool open 'telemetry_config' [at=0:0]
+2022-11-23T14:33:18.549728Z I i.q.TelemetryJob Failed to alter telemetry table [table=telemetry_config,error=column 'version' already exists]
+2022-11-23T14:33:18.549810Z I i.q.TelemetryJob Failed to alter telemetry table [table=telemetry_config,error=column 'os' already exists]
+2022-11-23T14:33:18.549865Z I i.q.TelemetryJob Failed to alter telemetry table [table=telemetry_config,error=column 'package' already exists]
+2022-11-23T14:33:18.549895Z I i.q.c.p.WriterPool open [table=`telemetry_config`, thread=20]
+2022-11-23T14:33:18.549951Z I i.q.c.TableWriter open 'telemetry_config'
+2022-11-23T14:33:18.550926Z I i.q.c.TableWriter switched partition [path='/Users/marregui/QUEST/db/telemetry_config/default']
+2022-11-23T14:33:18.553431Z I i.q.c.p.WriterPool >> [table=`telemetry_config`, thread=20]
+2022-11-23T14:33:18.553689Z I i.q.g.SqlCompiler plan [q=`select-choose id, enabled, version, os, package from (select [id, enabled, version, os, package] from telemetry_config) limit -(1)`, fd=-1]
+2022-11-23T14:33:18.554297Z I i.q.c.TableReader open partition /Users/marregui/QUEST/db/telemetry_config/default [rowCount=2, partitionNameTxn=-1, transientRowCount=2, partitionIndex=0, partitionCount=1]
+2022-11-23T14:33:18.554491Z A i.q.TelemetryJob instance [id=0x05ede534efb72f00004a160642fb88, enabled=false]
+2022-11-23T14:33:18.555604Z I i.q.WorkerPoolManager using SHARED pool [requester=http, workers=7]
+2022-11-23T14:33:18.558535Z A http-server listening on 0.0.0.0:9000 [fd=99 backlog=64]
+2022-11-23T14:33:18.591061Z I i.q.WorkerPoolManager using SHARED pool [requester=min-http, workers=7]
+2022-11-23T14:33:18.591194Z A http-min-server listening on 0.0.0.0:9003 [fd=101 backlog=4]
+2022-11-23T14:33:18.591693Z I i.q.WorkerPoolManager using SHARED pool [requester=pg-wire, workers=7]
+2022-11-23T14:33:18.593877Z A pg-server listening on 0.0.0.0:8812 [fd=103 backlog=64]
+2022-11-23T14:33:18.667259Z I i.q.WorkerPoolManager using SHARED pool [requester=line-tcp-io, workers=7]
+2022-11-23T14:33:18.667340Z I i.q.WorkerPoolManager new DEDICATED pool [name=ilpwriter, requester=line-tcp-writer, workers=1]
+2022-11-23T14:33:18.668314Z I i.q.c.l.t.LineTcpReceiver using default context
+2022-11-23T14:33:18.668761Z A tcp-line-server listening on 0.0.0.0:9009 [fd=21 backlog=256]
+2022-11-23T14:33:18.675735Z E i.q.c.l.u.AbstractLineProtoUdpReceiver could not set receive buffer size [fd=106, size=8388608, errno=55]
+2022-11-23T14:33:18.678717Z I i.q.c.l.u.AbstractLineProtoUdpReceiver receiving multicast from 232.1.2.3:9009 via 0.0.0.0 [fd=106, commitRate=1000000]
+2022-11-23T14:33:18.785445Z A server-main bootstrap complete
+2022-11-23T14:33:18.785784Z I server-main os scheduled worker started [name=questdb-shared-3]
+2022-11-23T14:33:18.785911Z I server-main os scheduled worker started [name=questdb-shared-4]
+2022-11-23T14:33:18.786012Z I server-main os scheduled worker started [name=questdb-shared-5]
+2022-11-23T14:33:18.786156Z I server-main os scheduled worker started [name=questdb-shared-6]
+2022-11-23T14:33:18.786258Z I server-main os scheduled worker started [name=questdb-shared-7]
+2022-11-23T14:33:18.786416Z I server-main os scheduled worker started [name=questdb-shared-8]
+2022-11-23T14:33:18.786439Z I server-main worker pool started [pool=shared]
+2022-11-23T14:33:18.786468Z I server-main os scheduled worker started [name=questdb-shared-9]
+2022-11-23T14:33:18.786508Z I i.q.WorkerPoolManager started shared pool [name=shared, workers=7]
+2022-11-23T14:33:18.786628Z I server-main worker pool started [pool=ilpwriter]
+2022-11-23T14:33:18.786635Z I i.q.WorkerPoolManager started dedicated pool [name=ilpwriter, workers=1]
+2022-11-23T14:33:18.786648Z I server-main 
+     ___                  _   ____  ____
+    / _ \ _   _  ___  ___| |_|  _ \| __ )
+   | | | | | | |/ _ \/ __| __| | | |  _ \
+   | |_| | |_| |  __/\__ \ |_| |_| | |_) |
+    \__\_\\__,_|\___||___/\__|____/|____/
+
+Web Console URL(s):
+
+	http://192.168.1.57:9000
+	http://127.0.0.1:9000
+
+
+2022-11-23T14:33:18.786680Z I server-main os scheduled worker started [name=questdb-ilpwriter-10]
+2022-11-23T14:33:18.907796Z A server-main enjoy
+2022-11-23T14:33:18.936754Z I pg-server connected [ip=127.0.0.1, fd=108]
+2022-11-23T14:33:18.941885Z I i.q.c.p.PGConnectionContext protocol [major=3, minor=0]
+2022-11-23T14:33:18.941920Z I i.q.c.p.PGConnectionContext property [name=user, value=admin]
+2022-11-23T14:33:18.941930Z I i.q.c.p.PGConnectionContext property [name=database, value=main]
+2022-11-23T14:33:18.941942Z I i.q.c.p.PGConnectionContext property [name=client_encoding, value=UTF8]
+2022-11-23T14:33:18.941949Z I i.q.c.p.PGConnectionContext property [name=DateStyle, value=ISO]
+2022-11-23T14:33:18.941956Z I i.q.c.p.PGConnectionContext property [name=TimeZone, value=Europe/Madrid]
+2022-11-23T14:33:18.941964Z I i.q.c.p.PGConnectionContext property [name=extra_float_digits, value=2]
+2022-11-23T14:33:18.953530Z I i.q.c.p.PGConnectionContext parse [fd=108, q=BEGIN]
+2022-11-23T14:33:18.953866Z I i.q.c.p.PGConnectionContext parse [fd=108, q=SET extra_float_digits = 3]
+2022-11-23T14:33:18.954122Z I i.q.c.p.PGConnectionContext parse [fd=108, q=SET application_name = 'quest-1.0']
+2022-11-23T14:33:18.954409Z I i.q.c.p.PGConnectionContext parse [fd=108, q=COMMIT]
+2022-11-23T14:33:28.089579Z I i.q.WorkerPoolManager closing dedicated pool [name=ilpwriter, workers=1]
+2022-11-23T14:33:28.095496Z I server-main cleaned worker [name=ilpwriter, worker=0, total=1]
+2022-11-23T14:33:28.095585Z I server-main os scheduled worker stopped [name=questdb-ilpwriter-10]
+2022-11-23T14:33:28.095645Z I i.q.c.l.t.LineTcpWriterJob line protocol writer closing [threadId=0]
+2022-11-23T14:33:28.095756Z I i.q.WorkerPoolManager closing shared pool [name=shared, workers=7]
+2022-11-23T14:33:28.097268Z I i.q.c.h.p.QueryCache closed
+2022-11-23T14:33:28.097352Z I i.q.c.h.p.QueryCache closed
+2022-11-23T14:33:28.097549Z I server-main cleaned worker [name=shared, worker=4, total=7]
+2022-11-23T14:33:28.097569Z I server-main os scheduled worker stopped [name=questdb-shared-7]
+2022-11-23T14:33:28.109697Z I i.q.c.h.p.QueryCache closed
+2022-11-23T14:33:28.109759Z I i.q.c.h.p.QueryCache closed
+2022-11-23T14:33:28.109875Z I server-main cleaned worker [name=shared, worker=6, total=7]
+2022-11-23T14:33:28.109889Z I server-main os scheduled worker stopped [name=questdb-shared-9]
+2022-11-23T14:33:28.115977Z I i.q.c.h.p.QueryCache closed
+2022-11-23T14:33:28.116031Z I i.q.c.h.p.QueryCache closed
+2022-11-23T14:33:28.116152Z I server-main cleaned worker [name=shared, worker=0, total=7]
+2022-11-23T14:33:28.116167Z I server-main os scheduled worker stopped [name=questdb-shared-3]
+2022-11-23T14:33:28.120574Z I i.q.c.h.p.QueryCache closed
+2022-11-23T14:33:28.120638Z I i.q.c.h.p.QueryCache closed
+2022-11-23T14:33:28.120763Z I server-main cleaned worker [name=shared, worker=1, total=7]
+2022-11-23T14:33:28.120779Z I server-main os scheduled worker stopped [name=questdb-shared-4]
+2022-11-23T14:33:28.131849Z I i.q.c.h.p.QueryCache closed
+2022-11-23T14:33:28.132313Z I i.q.c.h.p.QueryCache closed
+2022-11-23T14:33:28.132378Z I server-main cleaned worker [name=shared, worker=2, total=7]
+2022-11-23T14:33:28.132390Z I server-main os scheduled worker stopped [name=questdb-shared-5]
+2022-11-23T14:33:28.137806Z I i.q.c.h.p.QueryCache closed
+2022-11-23T14:33:28.137846Z I i.q.c.h.p.QueryCache closed
+2022-11-23T14:33:28.137934Z I server-main cleaned worker [name=shared, worker=3, total=7]
+2022-11-23T14:33:28.137948Z I server-main os scheduled worker stopped [name=questdb-shared-6]
+2022-11-23T14:38:10.490815Z A server-main QuestDB server 6.5.5. Copyright (C) 2014-2022, all rights reserved.
+2022-11-23T14:38:10.491675Z A server-main OS/Arch apple/apple-silicon [AVX512,548583080, 64 bits, 8 processors]
+2022-11-23T14:38:10.493790Z I server-main Web Console is up to date
+2022-11-23T14:38:10.493937Z A server-main Server config: /Users/marregui/QUEST/conf/server.conf
+2022-11-23T14:38:10.540532Z A server-main Config:
+2022-11-23T14:38:10.540557Z A server-main  - http.enabled : true
+2022-11-23T14:38:10.540579Z A server-main  - tcp.enabled  : true
+2022-11-23T14:38:10.540599Z A server-main  - pg.enabled   : true
+2022-11-23T14:38:10.540617Z A server-main  - open database [id=963880947576877442.4482852230280459206]
+2022-11-23T14:38:10.540717Z A server-main  - db root: [path=/Users/marregui/QUEST/db, magic=0x1a] -> UNSUPPORTED (SYSTEM COULD BE UNSTABLE)
+2022-11-23T14:38:10.540757Z A server-main  - backup root: NOT SET
+2022-11-23T14:38:10.540800Z A server-main  - snapshot root: [path=/Users/marregui/QUEST/snapshot, magic=0x00] -> UNSUPPORTED (SYSTEM COULD BE UNSTABLE)
+2022-11-23T14:38:10.540827Z A server-main  - sql copy input root: NOT SET
+2022-11-23T14:38:10.540840Z A server-main  - sql copy input worker root: NOT SET
+2022-11-23T14:38:10.542801Z A server-main Metrics are disabled, health check endpoint will not consider unhandled errors
+2022-11-23T14:38:10.565070Z I i.q.c.m.EngineMigration table structures are up to date
+2022-11-23T14:38:10.565812Z I i.q.g.FunctionFactoryCache loading functions [test=false]
+2022-11-23T14:38:10.670181Z I i.q.c.p.WriterPool open [table=`sys.column_versions_purge_log`, thread=20]
+2022-11-23T14:38:10.674616Z I i.q.c.TableWriter open 'sys.column_versions_purge_log'
+2022-11-23T14:38:10.679778Z I i.q.c.TableWriter purging non attached partitions [path=/Users/marregui/QUEST/db/sys.column_versions_purge_log]
+2022-11-23T14:38:10.680302Z I i.q.c.p.WriterPool >> [table=`sys.column_versions_purge_log`, thread=20]
+2022-11-23T14:38:10.680778Z I i.q.c.p.ReaderPool open 'sys.column_versions_purge_log' [at=0:0]
+2022-11-23T14:38:10.683719Z I i.q.g.SqlCompiler plan [q=`select-choose ts, table_name, column_name, table_id, truncate_version, columnType, table_partition_by, updated_txn, column_version, partition_timestamp, partition_name_txn, completed from (select [ts, table_name, column_name, table_id, truncate_version, columnType, table_partition_by, updated_txn, column_version, partition_timestamp, partition_name_txn, completed] from sys.column_versions_purge_log timestamp (ts) where completed = null)`, fd=-1]
+2022-11-23T14:38:10.696993Z I i.q.c.p.ReaderPool open 'telemetry_config' [at=0:0]
+2022-11-23T14:38:10.698487Z I i.q.TelemetryJob Failed to alter telemetry table [table=telemetry_config,error=column 'version' already exists]
+2022-11-23T14:38:10.698565Z I i.q.TelemetryJob Failed to alter telemetry table [table=telemetry_config,error=column 'os' already exists]
+2022-11-23T14:38:10.698617Z I i.q.TelemetryJob Failed to alter telemetry table [table=telemetry_config,error=column 'package' already exists]
+2022-11-23T14:38:10.698638Z I i.q.c.p.WriterPool open [table=`telemetry_config`, thread=20]
+2022-11-23T14:38:10.698682Z I i.q.c.TableWriter open 'telemetry_config'
+2022-11-23T14:38:10.699681Z I i.q.c.TableWriter switched partition [path='/Users/marregui/QUEST/db/telemetry_config/default']
+2022-11-23T14:38:10.700054Z I i.q.c.p.WriterPool >> [table=`telemetry_config`, thread=20]
+2022-11-23T14:38:10.700319Z I i.q.g.SqlCompiler plan [q=`select-choose id, enabled, version, os, package from (select [id, enabled, version, os, package] from telemetry_config) limit -(1)`, fd=-1]
+2022-11-23T14:38:10.701030Z I i.q.c.TableReader open partition /Users/marregui/QUEST/db/telemetry_config/default [rowCount=2, partitionNameTxn=-1, transientRowCount=2, partitionIndex=0, partitionCount=1]
+2022-11-23T14:38:10.701216Z A i.q.TelemetryJob instance [id=0x05ede534efb72f00004a160642fb88, enabled=false]
+2022-11-23T14:38:10.702090Z I i.q.WorkerPoolManager using SHARED pool [requester=http, workers=7]
+2022-11-23T14:38:10.704658Z A http-server listening on 0.0.0.0:9000 [fd=102 backlog=64]
+2022-11-23T14:38:10.751936Z I i.q.WorkerPoolManager using SHARED pool [requester=min-http, workers=7]
+2022-11-23T14:38:10.752102Z A http-min-server listening on 0.0.0.0:9003 [fd=104 backlog=4]
+2022-11-23T14:38:10.752574Z I i.q.WorkerPoolManager using SHARED pool [requester=pg-wire, workers=7]
+2022-11-23T14:38:10.754275Z A pg-server listening on 0.0.0.0:8812 [fd=106 backlog=64]
+2022-11-23T14:38:10.771814Z I i.q.WorkerPoolManager using SHARED pool [requester=line-tcp-io, workers=7]
+2022-11-23T14:38:10.771861Z I i.q.WorkerPoolManager new DEDICATED pool [name=ilpwriter, requester=line-tcp-writer, workers=1]
+2022-11-23T14:38:10.772947Z I i.q.c.l.t.LineTcpReceiver using default context
+2022-11-23T14:38:10.773295Z A tcp-line-server listening on 0.0.0.0:9009 [fd=108 backlog=256]
+2022-11-23T14:38:10.779676Z E i.q.c.l.u.AbstractLineProtoUdpReceiver could not set receive buffer size [fd=110, size=8388608, errno=55]
+2022-11-23T14:38:10.782664Z I i.q.c.l.u.AbstractLineProtoUdpReceiver receiving multicast from 232.1.2.3:9009 via 0.0.0.0 [fd=110, commitRate=1000000]
+2022-11-23T14:38:10.923320Z A server-main bootstrap complete
+2022-11-23T14:38:10.923678Z I server-main os scheduled worker started [name=questdb-shared-3]
+2022-11-23T14:38:10.923819Z I server-main os scheduled worker started [name=questdb-shared-4]
+2022-11-23T14:38:10.923913Z I server-main os scheduled worker started [name=questdb-shared-5]
+2022-11-23T14:38:10.924097Z I server-main os scheduled worker started [name=questdb-shared-6]
+2022-11-23T14:38:10.924274Z I server-main os scheduled worker started [name=questdb-shared-7]
+2022-11-23T14:38:10.924326Z I server-main os scheduled worker started [name=questdb-shared-8]
+2022-11-23T14:38:10.924497Z I server-main worker pool started [pool=shared]
+2022-11-23T14:38:10.924509Z I server-main os scheduled worker started [name=questdb-shared-9]
+2022-11-23T14:38:10.924516Z I i.q.WorkerPoolManager started shared pool [name=shared, workers=7]
+2022-11-23T14:38:10.924627Z I server-main worker pool started [pool=ilpwriter]
+2022-11-23T14:38:10.924635Z I i.q.WorkerPoolManager started dedicated pool [name=ilpwriter, workers=1]
+2022-11-23T14:38:10.924649Z I server-main os scheduled worker started [name=questdb-ilpwriter-10]
+2022-11-23T14:38:10.924648Z I server-main 
+     ___                  _   ____  ____
+    / _ \ _   _  ___  ___| |_|  _ \| __ )
+   | | | | | | |/ _ \/ __| __| | | |  _ \
+   | |_| | |_| |  __/\__ \ |_| |_| | |_) |
+    \__\_\\__,_|\___||___/\__|____/|____/
+
+Web Console URL(s):
+
+	http://192.168.1.57:9000
+	http://127.0.0.1:9000
+
+
+2022-11-23T14:38:11.022703Z A server-main enjoy
+2022-11-23T14:38:11.051044Z I pg-server connected [ip=127.0.0.1, fd=111]
+2022-11-23T14:38:11.055951Z I i.q.c.p.PGConnectionContext protocol [major=3, minor=0]
+2022-11-23T14:38:11.056047Z I i.q.c.p.PGConnectionContext property [name=user, value=admin]
+2022-11-23T14:38:11.056065Z I i.q.c.p.PGConnectionContext property [name=database, value=main]
+2022-11-23T14:38:11.056077Z I i.q.c.p.PGConnectionContext property [name=client_encoding, value=UTF8]
+2022-11-23T14:38:11.056084Z I i.q.c.p.PGConnectionContext property [name=DateStyle, value=ISO]
+2022-11-23T14:38:11.056090Z I i.q.c.p.PGConnectionContext property [name=TimeZone, value=Europe/Madrid]
+2022-11-23T14:38:11.056097Z I i.q.c.p.PGConnectionContext property [name=extra_float_digits, value=2]
+2022-11-23T14:38:11.068302Z I i.q.c.p.PGConnectionContext parse [fd=111, q=BEGIN]
+2022-11-23T14:38:11.068627Z I i.q.c.p.PGConnectionContext parse [fd=111, q=SET extra_float_digits = 3]
+2022-11-23T14:38:11.068839Z I i.q.c.p.PGConnectionContext parse [fd=111, q=SET application_name = 'quest-1.0']
+2022-11-23T14:38:11.069024Z I i.q.c.p.PGConnectionContext parse [fd=111, q=COMMIT]
+2022-11-23T14:38:13.680309Z I i.q.c.p.PGConnectionContext parse [fd=111, q=]
+2022-11-23T14:38:21.609663Z I i.q.WorkerPoolManager closing dedicated pool [name=ilpwriter, workers=1]
+2022-11-23T14:38:21.658125Z I server-main cleaned worker [name=ilpwriter, worker=0, total=1]
+2022-11-23T14:38:21.658224Z I server-main os scheduled worker stopped [name=questdb-ilpwriter-10]
+2022-11-23T14:38:21.658256Z I i.q.c.l.t.LineTcpWriterJob line protocol writer closing [threadId=0]
+2022-11-23T14:38:21.658409Z I i.q.WorkerPoolManager closing shared pool [name=shared, workers=7]
+2022-11-23T14:38:21.662377Z I i.q.c.h.p.QueryCache closed
+2022-11-23T14:38:21.662500Z I i.q.c.h.p.QueryCache closed
+2022-11-23T14:38:21.662732Z I server-main cleaned worker [name=shared, worker=4, total=7]
+2022-11-23T14:38:21.662774Z I server-main os scheduled worker stopped [name=questdb-shared-7]
+2022-11-23T14:38:21.675447Z I i.q.c.h.p.QueryCache closed
+2022-11-23T14:38:21.675711Z I i.q.c.h.p.QueryCache closed
+2022-11-23T14:38:21.675920Z I server-main cleaned worker [name=shared, worker=1, total=7]
+2022-11-23T14:38:21.675944Z I server-main os scheduled worker stopped [name=questdb-shared-4]
+2022-11-23T14:38:21.691341Z I i.q.c.h.p.QueryCache closed
+2022-11-23T14:38:21.691480Z I i.q.c.h.p.QueryCache closed
+2022-11-23T14:38:21.691704Z I server-main cleaned worker [name=shared, worker=0, total=7]
+2022-11-23T14:38:21.691748Z I server-main os scheduled worker stopped [name=questdb-shared-3]
+2022-11-23T14:38:21.738772Z I i.q.c.h.p.QueryCache closed
+2022-11-23T14:38:21.738899Z I i.q.c.h.p.QueryCache closed
+2022-11-23T14:38:21.739219Z I server-main cleaned worker [name=shared, worker=5, total=7]
+2022-11-23T14:38:21.739257Z I server-main os scheduled worker stopped [name=questdb-shared-8]
+2022-11-23T14:38:21.755353Z I i.q.c.h.p.QueryCache closed
+2022-11-23T14:38:21.755420Z I i.q.c.h.p.QueryCache closed
+2022-11-23T14:38:21.755518Z I server-main cleaned worker [name=shared, worker=2, total=7]
+2022-11-23T14:38:21.755536Z I server-main os scheduled worker stopped [name=questdb-shared-5]
+2022-11-23T14:38:21.756580Z I i.q.c.h.p.QueryCache closed
+2022-11-23T14:38:21.756639Z I i.q.c.h.p.QueryCache closed
+2022-11-23T14:38:21.756745Z I server-main cleaned worker [name=shared, worker=6, total=7]
+2022-11-23T14:38:21.756764Z I server-main os scheduled worker stopped [name=questdb-shared-9]
+2022-11-23T14:38:21.760167Z I i.q.c.h.p.QueryCache closed
+2022-11-23T14:38:21.760210Z I i.q.c.h.p.QueryCache closed
+2022-11-23T14:38:21.760309Z I server-main cleaned worker [name=shared, worker=3, total=7]
+2022-11-23T14:38:21.760331Z I server-main os scheduled worker stopped [name=questdb-shared-6]
+2022-11-23T14:38:21.760465Z I i.q.c.p.WriterPool << [table=`sys.column_versions_purge_log`, thread=20]
+2022-11-23T14:38:21.761743Z I i.q.c.l.u.AbstractLineProtoUdpReceiver closed [fd=110]
+2022-11-23T14:38:21.761802Z I i.q.c.l.u.AbstractLineProtoUdpReceiver closed [fd=110]
+2022-11-23T14:38:21.761994Z I tcp-line-server closed
+2022-11-23T14:38:21.762038Z I pg-server disconnected [ip=127.0.0.1, fd=111, src=shutdown]
+2022-11-23T14:38:21.762406Z I pg-server closed
+2022-11-23T14:38:21.762438Z I http-min-server closed
+2022-11-23T14:38:21.762485Z I http-server closed
+2022-11-23T14:38:21.763182Z I i.q.c.p.WriterPool << [table=`telemetry_config`, thread=20]
+2022-11-23T14:38:21.764803Z I i.q.c.TableWriter closed 'sys.column_versions_purge_log'
+2022-11-23T14:38:21.764833Z I i.q.c.p.WriterPool closed [table=`sys.column_versions_purge_log`, reason=POOL_CLOSED, by=20]
+2022-11-23T14:38:21.767643Z I i.q.c.TableWriter closed 'telemetry_config'
+2022-11-23T14:38:21.767661Z I i.q.c.p.WriterPool closed [table=`telemetry_config`, reason=POOL_CLOSED, by=20]
+2022-11-23T14:38:21.767697Z I i.q.c.p.WriterPool closed
+2022-11-23T14:38:21.768017Z I i.q.c.p.ReaderPool closed 'sys.column_versions_purge_log' [at=0:0, reason=POOL_CLOSED]
+2022-11-23T14:38:21.768390Z I i.q.c.p.ReaderPool closed 'telemetry_config' [at=0:0, reason=POOL_CLOSED]
+2022-11-23T14:38:21.768428Z I i.q.c.p.ReaderPool closed
+2022-11-23T14:38:54.518607Z A server-main QuestDB server 6.5.5. Copyright (C) 2014-2022, all rights reserved.
+2022-11-23T14:38:54.519270Z A server-main OS/Arch apple/apple-silicon [AVX512,1301120680, 64 bits, 8 processors]
+2022-11-23T14:38:54.521340Z I server-main Web Console is up to date
+2022-11-23T14:38:54.521454Z A server-main Server config: /Users/marregui/QUEST/conf/server.conf
+2022-11-23T14:38:54.570147Z A server-main Config:
+2022-11-23T14:38:54.570173Z A server-main  - http.enabled : true
+2022-11-23T14:38:54.570196Z A server-main  - tcp.enabled  : true
+2022-11-23T14:38:54.570215Z A server-main  - pg.enabled   : true
+2022-11-23T14:38:54.570238Z A server-main  - open database [id=963880947576877442.4482852230280459206]
+2022-11-23T14:38:54.570334Z A server-main  - db root: [path=/Users/marregui/QUEST/db, magic=0x1a] -> UNSUPPORTED (SYSTEM COULD BE UNSTABLE)
+2022-11-23T14:38:54.570374Z A server-main  - backup root: NOT SET
+2022-11-23T14:38:54.570405Z A server-main  - snapshot root: [path=/Users/marregui/QUEST/snapshot, magic=0x00] -> UNSUPPORTED (SYSTEM COULD BE UNSTABLE)
+2022-11-23T14:38:54.570432Z A server-main  - sql copy input root: NOT SET
+2022-11-23T14:38:54.570446Z A server-main  - sql copy input worker root: NOT SET
+2022-11-23T14:38:54.572170Z A server-main Metrics are disabled, health check endpoint will not consider unhandled errors
+2022-11-23T14:38:54.592964Z I i.q.c.m.EngineMigration table structures are up to date
+2022-11-23T14:38:54.593680Z I i.q.g.FunctionFactoryCache loading functions [test=false]
+2022-11-23T14:38:54.692678Z I i.q.c.p.WriterPool open [table=`sys.column_versions_purge_log`, thread=20]
+2022-11-23T14:38:54.697307Z I i.q.c.TableWriter open 'sys.column_versions_purge_log'
+2022-11-23T14:38:54.704633Z I i.q.c.TableWriter purging non attached partitions [path=/Users/marregui/QUEST/db/sys.column_versions_purge_log]
+2022-11-23T14:38:54.705072Z I i.q.c.p.WriterPool >> [table=`sys.column_versions_purge_log`, thread=20]
+2022-11-23T14:38:54.705548Z I i.q.c.p.ReaderPool open 'sys.column_versions_purge_log' [at=0:0]
+2022-11-23T14:38:54.708344Z I i.q.g.SqlCompiler plan [q=`select-choose ts, table_name, column_name, table_id, truncate_version, columnType, table_partition_by, updated_txn, column_version, partition_timestamp, partition_name_txn, completed from (select [ts, table_name, column_name, table_id, truncate_version, columnType, table_partition_by, updated_txn, column_version, partition_timestamp, partition_name_txn, completed] from sys.column_versions_purge_log timestamp (ts) where completed = null)`, fd=-1]
+2022-11-23T14:38:54.722163Z I i.q.c.p.ReaderPool open 'telemetry_config' [at=0:0]
+2022-11-23T14:38:54.723581Z I i.q.TelemetryJob Failed to alter telemetry table [table=telemetry_config,error=column 'version' already exists]
+2022-11-23T14:38:54.723659Z I i.q.TelemetryJob Failed to alter telemetry table [table=telemetry_config,error=column 'os' already exists]
+2022-11-23T14:38:54.723716Z I i.q.TelemetryJob Failed to alter telemetry table [table=telemetry_config,error=column 'package' already exists]
+2022-11-23T14:38:54.723747Z I i.q.c.p.WriterPool open [table=`telemetry_config`, thread=20]
+2022-11-23T14:38:54.723791Z I i.q.c.TableWriter open 'telemetry_config'
+2022-11-23T14:38:54.724780Z I i.q.c.TableWriter switched partition [path='/Users/marregui/QUEST/db/telemetry_config/default']
+2022-11-23T14:38:54.725155Z I i.q.c.p.WriterPool >> [table=`telemetry_config`, thread=20]
+2022-11-23T14:38:54.725429Z I i.q.g.SqlCompiler plan [q=`select-choose id, enabled, version, os, package from (select [id, enabled, version, os, package] from telemetry_config) limit -(1)`, fd=-1]
+2022-11-23T14:38:54.726107Z I i.q.c.TableReader open partition /Users/marregui/QUEST/db/telemetry_config/default [rowCount=2, partitionNameTxn=-1, transientRowCount=2, partitionIndex=0, partitionCount=1]
+2022-11-23T14:38:54.726324Z A i.q.TelemetryJob instance [id=0x05ede534efb72f00004a160642fb88, enabled=false]
+2022-11-23T14:38:54.727199Z I i.q.WorkerPoolManager using SHARED pool [requester=http, workers=7]
+2022-11-23T14:38:54.729807Z A http-server listening on 0.0.0.0:9000 [fd=99 backlog=64]
+2022-11-23T14:38:54.780518Z I i.q.WorkerPoolManager using SHARED pool [requester=min-http, workers=7]
+2022-11-23T14:38:54.780767Z A http-min-server listening on 0.0.0.0:9003 [fd=101 backlog=4]
+2022-11-23T14:38:54.781387Z I i.q.WorkerPoolManager using SHARED pool [requester=pg-wire, workers=7]
+2022-11-23T14:38:54.783683Z A pg-server listening on 0.0.0.0:8812 [fd=103 backlog=64]
+2022-11-23T14:38:54.799656Z I i.q.WorkerPoolManager using SHARED pool [requester=line-tcp-io, workers=7]
+2022-11-23T14:38:54.799694Z I i.q.WorkerPoolManager new DEDICATED pool [name=ilpwriter, requester=line-tcp-writer, workers=1]
+2022-11-23T14:38:54.800946Z I i.q.c.l.t.LineTcpReceiver using default context
+2022-11-23T14:38:54.801382Z A tcp-line-server listening on 0.0.0.0:9009 [fd=105 backlog=256]
+2022-11-23T14:38:54.806932Z E i.q.c.l.u.AbstractLineProtoUdpReceiver could not set receive buffer size [fd=107, size=8388608, errno=55]
+2022-11-23T14:38:54.809960Z I i.q.c.l.u.AbstractLineProtoUdpReceiver receiving multicast from 232.1.2.3:9009 via 0.0.0.0 [fd=107, commitRate=1000000]
+2022-11-23T14:38:54.954711Z A server-main bootstrap complete
+2022-11-23T14:38:54.954984Z I server-main os scheduled worker started [name=questdb-shared-3]
+2022-11-23T14:38:54.954992Z I server-main os scheduled worker started [name=questdb-shared-4]
+2022-11-23T14:38:54.955045Z I server-main os scheduled worker started [name=questdb-shared-5]
+2022-11-23T14:38:54.955552Z I server-main os scheduled worker started [name=questdb-shared-6]
+2022-11-23T14:38:54.955555Z I server-main os scheduled worker started [name=questdb-shared-7]
+2022-11-23T14:38:54.955661Z I server-main os scheduled worker started [name=questdb-shared-8]
+2022-11-23T14:38:54.955703Z I server-main worker pool started [pool=shared]
+2022-11-23T14:38:54.955715Z I i.q.WorkerPoolManager started shared pool [name=shared, workers=7]
+2022-11-23T14:38:54.955772Z I server-main os scheduled worker started [name=questdb-shared-9]
+2022-11-23T14:38:54.955801Z I server-main worker pool started [pool=ilpwriter]
+2022-11-23T14:38:54.955807Z I i.q.WorkerPoolManager started dedicated pool [name=ilpwriter, workers=1]
+2022-11-23T14:38:54.955821Z I server-main 
+     ___                  _   ____  ____
+    / _ \ _   _  ___  ___| |_|  _ \| __ )
+   | | | | | | |/ _ \/ __| __| | | |  _ \
+   | |_| | |_| |  __/\__ \ |_| |_| | |_) |
+    \__\_\\__,_|\___||___/\__|____/|____/
+
+Web Console URL(s):
+
+	http://192.168.1.57:9000
+	http://127.0.0.1:9000
+
+
+2022-11-23T14:38:54.955866Z I server-main os scheduled worker started [name=questdb-ilpwriter-10]
+2022-11-23T14:38:55.057569Z A server-main enjoy
+2022-11-23T14:38:55.089585Z I pg-server connected [ip=127.0.0.1, fd=108]
+2022-11-23T14:38:55.094828Z I i.q.c.p.PGConnectionContext protocol [major=3, minor=0]
+2022-11-23T14:38:55.094878Z I i.q.c.p.PGConnectionContext property [name=user, value=admin]
+2022-11-23T14:38:55.094892Z I i.q.c.p.PGConnectionContext property [name=database, value=main]
+2022-11-23T14:38:55.094903Z I i.q.c.p.PGConnectionContext property [name=client_encoding, value=UTF8]
+2022-11-23T14:38:55.094910Z I i.q.c.p.PGConnectionContext property [name=DateStyle, value=ISO]
+2022-11-23T14:38:55.094918Z I i.q.c.p.PGConnectionContext property [name=TimeZone, value=Europe/Madrid]
+2022-11-23T14:38:55.094925Z I i.q.c.p.PGConnectionContext property [name=extra_float_digits, value=2]
+2022-11-23T14:38:55.108961Z I i.q.c.p.PGConnectionContext parse [fd=108, q=BEGIN]
+2022-11-23T14:38:55.109441Z I i.q.c.p.PGConnectionContext parse [fd=108, q=SET extra_float_digits = 3]
+2022-11-23T14:38:55.109756Z I i.q.c.p.PGConnectionContext parse [fd=108, q=SET application_name = 'quest-1.0']
+2022-11-23T14:38:55.109962Z I i.q.c.p.PGConnectionContext parse [fd=108, q=COMMIT]
+2022-11-23T14:39:19.890766Z I i.q.c.p.PGConnectionContext parse [fd=108, q=]
+2022-11-23T14:39:49.837659Z I i.q.c.p.PGConnectionContext parse [fd=108, q=]
+2022-11-23T14:40:19.833910Z I i.q.c.p.PGConnectionContext parse [fd=108, q=]
+2022-11-23T14:40:25.041705Z I i.q.WorkerPoolManager closing dedicated pool [name=ilpwriter, workers=1]
+2022-11-23T14:40:25.048344Z I server-main cleaned worker [name=ilpwriter, worker=0, total=1]
+2022-11-23T14:40:25.048399Z I server-main os scheduled worker stopped [name=questdb-ilpwriter-10]
+2022-11-23T14:40:25.048445Z I i.q.c.l.t.LineTcpWriterJob line protocol writer closing [threadId=0]
+2022-11-23T14:40:25.048521Z I i.q.WorkerPoolManager closing shared pool [name=shared, workers=7]
+2022-11-23T14:40:25.058796Z I i.q.c.h.p.QueryCache closed
+2022-11-23T14:40:25.058976Z I i.q.c.h.p.QueryCache closed
+2022-11-23T14:40:25.059101Z I server-main cleaned worker [name=shared, worker=5, total=7]
+2022-11-23T14:40:25.059116Z I server-main os scheduled worker stopped [name=questdb-shared-8]
+2022-11-23T14:40:32.468412Z A server-main QuestDB server 6.5.5. Copyright (C) 2014-2022, all rights reserved.
+2022-11-23T14:40:32.469011Z A server-main OS/Arch apple/apple-silicon [AVX512,1076373672, 64 bits, 8 processors]
+2022-11-23T14:40:32.470776Z I server-main Web Console is up to date
+2022-11-23T14:40:32.470876Z A server-main Server config: /Users/marregui/QUEST/conf/server.conf
+2022-11-23T14:40:32.516149Z A server-main Config:
+2022-11-23T14:40:32.516173Z A server-main  - http.enabled : true
+2022-11-23T14:40:32.516195Z A server-main  - tcp.enabled  : true
+2022-11-23T14:40:32.516213Z A server-main  - pg.enabled   : true
+2022-11-23T14:40:32.516231Z A server-main  - open database [id=963880947576877442.4482852230280459206]
+2022-11-23T14:40:32.516325Z A server-main  - db root: [path=/Users/marregui/QUEST/db, magic=0x1a] -> UNSUPPORTED (SYSTEM COULD BE UNSTABLE)
+2022-11-23T14:40:32.516366Z A server-main  - backup root: NOT SET
+2022-11-23T14:40:32.516397Z A server-main  - snapshot root: [path=/Users/marregui/QUEST/snapshot, magic=0x00] -> UNSUPPORTED (SYSTEM COULD BE UNSTABLE)
+2022-11-23T14:40:32.516424Z A server-main  - sql copy input root: NOT SET
+2022-11-23T14:40:32.516438Z A server-main  - sql copy input worker root: NOT SET
+2022-11-23T14:40:32.518265Z A server-main Metrics are disabled, health check endpoint will not consider unhandled errors
+2022-11-23T14:40:32.542185Z I i.q.c.m.EngineMigration table structures are up to date
+2022-11-23T14:40:32.542983Z I i.q.g.FunctionFactoryCache loading functions [test=false]
+2022-11-23T14:40:32.638652Z I i.q.c.p.WriterPool open [table=`sys.column_versions_purge_log`, thread=20]
+2022-11-23T14:40:32.643295Z I i.q.c.TableWriter open 'sys.column_versions_purge_log'
+2022-11-23T14:40:32.647760Z I i.q.c.TableWriter purging non attached partitions [path=/Users/marregui/QUEST/db/sys.column_versions_purge_log]
+2022-11-23T14:40:32.648213Z I i.q.c.p.WriterPool >> [table=`sys.column_versions_purge_log`, thread=20]
+2022-11-23T14:40:32.648671Z I i.q.c.p.ReaderPool open 'sys.column_versions_purge_log' [at=0:0]
+2022-11-23T14:40:32.651376Z I i.q.g.SqlCompiler plan [q=`select-choose ts, table_name, column_name, table_id, truncate_version, columnType, table_partition_by, updated_txn, column_version, partition_timestamp, partition_name_txn, completed from (select [ts, table_name, column_name, table_id, truncate_version, columnType, table_partition_by, updated_txn, column_version, partition_timestamp, partition_name_txn, completed] from sys.column_versions_purge_log timestamp (ts) where completed = null)`, fd=-1]
+2022-11-23T14:40:32.665243Z I i.q.c.p.ReaderPool open 'telemetry_config' [at=0:0]
+2022-11-23T14:40:32.666192Z I i.q.TelemetryJob Failed to alter telemetry table [table=telemetry_config,error=column 'version' already exists]
+2022-11-23T14:40:32.666272Z I i.q.TelemetryJob Failed to alter telemetry table [table=telemetry_config,error=column 'os' already exists]
+2022-11-23T14:40:32.666330Z I i.q.TelemetryJob Failed to alter telemetry table [table=telemetry_config,error=column 'package' already exists]
+2022-11-23T14:40:32.666360Z I i.q.c.p.WriterPool open [table=`telemetry_config`, thread=20]
+2022-11-23T14:40:32.666407Z I i.q.c.TableWriter open 'telemetry_config'
+2022-11-23T14:40:32.667405Z I i.q.c.TableWriter switched partition [path='/Users/marregui/QUEST/db/telemetry_config/default']
+2022-11-23T14:40:32.668133Z I i.q.c.p.WriterPool >> [table=`telemetry_config`, thread=20]
+2022-11-23T14:40:32.668417Z I i.q.g.SqlCompiler plan [q=`select-choose id, enabled, version, os, package from (select [id, enabled, version, os, package] from telemetry_config) limit -(1)`, fd=-1]
+2022-11-23T14:40:32.669047Z I i.q.c.TableReader open partition /Users/marregui/QUEST/db/telemetry_config/default [rowCount=2, partitionNameTxn=-1, transientRowCount=2, partitionIndex=0, partitionCount=1]
+2022-11-23T14:40:32.669244Z A i.q.TelemetryJob instance [id=0x05ede534efb72f00004a160642fb88, enabled=false]
+2022-11-23T14:40:32.670119Z I i.q.WorkerPoolManager using SHARED pool [requester=http, workers=7]
+2022-11-23T14:40:32.672685Z A http-server listening on 0.0.0.0:9000 [fd=99 backlog=64]
+2022-11-23T14:40:32.713841Z I i.q.WorkerPoolManager using SHARED pool [requester=min-http, workers=7]
+2022-11-23T14:40:32.713999Z A http-min-server listening on 0.0.0.0:9003 [fd=101 backlog=4]
+2022-11-23T14:40:32.714515Z I i.q.WorkerPoolManager using SHARED pool [requester=pg-wire, workers=7]
+2022-11-23T14:40:32.716439Z A pg-server listening on 0.0.0.0:8812 [fd=103 backlog=64]
+2022-11-23T14:40:32.733088Z I i.q.WorkerPoolManager using SHARED pool [requester=line-tcp-io, workers=7]
+2022-11-23T14:40:32.733139Z I i.q.WorkerPoolManager new DEDICATED pool [name=ilpwriter, requester=line-tcp-writer, workers=1]
+2022-11-23T14:40:32.734714Z I i.q.c.l.t.LineTcpReceiver using default context
+2022-11-23T14:40:32.735089Z A tcp-line-server listening on 0.0.0.0:9009 [fd=105 backlog=256]
+2022-11-23T14:40:32.741508Z E i.q.c.l.u.AbstractLineProtoUdpReceiver could not set receive buffer size [fd=107, size=8388608, errno=55]
+2022-11-23T14:40:32.744445Z I i.q.c.l.u.AbstractLineProtoUdpReceiver receiving multicast from 232.1.2.3:9009 via 0.0.0.0 [fd=107, commitRate=1000000]
+2022-11-23T14:40:32.886769Z A server-main bootstrap complete
+2022-11-23T14:40:32.887157Z I server-main os scheduled worker started [name=questdb-shared-3]
+2022-11-23T14:40:32.887227Z I server-main os scheduled worker started [name=questdb-shared-4]
+2022-11-23T14:40:32.887415Z I server-main os scheduled worker started [name=questdb-shared-5]
+2022-11-23T14:40:32.887485Z I server-main os scheduled worker started [name=questdb-shared-6]
+2022-11-23T14:40:32.887629Z I server-main os scheduled worker started [name=questdb-shared-7]
+2022-11-23T14:40:32.887750Z I server-main os scheduled worker started [name=questdb-shared-8]
+2022-11-23T14:40:32.887828Z I server-main worker pool started [pool=shared]
+2022-11-23T14:40:32.887882Z I server-main os scheduled worker started [name=questdb-shared-9]
+2022-11-23T14:40:32.887855Z I i.q.WorkerPoolManager started shared pool [name=shared, workers=7]
+2022-11-23T14:40:32.887989Z I server-main worker pool started [pool=ilpwriter]
+2022-11-23T14:40:32.888006Z I i.q.WorkerPoolManager started dedicated pool [name=ilpwriter, workers=1]
+2022-11-23T14:40:32.888026Z I server-main os scheduled worker started [name=questdb-ilpwriter-10]
+2022-11-23T14:40:32.888031Z I server-main 
+     ___                  _   ____  ____
+    / _ \ _   _  ___  ___| |_|  _ \| __ )
+   | | | | | | |/ _ \/ __| __| | | |  _ \
+   | |_| | |_| |  __/\__ \ |_| |_| | |_) |
+    \__\_\\__,_|\___||___/\__|____/|____/
+
+Web Console URL(s):
+
+	http://192.168.1.57:9000
+	http://127.0.0.1:9000
+
+
+2022-11-23T14:40:32.985966Z A server-main enjoy
+2022-11-23T14:40:33.015197Z I pg-server connected [ip=127.0.0.1, fd=108]
+2022-11-23T14:40:33.020311Z I i.q.c.p.PGConnectionContext protocol [major=3, minor=0]
+2022-11-23T14:40:33.020352Z I i.q.c.p.PGConnectionContext property [name=user, value=admin]
+2022-11-23T14:40:33.020362Z I i.q.c.p.PGConnectionContext property [name=database, value=main]
+2022-11-23T14:40:33.020369Z I i.q.c.p.PGConnectionContext property [name=client_encoding, value=UTF8]
+2022-11-23T14:40:33.020375Z I i.q.c.p.PGConnectionContext property [name=DateStyle, value=ISO]
+2022-11-23T14:40:33.020382Z I i.q.c.p.PGConnectionContext property [name=TimeZone, value=Europe/Madrid]
+2022-11-23T14:40:33.020389Z I i.q.c.p.PGConnectionContext property [name=extra_float_digits, value=2]
+2022-11-23T14:40:33.031979Z I i.q.c.p.PGConnectionContext parse [fd=108, q=BEGIN]
+2022-11-23T14:40:33.032313Z I i.q.c.p.PGConnectionContext parse [fd=108, q=SET extra_float_digits = 3]
+2022-11-23T14:40:33.032514Z I i.q.c.p.PGConnectionContext parse [fd=108, q=SET application_name = 'quest-1.0']
+2022-11-23T14:40:33.032672Z I i.q.c.p.PGConnectionContext parse [fd=108, q=COMMIT]
+2022-11-23T14:40:39.949101Z I i.q.WorkerPoolManager closing dedicated pool [name=ilpwriter, workers=1]
+2022-11-23T14:40:40.019750Z I server-main cleaned worker [name=ilpwriter, worker=0, total=1]
+2022-11-23T14:40:40.019898Z I server-main os scheduled worker stopped [name=questdb-ilpwriter-10]
+2022-11-23T14:40:40.020010Z I i.q.c.l.t.LineTcpWriterJob line protocol writer closing [threadId=0]
+2022-11-23T14:40:40.020132Z I i.q.WorkerPoolManager closing shared pool [name=shared, workers=7]
+2022-11-23T14:40:40.066750Z I i.q.c.h.p.QueryCache closed
+2022-11-23T14:40:40.066927Z I i.q.c.h.p.QueryCache closed
+2022-11-23T14:40:40.067361Z I server-main cleaned worker [name=shared, worker=4, total=7]
+2022-11-23T14:40:40.067410Z I server-main os scheduled worker stopped [name=questdb-shared-7]
+2022-11-23T14:40:40.069744Z I i.q.c.h.p.QueryCache closed
+2022-11-23T14:40:40.069885Z I i.q.c.h.p.QueryCache closed
+2022-11-23T14:40:40.070055Z I server-main cleaned worker [name=shared, worker=2, total=7]
+2022-11-23T14:40:40.070088Z I server-main os scheduled worker stopped [name=questdb-shared-5]
+2022-11-23T14:40:40.077196Z I i.q.c.h.p.QueryCache closed
+2022-11-23T14:40:40.077206Z I i.q.c.h.p.QueryCache closed
+2022-11-23T14:40:40.077273Z I i.q.c.h.p.QueryCache closed
+2022-11-23T14:40:40.077286Z I i.q.c.h.p.QueryCache closed
+2022-11-23T14:40:40.077450Z I server-main cleaned worker [name=shared, worker=5, total=7]
+2022-11-23T14:40:40.077456Z I server-main cleaned worker [name=shared, worker=6, total=7]
+2022-11-23T14:40:40.077469Z I server-main os scheduled worker stopped [name=questdb-shared-8]
+2022-11-23T14:40:40.077475Z I server-main os scheduled worker stopped [name=questdb-shared-9]
+2022-11-23T14:40:40.085551Z I i.q.c.h.p.QueryCache closed
+2022-11-23T14:40:40.085568Z I i.q.c.h.p.QueryCache closed
+2022-11-23T14:40:40.085614Z I i.q.c.h.p.QueryCache closed
+2022-11-23T14:40:40.085630Z I i.q.c.h.p.QueryCache closed
+2022-11-23T14:40:40.085698Z I server-main cleaned worker [name=shared, worker=1, total=7]
+2022-11-23T14:40:40.085714Z I server-main os scheduled worker stopped [name=questdb-shared-4]
+2022-11-23T14:40:40.085749Z I server-main cleaned worker [name=shared, worker=3, total=7]
+2022-11-23T14:40:40.085764Z I server-main os scheduled worker stopped [name=questdb-shared-6]
+2022-11-23T14:40:40.085805Z I i.q.c.h.p.QueryCache closed
+2022-11-23T14:40:40.085866Z I i.q.c.h.p.QueryCache closed
+2022-11-23T14:40:40.085951Z I server-main cleaned worker [name=shared, worker=0, total=7]
+2022-11-23T14:40:40.085976Z I server-main os scheduled worker stopped [name=questdb-shared-3]
+2022-11-23T14:40:40.086094Z I i.q.c.p.WriterPool << [table=`sys.column_versions_purge_log`, thread=20]
+2022-11-23T14:40:40.087441Z I i.q.c.l.u.AbstractLineProtoUdpReceiver closed [fd=107]
+2022-11-23T14:40:40.087480Z I i.q.c.l.u.AbstractLineProtoUdpReceiver closed [fd=107]
+2022-11-23T14:40:40.087644Z I tcp-line-server closed
+2022-11-23T14:40:40.087670Z I pg-server disconnected [ip=127.0.0.1, fd=108, src=shutdown]
+2022-11-23T14:40:40.087794Z I pg-server closed
+2022-11-23T14:40:40.087824Z I http-min-server closed
+2022-11-23T14:40:40.087874Z I http-server closed
+2022-11-23T14:40:40.089023Z I i.q.c.p.WriterPool << [table=`telemetry_config`, thread=20]
+2022-11-23T14:40:40.090593Z I i.q.c.TableWriter closed 'sys.column_versions_purge_log'
+2022-11-23T14:40:40.090616Z I i.q.c.p.WriterPool closed [table=`sys.column_versions_purge_log`, reason=POOL_CLOSED, by=20]
+2022-11-23T14:40:40.093141Z I i.q.c.TableWriter closed 'telemetry_config'
+2022-11-23T14:40:40.093158Z I i.q.c.p.WriterPool closed [table=`telemetry_config`, reason=POOL_CLOSED, by=20]
+2022-11-23T14:40:40.093189Z I i.q.c.p.WriterPool closed
+2022-11-23T14:40:40.093476Z I i.q.c.p.ReaderPool closed 'sys.column_versions_purge_log' [at=0:0, reason=POOL_CLOSED]
+2022-11-23T14:40:40.093818Z I i.q.c.p.ReaderPool closed 'telemetry_config' [at=0:0, reason=POOL_CLOSED]
+2022-11-23T14:40:40.093858Z I i.q.c.p.ReaderPool closed
+2022-11-23T14:41:17.470991Z A server-main QuestDB server 6.5.5. Copyright (C) 2014-2022, all rights reserved.
+2022-11-23T14:41:17.471648Z A server-main OS/Arch apple/apple-silicon [AVX512,580287656, 64 bits, 8 processors]
+2022-11-23T14:41:17.473274Z I server-main Web Console is up to date
+2022-11-23T14:41:17.473398Z A server-main Server config: /Users/marregui/QUEST/conf/server.conf
+2022-11-23T14:41:17.520062Z A server-main Config:
+2022-11-23T14:41:17.520088Z A server-main  - http.enabled : true
+2022-11-23T14:41:17.520111Z A server-main  - tcp.enabled  : true
+2022-11-23T14:41:17.520131Z A server-main  - pg.enabled   : true
+2022-11-23T14:41:17.520150Z A server-main  - open database [id=963880947576877442.4482852230280459206]
+2022-11-23T14:41:17.520240Z A server-main  - db root: [path=/Users/marregui/QUEST/db, magic=0x1a] -> UNSUPPORTED (SYSTEM COULD BE UNSTABLE)
+2022-11-23T14:41:17.520280Z A server-main  - backup root: NOT SET
+2022-11-23T14:41:17.520312Z A server-main  - snapshot root: [path=/Users/marregui/QUEST/snapshot, magic=0x00] -> UNSUPPORTED (SYSTEM COULD BE UNSTABLE)
+2022-11-23T14:41:17.520340Z A server-main  - sql copy input root: NOT SET
+2022-11-23T14:41:17.520355Z A server-main  - sql copy input worker root: NOT SET
+2022-11-23T14:41:17.521976Z A server-main Metrics are disabled, health check endpoint will not consider unhandled errors
+2022-11-23T14:41:17.543218Z I i.q.c.m.EngineMigration table structures are up to date
+2022-11-23T14:41:17.543942Z I i.q.g.FunctionFactoryCache loading functions [test=false]
+2022-11-23T14:41:17.642010Z I i.q.c.p.WriterPool open [table=`sys.column_versions_purge_log`, thread=20]
+2022-11-23T14:41:17.646446Z I i.q.c.TableWriter open 'sys.column_versions_purge_log'
+2022-11-23T14:41:17.650421Z I i.q.c.TableWriter purging non attached partitions [path=/Users/marregui/QUEST/db/sys.column_versions_purge_log]
+2022-11-23T14:41:17.650833Z I i.q.c.p.WriterPool >> [table=`sys.column_versions_purge_log`, thread=20]
+2022-11-23T14:41:17.651275Z I i.q.c.p.ReaderPool open 'sys.column_versions_purge_log' [at=0:0]
+2022-11-23T14:41:17.654019Z I i.q.g.SqlCompiler plan [q=`select-choose ts, table_name, column_name, table_id, truncate_version, columnType, table_partition_by, updated_txn, column_version, partition_timestamp, partition_name_txn, completed from (select [ts, table_name, column_name, table_id, truncate_version, columnType, table_partition_by, updated_txn, column_version, partition_timestamp, partition_name_txn, completed] from sys.column_versions_purge_log timestamp (ts) where completed = null)`, fd=-1]
+2022-11-23T14:41:17.667240Z I i.q.c.p.ReaderPool open 'telemetry_config' [at=0:0]
+2022-11-23T14:41:17.669042Z I i.q.TelemetryJob Failed to alter telemetry table [table=telemetry_config,error=column 'version' already exists]
+2022-11-23T14:41:17.669145Z I i.q.TelemetryJob Failed to alter telemetry table [table=telemetry_config,error=column 'os' already exists]
+2022-11-23T14:41:17.669205Z I i.q.TelemetryJob Failed to alter telemetry table [table=telemetry_config,error=column 'package' already exists]
+2022-11-23T14:41:17.669235Z I i.q.c.p.WriterPool open [table=`telemetry_config`, thread=20]
+2022-11-23T14:41:17.669293Z I i.q.c.TableWriter open 'telemetry_config'
+2022-11-23T14:41:17.670316Z I i.q.c.TableWriter switched partition [path='/Users/marregui/QUEST/db/telemetry_config/default']
+2022-11-23T14:41:17.670710Z I i.q.c.p.WriterPool >> [table=`telemetry_config`, thread=20]
+2022-11-23T14:41:17.671017Z I i.q.g.SqlCompiler plan [q=`select-choose id, enabled, version, os, package from (select [id, enabled, version, os, package] from telemetry_config) limit -(1)`, fd=-1]
+2022-11-23T14:41:17.671754Z I i.q.c.TableReader open partition /Users/marregui/QUEST/db/telemetry_config/default [rowCount=2, partitionNameTxn=-1, transientRowCount=2, partitionIndex=0, partitionCount=1]
+2022-11-23T14:41:17.671954Z A i.q.TelemetryJob instance [id=0x05ede534efb72f00004a160642fb88, enabled=false]
+2022-11-23T14:41:17.672889Z I i.q.WorkerPoolManager using SHARED pool [requester=http, workers=7]
+2022-11-23T14:41:17.676439Z A http-server listening on 0.0.0.0:9000 [fd=99 backlog=64]
+2022-11-23T14:41:17.721031Z I i.q.WorkerPoolManager using SHARED pool [requester=min-http, workers=7]
+2022-11-23T14:41:17.721185Z A http-min-server listening on 0.0.0.0:9003 [fd=101 backlog=4]
+2022-11-23T14:41:17.721721Z I i.q.WorkerPoolManager using SHARED pool [requester=pg-wire, workers=7]
+2022-11-23T14:41:17.724137Z A pg-server listening on 0.0.0.0:8812 [fd=103 backlog=64]
+2022-11-23T14:41:17.741455Z I i.q.WorkerPoolManager using SHARED pool [requester=line-tcp-io, workers=7]
+2022-11-23T14:41:17.741497Z I i.q.WorkerPoolManager new DEDICATED pool [name=ilpwriter, requester=line-tcp-writer, workers=1]
+2022-11-23T14:41:17.744556Z I i.q.c.l.t.LineTcpReceiver using default context
+2022-11-23T14:41:17.744939Z A tcp-line-server listening on 0.0.0.0:9009 [fd=105 backlog=256]
+2022-11-23T14:41:17.750107Z E i.q.c.l.u.AbstractLineProtoUdpReceiver could not set receive buffer size [fd=107, size=8388608, errno=55]
+2022-11-23T14:41:17.752476Z I i.q.c.l.u.AbstractLineProtoUdpReceiver receiving multicast from 232.1.2.3:9009 via 0.0.0.0 [fd=107, commitRate=1000000]
+2022-11-23T14:41:17.896383Z A server-main bootstrap complete
+2022-11-23T14:41:17.896864Z I server-main os scheduled worker started [name=questdb-shared-3]
+2022-11-23T14:41:17.896995Z I server-main os scheduled worker started [name=questdb-shared-4]
+2022-11-23T14:41:17.897301Z I server-main os scheduled worker started [name=questdb-shared-5]
+2022-11-23T14:41:17.897355Z I server-main os scheduled worker started [name=questdb-shared-6]
+2022-11-23T14:41:17.897423Z I server-main os scheduled worker started [name=questdb-shared-7]
+2022-11-23T14:41:17.897499Z I server-main os scheduled worker started [name=questdb-shared-8]
+2022-11-23T14:41:17.897538Z I server-main worker pool started [pool=shared]
+2022-11-23T14:41:17.897558Z I i.q.WorkerPoolManager started shared pool [name=shared, workers=7]
+2022-11-23T14:41:17.897602Z I server-main os scheduled worker started [name=questdb-shared-9]
+2022-11-23T14:41:17.897615Z I server-main worker pool started [pool=ilpwriter]
+2022-11-23T14:41:17.897622Z I i.q.WorkerPoolManager started dedicated pool [name=ilpwriter, workers=1]
+2022-11-23T14:41:17.897636Z I server-main os scheduled worker started [name=questdb-ilpwriter-10]
+2022-11-23T14:41:17.897636Z I server-main 
+     ___                  _   ____  ____
+    / _ \ _   _  ___  ___| |_|  _ \| __ )
+   | | | | | | |/ _ \/ __| __| | | |  _ \
+   | |_| | |_| |  __/\__ \ |_| |_| | |_) |
+    \__\_\\__,_|\___||___/\__|____/|____/
+
+Web Console URL(s):
+
+	http://192.168.1.57:9000
+	http://127.0.0.1:9000
+
+
+2022-11-23T14:41:17.992683Z A server-main enjoy
+2022-11-23T14:41:18.020482Z I pg-server connected [ip=127.0.0.1, fd=108]
+2022-11-23T14:41:18.025633Z I i.q.c.p.PGConnectionContext protocol [major=3, minor=0]
+2022-11-23T14:41:18.025670Z I i.q.c.p.PGConnectionContext property [name=user, value=admin]
+2022-11-23T14:41:18.025681Z I i.q.c.p.PGConnectionContext property [name=database, value=main]
+2022-11-23T14:41:18.025691Z I i.q.c.p.PGConnectionContext property [name=client_encoding, value=UTF8]
+2022-11-23T14:41:18.025698Z I i.q.c.p.PGConnectionContext property [name=DateStyle, value=ISO]
+2022-11-23T14:41:18.025704Z I i.q.c.p.PGConnectionContext property [name=TimeZone, value=Europe/Madrid]
+2022-11-23T14:41:18.025711Z I i.q.c.p.PGConnectionContext property [name=extra_float_digits, value=2]
+2022-11-23T14:41:18.038432Z I i.q.c.p.PGConnectionContext parse [fd=108, q=BEGIN]
+2022-11-23T14:41:18.038795Z I i.q.c.p.PGConnectionContext parse [fd=108, q=SET extra_float_digits = 3]
+2022-11-23T14:41:18.038994Z I i.q.c.p.PGConnectionContext parse [fd=108, q=SET application_name = 'quest-1.0']
+2022-11-23T14:41:18.039203Z I i.q.c.p.PGConnectionContext parse [fd=108, q=COMMIT]
+2022-11-23T14:41:21.424373Z I i.q.WorkerPoolManager closing dedicated pool [name=ilpwriter, workers=1]
+2022-11-23T14:41:21.436477Z I server-main cleaned worker [name=ilpwriter, worker=0, total=1]
+2022-11-23T14:41:21.436554Z I server-main os scheduled worker stopped [name=questdb-ilpwriter-10]
+2022-11-23T14:41:21.436607Z I i.q.c.l.t.LineTcpWriterJob line protocol writer closing [threadId=0]
+2022-11-23T14:41:21.436695Z I i.q.WorkerPoolManager closing shared pool [name=shared, workers=7]
+2022-11-23T14:41:21.455083Z I i.q.c.h.p.QueryCache closed
+2022-11-23T14:41:21.455416Z I i.q.c.h.p.QueryCache closed
+2022-11-23T14:41:21.455595Z I server-main cleaned worker [name=shared, worker=6, total=7]
+2022-11-23T14:41:21.455615Z I server-main os scheduled worker stopped [name=questdb-shared-9]
+2022-11-23T14:41:21.455833Z I i.q.c.h.p.QueryCache closed
+2022-11-23T14:41:21.455901Z I i.q.c.h.p.QueryCache closed
+2022-11-23T14:41:21.456010Z I server-main cleaned worker [name=shared, worker=1, total=7]
+2022-11-23T14:41:21.456026Z I server-main os scheduled worker stopped [name=questdb-shared-4]
+2022-11-23T14:41:21.466405Z I i.q.c.h.p.QueryCache closed
+2022-11-23T14:41:21.466472Z I i.q.c.h.p.QueryCache closed
+2022-11-23T14:41:21.466577Z I server-main cleaned worker [name=shared, worker=3, total=7]
+2022-11-23T14:41:21.466593Z I server-main os scheduled worker stopped [name=questdb-shared-6]
+2022-11-23T14:41:21.469076Z I i.q.c.h.p.QueryCache closed
+2022-11-23T14:41:21.469141Z I i.q.c.h.p.QueryCache closed
+2022-11-23T14:41:21.469260Z I server-main cleaned worker [name=shared, worker=0, total=7]
+2022-11-23T14:41:21.469275Z I server-main os scheduled worker stopped [name=questdb-shared-3]
+2022-11-23T14:41:21.474326Z I i.q.c.h.p.QueryCache closed
+2022-11-23T14:41:21.474395Z I i.q.c.h.p.QueryCache closed
+2022-11-23T14:41:21.474517Z I server-main cleaned worker [name=shared, worker=5, total=7]
+2022-11-23T14:41:21.474534Z I server-main os scheduled worker stopped [name=questdb-shared-8]
+2022-11-23T14:41:21.487938Z I i.q.c.h.p.QueryCache closed
+2022-11-23T14:41:21.487996Z I i.q.c.h.p.QueryCache closed
+2022-11-23T14:41:21.488106Z I server-main cleaned worker [name=shared, worker=4, total=7]
+2022-11-23T14:41:21.488125Z I server-main os scheduled worker stopped [name=questdb-shared-7]
+2022-11-23T14:41:21.488157Z I i.q.c.h.p.QueryCache closed
+2022-11-23T14:41:21.488294Z I server-main cleaned worker [name=shared, worker=2, total=7]
+2022-11-23T14:41:21.488325Z I server-main os scheduled worker stopped [name=questdb-shared-5]
+2022-11-23T14:41:21.488452Z I i.q.c.p.WriterPool << [table=`sys.column_versions_purge_log`, thread=20]
+2022-11-23T14:41:21.490503Z I i.q.c.l.u.AbstractLineProtoUdpReceiver closed [fd=107]
+2022-11-23T14:41:21.490557Z I i.q.c.l.u.AbstractLineProtoUdpReceiver closed [fd=107]
+2022-11-23T14:41:21.490775Z I tcp-line-server closed
+2022-11-23T14:41:21.490813Z I pg-server disconnected [ip=127.0.0.1, fd=108, src=shutdown]
+2022-11-23T14:41:21.491006Z I pg-server closed
+2022-11-23T14:41:21.491044Z I http-min-server closed
+2022-11-23T14:41:21.491112Z I http-server closed
+2022-11-23T14:41:21.493115Z I i.q.c.p.WriterPool << [table=`telemetry_config`, thread=20]
+2022-11-23T14:41:21.494994Z I i.q.c.TableWriter closed 'sys.column_versions_purge_log'
+2022-11-23T14:41:21.495023Z I i.q.c.p.WriterPool closed [table=`sys.column_versions_purge_log`, reason=POOL_CLOSED, by=20]
+2022-11-23T14:41:21.497401Z I i.q.c.TableWriter closed 'telemetry_config'
+2022-11-23T14:41:21.497423Z I i.q.c.p.WriterPool closed [table=`telemetry_config`, reason=POOL_CLOSED, by=20]
+2022-11-23T14:41:21.497459Z I i.q.c.p.WriterPool closed
+2022-11-23T14:41:21.497834Z I i.q.c.p.ReaderPool closed 'sys.column_versions_purge_log' [at=0:0, reason=POOL_CLOSED]
+2022-11-23T14:41:21.498233Z I i.q.c.p.ReaderPool closed 'telemetry_config' [at=0:0, reason=POOL_CLOSED]
+2022-11-23T14:41:21.498275Z I i.q.c.p.ReaderPool closed
+2022-11-23T14:41:37.969658Z A server-main QuestDB server 6.5.5. Copyright (C) 2014-2022, all rights reserved.
+2022-11-23T14:41:37.969789Z A server-main OS/Arch apple/apple-silicon [AVX512,580287656, 64 bits, 8 processors]
+2022-11-23T14:41:37.971546Z I server-main Web Console is up to date
+2022-11-23T14:41:37.971927Z A server-main Server config: /Users/marregui/QUEST/conf/server.conf
+2022-11-23T14:41:37.986782Z A server-main Config:
+2022-11-23T14:41:37.986810Z A server-main  - http.enabled : true
+2022-11-23T14:41:37.986822Z A server-main  - tcp.enabled  : true
+2022-11-23T14:41:37.986835Z A server-main  - pg.enabled   : true
+2022-11-23T14:41:37.986847Z A server-main  - open database [id=963880947576877442.4482852230280459206]
+2022-11-23T14:41:37.986920Z A server-main  - db root: [path=/Users/marregui/QUEST/db, magic=0x1a] -> UNSUPPORTED (SYSTEM COULD BE UNSTABLE)
+2022-11-23T14:41:37.986940Z A server-main  - backup root: NOT SET
+2022-11-23T14:41:37.986966Z A server-main  - snapshot root: [path=/Users/marregui/QUEST/snapshot, magic=0x00] -> UNSUPPORTED (SYSTEM COULD BE UNSTABLE)
+2022-11-23T14:41:37.986983Z A server-main  - sql copy input root: NOT SET
+2022-11-23T14:41:37.986993Z A server-main  - sql copy input worker root: NOT SET
+2022-11-23T14:41:37.987817Z A server-main Metrics are disabled, health check endpoint will not consider unhandled errors
+2022-11-23T14:41:38.010157Z A http-server listening on 0.0.0.0:9000 [fd=102 backlog=64]
+2022-11-23T14:41:38.048342Z A http-min-server listening on 0.0.0.0:9003 [fd=26 backlog=4]
+2022-11-23T14:41:38.048708Z A pg-server listening on 0.0.0.0:8812 [fd=105 backlog=64]
+2022-11-23T14:41:38.058216Z A tcp-line-server listening on 0.0.0.0:9009 [fd=107 backlog=256]
+2022-11-23T14:41:38.161980Z A server-main bootstrap complete
+2022-11-23T14:41:38.162336Z I server-main os scheduled worker started [name=questdb-shared-12]
+2022-11-23T14:41:38.162412Z I server-main os scheduled worker started [name=questdb-shared-13]
+2022-11-23T14:41:38.162539Z I server-main os scheduled worker started [name=questdb-shared-14]
+2022-11-23T14:41:38.162748Z I server-main os scheduled worker started [name=questdb-shared-15]
+2022-11-23T14:41:38.162811Z I server-main os scheduled worker started [name=questdb-shared-16]
+2022-11-23T14:41:38.163147Z I server-main os scheduled worker started [name=questdb-shared-17]
+2022-11-23T14:41:38.163466Z I server-main worker pool started [pool=shared]
+2022-11-23T14:41:38.163564Z I server-main os scheduled worker started [name=questdb-shared-18]
+2022-11-23T14:41:38.163713Z I server-main worker pool started [pool=ilpwriter]
+2022-11-23T14:41:38.163730Z I server-main 
+     ___                  _   ____  ____
+    / _ \ _   _  ___  ___| |_|  _ \| __ )
+   | | | | | | |/ _ \/ __| __| | | |  _ \
+   | |_| | |_| |  __/\__ \ |_| |_| | |_) |
+    \__\_\\__,_|\___||___/\__|____/|____/
+
+Web Console URL(s):
+
+	http://192.168.1.57:9000
+	http://127.0.0.1:9000
+
+
+2022-11-23T14:41:38.163806Z I server-main os scheduled worker started [name=questdb-ilpwriter-19]
+2022-11-23T14:41:38.258590Z A server-main enjoy
+2022-11-23T14:41:38.261524Z I pg-server connected [ip=127.0.0.1, fd=111]
+2022-11-23T14:41:47.768636Z I pg-server connected [ip=127.0.0.1, fd=112]
+2022-11-23T14:41:47.769198Z I pg-server scheduling disconnect [fd=111, reason=15]
+2022-11-23T14:41:47.769505Z I pg-server disconnected [ip=127.0.0.1, fd=111, src=queue]
+2022-11-23T14:41:50.731170Z I server-main cleaned worker [name=ilpwriter, worker=0, total=1]
+2022-11-23T14:41:50.731222Z I server-main os scheduled worker stopped [name=questdb-ilpwriter-19]
+2022-11-23T14:41:50.773515Z I server-main cleaned worker [name=shared, worker=1, total=7]
+2022-11-23T14:41:50.773540Z I server-main os scheduled worker stopped [name=questdb-shared-13]
+2022-11-23T14:50:46.585594Z A server-main QuestDB server 6.5.5. Copyright (C) 2014-2022, all rights reserved.
+2022-11-23T14:50:46.586088Z A server-main OS/Arch apple/apple-silicon [AVX512,848765096, 64 bits, 8 processors]
+2022-11-23T14:50:46.587378Z I server-main Web Console is up to date
+2022-11-23T14:50:46.587491Z A server-main Server config: /Users/marregui/QUEST/conf/server.conf
+2022-11-23T14:50:46.635189Z A server-main Config:
+2022-11-23T14:50:46.635214Z A server-main  - http.enabled : true
+2022-11-23T14:50:46.635236Z A server-main  - tcp.enabled  : true
+2022-11-23T14:50:46.635256Z A server-main  - pg.enabled   : true
+2022-11-23T14:50:46.635274Z A server-main  - open database [id=963880947576877442.4482852230280459206]
+2022-11-23T14:50:46.635368Z A server-main  - db root: [path=/Users/marregui/QUEST/db, magic=0x1a] -> UNSUPPORTED (SYSTEM COULD BE UNSTABLE)
+2022-11-23T14:50:46.635406Z A server-main  - backup root: NOT SET
+2022-11-23T14:50:46.635438Z A server-main  - snapshot root: [path=/Users/marregui/QUEST/snapshot, magic=0x00] -> UNSUPPORTED (SYSTEM COULD BE UNSTABLE)
+2022-11-23T14:50:46.635465Z A server-main  - sql copy input root: NOT SET
+2022-11-23T14:50:46.635479Z A server-main  - sql copy input worker root: NOT SET
+2022-11-23T14:50:46.637225Z A server-main Metrics are disabled, health check endpoint will not consider unhandled errors
+2022-11-23T14:50:46.657224Z I i.q.c.m.EngineMigration table structures are up to date
+2022-11-23T14:50:46.657980Z I i.q.g.FunctionFactoryCache loading functions [test=false]
+2022-11-23T14:50:46.751895Z I i.q.c.p.WriterPool open [table=`sys.column_versions_purge_log`, thread=20]
+2022-11-23T14:50:46.756243Z I i.q.c.TableWriter open 'sys.column_versions_purge_log'
+2022-11-23T14:50:46.760595Z I i.q.c.TableWriter purging non attached partitions [path=/Users/marregui/QUEST/db/sys.column_versions_purge_log]
+2022-11-23T14:50:46.761061Z I i.q.c.p.WriterPool >> [table=`sys.column_versions_purge_log`, thread=20]
+2022-11-23T14:50:46.761541Z I i.q.c.p.ReaderPool open 'sys.column_versions_purge_log' [at=0:0]
+2022-11-23T14:50:46.764395Z I i.q.g.SqlCompiler plan [q=`select-choose ts, table_name, column_name, table_id, truncate_version, columnType, table_partition_by, updated_txn, column_version, partition_timestamp, partition_name_txn, completed from (select [ts, table_name, column_name, table_id, truncate_version, columnType, table_partition_by, updated_txn, column_version, partition_timestamp, partition_name_txn, completed] from sys.column_versions_purge_log timestamp (ts) where completed = null)`, fd=-1]
+2022-11-23T14:50:46.777290Z I i.q.c.p.ReaderPool open 'telemetry_config' [at=0:0]
+2022-11-23T14:50:46.778729Z I i.q.TelemetryJob Failed to alter telemetry table [table=telemetry_config,error=column 'version' already exists]
+2022-11-23T14:50:46.778823Z I i.q.TelemetryJob Failed to alter telemetry table [table=telemetry_config,error=column 'os' already exists]
+2022-11-23T14:50:46.778886Z I i.q.TelemetryJob Failed to alter telemetry table [table=telemetry_config,error=column 'package' already exists]
+2022-11-23T14:50:46.778916Z I i.q.c.p.WriterPool open [table=`telemetry_config`, thread=20]
+2022-11-23T14:50:46.778961Z I i.q.c.TableWriter open 'telemetry_config'
+2022-11-23T14:50:46.779955Z I i.q.c.TableWriter switched partition [path='/Users/marregui/QUEST/db/telemetry_config/default']
+2022-11-23T14:50:46.780354Z I i.q.c.p.WriterPool >> [table=`telemetry_config`, thread=20]
+2022-11-23T14:50:46.780634Z I i.q.g.SqlCompiler plan [q=`select-choose id, enabled, version, os, package from (select [id, enabled, version, os, package] from telemetry_config) limit -(1)`, fd=-1]
+2022-11-23T14:50:46.781319Z I i.q.c.TableReader open partition /Users/marregui/QUEST/db/telemetry_config/default [rowCount=2, partitionNameTxn=-1, transientRowCount=2, partitionIndex=0, partitionCount=1]
+2022-11-23T14:50:46.781517Z A i.q.TelemetryJob instance [id=0x05ede534efb72f00004a160642fb88, enabled=false]
+2022-11-23T14:50:46.782374Z I i.q.WorkerPoolManager using SHARED pool [requester=http, workers=7]
+2022-11-23T14:50:46.784966Z A http-server listening on 0.0.0.0:9000 [fd=99 backlog=64]
+2022-11-23T14:50:46.809015Z I i.q.WorkerPoolManager using SHARED pool [requester=min-http, workers=7]
+2022-11-23T14:50:46.809195Z A http-min-server listening on 0.0.0.0:9003 [fd=101 backlog=4]
+2022-11-23T14:50:46.809692Z I i.q.WorkerPoolManager using SHARED pool [requester=pg-wire, workers=7]
+2022-11-23T14:50:46.811339Z A pg-server listening on 0.0.0.0:8812 [fd=103 backlog=64]
+2022-11-23T14:50:46.879864Z I i.q.WorkerPoolManager using SHARED pool [requester=line-tcp-io, workers=7]
+2022-11-23T14:50:46.879909Z I i.q.WorkerPoolManager new DEDICATED pool [name=ilpwriter, requester=line-tcp-writer, workers=1]
+2022-11-23T14:50:46.881361Z I i.q.c.l.t.LineTcpReceiver using default context
+2022-11-23T14:50:46.882078Z A tcp-line-server listening on 0.0.0.0:9009 [fd=21 backlog=256]
+2022-11-23T14:50:46.891259Z E i.q.c.l.u.AbstractLineProtoUdpReceiver could not set receive buffer size [fd=106, size=8388608, errno=55]
+2022-11-23T14:50:46.897230Z I i.q.c.l.u.AbstractLineProtoUdpReceiver receiving multicast from 232.1.2.3:9009 via 0.0.0.0 [fd=106, commitRate=1000000]
+2022-11-23T14:50:47.020253Z A server-main bootstrap complete
+2022-11-23T14:50:47.020574Z I server-main os scheduled worker started [name=questdb-shared-3]
+2022-11-23T14:50:47.020621Z I server-main os scheduled worker started [name=questdb-shared-4]
+2022-11-23T14:50:47.020829Z I server-main os scheduled worker started [name=questdb-shared-5]
+2022-11-23T14:50:47.020966Z I server-main os scheduled worker started [name=questdb-shared-6]
+2022-11-23T14:50:47.021037Z I server-main os scheduled worker started [name=questdb-shared-7]
+2022-11-23T14:50:47.021092Z I server-main os scheduled worker started [name=questdb-shared-8]
+2022-11-23T14:50:47.021193Z I server-main worker pool started [pool=shared]
+2022-11-23T14:50:47.021250Z I i.q.WorkerPoolManager started shared pool [name=shared, workers=7]
+2022-11-23T14:50:47.021308Z I server-main os scheduled worker started [name=questdb-shared-9]
+2022-11-23T14:50:47.021499Z I server-main worker pool started [pool=ilpwriter]
+2022-11-23T14:50:47.021512Z I server-main os scheduled worker started [name=questdb-ilpwriter-10]
+2022-11-23T14:50:47.021535Z I i.q.WorkerPoolManager started dedicated pool [name=ilpwriter, workers=1]
+2022-11-23T14:50:47.021554Z I server-main 
+     ___                  _   ____  ____
+    / _ \ _   _  ___  ___| |_|  _ \| __ )
+   | | | | | | |/ _ \/ __| __| | | |  _ \
+   | |_| | |_| |  __/\__ \ |_| |_| | |_) |
+    \__\_\\__,_|\___||___/\__|____/|____/
+
+Web Console URL(s):
+
+	http://192.168.1.57:9000
+	http://127.0.0.1:9000
+
+
+2022-11-23T14:50:47.134629Z A server-main enjoy
+2022-11-23T14:50:47.163943Z I pg-server connected [ip=127.0.0.1, fd=108]
+2022-11-23T14:50:47.169309Z I i.q.c.p.PGConnectionContext protocol [major=3, minor=0]
+2022-11-23T14:50:47.169343Z I i.q.c.p.PGConnectionContext property [name=user, value=admin]
+2022-11-23T14:50:47.169353Z I i.q.c.p.PGConnectionContext property [name=database, value=main]
+2022-11-23T14:50:47.169367Z I i.q.c.p.PGConnectionContext property [name=client_encoding, value=UTF8]
+2022-11-23T14:50:47.169375Z I i.q.c.p.PGConnectionContext property [name=DateStyle, value=ISO]
+2022-11-23T14:50:47.169383Z I i.q.c.p.PGConnectionContext property [name=TimeZone, value=Europe/Madrid]
+2022-11-23T14:50:47.169390Z I i.q.c.p.PGConnectionContext property [name=extra_float_digits, value=2]
+2022-11-23T14:50:47.186376Z I i.q.c.p.PGConnectionContext parse [fd=108, q=BEGIN]
+2022-11-23T14:50:47.186756Z I i.q.c.p.PGConnectionContext parse [fd=108, q=SET extra_float_digits = 3]
+2022-11-23T14:50:47.187018Z I i.q.c.p.PGConnectionContext parse [fd=108, q=SET application_name = 'quest-1.0']
+2022-11-23T14:50:47.187229Z I i.q.c.p.PGConnectionContext parse [fd=108, q=COMMIT]
+2022-11-23T14:51:10.094525Z I i.q.c.p.PGConnectionContext parse [fd=108, q=]
+2022-11-23T14:51:40.055859Z I i.q.c.p.PGConnectionContext parse [fd=108, q=]
+2022-11-23T14:51:53.720045Z I i.q.WorkerPoolManager closing dedicated pool [name=ilpwriter, workers=1]
+2022-11-23T14:51:53.725063Z I server-main cleaned worker [name=ilpwriter, worker=0, total=1]
+2022-11-23T14:51:53.725260Z I server-main os scheduled worker stopped [name=questdb-ilpwriter-10]
+2022-11-23T14:51:53.725262Z I i.q.c.l.t.LineTcpWriterJob line protocol writer closing [threadId=0]
+2022-11-23T14:51:53.725399Z I i.q.WorkerPoolManager closing shared pool [name=shared, workers=7]
+2022-11-23T14:51:53.731117Z I i.q.c.h.p.QueryCache closed
+2022-11-23T14:51:53.731291Z I i.q.c.h.p.QueryCache closed
+2022-11-23T14:51:53.731740Z I server-main cleaned worker [name=shared, worker=0, total=7]
+2022-11-23T14:51:53.731787Z I server-main os scheduled worker stopped [name=questdb-shared-3]
+2022-11-23T14:51:53.761242Z I i.q.c.h.p.QueryCache closed
+2022-11-23T14:51:53.761395Z I i.q.c.h.p.QueryCache closed
+2022-11-23T14:51:53.761706Z I server-main cleaned worker [name=shared, worker=2, total=7]
+2022-11-23T14:51:53.761796Z I server-main os scheduled worker stopped [name=questdb-shared-5]
+2022-11-23T14:51:53.772663Z I i.q.c.h.p.QueryCache closed
+2022-11-23T14:51:53.772771Z I i.q.c.h.p.QueryCache closed
+2022-11-23T14:51:53.772936Z I server-main cleaned worker [name=shared, worker=1, total=7]
+2022-11-23T14:51:53.772962Z I server-main os scheduled worker stopped [name=questdb-shared-4]
+2022-11-23T14:51:53.776367Z I i.q.c.h.p.QueryCache closed
+2022-11-23T14:51:53.776422Z I i.q.c.h.p.QueryCache closed
+2022-11-23T14:51:53.776552Z I server-main cleaned worker [name=shared, worker=4, total=7]
+2022-11-23T14:51:53.776568Z I server-main os scheduled worker stopped [name=questdb-shared-7]
+2022-11-23T14:51:53.785618Z I i.q.c.h.p.QueryCache closed
+2022-11-23T14:51:53.785664Z I i.q.c.h.p.QueryCache closed
+2022-11-23T14:51:53.785760Z I server-main cleaned worker [name=shared, worker=3, total=7]
+2022-11-23T14:51:53.785772Z I server-main os scheduled worker stopped [name=questdb-shared-6]
+2022-11-23T14:51:53.797328Z I i.q.c.h.p.QueryCache closed
+2022-11-23T14:51:53.797390Z I i.q.c.h.p.QueryCache closed
+2022-11-23T14:51:53.797514Z I server-main cleaned worker [name=shared, worker=5, total=7]
+2022-11-23T14:51:53.797532Z I server-main os scheduled worker stopped [name=questdb-shared-8]
+2022-11-23T14:51:53.807441Z I i.q.c.h.p.QueryCache closed
+2022-11-23T14:51:53.807485Z I i.q.c.h.p.QueryCache closed
+2022-11-23T14:51:53.807602Z I server-main cleaned worker [name=shared, worker=6, total=7]
+2022-11-23T14:51:53.807630Z I server-main os scheduled worker stopped [name=questdb-shared-9]
+2022-11-23T14:51:53.807763Z I i.q.c.p.WriterPool << [table=`sys.column_versions_purge_log`, thread=20]
+2022-11-23T14:51:53.808916Z I i.q.c.l.u.AbstractLineProtoUdpReceiver closed [fd=106]
+2022-11-23T14:51:53.808958Z I i.q.c.l.u.AbstractLineProtoUdpReceiver closed [fd=106]
+2022-11-23T14:51:53.809122Z I tcp-line-server closed
+2022-11-23T14:51:53.809157Z I pg-server disconnected [ip=127.0.0.1, fd=108, src=shutdown]
+2022-11-23T14:51:53.809332Z I pg-server closed
+2022-11-23T14:51:53.809364Z I http-min-server closed
+2022-11-23T14:51:53.809415Z I http-server closed
+2022-11-23T14:51:53.810437Z I i.q.c.p.WriterPool << [table=`telemetry_config`, thread=20]
+2022-11-23T14:51:53.812600Z I i.q.c.TableWriter closed 'sys.column_versions_purge_log'
+2022-11-23T14:51:53.812628Z I i.q.c.p.WriterPool closed [table=`sys.column_versions_purge_log`, reason=POOL_CLOSED, by=20]
+2022-11-23T14:51:53.814478Z I i.q.c.TableWriter closed 'telemetry_config'
+2022-11-23T14:51:53.814499Z I i.q.c.p.WriterPool closed [table=`telemetry_config`, reason=POOL_CLOSED, by=20]
+2022-11-23T14:51:53.814537Z I i.q.c.p.WriterPool closed
+2022-11-23T14:51:53.814791Z I i.q.c.p.ReaderPool closed 'sys.column_versions_purge_log' [at=0:0, reason=POOL_CLOSED]
+2022-11-23T14:51:53.815079Z I i.q.c.p.ReaderPool closed 'telemetry_config' [at=0:0, reason=POOL_CLOSED]
+2022-11-23T14:51:53.815126Z I i.q.c.p.ReaderPool closed
+2022-11-23T14:51:56.422687Z A server-main QuestDB server 6.5.5. Copyright (C) 2014-2022, all rights reserved.
+2022-11-23T14:51:56.422743Z A server-main OS/Arch apple/apple-silicon [AVX512,848765096, 64 bits, 8 processors]
+2022-11-23T14:51:56.423487Z I server-main Web Console is up to date
+2022-11-23T14:51:56.423535Z A server-main Server config: /Users/marregui/QUEST/conf/server.conf
+2022-11-23T14:51:56.432288Z A server-main Config:
+2022-11-23T14:51:56.432314Z A server-main  - http.enabled : true
+2022-11-23T14:51:56.432321Z A server-main  - tcp.enabled  : true
+2022-11-23T14:51:56.432327Z A server-main  - pg.enabled   : true
+2022-11-23T14:51:56.432332Z A server-main  - open database [id=963880947576877442.4482852230280459206]
+2022-11-23T14:51:56.432377Z A server-main  - db root: [path=/Users/marregui/QUEST/db, magic=0x1a] -> UNSUPPORTED (SYSTEM COULD BE UNSTABLE)
+2022-11-23T14:51:56.432389Z A server-main  - backup root: NOT SET
+2022-11-23T14:51:56.432405Z A server-main  - snapshot root: [path=/Users/marregui/QUEST/snapshot, magic=0x00] -> UNSUPPORTED (SYSTEM COULD BE UNSTABLE)
+2022-11-23T14:51:56.432413Z A server-main  - sql copy input root: NOT SET
+2022-11-23T14:51:56.432418Z A server-main  - sql copy input worker root: NOT SET
+2022-11-23T14:51:56.432860Z A server-main Metrics are disabled, health check endpoint will not consider unhandled errors
+2022-11-23T14:51:56.449147Z A http-server listening on 0.0.0.0:9000 [fd=99 backlog=64]
+2022-11-23T14:51:56.477308Z A http-min-server listening on 0.0.0.0:9003 [fd=101 backlog=4]
+2022-11-23T14:51:56.477646Z A pg-server listening on 0.0.0.0:8812 [fd=103 backlog=64]
+2022-11-23T14:51:56.496510Z A tcp-line-server listening on 0.0.0.0:9009 [fd=105 backlog=256]
+2022-11-23T14:51:56.606515Z A server-main bootstrap complete
+2022-11-23T14:51:56.606922Z I server-main os scheduled worker started [name=questdb-shared-12]
+2022-11-23T14:51:56.607041Z I server-main os scheduled worker started [name=questdb-shared-13]
+2022-11-23T14:51:56.607136Z I server-main os scheduled worker started [name=questdb-shared-14]
+2022-11-23T14:51:56.607209Z I server-main os scheduled worker started [name=questdb-shared-15]
+2022-11-23T14:51:56.607436Z I server-main os scheduled worker started [name=questdb-shared-16]
+2022-11-23T14:51:56.607588Z I server-main os scheduled worker started [name=questdb-shared-17]
+2022-11-23T14:51:56.607698Z I server-main worker pool started [pool=shared]
+2022-11-23T14:51:56.607822Z I server-main os scheduled worker started [name=questdb-shared-18]
+2022-11-23T14:51:56.607917Z I server-main worker pool started [pool=ilpwriter]
+2022-11-23T14:51:56.607933Z I server-main 
+     ___                  _   ____  ____
+    / _ \ _   _  ___  ___| |_|  _ \| __ )
+   | | | | | | |/ _ \/ __| __| | | |  _ \
+   | |_| | |_| |  __/\__ \ |_| |_| | |_) |
+    \__\_\\__,_|\___||___/\__|____/|____/
+
+Web Console URL(s):
+
+	http://192.168.1.57:9000
+	http://127.0.0.1:9000
+
+
+2022-11-23T14:51:56.608214Z I server-main os scheduled worker started [name=questdb-ilpwriter-19]
+2022-11-23T14:51:56.705747Z A server-main enjoy
+2022-11-23T14:51:56.707770Z I pg-server connected [ip=127.0.0.1, fd=108]
+2022-11-23T14:57:50.598400Z I server-main cleaned worker [name=ilpwriter, worker=0, total=1]
+2022-11-23T14:57:50.598443Z I server-main os scheduled worker stopped [name=questdb-ilpwriter-19]
+2022-11-23T14:57:50.600398Z I server-main cleaned worker [name=shared, worker=2, total=7]
+2022-11-23T14:57:50.600419Z I server-main os scheduled worker stopped [name=questdb-shared-14]
+2022-11-23T14:57:50.613051Z I server-main cleaned worker [name=shared, worker=0, total=7]
+2022-11-23T14:57:50.613062Z I server-main os scheduled worker stopped [name=questdb-shared-12]
+2022-11-23T14:57:50.613826Z I server-main cleaned worker [name=shared, worker=5, total=7]
+2022-11-23T14:57:50.613832Z I server-main os scheduled worker stopped [name=questdb-shared-17]
+2022-11-23T17:54:26.346908Z A server-main QuestDB server 6.5.5. Copyright (C) 2014-2022, all rights reserved.
+2022-11-23T17:54:26.347907Z A server-main OS/Arch apple/apple-silicon [AVX512,1010990248, 64 bits, 8 processors]
+2022-11-23T17:54:26.350036Z I server-main Web Console is up to date
+2022-11-23T17:54:26.350176Z A server-main Server config: /Users/marregui/QUEST/conf/server.conf
+2022-11-23T17:54:26.397222Z A server-main Config:
+2022-11-23T17:54:26.397253Z A server-main  - http.enabled : true
+2022-11-23T17:54:26.397282Z A server-main  - tcp.enabled  : true
+2022-11-23T17:54:26.397307Z A server-main  - pg.enabled   : true
+2022-11-23T17:54:26.397332Z A server-main  - open database [id=963880947576877442.4482852230280459206]
+2022-11-23T17:54:26.397438Z A server-main  - db root: [path=/Users/marregui/QUEST/db, magic=0x1a] -> UNSUPPORTED (SYSTEM COULD BE UNSTABLE)
+2022-11-23T17:54:26.397484Z A server-main  - backup root: NOT SET
+2022-11-23T17:54:26.397521Z A server-main  - snapshot root: [path=/Users/marregui/QUEST/snapshot, magic=0x00] -> UNSUPPORTED (SYSTEM COULD BE UNSTABLE)
+2022-11-23T17:54:26.397558Z A server-main  - sql copy input root: NOT SET
+2022-11-23T17:54:26.397579Z A server-main  - sql copy input worker root: NOT SET
+2022-11-23T17:54:26.399264Z A server-main Metrics are disabled, health check endpoint will not consider unhandled errors
+2022-11-23T17:54:26.421101Z I i.q.c.m.EngineMigration table structures are up to date
+2022-11-23T17:54:26.421879Z I i.q.g.FunctionFactoryCache loading functions [test=false]
+2022-11-23T17:54:26.519735Z I i.q.c.p.WriterPool open [table=`sys.column_versions_purge_log`, thread=20]
+2022-11-23T17:54:26.524167Z I i.q.c.TableWriter open 'sys.column_versions_purge_log'
+2022-11-23T17:54:26.529061Z I i.q.c.TableWriter purging non attached partitions [path=/Users/marregui/QUEST/db/sys.column_versions_purge_log]
+2022-11-23T17:54:26.529556Z I i.q.c.p.WriterPool >> [table=`sys.column_versions_purge_log`, thread=20]
+2022-11-23T17:54:26.530036Z I i.q.c.p.ReaderPool open 'sys.column_versions_purge_log' [at=0:0]
+2022-11-23T17:54:26.533005Z I i.q.g.SqlCompiler plan [q=`select-choose ts, table_name, column_name, table_id, truncate_version, columnType, table_partition_by, updated_txn, column_version, partition_timestamp, partition_name_txn, completed from (select [ts, table_name, column_name, table_id, truncate_version, columnType, table_partition_by, updated_txn, column_version, partition_timestamp, partition_name_txn, completed] from sys.column_versions_purge_log timestamp (ts) where completed = null)`, fd=-1]
+2022-11-23T17:54:26.547555Z I i.q.c.p.ReaderPool open 'telemetry_config' [at=0:0]
+2022-11-23T17:54:26.549747Z I i.q.TelemetryJob Failed to alter telemetry table [table=telemetry_config,error=column 'version' already exists]
+2022-11-23T17:54:26.549862Z I i.q.TelemetryJob Failed to alter telemetry table [table=telemetry_config,error=column 'os' already exists]
+2022-11-23T17:54:26.549955Z I i.q.TelemetryJob Failed to alter telemetry table [table=telemetry_config,error=column 'package' already exists]
+2022-11-23T17:54:26.550003Z I i.q.c.p.WriterPool open [table=`telemetry_config`, thread=20]
+2022-11-23T17:54:26.550075Z I i.q.c.TableWriter open 'telemetry_config'
+2022-11-23T17:54:26.551193Z I i.q.c.TableWriter switched partition [path='/Users/marregui/QUEST/db/telemetry_config/default']
+2022-11-23T17:54:26.551680Z I i.q.c.p.WriterPool >> [table=`telemetry_config`, thread=20]
+2022-11-23T17:54:26.551986Z I i.q.g.SqlCompiler plan [q=`select-choose id, enabled, version, os, package from (select [id, enabled, version, os, package] from telemetry_config) limit -(1)`, fd=-1]
+2022-11-23T17:54:26.552706Z I i.q.c.TableReader open partition /Users/marregui/QUEST/db/telemetry_config/default [rowCount=2, partitionNameTxn=-1, transientRowCount=2, partitionIndex=0, partitionCount=1]
+2022-11-23T17:54:26.553360Z A i.q.TelemetryJob instance [id=0x05ede534efb72f00004a160642fb88, enabled=false]
+2022-11-23T17:54:26.554268Z I i.q.WorkerPoolManager using SHARED pool [requester=http, workers=7]
+2022-11-23T17:54:26.557551Z A http-server listening on 0.0.0.0:9000 [fd=102 backlog=64]
+2022-11-23T17:54:26.595681Z I i.q.WorkerPoolManager using SHARED pool [requester=min-http, workers=7]
+2022-11-23T17:54:26.596026Z A http-min-server listening on 0.0.0.0:9003 [fd=104 backlog=4]
+2022-11-23T17:54:26.596768Z I i.q.WorkerPoolManager using SHARED pool [requester=pg-wire, workers=7]
+2022-11-23T17:54:26.598816Z A pg-server listening on 0.0.0.0:8812 [fd=106 backlog=64]
+2022-11-23T17:54:26.614921Z I i.q.WorkerPoolManager using SHARED pool [requester=line-tcp-io, workers=7]
+2022-11-23T17:54:26.614966Z I i.q.WorkerPoolManager new DEDICATED pool [name=ilpwriter, requester=line-tcp-writer, workers=1]
+2022-11-23T17:54:26.616658Z I i.q.c.l.t.LineTcpReceiver using default context
+2022-11-23T17:54:26.617121Z A tcp-line-server listening on 0.0.0.0:9009 [fd=108 backlog=256]
+2022-11-23T17:54:26.623080Z E i.q.c.l.u.AbstractLineProtoUdpReceiver could not set receive buffer size [fd=110, size=8388608, errno=55]
+2022-11-23T17:54:26.625940Z I i.q.c.l.u.AbstractLineProtoUdpReceiver receiving multicast from 232.1.2.3:9009 via 0.0.0.0 [fd=110, commitRate=1000000]
+2022-11-23T17:54:26.774732Z A server-main bootstrap complete
+2022-11-23T17:54:26.775068Z I server-main os scheduled worker started [name=questdb-shared-3]
+2022-11-23T17:54:26.775280Z I server-main os scheduled worker started [name=questdb-shared-4]
+2022-11-23T17:54:26.775325Z I server-main os scheduled worker started [name=questdb-shared-5]
+2022-11-23T17:54:26.775457Z I server-main os scheduled worker started [name=questdb-shared-6]
+2022-11-23T17:54:26.775576Z I server-main os scheduled worker started [name=questdb-shared-7]
+2022-11-23T17:54:26.775761Z I server-main os scheduled worker started [name=questdb-shared-8]
+2022-11-23T17:54:26.775892Z I server-main worker pool started [pool=shared]
+2022-11-23T17:54:26.775906Z I i.q.WorkerPoolManager started shared pool [name=shared, workers=7]
+2022-11-23T17:54:26.775979Z I server-main os scheduled worker started [name=questdb-shared-9]
+2022-11-23T17:54:26.776017Z I server-main worker pool started [pool=ilpwriter]
+2022-11-23T17:54:26.776024Z I i.q.WorkerPoolManager started dedicated pool [name=ilpwriter, workers=1]
+2022-11-23T17:54:26.776036Z I server-main 
+     ___                  _   ____  ____
+    / _ \ _   _  ___  ___| |_|  _ \| __ )
+   | | | | | | |/ _ \/ __| __| | | |  _ \
+   | |_| | |_| |  __/\__ \ |_| |_| | |_) |
+    \__\_\\__,_|\___||___/\__|____/|____/
+
+Web Console URL(s):
+
+	http://192.168.1.57:9000
+	http://127.0.0.1:9000
+
+
+2022-11-23T17:54:26.776087Z I server-main os scheduled worker started [name=questdb-ilpwriter-10]
+2022-11-23T17:54:26.874467Z A server-main enjoy
+2022-11-23T17:54:26.907076Z I pg-server connected [ip=127.0.0.1, fd=111]
+2022-11-23T17:54:26.912059Z I i.q.c.p.PGConnectionContext protocol [major=3, minor=0]
+2022-11-23T17:54:26.912116Z I i.q.c.p.PGConnectionContext property [name=user, value=admin]
+2022-11-23T17:54:26.912130Z I i.q.c.p.PGConnectionContext property [name=database, value=main]
+2022-11-23T17:54:26.912142Z I i.q.c.p.PGConnectionContext property [name=client_encoding, value=UTF8]
+2022-11-23T17:54:26.912149Z I i.q.c.p.PGConnectionContext property [name=DateStyle, value=ISO]
+2022-11-23T17:54:26.912156Z I i.q.c.p.PGConnectionContext property [name=TimeZone, value=Europe/Madrid]
+2022-11-23T17:54:26.912164Z I i.q.c.p.PGConnectionContext property [name=extra_float_digits, value=2]
+2022-11-23T17:54:26.925178Z I i.q.c.p.PGConnectionContext parse [fd=111, q=BEGIN]
+2022-11-23T17:54:26.925576Z I i.q.c.p.PGConnectionContext parse [fd=111, q=SET extra_float_digits = 3]
+2022-11-23T17:54:26.925834Z I i.q.c.p.PGConnectionContext parse [fd=111, q=SET application_name = 'quest-1.0']
+2022-11-23T17:54:26.926000Z I i.q.c.p.PGConnectionContext parse [fd=111, q=COMMIT]
+2022-11-23T17:54:30.994479Z I i.q.c.p.PGConnectionContext parse [fd=111, q=]
+2022-11-23T17:54:30.996515Z I i.q.c.p.PGConnectionContext parse [fd=111, q=]
+2022-11-23T17:54:30.999032Z I i.q.c.p.PGConnectionContext parse [fd=111, q=tab]
+2022-11-23T17:54:30.999280Z I i.q.c.p.ReaderPool open 'tab' [at=0:0]
+2022-11-23T17:54:31.000296Z I i.q.g.SqlCompiler plan [q=`select-choose i, ts, nenufar from (select [i, ts, nenufar] from tab timestamp (ts))`, fd=111]
+2022-11-23T17:54:31.001438Z I i.q.c.TableReader open partition /Users/marregui/QUEST/db/tab/2022-11-21.15 [rowCount=2, partitionNameTxn=15, transientRowCount=1, partitionIndex=0, partitionCount=4]
+2022-11-23T17:54:31.013885Z I i.q.c.TableReader open partition /Users/marregui/QUEST/db/tab/2022-11-22.13 [rowCount=4, partitionNameTxn=13, transientRowCount=1, partitionIndex=1, partitionCount=4]
+2022-11-23T17:54:31.014542Z I i.q.c.TableReader open partition /Users/marregui/QUEST/db/tab/2022-11-23.9 [rowCount=1, partitionNameTxn=9, transientRowCount=1, partitionIndex=2, partitionCount=4]
+2022-11-23T17:54:31.015075Z I i.q.c.TableReader open partition /Users/marregui/QUEST/db/tab/2022-11-24.10 [rowCount=1, partitionNameTxn=10, transientRowCount=1, partitionIndex=3, partitionCount=4]
+2022-11-23T17:54:46.212657Z I i.q.c.p.PGConnectionContext parse [fd=111, q=]
+2022-11-23T17:55:16.241568Z I i.q.c.p.PGConnectionContext parse [fd=111, q=]
+2022-11-23T17:55:46.218029Z I i.q.c.p.PGConnectionContext parse [fd=111, q=]
+2022-11-23T17:55:46.218077Z I i.q.c.p.PGConnectionContext prepare [name=S_1]
+2022-11-23T17:59:26.892452Z I i.q.c.p.ReaderPool closed 'sys.column_versions_purge_log' [at=0:0, reason=IDLE]
+2022-11-23T17:59:26.893897Z I i.q.c.p.ReaderPool closed 'telemetry_config' [at=0:0, reason=IDLE]
+2022-11-23T17:59:26.894321Z I i.q.c.p.ReaderPool closed 'tab' [at=0:0, reason=IDLE]
+2022-11-23T18:01:30.686587Z I i.q.WorkerPoolManager closing dedicated pool [name=ilpwriter, workers=1]
+2022-11-23T18:01:30.730235Z I server-main cleaned worker [name=ilpwriter, worker=0, total=1]
+2022-11-23T18:01:30.730847Z I server-main os scheduled worker stopped [name=questdb-ilpwriter-10]
+2022-11-23T18:01:30.731050Z I i.q.c.l.t.LineTcpWriterJob line protocol writer closing [threadId=0]
+2022-11-23T18:01:30.731173Z I i.q.WorkerPoolManager closing shared pool [name=shared, workers=7]
+2022-11-23T18:01:30.732720Z I i.q.c.h.p.QueryCache closed
+2022-11-23T18:01:30.732839Z I i.q.c.h.p.QueryCache closed
+2022-11-23T18:01:30.735594Z I i.q.c.h.p.QueryCache closed
+2022-11-23T18:01:30.735603Z I server-main cleaned worker [name=shared, worker=3, total=7]
+2022-11-23T18:01:30.735618Z I server-main os scheduled worker stopped [name=questdb-shared-6]
+2022-11-23T18:01:30.736242Z I i.q.c.h.p.QueryCache closed
+2022-11-23T18:01:30.736278Z I i.q.c.h.p.QueryCache closed
+2022-11-23T18:01:30.736328Z I i.q.c.h.p.QueryCache closed
+2022-11-23T18:01:30.736346Z I server-main cleaned worker [name=shared, worker=0, total=7]
+2022-11-23T18:01:30.736355Z I server-main os scheduled worker stopped [name=questdb-shared-3]
+2022-11-23T18:01:30.736416Z I server-main cleaned worker [name=shared, worker=1, total=7]
+2022-11-23T18:01:30.736430Z I server-main os scheduled worker stopped [name=questdb-shared-4]
+2022-11-23T18:01:30.740334Z I i.q.c.h.p.QueryCache closed
+2022-11-23T18:01:30.740372Z I i.q.c.h.p.QueryCache closed
+2022-11-23T18:01:30.740501Z I server-main cleaned worker [name=shared, worker=2, total=7]
+2022-11-23T18:01:30.740513Z I server-main os scheduled worker stopped [name=questdb-shared-5]
+2022-11-23T18:01:30.743452Z I i.q.c.h.p.QueryCache closed
+2022-11-23T18:01:30.743508Z I i.q.c.h.p.QueryCache closed
+2022-11-23T18:01:30.743604Z I server-main cleaned worker [name=shared, worker=6, total=7]
+2022-11-23T18:01:30.743614Z I server-main os scheduled worker stopped [name=questdb-shared-9]
+2022-11-23T19:50:43.973436Z A server-main QuestDB server 6.5.5. Copyright (C) 2014-2022, all rights reserved.
+2022-11-23T19:50:43.973932Z A server-main OS/Arch apple/apple-silicon [AVX512,983693992, 64 bits, 8 processors]
+2022-11-23T19:50:43.975370Z I server-main Web Console is up to date
+2022-11-23T19:50:43.975483Z A server-main Server config: /Users/marregui/QUEST/conf/server.conf
+2022-11-23T19:50:44.024276Z A server-main Config:
+2022-11-23T19:50:44.024302Z A server-main  - http.enabled : true
+2022-11-23T19:50:44.024322Z A server-main  - tcp.enabled  : true
+2022-11-23T19:50:44.024339Z A server-main  - pg.enabled   : true
+2022-11-23T19:50:44.024357Z A server-main  - open database [id=963880947576877442.4482852230280459206]
+2022-11-23T19:50:44.024452Z A server-main  - db root: [path=/Users/marregui/QUEST/db, magic=0x1a] -> UNSUPPORTED (SYSTEM COULD BE UNSTABLE)
+2022-11-23T19:50:44.024492Z A server-main  - backup root: NOT SET
+2022-11-23T19:50:44.024520Z A server-main  - snapshot root: [path=/Users/marregui/QUEST/snapshot, magic=0x00] -> UNSUPPORTED (SYSTEM COULD BE UNSTABLE)
+2022-11-23T19:50:44.024546Z A server-main  - sql copy input root: NOT SET
+2022-11-23T19:50:44.024559Z A server-main  - sql copy input worker root: NOT SET
+2022-11-23T19:50:44.026324Z A server-main Metrics are disabled, health check endpoint will not consider unhandled errors
+2022-11-23T19:50:44.047554Z I i.q.c.m.EngineMigration table structures are up to date
+2022-11-23T19:50:44.048253Z I i.q.g.FunctionFactoryCache loading functions [test=false]
+2022-11-23T19:50:44.146366Z I i.q.c.p.WriterPool open [table=`sys.column_versions_purge_log`, thread=18]
+2022-11-23T19:50:44.150778Z I i.q.c.TableWriter open 'sys.column_versions_purge_log'
+2022-11-23T19:50:44.155509Z I i.q.c.TableWriter purging non attached partitions [path=/Users/marregui/QUEST/db/sys.column_versions_purge_log]
+2022-11-23T19:50:44.155975Z I i.q.c.p.WriterPool >> [table=`sys.column_versions_purge_log`, thread=18]
+2022-11-23T19:50:44.156419Z I i.q.c.p.ReaderPool open 'sys.column_versions_purge_log' [at=0:0]
+2022-11-23T19:50:44.159207Z I i.q.g.SqlCompiler plan [q=`select-choose ts, table_name, column_name, table_id, truncate_version, columnType, table_partition_by, updated_txn, column_version, partition_timestamp, partition_name_txn, completed from (select [ts, table_name, column_name, table_id, truncate_version, columnType, table_partition_by, updated_txn, column_version, partition_timestamp, partition_name_txn, completed] from sys.column_versions_purge_log timestamp (ts) where completed = null)`, fd=-1]
+2022-11-23T19:50:44.186080Z I i.q.c.p.ReaderPool open 'telemetry_config' [at=0:0]
+2022-11-23T19:50:44.188867Z I i.q.TelemetryJob Failed to alter telemetry table [table=telemetry_config,error=column 'version' already exists]
+2022-11-23T19:50:44.189021Z I i.q.TelemetryJob Failed to alter telemetry table [table=telemetry_config,error=column 'os' already exists]
+2022-11-23T19:50:44.189098Z I i.q.TelemetryJob Failed to alter telemetry table [table=telemetry_config,error=column 'package' already exists]
+2022-11-23T19:50:44.189149Z I i.q.c.p.WriterPool open [table=`telemetry_config`, thread=18]
+2022-11-23T19:50:44.189210Z I i.q.c.TableWriter open 'telemetry_config'
+2022-11-23T19:50:44.190895Z I i.q.c.TableWriter switched partition [path='/Users/marregui/QUEST/db/telemetry_config/default']
+2022-11-23T19:50:44.191343Z I i.q.c.p.WriterPool >> [table=`telemetry_config`, thread=18]
+2022-11-23T19:50:44.191661Z I i.q.g.SqlCompiler plan [q=`select-choose id, enabled, version, os, package from (select [id, enabled, version, os, package] from telemetry_config) limit -(1)`, fd=-1]
+2022-11-23T19:50:44.192426Z I i.q.c.TableReader open partition /Users/marregui/QUEST/db/telemetry_config/default [rowCount=2, partitionNameTxn=-1, transientRowCount=2, partitionIndex=0, partitionCount=1]
+2022-11-23T19:50:44.193201Z A i.q.TelemetryJob instance [id=0x05ede534efb72f00004a160642fb88, enabled=false]
+2022-11-23T19:50:44.194278Z I i.q.WorkerPoolManager using SHARED pool [requester=http, workers=7]
+2022-11-23T19:50:44.197214Z A http-server listening on 0.0.0.0:9000 [fd=102 backlog=64]
+2022-11-23T19:50:44.231797Z I i.q.WorkerPoolManager using SHARED pool [requester=min-http, workers=7]
+2022-11-23T19:50:44.231929Z A http-min-server listening on 0.0.0.0:9003 [fd=104 backlog=4]
+2022-11-23T19:50:44.232383Z I i.q.WorkerPoolManager using SHARED pool [requester=pg-wire, workers=7]
+2022-11-23T19:50:44.234220Z A pg-server listening on 0.0.0.0:8812 [fd=106 backlog=64]
+2022-11-23T19:50:44.277913Z I i.q.WorkerPoolManager using SHARED pool [requester=line-tcp-io, workers=7]
+2022-11-23T19:50:44.278007Z I i.q.WorkerPoolManager new DEDICATED pool [name=ilpwriter, requester=line-tcp-writer, workers=1]
+2022-11-23T19:50:44.279112Z I i.q.c.l.t.LineTcpReceiver using default context
+2022-11-23T19:50:44.279621Z A tcp-line-server listening on 0.0.0.0:9009 [fd=108 backlog=256]
+2022-11-23T19:50:44.285927Z E i.q.c.l.u.AbstractLineProtoUdpReceiver could not set receive buffer size [fd=110, size=8388608, errno=55]
+2022-11-23T19:50:44.288819Z I i.q.c.l.u.AbstractLineProtoUdpReceiver receiving multicast from 232.1.2.3:9009 via 0.0.0.0 [fd=110, commitRate=1000000]
+2022-11-23T19:50:44.413428Z A server-main bootstrap complete
+2022-11-23T19:50:44.413717Z I server-main os scheduled worker started [name=questdb-shared-3]
+2022-11-23T19:50:44.413785Z I server-main os scheduled worker started [name=questdb-shared-4]
+2022-11-23T19:50:44.413939Z I server-main os scheduled worker started [name=questdb-shared-5]
+2022-11-23T19:50:44.414059Z I server-main os scheduled worker started [name=questdb-shared-6]
+2022-11-23T19:50:44.414161Z I server-main os scheduled worker started [name=questdb-shared-7]
+2022-11-23T19:50:44.414280Z I server-main os scheduled worker started [name=questdb-shared-8]
+2022-11-23T19:50:44.414313Z I server-main worker pool started [pool=shared]
+2022-11-23T19:50:44.414328Z I i.q.WorkerPoolManager started shared pool [name=shared, workers=7]
+2022-11-23T19:50:44.414335Z I server-main os scheduled worker started [name=questdb-shared-9]
+2022-11-23T19:50:44.414434Z I server-main worker pool started [pool=ilpwriter]
+2022-11-23T19:50:44.414444Z I i.q.WorkerPoolManager started dedicated pool [name=ilpwriter, workers=1]
+2022-11-23T19:50:44.414459Z I server-main 
+     ___                  _   ____  ____
+    / _ \ _   _  ___  ___| |_|  _ \| __ )
+   | | | | | | |/ _ \/ __| __| | | |  _ \
+   | |_| | |_| |  __/\__ \ |_| |_| | |_) |
+    \__\_\\__,_|\___||___/\__|____/|____/
+
+Web Console URL(s):
+
+	http://192.168.1.57:9000
+	http://127.0.0.1:9000
+
+
+2022-11-23T19:50:44.414491Z I server-main os scheduled worker started [name=questdb-ilpwriter-10]
+2022-11-23T19:50:44.512070Z A server-main enjoy
+2022-11-23T19:50:44.541339Z I pg-server connected [ip=127.0.0.1, fd=112]
+2022-11-23T19:50:44.547391Z I i.q.c.p.PGConnectionContext protocol [major=3, minor=0]
+2022-11-23T19:50:44.547431Z I i.q.c.p.PGConnectionContext property [name=user, value=admin]
+2022-11-23T19:50:44.547441Z I i.q.c.p.PGConnectionContext property [name=database, value=main]
+2022-11-23T19:50:44.547452Z I i.q.c.p.PGConnectionContext property [name=client_encoding, value=UTF8]
+2022-11-23T19:50:44.547459Z I i.q.c.p.PGConnectionContext property [name=DateStyle, value=ISO]
+2022-11-23T19:50:44.547466Z I i.q.c.p.PGConnectionContext property [name=TimeZone, value=Europe/Madrid]
+2022-11-23T19:50:44.547473Z I i.q.c.p.PGConnectionContext property [name=extra_float_digits, value=2]
+2022-11-23T19:50:44.559469Z I i.q.c.p.PGConnectionContext parse [fd=112, q=BEGIN]
+2022-11-23T19:50:44.559811Z I i.q.c.p.PGConnectionContext parse [fd=112, q=SET extra_float_digits = 3]
+2022-11-23T19:50:44.559997Z I i.q.c.p.PGConnectionContext parse [fd=112, q=SET application_name = 'quest-1.0']
+2022-11-23T19:50:44.560156Z I i.q.c.p.PGConnectionContext parse [fd=112, q=COMMIT]
+2022-11-23T19:50:47.793240Z I i.q.c.p.PGConnectionContext parse [fd=112, q=]
+2022-11-23T19:50:47.795458Z I i.q.c.p.PGConnectionContext parse [fd=112, q=]
+2022-11-23T19:50:47.798257Z I i.q.c.p.PGConnectionContext parse [fd=112, q=tab]
+2022-11-23T19:50:47.798644Z I i.q.c.p.ReaderPool open 'tab' [at=0:0]
+2022-11-23T19:50:47.800675Z I i.q.g.SqlCompiler plan [q=`select-choose i, ts, nenufar from (select [i, ts, nenufar] from tab timestamp (ts))`, fd=112]
+2022-11-23T19:50:47.802321Z I i.q.c.TableReader open partition /Users/marregui/QUEST/db/tab/2022-11-21.15 [rowCount=2, partitionNameTxn=15, transientRowCount=1, partitionIndex=0, partitionCount=4]
+2022-11-23T19:50:47.805369Z I i.q.c.TableReader open partition /Users/marregui/QUEST/db/tab/2022-11-22.13 [rowCount=4, partitionNameTxn=13, transientRowCount=1, partitionIndex=1, partitionCount=4]
+2022-11-23T19:50:47.806180Z I i.q.c.TableReader open partition /Users/marregui/QUEST/db/tab/2022-11-23.9 [rowCount=1, partitionNameTxn=9, transientRowCount=1, partitionIndex=2, partitionCount=4]
+2022-11-23T19:50:47.806739Z I i.q.c.TableReader open partition /Users/marregui/QUEST/db/tab/2022-11-24.10 [rowCount=1, partitionNameTxn=10, transientRowCount=1, partitionIndex=3, partitionCount=4]
+2022-11-23T19:51:02.131476Z I i.q.c.p.PGConnectionContext parse [fd=112, q=]
+2022-11-23T19:51:32.127123Z I i.q.c.p.PGConnectionContext parse [fd=112, q=]
+2022-11-23T19:51:50.024253Z I i.q.WorkerPoolManager closing dedicated pool [name=ilpwriter, workers=1]
+2022-11-23T19:51:50.097268Z I server-main cleaned worker [name=ilpwriter, worker=0, total=1]
+2022-11-23T19:51:50.097360Z I server-main os scheduled worker stopped [name=questdb-ilpwriter-10]
+2022-11-23T19:51:50.097382Z I i.q.c.l.t.LineTcpWriterJob line protocol writer closing [threadId=0]
+2022-11-23T19:51:50.097436Z I i.q.WorkerPoolManager closing shared pool [name=shared, workers=7]
+2022-11-23T19:51:50.116416Z I i.q.c.h.p.QueryCache closed
+2022-11-23T19:51:50.116463Z I i.q.c.h.p.QueryCache closed
+2022-11-23T19:51:50.116574Z I server-main cleaned worker [name=shared, worker=6, total=7]
+2022-11-23T19:51:50.116585Z I server-main os scheduled worker stopped [name=questdb-shared-9]
+2022-11-23T19:51:50.119308Z I i.q.c.h.p.QueryCache closed
+2022-11-23T19:51:50.119372Z I i.q.c.h.p.QueryCache closed
+2022-11-23T19:51:50.119493Z I server-main cleaned worker [name=shared, worker=1, total=7]
+2022-11-23T19:51:50.119505Z I server-main os scheduled worker stopped [name=questdb-shared-4]
+2022-11-23T19:51:50.125225Z I i.q.c.h.p.QueryCache closed
+2022-11-23T19:51:50.125263Z I i.q.c.h.p.QueryCache closed
+2022-11-23T19:51:50.125360Z I server-main cleaned worker [name=shared, worker=5, total=7]
+2022-11-23T19:51:50.125371Z I server-main os scheduled worker stopped [name=questdb-shared-8]
+2022-11-23T19:51:50.155530Z I i.q.c.h.p.QueryCache closed
+2022-11-23T19:51:50.155588Z I i.q.c.h.p.QueryCache closed
+2022-11-23T19:51:50.155767Z I server-main cleaned worker [name=shared, worker=4, total=7]
+2022-11-23T19:51:50.155779Z I server-main os scheduled worker stopped [name=questdb-shared-7]
+2022-11-23T19:51:50.160469Z I i.q.c.h.p.QueryCache closed
+2022-11-23T19:51:50.160498Z I i.q.c.h.p.QueryCache closed
+2022-11-23T19:51:50.160543Z I server-main cleaned worker [name=shared, worker=3, total=7]
+2022-11-23T19:51:50.160553Z I server-main os scheduled worker stopped [name=questdb-shared-6]
+2022-11-23T19:52:14.872652Z A server-main QuestDB server 6.5.5. Copyright (C) 2014-2022, all rights reserved.
+2022-11-23T19:52:14.873621Z A server-main OS/Arch apple/apple-silicon [AVX512,1539573928, 64 bits, 8 processors]
+2022-11-23T19:52:14.875775Z I server-main Web Console is up to date
+2022-11-23T19:52:14.875914Z A server-main Server config: /Users/marregui/QUEST/conf/server.conf
+2022-11-23T19:52:14.920407Z A server-main Config:
+2022-11-23T19:52:14.920432Z A server-main  - http.enabled : true
+2022-11-23T19:52:14.920454Z A server-main  - tcp.enabled  : true
+2022-11-23T19:52:14.920474Z A server-main  - pg.enabled   : true
+2022-11-23T19:52:14.920492Z A server-main  - open database [id=963880947576877442.4482852230280459206]
+2022-11-23T19:52:14.920588Z A server-main  - db root: [path=/Users/marregui/QUEST/db, magic=0x1a] -> UNSUPPORTED (SYSTEM COULD BE UNSTABLE)
+2022-11-23T19:52:14.920628Z A server-main  - backup root: NOT SET
+2022-11-23T19:52:14.920662Z A server-main  - snapshot root: [path=/Users/marregui/QUEST/snapshot, magic=0x00] -> UNSUPPORTED (SYSTEM COULD BE UNSTABLE)
+2022-11-23T19:52:14.920692Z A server-main  - sql copy input root: NOT SET
+2022-11-23T19:52:14.920709Z A server-main  - sql copy input worker root: NOT SET
+2022-11-23T19:52:14.922912Z A server-main Metrics are disabled, health check endpoint will not consider unhandled errors
+2022-11-23T19:52:14.945829Z I i.q.c.m.EngineMigration table structures are up to date
+2022-11-23T19:52:14.946604Z I i.q.g.FunctionFactoryCache loading functions [test=false]
+2022-11-23T19:52:15.059391Z I i.q.c.p.WriterPool open [table=`sys.column_versions_purge_log`, thread=20]
+2022-11-23T19:52:15.064143Z I i.q.c.TableWriter open 'sys.column_versions_purge_log'
+2022-11-23T19:52:15.067378Z I i.q.c.TableWriter purging non attached partitions [path=/Users/marregui/QUEST/db/sys.column_versions_purge_log]
+2022-11-23T19:52:15.067827Z I i.q.c.p.WriterPool >> [table=`sys.column_versions_purge_log`, thread=20]
+2022-11-23T19:52:15.068294Z I i.q.c.p.ReaderPool open 'sys.column_versions_purge_log' [at=0:0]
+2022-11-23T19:52:15.071306Z I i.q.g.SqlCompiler plan [q=`select-choose ts, table_name, column_name, table_id, truncate_version, columnType, table_partition_by, updated_txn, column_version, partition_timestamp, partition_name_txn, completed from (select [ts, table_name, column_name, table_id, truncate_version, columnType, table_partition_by, updated_txn, column_version, partition_timestamp, partition_name_txn, completed] from sys.column_versions_purge_log timestamp (ts) where completed = null)`, fd=-1]
+2022-11-23T19:52:15.085043Z I i.q.c.p.ReaderPool open 'telemetry_config' [at=0:0]
+2022-11-23T19:52:15.085985Z I i.q.TelemetryJob Failed to alter telemetry table [table=telemetry_config,error=column 'version' already exists]
+2022-11-23T19:52:15.086070Z I i.q.TelemetryJob Failed to alter telemetry table [table=telemetry_config,error=column 'os' already exists]
+2022-11-23T19:52:15.086124Z I i.q.TelemetryJob Failed to alter telemetry table [table=telemetry_config,error=column 'package' already exists]
+2022-11-23T19:52:15.086151Z I i.q.c.p.WriterPool open [table=`telemetry_config`, thread=20]
+2022-11-23T19:52:15.086203Z I i.q.c.TableWriter open 'telemetry_config'
+2022-11-23T19:52:15.087289Z I i.q.c.TableWriter switched partition [path='/Users/marregui/QUEST/db/telemetry_config/default']
+2022-11-23T19:52:15.089950Z I i.q.c.p.WriterPool >> [table=`telemetry_config`, thread=20]
+2022-11-23T19:52:15.090292Z I i.q.g.SqlCompiler plan [q=`select-choose id, enabled, version, os, package from (select [id, enabled, version, os, package] from telemetry_config) limit -(1)`, fd=-1]
+2022-11-23T19:52:15.091176Z I i.q.c.TableReader open partition /Users/marregui/QUEST/db/telemetry_config/default [rowCount=2, partitionNameTxn=-1, transientRowCount=2, partitionIndex=0, partitionCount=1]
+2022-11-23T19:52:15.091390Z A i.q.TelemetryJob instance [id=0x05ede534efb72f00004a160642fb88, enabled=false]
+2022-11-23T19:52:15.092338Z I i.q.WorkerPoolManager using SHARED pool [requester=http, workers=7]
+2022-11-23T19:52:15.095034Z A http-server listening on 0.0.0.0:9000 [fd=99 backlog=64]
+2022-11-23T19:52:15.127954Z I i.q.WorkerPoolManager using SHARED pool [requester=min-http, workers=7]
+2022-11-23T19:52:15.128120Z A http-min-server listening on 0.0.0.0:9003 [fd=101 backlog=4]
+2022-11-23T19:52:15.128634Z I i.q.WorkerPoolManager using SHARED pool [requester=pg-wire, workers=7]
+2022-11-23T19:52:15.130638Z A pg-server listening on 0.0.0.0:8812 [fd=103 backlog=64]
+2022-11-23T19:52:15.144442Z I i.q.WorkerPoolManager using SHARED pool [requester=line-tcp-io, workers=7]
+2022-11-23T19:52:15.144481Z I i.q.WorkerPoolManager new DEDICATED pool [name=ilpwriter, requester=line-tcp-writer, workers=1]
+2022-11-23T19:52:15.145298Z I i.q.c.l.t.LineTcpReceiver using default context
+2022-11-23T19:52:15.145677Z A tcp-line-server listening on 0.0.0.0:9009 [fd=105 backlog=256]
+2022-11-23T19:52:15.149981Z E i.q.c.l.u.AbstractLineProtoUdpReceiver could not set receive buffer size [fd=107, size=8388608, errno=55]
+2022-11-23T19:52:15.152000Z I i.q.c.l.u.AbstractLineProtoUdpReceiver receiving multicast from 232.1.2.3:9009 via 0.0.0.0 [fd=107, commitRate=1000000]
+2022-11-23T19:52:15.278961Z A server-main bootstrap complete
+2022-11-23T19:52:15.279455Z I server-main os scheduled worker started [name=questdb-shared-3]
+2022-11-23T19:52:15.279541Z I server-main os scheduled worker started [name=questdb-shared-4]
+2022-11-23T19:52:15.279607Z I server-main os scheduled worker started [name=questdb-shared-5]
+2022-11-23T19:52:15.279749Z I server-main os scheduled worker started [name=questdb-shared-6]
+2022-11-23T19:52:15.279823Z I server-main os scheduled worker started [name=questdb-shared-7]
+2022-11-23T19:52:15.279856Z I server-main os scheduled worker started [name=questdb-shared-8]
+2022-11-23T19:52:15.280055Z I server-main worker pool started [pool=shared]
+2022-11-23T19:52:15.280072Z I i.q.WorkerPoolManager started shared pool [name=shared, workers=7]
+2022-11-23T19:52:15.280112Z I server-main os scheduled worker started [name=questdb-shared-9]
+2022-11-23T19:52:15.280164Z I server-main worker pool started [pool=ilpwriter]
+2022-11-23T19:52:15.280172Z I i.q.WorkerPoolManager started dedicated pool [name=ilpwriter, workers=1]
+2022-11-23T19:52:15.280185Z I server-main 
+     ___                  _   ____  ____
+    / _ \ _   _  ___  ___| |_|  _ \| __ )
+   | | | | | | |/ _ \/ __| __| | | |  _ \
+   | |_| | |_| |  __/\__ \ |_| |_| | |_) |
+    \__\_\\__,_|\___||___/\__|____/|____/
+
+Web Console URL(s):
+
+	http://192.168.1.57:9000
+	http://127.0.0.1:9000
+
+
+2022-11-23T19:52:15.280494Z I server-main os scheduled worker started [name=questdb-ilpwriter-10]
+2022-11-23T19:52:15.376147Z A server-main enjoy
+2022-11-23T19:52:15.389397Z I pg-server connected [ip=127.0.0.1, fd=108]
+2022-11-23T19:52:15.390587Z I i.q.c.p.PGConnectionContext protocol [major=3, minor=0]
+2022-11-23T19:52:15.390625Z I i.q.c.p.PGConnectionContext property [name=user, value=admin]
+2022-11-23T19:52:15.390635Z I i.q.c.p.PGConnectionContext property [name=database, value=main]
+2022-11-23T19:52:15.390643Z I i.q.c.p.PGConnectionContext property [name=client_encoding, value=UTF8]
+2022-11-23T19:52:15.390649Z I i.q.c.p.PGConnectionContext property [name=DateStyle, value=ISO]
+2022-11-23T19:52:15.390655Z I i.q.c.p.PGConnectionContext property [name=TimeZone, value=Europe/Madrid]
+2022-11-23T19:52:15.390663Z I i.q.c.p.PGConnectionContext property [name=extra_float_digits, value=2]
+2022-11-23T19:52:15.408170Z I i.q.c.p.PGConnectionContext parse [fd=108, q=BEGIN]
+2022-11-23T19:52:15.408617Z I i.q.c.p.PGConnectionContext parse [fd=108, q=SET extra_float_digits = 3]
+2022-11-23T19:52:15.408908Z I i.q.c.p.PGConnectionContext parse [fd=108, q=SET application_name = 'quest-1.0']
+2022-11-23T19:52:15.409162Z I i.q.c.p.PGConnectionContext parse [fd=108, q=COMMIT]
+2022-11-23T19:52:25.345183Z I i.q.c.p.PGConnectionContext parse [fd=108, q=]
+2022-11-23T19:52:55.320353Z I i.q.c.p.PGConnectionContext parse [fd=108, q=]
+2022-11-23T19:53:25.298896Z I i.q.c.p.PGConnectionContext parse [fd=108, q=]
+2022-11-23T19:53:55.321098Z I i.q.c.p.PGConnectionContext parse [fd=108, q=]
+2022-11-23T19:54:25.316712Z I i.q.c.p.PGConnectionContext parse [fd=108, q=]
+2022-11-23T19:54:25.316772Z I i.q.c.p.PGConnectionContext prepare [name=S_1]
+2022-11-23T19:54:35.039591Z I i.q.WorkerPoolManager closing dedicated pool [name=ilpwriter, workers=1]
+2022-11-23T19:54:35.100738Z I server-main cleaned worker [name=ilpwriter, worker=0, total=1]
+2022-11-23T19:54:35.100799Z I server-main os scheduled worker stopped [name=questdb-ilpwriter-10]
+2022-11-23T19:54:35.100846Z I i.q.c.l.t.LineTcpWriterJob line protocol writer closing [threadId=0]
+2022-11-23T19:54:35.100917Z I i.q.WorkerPoolManager closing shared pool [name=shared, workers=7]
+2022-11-23T19:54:35.113030Z I i.q.c.h.p.QueryCache closed
+2022-11-23T19:54:35.113102Z I i.q.c.h.p.QueryCache closed
+2022-11-23T19:54:35.113232Z I server-main cleaned worker [name=shared, worker=1, total=7]
+2022-11-23T19:54:35.113244Z I server-main os scheduled worker stopped [name=questdb-shared-4]
+2022-11-23T19:54:35.114499Z I i.q.c.h.p.QueryCache closed
+2022-11-23T19:54:35.114551Z I i.q.c.h.p.QueryCache closed
+2022-11-23T19:54:35.114620Z I server-main cleaned worker [name=shared, worker=2, total=7]
+2022-11-23T19:54:35.114632Z I server-main os scheduled worker stopped [name=questdb-shared-5]
+2022-11-23T19:54:35.122078Z I i.q.c.h.p.QueryCache closed
+2022-11-23T19:54:35.122120Z I i.q.c.h.p.QueryCache closed
+2022-11-23T19:54:35.122227Z I server-main cleaned worker [name=shared, worker=6, total=7]
+2022-11-23T19:54:35.122238Z I server-main os scheduled worker stopped [name=questdb-shared-9]
+2022-11-23T19:54:35.123293Z I i.q.c.h.p.QueryCache closed
+2022-11-23T19:54:35.123368Z I i.q.c.h.p.QueryCache closed
+2022-11-23T19:54:35.123481Z I server-main cleaned worker [name=shared, worker=5, total=7]
+2022-11-23T19:54:35.123492Z I server-main os scheduled worker stopped [name=questdb-shared-8]
+2022-11-23T19:54:35.141451Z I i.q.c.h.p.QueryCache closed
+2022-11-23T19:54:35.141504Z I i.q.c.h.p.QueryCache closed
+2022-11-23T19:54:35.141595Z I server-main cleaned worker [name=shared, worker=0, total=7]
+2022-11-23T19:54:35.141610Z I server-main os scheduled worker stopped [name=questdb-shared-3]
+2022-11-23T19:54:35.142734Z I i.q.c.h.p.QueryCache closed
+2022-11-23T19:54:35.142788Z I i.q.c.h.p.QueryCache closed
+2022-11-23T19:54:35.142867Z I server-main cleaned worker [name=shared, worker=3, total=7]
+2022-11-23T19:54:35.142881Z I server-main os scheduled worker stopped [name=questdb-shared-6]
+2022-11-23T19:54:41.136497Z A server-main QuestDB server 6.5.5. Copyright (C) 2014-2022, all rights reserved.
+2022-11-23T19:54:41.137168Z A server-main OS/Arch apple/apple-silicon [AVX512,1619039912, 64 bits, 8 processors]
+2022-11-23T19:54:41.138786Z I server-main Web Console is up to date
+2022-11-23T19:54:41.138903Z A server-main Server config: /Users/marregui/QUEST/conf/server.conf
+2022-11-23T19:54:41.183699Z A server-main Config:
+2022-11-23T19:54:41.183724Z A server-main  - http.enabled : true
+2022-11-23T19:54:41.183746Z A server-main  - tcp.enabled  : true
+2022-11-23T19:54:41.183765Z A server-main  - pg.enabled   : true
+2022-11-23T19:54:41.183783Z A server-main  - open database [id=963880947576877442.4482852230280459206]
+2022-11-23T19:54:41.183876Z A server-main  - db root: [path=/Users/marregui/QUEST/db, magic=0x1a] -> UNSUPPORTED (SYSTEM COULD BE UNSTABLE)
+2022-11-23T19:54:41.183916Z A server-main  - backup root: NOT SET
+2022-11-23T19:54:41.183948Z A server-main  - snapshot root: [path=/Users/marregui/QUEST/snapshot, magic=0x00] -> UNSUPPORTED (SYSTEM COULD BE UNSTABLE)
+2022-11-23T19:54:41.183976Z A server-main  - sql copy input root: NOT SET
+2022-11-23T19:54:41.183990Z A server-main  - sql copy input worker root: NOT SET
+2022-11-23T19:54:41.185624Z A server-main Metrics are disabled, health check endpoint will not consider unhandled errors
+2022-11-23T19:54:41.206749Z I i.q.c.m.EngineMigration table structures are up to date
+2022-11-23T19:54:41.207572Z I i.q.g.FunctionFactoryCache loading functions [test=false]
+2022-11-23T19:54:41.306383Z I i.q.c.p.WriterPool open [table=`sys.column_versions_purge_log`, thread=20]
+2022-11-23T19:54:41.310739Z I i.q.c.TableWriter open 'sys.column_versions_purge_log'
+2022-11-23T19:54:41.313565Z I i.q.c.TableWriter purging non attached partitions [path=/Users/marregui/QUEST/db/sys.column_versions_purge_log]
+2022-11-23T19:54:41.313971Z I i.q.c.p.WriterPool >> [table=`sys.column_versions_purge_log`, thread=20]
+2022-11-23T19:54:41.314406Z I i.q.c.p.ReaderPool open 'sys.column_versions_purge_log' [at=0:0]
+2022-11-23T19:54:41.317013Z I i.q.g.SqlCompiler plan [q=`select-choose ts, table_name, column_name, table_id, truncate_version, columnType, table_partition_by, updated_txn, column_version, partition_timestamp, partition_name_txn, completed from (select [ts, table_name, column_name, table_id, truncate_version, columnType, table_partition_by, updated_txn, column_version, partition_timestamp, partition_name_txn, completed] from sys.column_versions_purge_log timestamp (ts) where completed = null)`, fd=-1]
+2022-11-23T19:54:41.330428Z I i.q.c.p.ReaderPool open 'telemetry_config' [at=0:0]
+2022-11-23T19:54:41.331357Z I i.q.TelemetryJob Failed to alter telemetry table [table=telemetry_config,error=column 'version' already exists]
+2022-11-23T19:54:41.331434Z I i.q.TelemetryJob Failed to alter telemetry table [table=telemetry_config,error=column 'os' already exists]
+2022-11-23T19:54:41.331492Z I i.q.TelemetryJob Failed to alter telemetry table [table=telemetry_config,error=column 'package' already exists]
+2022-11-23T19:54:41.331523Z I i.q.c.p.WriterPool open [table=`telemetry_config`, thread=20]
+2022-11-23T19:54:41.331577Z I i.q.c.TableWriter open 'telemetry_config'
+2022-11-23T19:54:41.332545Z I i.q.c.TableWriter switched partition [path='/Users/marregui/QUEST/db/telemetry_config/default']
+2022-11-23T19:54:41.332994Z I i.q.c.p.WriterPool >> [table=`telemetry_config`, thread=20]
+2022-11-23T19:54:41.333272Z I i.q.g.SqlCompiler plan [q=`select-choose id, enabled, version, os, package from (select [id, enabled, version, os, package] from telemetry_config) limit -(1)`, fd=-1]
+2022-11-23T19:54:41.333919Z I i.q.c.TableReader open partition /Users/marregui/QUEST/db/telemetry_config/default [rowCount=2, partitionNameTxn=-1, transientRowCount=2, partitionIndex=0, partitionCount=1]
+2022-11-23T19:54:41.334133Z A i.q.TelemetryJob instance [id=0x05ede534efb72f00004a160642fb88, enabled=false]
+2022-11-23T19:54:41.335024Z I i.q.WorkerPoolManager using SHARED pool [requester=http, workers=7]
+2022-11-23T19:54:41.337552Z A http-server listening on 0.0.0.0:9000 [fd=99 backlog=64]
+2022-11-23T19:54:41.368646Z I i.q.WorkerPoolManager using SHARED pool [requester=min-http, workers=7]
+2022-11-23T19:54:41.368807Z A http-min-server listening on 0.0.0.0:9003 [fd=101 backlog=4]
+2022-11-23T19:54:41.369270Z I i.q.WorkerPoolManager using SHARED pool [requester=pg-wire, workers=7]
+2022-11-23T19:54:41.371046Z A pg-server listening on 0.0.0.0:8812 [fd=103 backlog=64]
+2022-11-23T19:54:41.385188Z I i.q.WorkerPoolManager using SHARED pool [requester=line-tcp-io, workers=7]
+2022-11-23T19:54:41.385230Z I i.q.WorkerPoolManager new DEDICATED pool [name=ilpwriter, requester=line-tcp-writer, workers=1]
+2022-11-23T19:54:41.386802Z I i.q.c.l.t.LineTcpReceiver using default context
+2022-11-23T19:54:41.387244Z A tcp-line-server listening on 0.0.0.0:9009 [fd=105 backlog=256]
+2022-11-23T19:54:41.392546Z E i.q.c.l.u.AbstractLineProtoUdpReceiver could not set receive buffer size [fd=107, size=8388608, errno=55]
+2022-11-23T19:54:41.394604Z I i.q.c.l.u.AbstractLineProtoUdpReceiver receiving multicast from 232.1.2.3:9009 via 0.0.0.0 [fd=107, commitRate=1000000]
+2022-11-23T19:54:41.550201Z A server-main bootstrap complete
+2022-11-23T19:54:41.550595Z I server-main os scheduled worker started [name=questdb-shared-3]
+2022-11-23T19:54:41.550544Z I server-main os scheduled worker started [name=questdb-shared-4]
+2022-11-23T19:54:41.550713Z I server-main os scheduled worker started [name=questdb-shared-5]
+2022-11-23T19:54:41.550829Z I server-main os scheduled worker started [name=questdb-shared-6]
+2022-11-23T19:54:41.550907Z I server-main os scheduled worker started [name=questdb-shared-7]
+2022-11-23T19:54:41.551063Z I server-main os scheduled worker started [name=questdb-shared-8]
+2022-11-23T19:54:41.551176Z I server-main worker pool started [pool=shared]
+2022-11-23T19:54:41.551229Z I i.q.WorkerPoolManager started shared pool [name=shared, workers=7]
+2022-11-23T19:54:41.551246Z I server-main os scheduled worker started [name=questdb-shared-9]
+2022-11-23T19:54:41.551430Z I server-main worker pool started [pool=ilpwriter]
+2022-11-23T19:54:41.551439Z I i.q.WorkerPoolManager started dedicated pool [name=ilpwriter, workers=1]
+2022-11-23T19:54:41.551453Z I server-main 
+     ___                  _   ____  ____
+    / _ \ _   _  ___  ___| |_|  _ \| __ )
+   | | | | | | |/ _ \/ __| __| | | |  _ \
+   | |_| | |_| |  __/\__ \ |_| |_| | |_) |
+    \__\_\\__,_|\___||___/\__|____/|____/
+
+Web Console URL(s):
+
+	http://192.168.1.57:9000
+	http://127.0.0.1:9000
+
+
+2022-11-23T19:54:41.551481Z I server-main os scheduled worker started [name=questdb-ilpwriter-10]
+2022-11-23T19:54:41.654815Z A server-main enjoy
+2022-11-23T19:54:41.683433Z I pg-server connected [ip=127.0.0.1, fd=108]
+2022-11-23T19:54:41.688281Z I i.q.c.p.PGConnectionContext protocol [major=3, minor=0]
+2022-11-23T19:54:41.688341Z I i.q.c.p.PGConnectionContext property [name=user, value=admin]
+2022-11-23T19:54:41.688356Z I i.q.c.p.PGConnectionContext property [name=database, value=main]
+2022-11-23T19:54:41.688363Z I i.q.c.p.PGConnectionContext property [name=client_encoding, value=UTF8]
+2022-11-23T19:54:41.688377Z I i.q.c.p.PGConnectionContext property [name=DateStyle, value=ISO]
+2022-11-23T19:54:41.688384Z I i.q.c.p.PGConnectionContext property [name=TimeZone, value=Europe/Madrid]
+2022-11-23T19:54:41.688391Z I i.q.c.p.PGConnectionContext property [name=extra_float_digits, value=2]
+2022-11-23T19:54:41.699983Z I i.q.c.p.PGConnectionContext parse [fd=108, q=BEGIN]
+2022-11-23T19:54:41.700337Z I i.q.c.p.PGConnectionContext parse [fd=108, q=SET extra_float_digits = 3]
+2022-11-23T19:54:41.700547Z I i.q.c.p.PGConnectionContext parse [fd=108, q=SET application_name = 'quest-1.0']
+2022-11-23T19:54:41.700809Z I i.q.c.p.PGConnectionContext parse [fd=108, q=COMMIT]
+2022-11-23T19:54:47.815132Z I i.q.WorkerPoolManager closing dedicated pool [name=ilpwriter, workers=1]
+2022-11-23T19:54:47.856744Z I server-main cleaned worker [name=ilpwriter, worker=0, total=1]
+2022-11-23T19:54:47.857029Z I server-main os scheduled worker stopped [name=questdb-ilpwriter-10]
+2022-11-23T19:54:47.857072Z I i.q.c.l.t.LineTcpWriterJob line protocol writer closing [threadId=0]
+2022-11-23T19:54:47.857264Z I i.q.WorkerPoolManager closing shared pool [name=shared, workers=7]
+2022-11-23T19:54:47.908258Z I i.q.c.h.p.QueryCache closed
+2022-11-23T19:54:47.908360Z I i.q.c.h.p.QueryCache closed
+2022-11-23T19:54:47.908576Z I server-main cleaned worker [name=shared, worker=0, total=7]
+2022-11-23T19:54:47.908602Z I server-main os scheduled worker stopped [name=questdb-shared-3]
+2022-11-23T19:54:47.912791Z I i.q.c.h.p.QueryCache closed
+2022-11-23T19:54:47.912847Z I i.q.c.h.p.QueryCache closed
+2022-11-23T19:54:47.912870Z I i.q.c.h.p.QueryCache closed
+2022-11-23T19:54:47.913005Z I server-main cleaned worker [name=shared, worker=3, total=7]
+2022-11-23T19:54:47.913010Z I server-main os scheduled worker stopped [name=questdb-shared-8]
+2022-11-23T19:54:47.913029Z I server-main os scheduled worker stopped [name=questdb-shared-6]
+2022-11-23T19:54:47.916745Z I i.q.c.h.p.QueryCache closed
+2022-11-23T19:54:47.916830Z I i.q.c.h.p.QueryCache closed
+2022-11-23T19:54:47.916961Z I server-main cleaned worker [name=shared, worker=2, total=7]
+2022-11-23T19:54:47.916981Z I server-main os scheduled worker stopped [name=questdb-shared-5]
+2022-11-23T19:54:47.922502Z I i.q.c.h.p.QueryCache closed
+2022-11-23T19:54:47.922589Z I i.q.c.h.p.QueryCache closed
+2022-11-23T19:54:47.922819Z I server-main cleaned worker [name=shared, worker=1, total=7]
+2022-11-23T19:54:47.922841Z I server-main os scheduled worker stopped [name=questdb-shared-4]
+2022-11-23T19:54:47.930411Z I i.q.c.h.p.QueryCache closed
+2022-11-23T19:54:47.930514Z I i.q.c.h.p.QueryCache closed
+2022-11-23T19:54:47.930668Z I server-main cleaned worker [name=shared, worker=4, total=7]
+2022-11-23T19:54:47.930693Z I server-main os scheduled worker stopped [name=questdb-shared-7]
+2022-11-23T19:54:47.950420Z I i.q.c.h.p.QueryCache closed
+2022-11-23T19:54:47.950533Z I i.q.c.h.p.QueryCache closed
+2022-11-23T19:54:47.950754Z I server-main cleaned worker [name=shared, worker=6, total=7]
+2022-11-23T19:54:47.950802Z I server-main os scheduled worker stopped [name=questdb-shared-9]
+2022-11-23T19:54:47.951029Z I i.q.c.p.WriterPool << [table=`sys.column_versions_purge_log`, thread=20]
+2022-11-23T19:54:47.953417Z I i.q.c.l.u.AbstractLineProtoUdpReceiver closed [fd=107]
+2022-11-23T19:54:47.953475Z I i.q.c.l.u.AbstractLineProtoUdpReceiver closed [fd=107]
+2022-11-23T19:54:47.953740Z I tcp-line-server closed
+2022-11-23T19:54:47.953804Z I pg-server disconnected [ip=127.0.0.1, fd=108, src=shutdown]
+2022-11-23T19:54:47.954039Z I pg-server closed
+2022-11-23T19:54:47.954095Z I http-min-server closed
+2022-11-23T19:54:47.954173Z I http-server closed
+2022-11-23T19:54:47.957286Z I i.q.c.p.WriterPool << [table=`telemetry_config`, thread=20]
+2022-11-23T19:54:47.959818Z I i.q.c.TableWriter closed 'sys.column_versions_purge_log'
+2022-11-23T19:54:47.959853Z I i.q.c.p.WriterPool closed [table=`sys.column_versions_purge_log`, reason=POOL_CLOSED, by=20]
+2022-11-23T19:54:47.962179Z I i.q.c.TableWriter closed 'telemetry_config'
+2022-11-23T19:54:47.962201Z I i.q.c.p.WriterPool closed [table=`telemetry_config`, reason=POOL_CLOSED, by=20]
+2022-11-23T19:54:47.962240Z I i.q.c.p.WriterPool closed
+2022-11-23T19:54:47.962623Z I i.q.c.p.ReaderPool closed 'sys.column_versions_purge_log' [at=0:0, reason=POOL_CLOSED]
+2022-11-23T19:54:47.963038Z I i.q.c.p.ReaderPool closed 'telemetry_config' [at=0:0, reason=POOL_CLOSED]
+2022-11-23T19:54:47.963091Z I i.q.c.p.ReaderPool closed
+2022-11-23T19:55:24.432089Z A server-main QuestDB server 6.5.5. Copyright (C) 2014-2022, all rights reserved.
+2022-11-23T19:55:24.432851Z A server-main OS/Arch apple/apple-silicon [AVX512,654348968, 64 bits, 8 processors]
+2022-11-23T19:55:24.435188Z I server-main Web Console is up to date
+2022-11-23T19:55:24.435342Z A server-main Server config: /Users/marregui/QUEST/conf/server.conf
+2022-11-23T19:55:24.482506Z A server-main Config:
+2022-11-23T19:55:24.482536Z A server-main  - http.enabled : true
+2022-11-23T19:55:24.482559Z A server-main  - tcp.enabled  : true
+2022-11-23T19:55:24.482579Z A server-main  - pg.enabled   : true
+2022-11-23T19:55:24.482598Z A server-main  - open database [id=963880947576877442.4482852230280459206]
+2022-11-23T19:55:24.482707Z A server-main  - db root: [path=/Users/marregui/QUEST/db, magic=0x1a] -> UNSUPPORTED (SYSTEM COULD BE UNSTABLE)
+2022-11-23T19:55:24.482750Z A server-main  - backup root: NOT SET
+2022-11-23T19:55:24.482782Z A server-main  - snapshot root: [path=/Users/marregui/QUEST/snapshot, magic=0x00] -> UNSUPPORTED (SYSTEM COULD BE UNSTABLE)
+2022-11-23T19:55:24.482809Z A server-main  - sql copy input root: NOT SET
+2022-11-23T19:55:24.482824Z A server-main  - sql copy input worker root: NOT SET
+2022-11-23T19:55:24.484575Z A server-main Metrics are disabled, health check endpoint will not consider unhandled errors
+2022-11-23T19:55:24.505626Z I i.q.c.m.EngineMigration table structures are up to date
+2022-11-23T19:55:24.506382Z I i.q.g.FunctionFactoryCache loading functions [test=false]
+2022-11-23T19:55:24.607075Z I i.q.c.p.WriterPool open [table=`sys.column_versions_purge_log`, thread=20]
+2022-11-23T19:55:24.611280Z I i.q.c.TableWriter open 'sys.column_versions_purge_log'
+2022-11-23T19:55:24.614956Z I i.q.c.TableWriter purging non attached partitions [path=/Users/marregui/QUEST/db/sys.column_versions_purge_log]
+2022-11-23T19:55:24.615456Z I i.q.c.p.WriterPool >> [table=`sys.column_versions_purge_log`, thread=20]
+2022-11-23T19:55:24.615929Z I i.q.c.p.ReaderPool open 'sys.column_versions_purge_log' [at=0:0]
+2022-11-23T19:55:24.618653Z I i.q.g.SqlCompiler plan [q=`select-choose ts, table_name, column_name, table_id, truncate_version, columnType, table_partition_by, updated_txn, column_version, partition_timestamp, partition_name_txn, completed from (select [ts, table_name, column_name, table_id, truncate_version, columnType, table_partition_by, updated_txn, column_version, partition_timestamp, partition_name_txn, completed] from sys.column_versions_purge_log timestamp (ts) where completed = null)`, fd=-1]
+2022-11-23T19:55:24.632743Z I i.q.c.p.ReaderPool open 'telemetry_config' [at=0:0]
+2022-11-23T19:55:24.634502Z I i.q.TelemetryJob Failed to alter telemetry table [table=telemetry_config,error=column 'version' already exists]
+2022-11-23T19:55:24.634583Z I i.q.TelemetryJob Failed to alter telemetry table [table=telemetry_config,error=column 'os' already exists]
+2022-11-23T19:55:24.634642Z I i.q.TelemetryJob Failed to alter telemetry table [table=telemetry_config,error=column 'package' already exists]
+2022-11-23T19:55:24.634670Z I i.q.c.p.WriterPool open [table=`telemetry_config`, thread=20]
+2022-11-23T19:55:24.634733Z I i.q.c.TableWriter open 'telemetry_config'
+2022-11-23T19:55:24.635736Z I i.q.c.TableWriter switched partition [path='/Users/marregui/QUEST/db/telemetry_config/default']
+2022-11-23T19:55:24.635920Z I i.q.c.p.WriterPool >> [table=`telemetry_config`, thread=20]
+2022-11-23T19:55:24.636196Z I i.q.g.SqlCompiler plan [q=`select-choose id, enabled, version, os, package from (select [id, enabled, version, os, package] from telemetry_config) limit -(1)`, fd=-1]
+2022-11-23T19:55:24.636845Z I i.q.c.TableReader open partition /Users/marregui/QUEST/db/telemetry_config/default [rowCount=2, partitionNameTxn=-1, transientRowCount=2, partitionIndex=0, partitionCount=1]
+2022-11-23T19:55:24.637525Z A i.q.TelemetryJob instance [id=0x05ede534efb72f00004a160642fb88, enabled=false]
+2022-11-23T19:55:24.638473Z I i.q.WorkerPoolManager using SHARED pool [requester=http, workers=7]
+2022-11-23T19:55:24.641154Z A http-server listening on 0.0.0.0:9000 [fd=99 backlog=64]
+2022-11-23T19:55:24.672489Z I i.q.WorkerPoolManager using SHARED pool [requester=min-http, workers=7]
+2022-11-23T19:55:24.672650Z A http-min-server listening on 0.0.0.0:9003 [fd=101 backlog=4]
+2022-11-23T19:55:24.673127Z I i.q.WorkerPoolManager using SHARED pool [requester=pg-wire, workers=7]
+2022-11-23T19:55:24.675162Z A pg-server listening on 0.0.0.0:8812 [fd=103 backlog=64]
+2022-11-23T19:55:24.688701Z I i.q.WorkerPoolManager using SHARED pool [requester=line-tcp-io, workers=7]
+2022-11-23T19:55:24.688746Z I i.q.WorkerPoolManager new DEDICATED pool [name=ilpwriter, requester=line-tcp-writer, workers=1]
+2022-11-23T19:55:24.689675Z I i.q.c.l.t.LineTcpReceiver using default context
+2022-11-23T19:55:24.690028Z A tcp-line-server listening on 0.0.0.0:9009 [fd=105 backlog=256]
+2022-11-23T19:55:24.695024Z E i.q.c.l.u.AbstractLineProtoUdpReceiver could not set receive buffer size [fd=107, size=8388608, errno=55]
+2022-11-23T19:55:24.697027Z I i.q.c.l.u.AbstractLineProtoUdpReceiver receiving multicast from 232.1.2.3:9009 via 0.0.0.0 [fd=107, commitRate=1000000]
+2022-11-23T19:55:24.832472Z A server-main bootstrap complete
+2022-11-23T19:55:24.832811Z I server-main os scheduled worker started [name=questdb-shared-3]
+2022-11-23T19:55:24.832874Z I server-main os scheduled worker started [name=questdb-shared-4]
+2022-11-23T19:55:24.832994Z I server-main os scheduled worker started [name=questdb-shared-5]
+2022-11-23T19:55:24.833074Z I server-main os scheduled worker started [name=questdb-shared-6]
+2022-11-23T19:55:24.833225Z I server-main os scheduled worker started [name=questdb-shared-7]
+2022-11-23T19:55:24.833325Z I server-main os scheduled worker started [name=questdb-shared-8]
+2022-11-23T19:55:24.833340Z I server-main worker pool started [pool=shared]
+2022-11-23T19:55:24.833409Z I server-main os scheduled worker started [name=questdb-shared-9]
+2022-11-23T19:55:24.833399Z I i.q.WorkerPoolManager started shared pool [name=shared, workers=7]
+2022-11-23T19:55:24.833550Z I server-main worker pool started [pool=ilpwriter]
+2022-11-23T19:55:24.833573Z I i.q.WorkerPoolManager started dedicated pool [name=ilpwriter, workers=1]
+2022-11-23T19:55:24.833635Z I server-main os scheduled worker started [name=questdb-ilpwriter-10]
+2022-11-23T19:55:24.833601Z I server-main 
+     ___                  _   ____  ____
+    / _ \ _   _  ___  ___| |_|  _ \| __ )
+   | | | | | | |/ _ \/ __| __| | | |  _ \
+   | |_| | |_| |  __/\__ \ |_| |_| | |_) |
+    \__\_\\__,_|\___||___/\__|____/|____/
+
+Web Console URL(s):
+
+	http://192.168.1.57:9000
+	http://127.0.0.1:9000
+
+
+2022-11-23T19:55:24.930516Z A server-main enjoy
+2022-11-23T19:55:24.959341Z I pg-server connected [ip=127.0.0.1, fd=108]
+2022-11-23T19:55:24.964394Z I i.q.c.p.PGConnectionContext protocol [major=3, minor=0]
+2022-11-23T19:55:24.964432Z I i.q.c.p.PGConnectionContext property [name=user, value=admin]
+2022-11-23T19:55:24.964448Z I i.q.c.p.PGConnectionContext property [name=database, value=main]
+2022-11-23T19:55:24.964456Z I i.q.c.p.PGConnectionContext property [name=client_encoding, value=UTF8]
+2022-11-23T19:55:24.964464Z I i.q.c.p.PGConnectionContext property [name=DateStyle, value=ISO]
+2022-11-23T19:55:24.964471Z I i.q.c.p.PGConnectionContext property [name=TimeZone, value=Europe/Madrid]
+2022-11-23T19:55:24.964479Z I i.q.c.p.PGConnectionContext property [name=extra_float_digits, value=2]
+2022-11-23T19:55:24.976302Z I i.q.c.p.PGConnectionContext parse [fd=108, q=BEGIN]
+2022-11-23T19:55:24.976635Z I i.q.c.p.PGConnectionContext parse [fd=108, q=SET extra_float_digits = 3]
+2022-11-23T19:55:24.976845Z I i.q.c.p.PGConnectionContext parse [fd=108, q=SET application_name = 'quest-1.0']
+2022-11-23T19:55:24.977002Z I i.q.c.p.PGConnectionContext parse [fd=108, q=COMMIT]
+2022-11-23T19:55:53.000632Z I i.q.c.p.PGConnectionContext parse [fd=108, q=]
+2022-11-23T19:56:22.994236Z I i.q.c.p.PGConnectionContext parse [fd=108, q=]
+2022-11-23T19:56:52.993446Z I i.q.c.p.PGConnectionContext parse [fd=108, q=]
+2022-11-23T19:56:56.494902Z I i.q.WorkerPoolManager closing dedicated pool [name=ilpwriter, workers=1]
+2022-11-23T19:56:56.502052Z I server-main cleaned worker [name=ilpwriter, worker=0, total=1]
+2022-11-23T19:56:56.502120Z I server-main os scheduled worker stopped [name=questdb-ilpwriter-10]
+2022-11-23T19:56:56.502212Z I i.q.c.l.t.LineTcpWriterJob line protocol writer closing [threadId=0]
+2022-11-23T19:56:56.502276Z I i.q.WorkerPoolManager closing shared pool [name=shared, workers=7]
+2022-11-23T19:56:56.530831Z I i.q.c.h.p.QueryCache closed
+2022-11-23T19:56:56.530862Z I i.q.c.h.p.QueryCache closed
+2022-11-23T19:56:56.530883Z I i.q.c.h.p.QueryCache closed
+2022-11-23T19:56:56.530962Z I server-main cleaned worker [name=shared, worker=0, total=7]
+2022-11-23T19:56:56.530974Z I server-main os scheduled worker stopped [name=questdb-shared-3]
+2022-11-23T19:56:56.530978Z I server-main cleaned worker [name=shared, worker=5, total=7]
+2022-11-23T19:56:56.530990Z I server-main os scheduled worker stopped [name=questdb-shared-8]
+2022-11-23T19:56:56.537402Z I i.q.c.h.p.QueryCache closed
+2022-11-23T19:56:56.537438Z I i.q.c.h.p.QueryCache closed
+2022-11-23T19:56:56.537501Z I server-main cleaned worker [name=shared, worker=3, total=7]
+2022-11-23T19:56:56.537508Z I server-main os scheduled worker stopped [name=questdb-shared-6]
+2022-11-23T19:56:56.541826Z I i.q.c.h.p.QueryCache closed
+2022-11-23T19:56:56.541851Z I i.q.c.h.p.QueryCache closed
+2022-11-23T19:56:56.541926Z I server-main cleaned worker [name=shared, worker=6, total=7]
+2022-11-23T19:56:56.541933Z I server-main os scheduled worker stopped [name=questdb-shared-9]
+2022-11-23T19:57:05.859948Z A server-main QuestDB server 6.5.5. Copyright (C) 2014-2022, all rights reserved.
+2022-11-23T19:57:05.860391Z A server-main OS/Arch apple/apple-silicon [AVX512,783875752, 64 bits, 8 processors]
+2022-11-23T19:57:05.862151Z I server-main Web Console is up to date
+2022-11-23T19:57:05.862248Z A server-main Server config: /Users/marregui/QUEST/conf/server.conf
+2022-11-23T19:57:05.901576Z A server-main Config:
+2022-11-23T19:57:05.901612Z A server-main  - http.enabled : true
+2022-11-23T19:57:05.901638Z A server-main  - tcp.enabled  : true
+2022-11-23T19:57:05.901660Z A server-main  - pg.enabled   : true
+2022-11-23T19:57:05.901678Z A server-main  - open database [id=963880947576877442.4482852230280459206]
+2022-11-23T19:57:05.901778Z A server-main  - db root: [path=/Users/marregui/QUEST/db, magic=0x1a] -> UNSUPPORTED (SYSTEM COULD BE UNSTABLE)
+2022-11-23T19:57:05.901819Z A server-main  - backup root: NOT SET
+2022-11-23T19:57:05.901860Z A server-main  - snapshot root: [path=/Users/marregui/QUEST/snapshot, magic=0x00] -> UNSUPPORTED (SYSTEM COULD BE UNSTABLE)
+2022-11-23T19:57:05.901887Z A server-main  - sql copy input root: NOT SET
+2022-11-23T19:57:05.901901Z A server-main  - sql copy input worker root: NOT SET
+2022-11-23T19:57:05.903469Z A server-main Metrics are disabled, health check endpoint will not consider unhandled errors
+2022-11-23T19:57:05.923102Z I i.q.c.m.EngineMigration table structures are up to date
+2022-11-23T19:57:05.923943Z I i.q.g.FunctionFactoryCache loading functions [test=false]
+2022-11-23T19:57:06.024170Z I i.q.c.p.WriterPool open [table=`sys.column_versions_purge_log`, thread=20]
+2022-11-23T19:57:06.028283Z I i.q.c.TableWriter open 'sys.column_versions_purge_log'
+2022-11-23T19:57:06.030867Z I i.q.c.TableWriter purging non attached partitions [path=/Users/marregui/QUEST/db/sys.column_versions_purge_log]
+2022-11-23T19:57:06.031249Z I i.q.c.p.WriterPool >> [table=`sys.column_versions_purge_log`, thread=20]
+2022-11-23T19:57:06.031661Z I i.q.c.p.ReaderPool open 'sys.column_versions_purge_log' [at=0:0]
+2022-11-23T19:57:06.034152Z I i.q.g.SqlCompiler plan [q=`select-choose ts, table_name, column_name, table_id, truncate_version, columnType, table_partition_by, updated_txn, column_version, partition_timestamp, partition_name_txn, completed from (select [ts, table_name, column_name, table_id, truncate_version, columnType, table_partition_by, updated_txn, column_version, partition_timestamp, partition_name_txn, completed] from sys.column_versions_purge_log timestamp (ts) where completed = null)`, fd=-1]
+2022-11-23T19:57:06.046846Z I i.q.c.p.ReaderPool open 'telemetry_config' [at=0:0]
+2022-11-23T19:57:06.047759Z I i.q.TelemetryJob Failed to alter telemetry table [table=telemetry_config,error=column 'version' already exists]
+2022-11-23T19:57:06.047836Z I i.q.TelemetryJob Failed to alter telemetry table [table=telemetry_config,error=column 'os' already exists]
+2022-11-23T19:57:06.047894Z I i.q.TelemetryJob Failed to alter telemetry table [table=telemetry_config,error=column 'package' already exists]
+2022-11-23T19:57:06.047923Z I i.q.c.p.WriterPool open [table=`telemetry_config`, thread=20]
+2022-11-23T19:57:06.047975Z I i.q.c.TableWriter open 'telemetry_config'
+2022-11-23T19:57:06.049079Z I i.q.c.TableWriter switched partition [path='/Users/marregui/QUEST/db/telemetry_config/default']
+2022-11-23T19:57:06.049265Z I i.q.c.p.WriterPool >> [table=`telemetry_config`, thread=20]
+2022-11-23T19:57:06.049535Z I i.q.g.SqlCompiler plan [q=`select-choose id, enabled, version, os, package from (select [id, enabled, version, os, package] from telemetry_config) limit -(1)`, fd=-1]
+2022-11-23T19:57:06.050159Z I i.q.c.TableReader open partition /Users/marregui/QUEST/db/telemetry_config/default [rowCount=2, partitionNameTxn=-1, transientRowCount=2, partitionIndex=0, partitionCount=1]
+2022-11-23T19:57:06.050354Z A i.q.TelemetryJob instance [id=0x05ede534efb72f00004a160642fb88, enabled=false]
+2022-11-23T19:57:06.051189Z I i.q.WorkerPoolManager using SHARED pool [requester=http, workers=7]
+2022-11-23T19:57:06.053587Z A http-server listening on 0.0.0.0:9000 [fd=99 backlog=64]
+2022-11-23T19:57:06.085525Z I i.q.WorkerPoolManager using SHARED pool [requester=min-http, workers=7]
+2022-11-23T19:57:06.085681Z A http-min-server listening on 0.0.0.0:9003 [fd=101 backlog=4]
+2022-11-23T19:57:06.086106Z I i.q.WorkerPoolManager using SHARED pool [requester=pg-wire, workers=7]
+2022-11-23T19:57:06.088006Z A pg-server listening on 0.0.0.0:8812 [fd=103 backlog=64]
+2022-11-23T19:57:06.101947Z I i.q.WorkerPoolManager using SHARED pool [requester=line-tcp-io, workers=7]
+2022-11-23T19:57:06.102003Z I i.q.WorkerPoolManager new DEDICATED pool [name=ilpwriter, requester=line-tcp-writer, workers=1]
+2022-11-23T19:57:06.102963Z I i.q.c.l.t.LineTcpReceiver using default context
+2022-11-23T19:57:06.103312Z A tcp-line-server listening on 0.0.0.0:9009 [fd=105 backlog=256]
+2022-11-23T19:57:06.107921Z E i.q.c.l.u.AbstractLineProtoUdpReceiver could not set receive buffer size [fd=107, size=8388608, errno=55]
+2022-11-23T19:57:06.110041Z I i.q.c.l.u.AbstractLineProtoUdpReceiver receiving multicast from 232.1.2.3:9009 via 0.0.0.0 [fd=107, commitRate=1000000]
+2022-11-23T19:57:06.238393Z A server-main bootstrap complete
+2022-11-23T19:57:06.238721Z I server-main os scheduled worker started [name=questdb-shared-4]
+2022-11-23T19:57:06.238749Z I server-main os scheduled worker started [name=questdb-shared-3]
+2022-11-23T19:57:06.238925Z I server-main os scheduled worker started [name=questdb-shared-5]
+2022-11-23T19:57:06.239069Z I server-main os scheduled worker started [name=questdb-shared-6]
+2022-11-23T19:57:06.239226Z I server-main os scheduled worker started [name=questdb-shared-7]
+2022-11-23T19:57:06.239306Z I server-main os scheduled worker started [name=questdb-shared-8]
+2022-11-23T19:57:06.239392Z I server-main worker pool started [pool=shared]
+2022-11-23T19:57:06.239415Z I i.q.WorkerPoolManager started shared pool [name=shared, workers=7]
+2022-11-23T19:57:06.239525Z I server-main os scheduled worker started [name=questdb-shared-9]
+2022-11-23T19:57:06.239556Z I server-main worker pool started [pool=ilpwriter]
+2022-11-23T19:57:06.239562Z I i.q.WorkerPoolManager started dedicated pool [name=ilpwriter, workers=1]
+2022-11-23T19:57:06.239576Z I server-main 
+     ___                  _   ____  ____
+    / _ \ _   _  ___  ___| |_|  _ \| __ )
+   | | | | | | |/ _ \/ __| __| | | |  _ \
+   | |_| | |_| |  __/\__ \ |_| |_| | |_) |
+    \__\_\\__,_|\___||___/\__|____/|____/
+
+Web Console URL(s):
+
+	http://192.168.1.57:9000
+	http://127.0.0.1:9000
+
+
+2022-11-23T19:57:06.239656Z I server-main os scheduled worker started [name=questdb-ilpwriter-10]
+2022-11-23T19:57:06.346444Z A server-main enjoy
+2022-11-23T19:57:06.376701Z I pg-server connected [ip=127.0.0.1, fd=108]
+2022-11-23T19:57:06.384417Z I i.q.c.p.PGConnectionContext protocol [major=3, minor=0]
+2022-11-23T19:57:06.384477Z I i.q.c.p.PGConnectionContext property [name=user, value=admin]
+2022-11-23T19:57:06.384491Z I i.q.c.p.PGConnectionContext property [name=database, value=main]
+2022-11-23T19:57:06.384504Z I i.q.c.p.PGConnectionContext property [name=client_encoding, value=UTF8]
+2022-11-23T19:57:06.384511Z I i.q.c.p.PGConnectionContext property [name=DateStyle, value=ISO]
+2022-11-23T19:57:06.384517Z I i.q.c.p.PGConnectionContext property [name=TimeZone, value=Europe/Madrid]
+2022-11-23T19:57:06.384525Z I i.q.c.p.PGConnectionContext property [name=extra_float_digits, value=2]
+2022-11-23T19:57:06.403201Z I i.q.c.p.PGConnectionContext parse [fd=108, q=BEGIN]
+2022-11-23T19:57:06.403675Z I i.q.c.p.PGConnectionContext parse [fd=108, q=SET extra_float_digits = 3]
+2022-11-23T19:57:06.403945Z I i.q.c.p.PGConnectionContext parse [fd=108, q=SET application_name = 'quest-1.0']
+2022-11-23T19:57:06.404206Z I i.q.c.p.PGConnectionContext parse [fd=108, q=COMMIT]
+2022-11-23T19:57:30.710262Z I i.q.c.p.PGConnectionContext parse [fd=108, q=]
+2022-11-23T19:57:49.557820Z I i.q.WorkerPoolManager closing dedicated pool [name=ilpwriter, workers=1]
+2022-11-23T19:57:49.636348Z I server-main cleaned worker [name=ilpwriter, worker=0, total=1]
+2022-11-23T19:57:49.636403Z I server-main os scheduled worker stopped [name=questdb-ilpwriter-10]
+2022-11-23T19:57:49.636440Z I i.q.c.l.t.LineTcpWriterJob line protocol writer closing [threadId=0]
+2022-11-23T19:57:49.636497Z I i.q.WorkerPoolManager closing shared pool [name=shared, workers=7]
+2022-11-23T19:57:49.645592Z I i.q.c.h.p.QueryCache closed
+2022-11-23T19:57:49.645648Z I i.q.c.h.p.QueryCache closed
+2022-11-23T19:57:49.645745Z I server-main cleaned worker [name=shared, worker=4, total=7]
+2022-11-23T19:57:49.645759Z I server-main os scheduled worker stopped [name=questdb-shared-7]
+2022-11-23T19:57:49.659742Z I i.q.c.h.p.QueryCache closed
+2022-11-23T19:57:49.659759Z I i.q.c.h.p.QueryCache closed
+2022-11-23T19:57:49.659789Z I i.q.c.h.p.QueryCache closed
+2022-11-23T19:57:49.659812Z I i.q.c.h.p.QueryCache closed
+2022-11-23T19:57:49.659865Z I server-main cleaned worker [name=shared, worker=0, total=7]
+2022-11-23T19:57:49.659884Z I server-main cleaned worker [name=shared, worker=5, total=7]
+2022-11-23T19:57:49.659886Z I server-main os scheduled worker stopped [name=questdb-shared-3]
+2022-11-23T19:57:49.659902Z I server-main os scheduled worker stopped [name=questdb-shared-8]
+2022-11-23T19:57:49.664874Z I i.q.c.h.p.QueryCache closed
+2022-11-23T19:57:49.664925Z I i.q.c.h.p.QueryCache closed
+2022-11-23T19:57:49.665003Z I server-main cleaned worker [name=shared, worker=6, total=7]
+2022-11-23T19:57:49.665015Z I server-main os scheduled worker stopped [name=questdb-shared-9]
+2022-11-23T19:57:49.684881Z I i.q.c.h.p.QueryCache closed
+2022-11-23T19:57:49.684922Z I i.q.c.h.p.QueryCache closed
+2022-11-23T19:57:49.684992Z I server-main cleaned worker [name=shared, worker=1, total=7]
+2022-11-23T19:57:49.685005Z I server-main os scheduled worker stopped [name=questdb-shared-4]
+2022-11-23T19:57:49.697854Z I i.q.c.h.p.QueryCache closed
+2022-11-23T19:57:49.697898Z I i.q.c.h.p.QueryCache closed
+2022-11-23T19:57:49.697966Z I server-main cleaned worker [name=shared, worker=2, total=7]
+2022-11-23T19:57:49.697978Z I server-main os scheduled worker stopped [name=questdb-shared-5]
+2022-11-23T19:58:29.283720Z A server-main QuestDB server 6.5.5. Copyright (C) 2014-2022, all rights reserved.
+2022-11-23T19:58:29.284396Z A server-main OS/Arch apple/apple-silicon [AVX512,834801832, 64 bits, 8 processors]
+2022-11-23T19:58:29.286249Z I server-main Web Console is up to date
+2022-11-23T19:58:29.286389Z A server-main Server config: /Users/marregui/QUEST/conf/server.conf
+2022-11-23T19:58:29.329432Z A server-main Config:
+2022-11-23T19:58:29.329456Z A server-main  - http.enabled : true
+2022-11-23T19:58:29.329478Z A server-main  - tcp.enabled  : true
+2022-11-23T19:58:29.329498Z A server-main  - pg.enabled   : true
+2022-11-23T19:58:29.329519Z A server-main  - open database [id=963880947576877442.4482852230280459206]
+2022-11-23T19:58:29.329620Z A server-main  - db root: [path=/Users/marregui/QUEST/db, magic=0x1a] -> UNSUPPORTED (SYSTEM COULD BE UNSTABLE)
+2022-11-23T19:58:29.329659Z A server-main  - backup root: NOT SET
+2022-11-23T19:58:29.329693Z A server-main  - snapshot root: [path=/Users/marregui/QUEST/snapshot, magic=0x00] -> UNSUPPORTED (SYSTEM COULD BE UNSTABLE)
+2022-11-23T19:58:29.329721Z A server-main  - sql copy input root: NOT SET
+2022-11-23T19:58:29.329736Z A server-main  - sql copy input worker root: NOT SET
+2022-11-23T19:58:29.331272Z A server-main Metrics are disabled, health check endpoint will not consider unhandled errors
+2022-11-23T19:58:29.352523Z I i.q.c.m.EngineMigration table structures are up to date
+2022-11-23T19:58:29.353246Z I i.q.g.FunctionFactoryCache loading functions [test=false]
+2022-11-23T19:58:29.453635Z I i.q.c.p.WriterPool open [table=`sys.column_versions_purge_log`, thread=20]
+2022-11-23T19:58:29.458132Z I i.q.c.TableWriter open 'sys.column_versions_purge_log'
+2022-11-23T19:58:29.461386Z I i.q.c.TableWriter purging non attached partitions [path=/Users/marregui/QUEST/db/sys.column_versions_purge_log]
+2022-11-23T19:58:29.461884Z I i.q.c.p.WriterPool >> [table=`sys.column_versions_purge_log`, thread=20]
+2022-11-23T19:58:29.462351Z I i.q.c.p.ReaderPool open 'sys.column_versions_purge_log' [at=0:0]
+2022-11-23T19:58:29.465104Z I i.q.g.SqlCompiler plan [q=`select-choose ts, table_name, column_name, table_id, truncate_version, columnType, table_partition_by, updated_txn, column_version, partition_timestamp, partition_name_txn, completed from (select [ts, table_name, column_name, table_id, truncate_version, columnType, table_partition_by, updated_txn, column_version, partition_timestamp, partition_name_txn, completed] from sys.column_versions_purge_log timestamp (ts) where completed = null)`, fd=-1]
+2022-11-23T19:58:29.477973Z I i.q.c.p.ReaderPool open 'telemetry_config' [at=0:0]
+2022-11-23T19:58:29.478845Z I i.q.TelemetryJob Failed to alter telemetry table [table=telemetry_config,error=column 'version' already exists]
+2022-11-23T19:58:29.478920Z I i.q.TelemetryJob Failed to alter telemetry table [table=telemetry_config,error=column 'os' already exists]
+2022-11-23T19:58:29.478974Z I i.q.TelemetryJob Failed to alter telemetry table [table=telemetry_config,error=column 'package' already exists]
+2022-11-23T19:58:29.479006Z I i.q.c.p.WriterPool open [table=`telemetry_config`, thread=20]
+2022-11-23T19:58:29.479049Z I i.q.c.TableWriter open 'telemetry_config'
+2022-11-23T19:58:29.480127Z I i.q.c.TableWriter switched partition [path='/Users/marregui/QUEST/db/telemetry_config/default']
+2022-11-23T19:58:29.480315Z I i.q.c.p.WriterPool >> [table=`telemetry_config`, thread=20]
+2022-11-23T19:58:29.480611Z I i.q.g.SqlCompiler plan [q=`select-choose id, enabled, version, os, package from (select [id, enabled, version, os, package] from telemetry_config) limit -(1)`, fd=-1]
+2022-11-23T19:58:29.481427Z I i.q.c.TableReader open partition /Users/marregui/QUEST/db/telemetry_config/default [rowCount=2, partitionNameTxn=-1, transientRowCount=2, partitionIndex=0, partitionCount=1]
+2022-11-23T19:58:29.481641Z A i.q.TelemetryJob instance [id=0x05ede534efb72f00004a160642fb88, enabled=false]
+2022-11-23T19:58:29.482576Z I i.q.WorkerPoolManager using SHARED pool [requester=http, workers=7]
+2022-11-23T19:58:29.485585Z A http-server listening on 0.0.0.0:9000 [fd=99 backlog=64]
+2022-11-23T19:58:29.518235Z I i.q.WorkerPoolManager using SHARED pool [requester=min-http, workers=7]
+2022-11-23T19:58:29.518378Z A http-min-server listening on 0.0.0.0:9003 [fd=101 backlog=4]
+2022-11-23T19:58:29.518801Z I i.q.WorkerPoolManager using SHARED pool [requester=pg-wire, workers=7]
+2022-11-23T19:58:29.520449Z A pg-server listening on 0.0.0.0:8812 [fd=103 backlog=64]
+2022-11-23T19:58:29.535414Z I i.q.WorkerPoolManager using SHARED pool [requester=line-tcp-io, workers=7]
+2022-11-23T19:58:29.535457Z I i.q.WorkerPoolManager new DEDICATED pool [name=ilpwriter, requester=line-tcp-writer, workers=1]
+2022-11-23T19:58:29.536293Z I i.q.c.l.t.LineTcpReceiver using default context
+2022-11-23T19:58:29.536600Z A tcp-line-server listening on 0.0.0.0:9009 [fd=105 backlog=256]
+2022-11-23T19:58:29.544033Z E i.q.c.l.u.AbstractLineProtoUdpReceiver could not set receive buffer size [fd=107, size=8388608, errno=55]
+2022-11-23T19:58:29.547219Z I i.q.c.l.u.AbstractLineProtoUdpReceiver receiving multicast from 232.1.2.3:9009 via 0.0.0.0 [fd=107, commitRate=1000000]
+2022-11-23T19:58:29.673463Z A server-main bootstrap complete
+2022-11-23T19:58:29.673755Z I server-main os scheduled worker started [name=questdb-shared-3]
+2022-11-23T19:58:29.673807Z I server-main os scheduled worker started [name=questdb-shared-4]
+2022-11-23T19:58:29.673964Z I server-main os scheduled worker started [name=questdb-shared-5]
+2022-11-23T19:58:29.674090Z I server-main os scheduled worker started [name=questdb-shared-6]
+2022-11-23T19:58:29.674164Z I server-main os scheduled worker started [name=questdb-shared-7]
+2022-11-23T19:58:29.674246Z I server-main os scheduled worker started [name=questdb-shared-8]
+2022-11-23T19:58:29.674343Z I server-main worker pool started [pool=shared]
+2022-11-23T19:58:29.674379Z I i.q.WorkerPoolManager started shared pool [name=shared, workers=7]
+2022-11-23T19:58:29.674387Z I server-main os scheduled worker started [name=questdb-shared-9]
+2022-11-23T19:58:29.674526Z I server-main worker pool started [pool=ilpwriter]
+2022-11-23T19:58:29.674534Z I i.q.WorkerPoolManager started dedicated pool [name=ilpwriter, workers=1]
+2022-11-23T19:58:29.674546Z I server-main 
+     ___                  _   ____  ____
+    / _ \ _   _  ___  ___| |_|  _ \| __ )
+   | | | | | | |/ _ \/ __| __| | | |  _ \
+   | |_| | |_| |  __/\__ \ |_| |_| | |_) |
+    \__\_\\__,_|\___||___/\__|____/|____/
+
+Web Console URL(s):
+
+	http://192.168.1.57:9000
+	http://127.0.0.1:9000
+
+
+2022-11-23T19:58:29.674585Z I server-main os scheduled worker started [name=questdb-ilpwriter-10]
+2022-11-23T19:58:29.676659Z A server-main enjoy
+2022-11-23T19:58:29.692496Z I pg-server connected [ip=127.0.0.1, fd=108]
+2022-11-23T19:58:29.693780Z I i.q.c.p.PGConnectionContext protocol [major=3, minor=0]
+2022-11-23T19:58:29.693821Z I i.q.c.p.PGConnectionContext property [name=user, value=admin]
+2022-11-23T19:58:29.693832Z I i.q.c.p.PGConnectionContext property [name=database, value=main]
+2022-11-23T19:58:29.693840Z I i.q.c.p.PGConnectionContext property [name=client_encoding, value=UTF8]
+2022-11-23T19:58:29.693846Z I i.q.c.p.PGConnectionContext property [name=DateStyle, value=ISO]
+2022-11-23T19:58:29.693853Z I i.q.c.p.PGConnectionContext property [name=TimeZone, value=Europe/Madrid]
+2022-11-23T19:58:29.693861Z I i.q.c.p.PGConnectionContext property [name=extra_float_digits, value=2]
+2022-11-23T19:58:29.711319Z I i.q.c.p.PGConnectionContext parse [fd=108, q=BEGIN]
+2022-11-23T19:58:29.711828Z I i.q.c.p.PGConnectionContext parse [fd=108, q=SET extra_float_digits = 3]
+2022-11-23T19:58:29.712077Z I i.q.c.p.PGConnectionContext parse [fd=108, q=SET application_name = 'quest-1.0']
+2022-11-23T19:58:29.712538Z I i.q.c.p.PGConnectionContext parse [fd=108, q=COMMIT]
+2022-11-23T19:58:32.295478Z I pg-server scheduling disconnect [fd=108, reason=15]
+2022-11-23T19:58:32.295702Z I pg-server disconnected [ip=127.0.0.1, fd=108, src=queue]
+2022-11-23T19:58:32.296010Z I pg-server connected [ip=127.0.0.1, fd=108]
+2022-11-23T19:58:32.296924Z I i.q.c.p.PGConnectionContext protocol [major=3, minor=0]
+2022-11-23T19:58:32.296995Z I i.q.c.p.PGConnectionContext property [name=user, value=admin]
+2022-11-23T19:58:32.297015Z I i.q.c.p.PGConnectionContext property [name=database, value=main]
+2022-11-23T19:58:32.297034Z I i.q.c.p.PGConnectionContext property [name=client_encoding, value=UTF8]
+2022-11-23T19:58:32.297051Z I i.q.c.p.PGConnectionContext property [name=DateStyle, value=ISO]
+2022-11-23T19:58:32.297068Z I i.q.c.p.PGConnectionContext property [name=TimeZone, value=Europe/Madrid]
+2022-11-23T19:58:32.297095Z I i.q.c.p.PGConnectionContext property [name=extra_float_digits, value=2]
+2022-11-23T19:58:32.297937Z I i.q.c.p.PGConnectionContext parse [fd=108, q=BEGIN]
+2022-11-23T19:58:32.298349Z I i.q.c.p.PGConnectionContext parse [fd=108, q=SET extra_float_digits = 3]
+2022-11-23T19:58:32.298762Z I i.q.c.p.PGConnectionContext parse [fd=108, q=SET application_name = 'quest-1.0']
+2022-11-23T19:58:32.299123Z I i.q.c.p.PGConnectionContext parse [fd=108, q=COMMIT]
+2022-11-23T19:58:32.311633Z I i.q.c.p.PGConnectionContext parse [fd=108, q=]
+2022-11-23T19:58:32.313665Z I i.q.c.p.PGConnectionContext parse [fd=108, q=show tables]
+2022-11-23T19:58:47.163891Z I i.q.c.p.PGConnectionContext parse [fd=108, q=]
+2022-11-23T19:59:17.163683Z I i.q.c.p.PGConnectionContext parse [fd=108, q=]
+2022-11-23T19:59:47.159443Z I i.q.c.p.PGConnectionContext parse [fd=108, q=]
+2022-11-23T20:00:17.154866Z I i.q.c.p.PGConnectionContext parse [fd=108, q=]
+2022-11-23T20:00:17.154943Z I i.q.c.p.PGConnectionContext prepare [name=S_1]
+2022-11-23T20:01:14.717807Z I i.q.WorkerPoolManager closing dedicated pool [name=ilpwriter, workers=1]
+2022-11-23T20:01:14.734570Z I server-main cleaned worker [name=ilpwriter, worker=0, total=1]
+2022-11-23T20:01:14.734617Z I server-main os scheduled worker stopped [name=questdb-ilpwriter-10]
+2022-11-23T20:01:14.734643Z I i.q.c.l.t.LineTcpWriterJob line protocol writer closing [threadId=0]
+2022-11-23T20:01:14.734699Z I i.q.WorkerPoolManager closing shared pool [name=shared, workers=7]
+2022-11-23T20:01:14.752046Z I i.q.c.h.p.QueryCache closed
+2022-11-23T20:01:14.752095Z I i.q.c.h.p.QueryCache closed
+2022-11-23T20:01:14.752187Z I server-main cleaned worker [name=shared, worker=1, total=7]
+2022-11-23T20:01:14.752198Z I server-main os scheduled worker stopped [name=questdb-shared-4]
+2022-11-23T20:01:14.761998Z I i.q.c.h.p.QueryCache closed
+2022-11-23T20:01:14.762036Z I i.q.c.h.p.QueryCache closed
+2022-11-23T20:01:14.762087Z I server-main cleaned worker [name=shared, worker=3, total=7]
+2022-11-23T20:01:14.762094Z I server-main os scheduled worker stopped [name=questdb-shared-6]
+2022-11-23T20:01:14.763136Z I i.q.c.h.p.QueryCache closed
+2022-11-23T20:01:14.763169Z I i.q.c.h.p.QueryCache closed
+2022-11-23T20:01:14.763218Z I server-main cleaned worker [name=shared, worker=2, total=7]
+2022-11-23T20:01:14.763225Z I server-main os scheduled worker stopped [name=questdb-shared-5]

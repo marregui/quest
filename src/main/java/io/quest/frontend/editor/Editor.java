@@ -30,14 +30,12 @@ import io.quest.frontend.GTk;
 
 
 public class Editor extends JPanel {
-    private static final long serialVersionUID = 1L;
     private static final String MARGIN_TOKEN = ":99999:";
     private static final int FONT_SIZE = 17;
-    private static final Font FONT = new Font("Monospaced", Font.BOLD, FONT_SIZE);
-    private static final Font LINENO_FONT = new Font("Monospaced", Font.ITALIC, FONT_SIZE);
+    private static final String FONT_NAME = "Monospaced";
+    private static final Font FONT = new Font(FONT_NAME, Font.BOLD, FONT_SIZE);
+    private static final Font LINENO_FONT = new Font(FONT_NAME, Font.ITALIC, FONT_SIZE);
     static final Color LINENO_COLOR = Color.LIGHT_GRAY.darker().darker();
-    private static final Color CARET_COLOR = Color.CYAN;
-    private static final Color BACKGROUND_COLOR = Color.BLACK;
 
     protected final JTextPane textPane;
     private final Highlighter highlighter;
@@ -69,8 +67,8 @@ public class Editor extends JPanel {
         final JScrollPane scrollPane = new JScrollPane(textPane);
         textPane.setMargin(margin);
         textPane.setFont(FONT);
-        textPane.setBackground(BACKGROUND_COLOR);
-        textPane.setCaretColor(CARET_COLOR);
+        textPane.setBackground(Color.BLACK);
+        textPane.setCaretColor(Color.CYAN);
         textPane.setEditorKit(new StyledEditorKit() {
             @Override
             public ViewFactory getViewFactory() {
@@ -87,7 +85,7 @@ public class Editor extends JPanel {
         textPane.setEditable(!isErrorPanel);
         setupKeyboardActions(isErrorPanel);
         highlighter = highlighterFactory.apply(textPane); // produces "style change" events
-        scrollPane.getViewport().setBackground(BACKGROUND_COLOR);
+        scrollPane.getViewport().setBackground(Color.BLACK);
         scrollPane.getVerticalScrollBar().setUnitIncrement(5);
         scrollPane.getVerticalScrollBar().setBlockIncrement(15);
         scrollPane.getHorizontalScrollBar().setUnitIncrement(5);

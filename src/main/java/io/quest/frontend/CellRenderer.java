@@ -18,34 +18,12 @@ package io.quest.frontend;
 
 import java.awt.Color;
 import java.awt.Component;
-import java.awt.Font;
 
-import javax.swing.JTable;
+import javax.swing.*;
 import javax.swing.table.DefaultTableCellRenderer;
 
 
-/**
- * Renders rows in alternate colors.
- */
 public class CellRenderer extends DefaultTableCellRenderer {
-
-    private static final long serialVersionUID = 1L;
-    private static final Color BG_ROW_COLOR = new Color(230, 236, 255);
-    private static final Color BG_ROW_COLOR_ALTERNATE = new Color(255, 247, 255);
-
-    private final Color bgColor;
-    private final Color bgColorAlternate;
-    private final Font font;
-
-    public CellRenderer() {
-        this(GTk.TABLE_CELL_FONT, BG_ROW_COLOR, BG_ROW_COLOR_ALTERNATE);
-    }
-
-    protected CellRenderer(Font font, Color bgColor, Color bgColorAlternate) {
-        this.font = font;
-        this.bgColor = bgColor;
-        this.bgColorAlternate = bgColorAlternate;
-    }
 
     @Override
     public Component getTableCellRendererComponent(JTable table,
@@ -56,15 +34,14 @@ public class CellRenderer extends DefaultTableCellRenderer {
                                                    int colIdx
     ) {
         super.getTableCellRendererComponent(table, value, isSelected, hasFocus, rowIdx, colIdx);
+        setFont(GTk.TABLE_CELL_FONT);
+        setBackground(Color.BLACK);
+        setBorder(BorderFactory.createEmptyBorder());
         if (rowIdx >= 0 && rowIdx < table.getModel().getRowCount()) {
             if (isSelected) {
-                setFont(GTk.TABLE_CELL_FONT);
-                setForeground(Color.WHITE);
-                setBackground(GTk.APP_THEME_COLOR);
+                setForeground(GTk.TERMINAL_COLOR);
             } else {
-                setFont(font);
-                setForeground(Color.BLACK);
-                setBackground(0 == rowIdx % 2 ? bgColor : bgColorAlternate);
+                setForeground(GTk.APP_THEME_COLOR);
             }
             return this;
         }

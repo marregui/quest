@@ -789,7 +789,7 @@ public class Plot extends JPanel implements MouseListener, MouseMotionListener {
         DataSet dataSet = new DataSet("example", xValues, yValues);
         plot.setDataSet(dataSet);
 
-        JFrame frame = GTk.createFrame("Plot", null);
+        JFrame frame = GTk.frame("Plot", null);
         Dimension size = GTk.frameDimension(7.0F, 7.0F);
         frame.add(new RangedPlot(plot), BorderLayout.CENTER);
         Dimension location = GTk.frameLocation(size);

@@ -32,7 +32,6 @@ import java.util.concurrent.locks.ReentrantReadWriteLock.ReadLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock.WriteLock;
 
 public class Table implements UniqueId<String>, Closeable {
-
     public static final String ROWID_COL_NAME = "#";
 
     protected final String uniqueId;

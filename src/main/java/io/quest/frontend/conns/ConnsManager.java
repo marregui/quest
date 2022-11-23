@@ -16,32 +16,20 @@
 
 package io.quest.frontend.conns;
 
-import java.awt.BorderLayout;
-import java.awt.Container;
-import java.awt.Dimension;
-import java.awt.Font;
-import java.awt.Frame;
+import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 import java.io.Closeable;
-import java.io.File;
 import java.util.List;
 import java.util.Set;
 
-import javax.swing.JButton;
-import javax.swing.JDialog;
-import javax.swing.JOptionPane;
-import javax.swing.JPanel;
-import javax.swing.JScrollPane;
-import javax.swing.JTable;
-import javax.swing.WindowConstants;
+import javax.swing.*;
 import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.TableModelEvent;
 
 import io.quest.model.EventConsumer;
 import io.quest.model.EventProducer;
-import io.quest.frontend.GTk;
 import io.quest.model.Conn;
 import io.quest.backend.ConnsChecker;
 import io.quest.model.Store;
@@ -50,6 +38,9 @@ import org.slf4j.LoggerFactory;
 
 import io.quest.frontend.editor.QuestPanel;
 
+import static io.quest.frontend.GTk.*;
+import static io.quest.frontend.GTk.Icon;
+
 
 /**
  * Dialog that presents a table where each row is a {@link Conn}, allowing the
@@ -57,8 +48,6 @@ import io.quest.frontend.editor.QuestPanel;
  * {@link QuestPanel}. Connections are loaded/saved from/to a {@link Store}.
  */
 public class ConnsManager extends JDialog implements EventProducer<ConnsManager.EventType>, Closeable {
-
-    private static final long serialVersionUID = 1L;
 
     public enum EventType {
         CONNECTION_SELECTED,     // A connection has been selected
@@ -101,60 +90,37 @@ public class ConnsManager extends JDialog implements EventProducer<ConnsManager.
         };
         table = ConnsTableModel.createTable(this::onTableModelUpdate, this::onListSelection);
         tableModel = (ConnsTableModel) table.getModel();
+        JScrollPane tableScrollPanel = new JScrollPane(
+                table,
+                JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED,
+                JScrollPane.HORIZONTAL_SCROLLBAR_AS_NEEDED);
+        tableScrollPanel.getViewport().setBackground(Color.BLACK);
         connsValidityChecker = new ConnsChecker(tableModel::getConns, this::onLostConnsEvent);
-        reloadButton = GTk.button(
-                "Reload",
-                GTk.Icon.COMMAND_RELOAD,
-                "Reload last saved connections",
-                this::onReload);
-        cloneButton = GTk.button(
-                "Clone",
-                GTk.Icon.CONN_CLONE,
-                "Clone selected connection",
-                this::onCloneConn);
-        JButton addButton = GTk.button(
-                "Add",
-                GTk.Icon.CONN_ADD,
-                "Add connection",
-                this::onAddConn);
-        removeButton = GTk.button(
-                "Remove",
-                GTk.Icon.CONN_REMOVE,
-                "Remove selected connection",
-                this::onRemove);
-        testButton = GTk.button(
-                "Test",
-                GTk.Icon.CONN_TEST,
-                "Test selected connection",
-                this::onTest);
-        connectButton = GTk.button(
-                "Connect",
-                GTk.Icon.CONN_CONNECT,
-                "Connect selected connection",
-                this::onConnect);
-        assignButton = GTk.button(
-                "ASSIGN",
-                GTk.Icon.CONN_ASSIGN,
-                "Assigns the selected connection to the command panel",
-                this::onAssign);
-        assignButton.setFont(new Font(GTk.MAIN_FONT_NAME, Font.BOLD, 16));
-        JPanel buttons = GTk.flowPanel(
-                GTk.etchedFlowPanel(reloadButton, cloneButton, addButton, removeButton),
-                GTk.etchedFlowPanel(assignButton, testButton, connectButton));
+        reloadButton = button(Icon.COMMAND_RELOAD, "Reload last saved connections", this::onReload);
+        cloneButton = button(Icon.CONN_CLONE, "Clone selected connection", this::onCloneConn);
+        JButton addButton = button(Icon.CONN_ADD, "Add connection", this::onAddConn);
+        removeButton = button(Icon.CONN_REMOVE, "Remove selected connection", this::onRemove);
+        testButton = button(Icon.CONN_TEST, "Test selected connection", this::onTest);
+        connectButton = button(Icon.CONN_CONNECT, "Connect selected connection", this::onConnect);
+        assignButton = button(Icon.CONN_ASSIGN, "Assign selected connection", this::onAssign);
+        JPanel buttons = flowPanel(
+                BorderFactory.createLineBorder(Color.WHITE, 1, true),
+                Color.BLACK,
+                50,
+                0,
+                flowPanel(reloadButton, cloneButton, addButton, removeButton),
+                flowPanel(testButton, connectButton, assignButton));
+
         Container contentPane = getContentPane();
         contentPane.setLayout(new BorderLayout());
-        contentPane.add(
-                new JScrollPane(
-                        table,
-                        JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED,
-                        JScrollPane.HORIZONTAL_SCROLLBAR_AS_NEEDED),
-                BorderLayout.CENTER);
+        contentPane.add(tableScrollPanel, BorderLayout.CENTER);
         contentPane.add(buttons, BorderLayout.SOUTH);
-        Dimension frameDim = GTk.frameDimension();
+
+        Dimension frameDim = frameDimension();
         Dimension dimension = new Dimension(
                 (int) (frameDim.width * 0.8),
                 (int) (frameDim.height * 0.35));
-        Dimension location = GTk.frameLocation(dimension);
+        Dimension location = frameLocation(dimension);
         setPreferredSize(dimension);
         setSize(dimension);
         setLocation(location.width, location.height);
@@ -169,10 +135,6 @@ public class ConnsManager extends JDialog implements EventProducer<ConnsManager.
                         ConnsManager.this, EventType.HIDE_REQUEST, null);
             }
         });
-    }
-
-    public File getStorePath() {
-        return store.getRootPath().getAbsoluteFile();
     }
 
     public Conn getSelectedConn() {
@@ -249,9 +211,9 @@ public class ConnsManager extends JDialog implements EventProducer<ConnsManager.
                     conn.getUri(),
                     conn.getUsername());
             sb.append(msg).append("\n");
-            LOGGER.error(msg);
         }
-        GTk.invokeLater(() -> {
+        LOGGER.error(sb.toString());
+        invokeLater(() -> {
             toggleComponents();
             eventConsumer.onSourceEvent(this, EventType.CONNECTIONS_LOST, lostConns);
         });
@@ -277,7 +239,7 @@ public class ConnsManager extends JDialog implements EventProducer<ConnsManager.
     private void onReload(ActionEvent event) {
         int selectedIdx = table.getSelectedRow();
         Conn selected = getSelectedConn();
-        store.loadEntriesFromFile();
+        store.loadFromFile();
         List<Conn> conns = store.entries();
         tableModel.setConns(conns);
         if (conns.size() > 0) {
@@ -395,7 +357,7 @@ public class ConnsManager extends JDialog implements EventProducer<ConnsManager.
             testButton.setEnabled(false);
             assignButton.setEnabled(false);
             connectButton.setText("Connect");
-            connectButton.setIcon(GTk.Icon.CONN_CONNECT.icon());
+            connectButton.setIcon(Icon.CONN_CONNECT.icon());
             cloneButton.setEnabled(false);
             removeButton.setEnabled(false);
         } else {
@@ -407,7 +369,7 @@ public class ConnsManager extends JDialog implements EventProducer<ConnsManager.
             removeButton.setEnabled(isSetButNotOpen);
             connectButton.setText(conn != null && conn.isOpen() ? "Disconnect" : "Connect");
             connectButton.setIcon((conn != null && conn.isOpen() ?
-                    GTk.Icon.CONN_DISCONNECT : GTk.Icon.CONN_CONNECT)
+                    Icon.CONN_DISCONNECT : Icon.CONN_CONNECT)
                     .icon());
             reloadButton.setEnabled(tableModel.getConns().stream().noneMatch(Conn::isOpen));
         }
