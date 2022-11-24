@@ -49,11 +49,7 @@ dependencies {
 
 application {
     mainClass = 'io.quest.Quest'
-    applicationDefaultJvmArgs = [
-            '-Xmx2G',
-            '-server',
-            '-Dfile.encoding=UTF-8'
-    ]
+    applicationDefaultJvmArgs = ['-Xmx2G', '-server', '-Dfile.encoding=UTF-8']
 }
 
 jar {
@@ -61,9 +57,9 @@ jar {
         attributes(
                 'Main-Class': 'io.quest.Quest',
                 'Build-Timestamp': new java.text.SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSSZ").format(new Date()),
-                'Build-Branch' : versioning.info.branch,
-                'Build-Revision' : versioning.info.commit,
-                'Build-Jdk'      : "${System.properties['java.version']} (${System.properties['java.vendor']} ${System.properties['java.vm.version']})"
+                'Build-Branch': versioning.info.branch,
+                'Build-Revision': versioning.info.commit,
+                'Build-Jdk': "${System.properties['java.version']} (${System.properties['java.vendor']} ${System.properties['java.vm.version']})"
         )
     }
 }
