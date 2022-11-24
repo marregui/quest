@@ -42,17 +42,13 @@ public class MetaHighlighter extends Highlighter {
     }
 
     // https://docs.oracle.com/javase/tutorial/essential/regex/bounds.html
-    static final Pattern NUMBERS_PATTERN = Pattern.compile(
-            "\\b1|\\b2|\\b3|\\b4|\\b5|\\b6|\\b7|\\b8|\\b9|\\b0",
-            PATTERN_FLAGS);
-
     static final Pattern KEY_PATTERN = Pattern.compile(
             "\\bcolumn\\b|\\bname\\b|\\btype\\b|\\bindexed\\b|\\bindexBlockCapacity\\b|"
                     + "\\bpartition\\b|\\btxn\\b|\\bversion\\b|\\bsymbol\\b|\\bcount\\b|\\bindexed\\n|\\bwith\\b|"
                     + "\\bisRO\\b|\\bmask\\b|\\bav0\\b|\\bav1\\b|\\bav2\\b|\\bz\\b|\\bsymbolCount\\b|\\bcapacity\\b|"
                     + "\\bmicro\\b|\\bmicros\\b|\\bsec\\b|\\bsecs\\b|\\bmin\\b|\\bindex\\b|\\boffset\\b|"
                     + "\\btableId\\b|\\bstructureVersion\\b|\\btimestampIndex\\b|\\bpartitionBy\\b|"
-                    + "\\bmaxUncommittedRows\\b|\\bcommitLag\\b|\\bcolumnCount\\b|\\bentryCount\\b|"
+                    + "\\bmaxUncommittedRows\\b|\\bO3MaxLag\\b|\\bcolumnCount\\b|\\bentryCount\\b|"
                     + "\\bpartitionTimestamp\\b|\\bcolumnIndex\\b|\\bcolumnNameTxn\\b|\\bcolumnTop\\b|"
                     + "\\bcolumnVersion\\b|\\bdataVersion\\b|\\btruncateVersion\\b|\\bpartitionTableVersion\\b|"
                     + "\\browCount\\b|\\bfixedRowCount\\b|\\btransientRowCount\\b|\\bminTimestamp\\b|"

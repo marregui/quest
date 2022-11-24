@@ -57,11 +57,10 @@ public final class Quest {
     private final JMenuItem toggleQuestDB;
     private final JMenuItem toggleMetaExaminerWidget;
     private final JMenuItem toggleConn;
-
     private ServerMain questdb;
 
     private Quest() {
-        JFrame frame = GTk.frame(null, this::close);
+        JFrame frame = GTk.frame(null, null);
         frame.setIconImage(GTk.Icon.APPLICATION.icon().getImage());
         int width = frame.getWidth();
         int dividerHeight = (int) (frame.getHeight() * 0.6);
@@ -160,7 +159,7 @@ public final class Quest {
                 results::onNextButton
         ));
 
-        JMenu menu = GTk.jmenu("Menu", GTk.Icon.NO_ICON);
+        JMenu menu = GTk.jmenu("", GTk.Icon.MENU);
         menu.add(commands.getQuestsMenu()); // Quests Menu
         menu.addSeparator();
         menu.add(configureMenuItem(
@@ -255,53 +254,35 @@ public final class Quest {
 
     private void onCommandBoardEvent(QuestPanel.EventType event, SQLExecutionRequest req) {
         switch (event) {
-            case COMMAND_AVAILABLE:
+            case COMMAND_AVAILABLE -> {
                 Conn conn = commands.getConnection();
                 if (conn == null || !conn.isValid()) {
                     onToggleConn(null);
                 }
                 results.close();
                 executor.submit(req, this::dispatchEvent);
-                break;
-
-            case COMMAND_CANCEL:
+            }
+            case COMMAND_CANCEL -> {
                 executor.cancelExistingRequest(req);
                 onToggleConn(null);
-                break;
-
-            case CONNECTION_STATUS_CLICKED:
-                onToggleConnsWidget(null);
-                break;
+            }
+            case CONNECTION_STATUS_CLICKED -> onToggleConnsWidget(null);
         }
     }
 
     private void onSQLExecutorEvent(SQLExecutor.EventType event, SQLExecutionResponse res) {
         GTk.invokeLater(() -> results.updateStats(event.name(), res));
         switch (event) {
-            case STARTED:
-                GTk.invokeLater(results::showInfiniteSpinner);
-                break;
-
-            case RESULTS_AVAILABLE:
-            case COMPLETED:
-                GTk.invokeLater(() -> results.onRowsAdded(res));
-                break;
-
-            case CANCELLED:
-                GTk.invokeLater(results::close);
-                break;
-
-            case FAILURE:
-                GTk.invokeLater(results::close, () -> results.displayError(res.getError()));
-                break;
+            case STARTED -> GTk.invokeLater(results::showInfiniteSpinner);
+            case RESULTS_AVAILABLE, COMPLETED -> GTk.invokeLater(() -> results.onRowsAdded(res));
+            case CANCELLED -> GTk.invokeLater(results::close);
+            case FAILURE -> GTk.invokeLater(results::close, () -> results.displayError(res.getError()));
         }
     }
 
     private void onMetaExaminerEvent(Meta.EventType event) {
-        switch (event) {
-            case HIDE_REQUEST:
-                onToggleMetaExaminerWidget(null);
-                break;
+        if (event == Meta.EventType.HIDE_REQUEST) {
+            onToggleMetaExaminerWidget(null);
         }
     }
 

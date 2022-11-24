@@ -20,8 +20,6 @@ import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.is;
 
 import java.io.File;
-import java.util.Collections;
-import java.util.List;
 
 import org.hamcrest.Matchers;
 import org.junit.jupiter.api.Test;
@@ -51,7 +49,7 @@ public class StoreTest {
             conn.setAttr("username", "root");
             conn.setAttr("password", "secret password");
             try (Store<ConnAttrs> store = new TStore<>(fileName, ConnAttrs.class)) {
-                store.addEntry(conn, true);
+                store.addEntry(conn);
             }
 
             ConnAttrs pConn;
@@ -80,7 +78,7 @@ public class StoreTest {
             Content content = new Content();
             content.setContent("Audentes fortuna  iuvat");
             try (Store<Content> store = new TStore<>(fileName, Content.class)) {
-                store.addEntry(content, true);
+                store.addEntry(content);
             }
 
             Content rcontent;
@@ -107,14 +105,12 @@ public class StoreTest {
                     StoreEntry entry = new StoreEntry("entry_" + i);
                     entry.setAttr("id", String.valueOf(i));
                     entry.setAttr("age", "14_000");
-                    store.addEntry(entry, i == 0);
+                    store.addEntry(entry);
                 }
             }
-            List<StoreEntry> entries;
             try (Store<StoreEntry> store = new TStore<>(fileName, StoreEntry.class)) {
                 store.loadFromFile();
                 assertThat(store.size(), is(10));
-                entries = store.entries();
                 int i = 0;
                 for (StoreEntry entry : store) {
                     assertThat(entry.getName(), is("entry_" + i));
@@ -123,7 +119,6 @@ public class StoreTest {
                     i++;
                 }
             }
-            assertThat(entries, is(Collections.<StoreEntry>emptyList()));
         } finally {
             deleteIfExists(fileName);
         }
@@ -133,7 +128,7 @@ public class StoreTest {
         if (fileName != null) {
             File file = new File(Store.ROOT_PATH, fileName);
             if (file.exists()) {
-                file.delete();
+                assertThat("delete", file.delete());
             }
             assertThat(file.exists(), is(false));
         }

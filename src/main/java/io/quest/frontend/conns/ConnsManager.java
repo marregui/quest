@@ -303,7 +303,7 @@ public class ConnsManager extends JDialog implements EventProducer<ConnsManager.
         Conn added = new Conn(name, template);
         int offset = tableModel.addConn(added);
         table.getSelectionModel().addSelectionInterval(offset, offset);
-        store.addEntry(added, false);
+        store.addEntry(added);
         toggleComponents();
     }
 

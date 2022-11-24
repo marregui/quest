@@ -144,17 +144,15 @@ public final class GTk {
             sb.setLength(0);
             int rowIdx;
             int colIdx;
-            for (int r = 0; r < selectedRows.length; r++) {
-                rowIdx = selectedRows[r];
+            for (int selectedRow : selectedRows) {
+                rowIdx = selectedRow;
                 for (int c = 0; c < selectedCols.length; c++) {
                     colIdx = selectedCols[c];
                     if (!table.getColumnName(colIdx).equals(Table.ROWID_COL_NAME)) {
                         String value = table.getValueAt(rowIdx, colIdx).toString();
                         int len = value.length();
                         sb.append(value);
-                        for (int i = 0; i < widths[c] - len; i++) {
-                            sb.append(" ");
-                        }
+                        sb.append(" ".repeat(Math.max(0, widths[c] - len)));
                         sb.append(", ");
                     }
                 }
@@ -408,17 +406,17 @@ public final class GTk {
         Runtime rt = Runtime.getRuntime();
         String os = System.getProperty("os.name").toLowerCase();
         try {
-            if (os.indexOf("mac") >= 0) {
+            if (os.contains("mac")) {
                 rt.exec(String.format(
                         "open %s",
                         DOCUMENTATION_URL
                 ));
-            } else if (os.indexOf("win") >= 0) {
+            } else if (os.contains("win")) {
                 rt.exec(String.format(
                         "rundll32 url.dll,FileProtocolHandler %s",
                         DOCUMENTATION_URL
                 ));
-            } else if (os.indexOf("nix") >= 0 || os.indexOf("nux") >= 0) {
+            } else if (os.contains("nix") || os.contains("nux")) {
                 String[] browsers = {
                         "google-chrome", "firefox", "mozilla",
                         "epiphany", "konqueror", "netscape",
@@ -485,6 +483,7 @@ public final class GTk {
         COMMAND_EXEC("CommandExec.png"),
         COMMAND_EXEC_ABORT("CommandExecAbort.png"),
         COMMAND_EXEC_LINE("CommandExecLine.png"),
+        MENU("Menu.png"),
         META("Meta.png"),
         META_FILE("MetaFile.png"),
         META_FOLDER("MetaFolder.png"),

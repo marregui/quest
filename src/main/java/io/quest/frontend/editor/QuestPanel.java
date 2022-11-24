@@ -125,15 +125,11 @@ public class QuestPanel extends Editor implements EventProducer<QuestPanel.Event
                         null)),
                 GTk.horizontalSpace(24)
         );
-        questsMenu = setupQuestsMenu();
+        questsMenu = createQuestsMenu();
         findPanel = new FindReplace((source, event, eventData) -> {
             switch ((FindReplace.EventType) EventProducer.eventType(event)) {
-                case FIND:
-                    onFind();
-                    break;
-                case REPLACE:
-                    onReplace();
-                    break;
+                case FIND -> onFind();
+                case REPLACE -> onReplace();
             }
         });
 
@@ -162,15 +158,15 @@ public class QuestPanel extends Editor implements EventProducer<QuestPanel.Event
         return questsMenu;
     }
 
-    public void onExec(ActionEvent event) {
+    public void onExec(ActionEvent ignoredEvent) {
         fireCommandEvent(this::getCommand);
     }
 
-    public void onExecLine(ActionEvent event) {
+    public void onExecLine(ActionEvent ignoredEvent) {
         fireCommandEvent(this::getCurrentLine);
     }
 
-    public void fireCancelEvent(ActionEvent event) {
+    public void fireCancelEvent(ActionEvent ignoredEvent) {
         if (conn == null || !conn.isOpen()) {
             return;
         }
@@ -196,7 +192,7 @@ public class QuestPanel extends Editor implements EventProducer<QuestPanel.Event
     @Override
     public void close() {
         undoManagers.clear();
-        refreshQuests();
+        refreshQuest();
         store.saveToFile();
         store.close();
     }
@@ -241,7 +237,7 @@ public class QuestPanel extends Editor implements EventProducer<QuestPanel.Event
     private void onChangeQuest(ActionEvent event) {
         int idx = questEntryNames.getSelectedIndex();
         if (idx >= 0) {
-            if (refreshQuests()) {
+            if (refreshQuest()) {
                 store.asyncSaveToFile();
             }
             content = store.getEntry(idx, Content::new);
@@ -259,7 +255,7 @@ public class QuestPanel extends Editor implements EventProducer<QuestPanel.Event
         if (entryName == null || entryName.isEmpty()) {
             return;
         }
-        store.addEntry(new Content(entryName), false);
+        store.addEntry(new Content(entryName));
         questEntryNames.addItem(entryName);
         undoManagers.add(new UndoManager() {
             @Override
@@ -384,12 +380,12 @@ public class QuestPanel extends Editor implements EventProducer<QuestPanel.Event
     }
 
     private void onSaveQuest(ActionEvent event) {
-        if (refreshQuests()) {
+        if (refreshQuest()) {
             store.asyncSaveToFile();
         }
     }
 
-    private boolean refreshQuests() {
+    private boolean refreshQuest() {
         String text = getText();
         String currentContent = content != null ? content.getContent() : null;
         if (currentContent != null && !currentContent.equals(text)) {
@@ -439,8 +435,30 @@ public class QuestPanel extends Editor implements EventProducer<QuestPanel.Event
         connLabel.setIcon(isConnected ? GTk.Icon.CONN_UP.icon() : GTk.Icon.CONN_DOWN.icon());
     }
 
-    private JMenu setupQuestsMenu() {
+    private JMenu createQuestsMenu() {
         final JMenu questsMenu = GTk.jmenu("uest", GTk.Icon.COMMAND_QUEST); // the Q comes from an icon
+        questsMenu.add(
+                GTk.configureMenuItem(
+                        new JMenuItem(),
+                        GTk.Icon.COMMAND_ADD,
+                        "New",
+                        GTk.NO_KEY_EVENT,
+                        this::onCreateQuest));
+        questsMenu.add(
+                GTk.configureMenuItem(
+                        new JMenuItem(),
+                        GTk.Icon.COMMAND_EDIT,
+                        "Rename",
+                        GTk.NO_KEY_EVENT,
+                        this::onRenameQuest));
+        questsMenu.add(
+                GTk.configureMenuItem(
+                        new JMenuItem(),
+                        GTk.Icon.COMMAND_REMOVE,
+                        "Delete",
+                        GTk.NO_KEY_EVENT,
+                        this::onDeleteQuest));
+        questsMenu.addSeparator();
         questsMenu.add(
                 GTk.configureMenuItem(
                         new JMenuItem(),
@@ -467,37 +485,15 @@ public class QuestPanel extends Editor implements EventProducer<QuestPanel.Event
         questsMenu.add(
                 GTk.configureMenuItem(
                         new JMenuItem(),
-                        GTk.Icon.COMMAND_ADD,
-                        "New",
-                        GTk.NO_KEY_EVENT,
-                        this::onCreateQuest));
-        questsMenu.add(
-                GTk.configureMenuItem(
-                        new JMenuItem(),
-                        GTk.Icon.COMMAND_EDIT,
-                        "Rename",
-                        GTk.NO_KEY_EVENT,
-                        this::onRenameQuest));
-        questsMenu.add(
-                GTk.configureMenuItem(
-                        new JMenuItem(),
-                        GTk.Icon.COMMAND_REMOVE,
-                        "Delete",
-                        GTk.NO_KEY_EVENT,
-                        this::onDeleteQuest));
-        questsMenu.addSeparator();
-        questsMenu.add(
-                GTk.configureMenuItem(
-                        new JMenuItem(),
                         GTk.Icon.COMMAND_STORE_LOAD,
-                        "Load from notebook",
+                        "Read from notebook",
                         GTk.NO_KEY_EVENT,
                         this::onLoadQuestsFromBackup));
         questsMenu.add(
                 GTk.configureMenuItem(
                         new JMenuItem(),
                         GTk.Icon.COMMAND_STORE_BACKUP,
-                        "Save to new notebook",
+                        "Write to new notebook",
                         GTk.NO_KEY_EVENT,
                         this::onBackupQuests));
         return questsMenu;

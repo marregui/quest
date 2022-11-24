@@ -73,7 +73,6 @@ public abstract class Store<T extends StoreEntry> implements Closeable, Iterable
     }
 
     private static final Logger LOGGER = LoggerFactory.getLogger(Store.class);
-    private static final String STORE_PATH_KEY = "store.path";
     private static final Class<?>[] ITEM_CONSTRUCTOR_SIGNATURE = {StoreEntry.class};
     private static final Gson GSON = new GsonBuilder().setPrettyPrinting().create();
     private static final Type STORE_TYPE = new TypeToken<ArrayList<StoreEntry>>() {
@@ -108,11 +107,14 @@ public abstract class Store<T extends StoreEntry> implements Closeable, Iterable
     public void close() {
         asyncPersist.shutdown();
         try {
-            asyncPersist.awaitTermination(400L, TimeUnit.MILLISECONDS);
+            boolean completed;
+            int attempts = 2;
+            do {
+                completed = asyncPersist.awaitTermination(400L, TimeUnit.MILLISECONDS);
+            } while (!completed && attempts-- > 0);
         } catch (InterruptedException e) {
             Thread.currentThread().interrupt();
         }
-        entries.clear();
     }
 
     public abstract T[] defaultStoreEntries();
@@ -121,10 +123,7 @@ public abstract class Store<T extends StoreEntry> implements Closeable, Iterable
         return rootPath;
     }
 
-    public synchronized void addEntry(T entry, boolean clearStoreFirst) {
-        if (clearStoreFirst) {
-            entries.clear();
-        }
+    public synchronized void addEntry(T entry) {
         if (entry != null) {
             entries.add(entry);
         }

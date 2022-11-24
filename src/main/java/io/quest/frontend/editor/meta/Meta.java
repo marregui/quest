@@ -44,8 +44,7 @@ public class Meta extends JDialog implements EventProducer<ConnsManager.EventTyp
 
     private final CairoConfiguration configuration = new DefaultCairoConfiguration(Store.ROOT_PATH.getAbsolutePath());
     private final FilesFacade ff = configuration.getFilesFacade();
-    private final TableReaderMetadata metaReader = new TableReaderMetadata(ff);
-    //private final TableReaderMetadata metaReader = new TableReaderMetadata(configuration);
+    private final TableReaderMetadata metaReader = new TableReaderMetadata(configuration);
     private final TxReader txReader = new TxReader(FilesFacadeImpl.INSTANCE);
     private final ColumnVersionReader cvReader = new ColumnVersionReader();
     private int rootLen;
@@ -134,44 +133,23 @@ public class Meta extends JDialog implements EventProducer<ConnsManager.EventTyp
         // display file content
         try {
             switch (fileType) {
-                case META:
-                    displayMeta();
-                    break;
-
-                case TXN:
-                    displayTxn();
-                    break;
-
-                case CV:
-                    displayCV();
-                    break;
-
-                case D:
-                    displayD(fileName);
-                    break;
-
-                case K:
-                    displayKV();
-                    break;
-
-                case O:
+                case META -> displayMeta();
+                case TXN -> displayTxn();
+                case CV -> displayCV();
+                case D -> displayD(fileName);
+                case K -> displayKV();
+                case O -> {
                     selectedPath.trimTo(selectedPath.length() - fileName.length());
                     selectedPath.concat(fileName.replace(".o", ".c")).$();
                     displayCO();
-                    break;
-
-                case C:
-                    displayCO();
-                    break;
-
-                case V:
+                }
+                case C -> displayCO();
+                case V -> {
                     selectedPath.trimTo(selectedPath.length() - fileName.length());
                     selectedPath.concat(fileName.replace(".v", ".k")).$();
                     displayKV();
-                    break;
-
-                default:
-                    display.displayMessage("No reader available.");
+                }
+                default -> display.displayMessage("No reader available.");
             }
         } catch (Throwable t) {
             display.displayMessage("Failed to open [" + selectedPath + "]: " + t.getMessage());
@@ -179,16 +157,14 @@ public class Meta extends JDialog implements EventProducer<ConnsManager.EventTyp
     }
 
     private void displayMeta() {
-        //metaReader.load0(selectedPath, ColumnType.VERSION);
-        metaReader.deferredInit(selectedPath, ColumnType.VERSION);
+        metaReader.load0(selectedPath, ColumnType.VERSION);
         display.clear();
-        display.addLn("tableId: ", metaReader.getId());
-        //ms.addLn("tableId: ", metaReader.getTableId());
+        display.addLn("tableId: ", metaReader.getTableId());
         display.addLn("structureVersion: ", metaReader.getStructureVersion());
         display.addLn("timestampIndex: ", metaReader.getTimestampIndex());
         display.addLn("partitionBy: ", PartitionBy.toString(metaReader.getPartitionBy()));
         display.addLn("maxUncommittedRows: ", metaReader.getMaxUncommittedRows());
-        display.addMicrosLn("commitLag: ", metaReader.getCommitLag());
+        display.addMicrosLn("O3MaxLag: ", metaReader.getO3MaxLag());
         display.addLn();
         int columnCount = metaReader.getColumnCount();
         display.addLn("columnCount: ", columnCount);
@@ -409,10 +385,7 @@ public class Meta extends JDialog implements EventProducer<ConnsManager.EventTyp
     }
 
     private boolean openMetaFile(int levelUpCount) {
-        return openFile(levelUpCount, TableUtils.META_FILE_NAME, p -> {
-            metaReader.deferredInit(p, ColumnType.VERSION);
-            //metaReader.load0(p, ColumnType.VERSION);
-        });
+        return openFile(levelUpCount, TableUtils.META_FILE_NAME, p -> metaReader.load0(p, ColumnType.VERSION));
     }
 
     private boolean openTxnFile(int levelUpCount) {
@@ -455,7 +428,7 @@ public class Meta extends JDialog implements EventProducer<ConnsManager.EventTyp
         return false;
     }
 
-    private static class ColumnNameTxn {
+    private record ColumnNameTxn(String columnName, long columnNameTxn) {
         static ColumnNameTxn of(Path p) {
             // columnName and columnNameTxn (selected path may contain suffix columnName.c.txn)
             int len = p.length();
@@ -466,14 +439,6 @@ public class Meta extends JDialog implements EventProducer<ConnsManager.EventTyp
             String columnName = tmp.substring(nameStart, dotIdx);
             long columnNameTxn = dotIdx2 == -1 ? -1L : Long.parseLong(tmp.substring(dotIdx2 + 1, len));
             return new ColumnNameTxn(columnName, columnNameTxn);
-        }
-
-        final String columnName;
-        final long columnNameTxn;
-
-        private ColumnNameTxn(String columnName, long columnNameTxn) {
-            this.columnName = columnName;
-            this.columnNameTxn = columnNameTxn;
         }
     }
 
@@ -488,7 +453,10 @@ public class Meta extends JDialog implements EventProducer<ConnsManager.EventTyp
     }
 
     private static int findNextDotIdx(CharSequence p, int start) {
-        int len = p == null ? 0 : p.length();
+        if (p == null) {
+            return -1;
+        }
+        int len = p.length();
         int idx = start;
         while (idx < len && p.charAt(idx) != '.') {
             idx++;
