@@ -47,7 +47,7 @@ public class MetaHighlighter extends Highlighter {
                     + "\\bpartition\\b|\\btxn\\b|\\bversion\\b|\\bsymbol\\b|\\bcount\\b|\\bindexed\\n|\\bwith\\b|"
                     + "\\bisRO\\b|\\bmask\\b|\\bav0\\b|\\bav1\\b|\\bav2\\b|\\bz\\b|\\bsymbolCount\\b|\\bcapacity\\b|"
                     + "\\bmicro\\b|\\bmicros\\b|\\bsec\\b|\\bsecs\\b|\\bmin\\b|\\bindex\\b|\\boffset\\b|"
-                    + "\\btableId\\b|\\bstructureVersion\\b|\\btimestampIndex\\b|\\bpartitionBy\\b|"
+                    + "\\btab\\b|\\btableId\\b|\\bstructureVersion\\b|\\btimestampIndex\\b|\\bpartitionBy\\b|"
                     + "\\bmaxUncommittedRows\\b|\\bO3MaxLag\\b|\\bcolumnCount\\b|\\bentryCount\\b|"
                     + "\\bpartitionTimestamp\\b|\\bcolumnIndex\\b|\\bcolumnNameTxn\\b|\\bcolumnTop\\b|"
                     + "\\bcolumnVersion\\b|\\bdataVersion\\b|\\btruncateVersion\\b|\\bpartitionTableVersion\\b|"

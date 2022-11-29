@@ -32,8 +32,7 @@ import javax.swing.tree.TreePath;
 import java.awt.*;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
-import java.io.Closeable;
-import java.io.File;
+import java.io.*;
 import java.util.function.Consumer;
 
 public class Meta extends JDialog implements EventProducer<ConnsManager.EventType>, Closeable {
@@ -45,8 +44,10 @@ public class Meta extends JDialog implements EventProducer<ConnsManager.EventTyp
     private final CairoConfiguration configuration = new DefaultCairoConfiguration(Store.ROOT_PATH.getAbsolutePath());
     private final FilesFacade ff = configuration.getFilesFacade();
     private final TableReaderMetadata metaReader = new TableReaderMetadata(configuration);
-    private final TxReader txReader = new TxReader(FilesFacadeImpl.INSTANCE);
+    private final TxReader txReader = new TxReader(ff);
     private final ColumnVersionReader cvReader = new ColumnVersionReader();
+    private final CounterReader counterReader = new CounterReader(ff);
+
     private int rootLen;
     private String partitionFolderName;
     private final Path selectedPath = new Path();
@@ -86,6 +87,7 @@ public class Meta extends JDialog implements EventProducer<ConnsManager.EventTyp
         Misc.free(metaReader);
         Misc.free(txReader);
         Misc.free(cvReader);
+        Misc.free(counterReader);
         Misc.free(selectedPath);
         Misc.free(auxPath);
     }
@@ -135,6 +137,7 @@ public class Meta extends JDialog implements EventProducer<ConnsManager.EventTyp
             switch (fileType) {
                 case META -> displayMeta();
                 case TXN -> displayTxn();
+                case TAB_INDEX, UPGRADE -> displayCounter();
                 case CV -> displayCV();
                 case D -> displayD(fileName);
                 case K -> displayKV();
@@ -252,6 +255,13 @@ public class Meta extends JDialog implements EventProducer<ConnsManager.EventTyp
             }
             display.render();
         }
+    }
+
+    private void displayCounter() {
+        long count = counterReader.openGetCurrentCount(selectedPath);
+        display.clear();
+        display.addLn("Tab index: ", count);
+        display.render();
     }
 
     private void displayD(String fileName) {

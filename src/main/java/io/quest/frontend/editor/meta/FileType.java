@@ -7,6 +7,8 @@ public enum FileType {
     TXN(true),
     CV(true),
     SB(true),
+    TAB_INDEX(true),
+    UPGRADE(true),
     D(true),
     C,
     O,
@@ -65,6 +67,14 @@ public enum FileType {
 
         if (fileName.endsWith(TableUtils.COLUMN_VERSION_FILE_NAME)) {
             return FileType.CV;
+        }
+
+        if (fileName.endsWith("_tab_index.d")) {
+            return FileType.TAB_INDEX;
+        }
+
+        if (fileName.endsWith("_upgrade.d")) {
+            return FileType.UPGRADE;
         }
 
         if (fileName.endsWith(".k")) {
