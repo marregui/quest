@@ -432,7 +432,6 @@ public class QuestPanel extends Editor implements EventProducer<QuestPanel.Event
         String connKey = conn != null ? conn.getUniqueId() : "None set";
         connLabel.setText(String.format("%s", connKey));
         connLabel.setForeground(isConnected ? CONNECTED_COLOR : NOT_CONNECTED_COLOR);
-        connLabel.setIcon(isConnected ? GTk.Icon.CONN_UP.icon() : GTk.Icon.CONN_DOWN.icon());
     }
 
     private JMenu createQuestsMenu() {

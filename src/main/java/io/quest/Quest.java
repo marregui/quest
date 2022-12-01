@@ -61,7 +61,7 @@ public final class Quest {
 
     private Quest() {
         JFrame frame = GTk.frame(null, null);
-        frame.setIconImage(GTk.Icon.APPLICATION.icon().getImage());
+        frame.setIconImage(GTk.Icon.COMMAND_QUEST.icon().getImage());
         int width = frame.getWidth();
         int dividerHeight = (int) (frame.getHeight() * 0.6);
         executor = new SQLExecutor();

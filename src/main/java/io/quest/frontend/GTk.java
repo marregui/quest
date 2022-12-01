@@ -458,8 +458,6 @@ public final class GTk {
         APPLICATION("Application.png"),
         HELP("Help.png"),
         CONNS("Conns.png"),
-        CONN_UP("ConnUp.png"),
-        CONN_DOWN("ConnDown.png"),
         CONN_ADD("ConnAdd.png", "Add"),
         CONN_ASSIGN("ConnAssign.png", "ASSIGN"),
         CONN_CLONE("ConnClone.png", "Clone"),
