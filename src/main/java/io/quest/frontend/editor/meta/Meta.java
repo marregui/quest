@@ -58,6 +58,7 @@ public class Meta extends JDialog implements EventProducer<ConnsManager.EventTyp
     public Meta(Frame owner, EventConsumer<Meta, Object> eventConsumer) {
         super(owner, "Metadata Files Explorer", false);
         setAlwaysOnTop(false);
+        setModal(false);
         setDefaultCloseOperation(WindowConstants.HIDE_ON_CLOSE);
         Dimension dimension = GTk.frameDimension(0.85F, 0.66F);
         setSize(dimension);

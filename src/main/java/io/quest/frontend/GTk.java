@@ -17,6 +17,7 @@
 package io.quest.frontend;
 
 import io.quest.model.Table;
+import io.questdb.std.Os;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -65,7 +66,7 @@ public final class GTk {
             TextAttribute.UNDERLINE, TextAttribute.UNDERLINE_ON));
     public static final Font TABLE_CELL_FONT = new Font(MAIN_FONT_NAME, Font.PLAIN, 16);
     public static final Font MENU_FONT = new Font(MAIN_FONT_NAME, Font.BOLD, 15);
-    public static final int CMD_DOWN_MASK = InputEvent.META_DOWN_MASK;
+    public static final int CMD_DOWN_MASK = (Os.type == Os.WINDOWS || Os.isLinux()) ? InputEvent.CTRL_DOWN_MASK : InputEvent.META_DOWN_MASK;
     public static final int CMD_SHIFT_DOWN_MASK = CMD_DOWN_MASK | InputEvent.SHIFT_DOWN_MASK;
     public static final int ALT_DOWN_MASK = InputEvent.ALT_DOWN_MASK;
     public static final int ALT_SHIFT_DOWN_MASK = ALT_DOWN_MASK | InputEvent.SHIFT_DOWN_MASK;
