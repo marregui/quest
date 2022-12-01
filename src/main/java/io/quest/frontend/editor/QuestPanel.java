@@ -116,15 +116,13 @@ public class QuestPanel extends Editor implements EventProducer<QuestPanel.Event
                 GTk.horizontalSpace(24),
                 questLabel = GTk.label(GTk.Icon.COMMAND_QUEST, "uest", null),
                 GTk.horizontalSpace(6),
-                questEntryNames);
-        questLabel.setForeground(Color.WHITE);
-        JPanel connectionPanel = GTk.flowPanel(
+                questEntryNames,
+                GTk.horizontalSpace(12),
                 connLabel = GTk.label(GTk.Icon.NO_ICON, null, e -> eventConsumer.onSourceEvent(
                         QuestPanel.this,
                         EventType.CONNECTION_STATUS_CLICKED,
-                        null)),
-                GTk.horizontalSpace(24)
-        );
+                        null)));
+        questLabel.setForeground(Color.WHITE);
         questsMenu = createQuestsMenu();
         findPanel = new FindReplace((source, event, eventData) -> {
             switch ((FindReplace.EventType) EventProducer.eventType(event)) {
@@ -137,7 +135,6 @@ public class QuestPanel extends Editor implements EventProducer<QuestPanel.Event
         topPanel.setPreferredSize(new Dimension(0, COMPONENT_HEIGHT + 2));
         topPanel.setBackground(Color.BLACK);
         topPanel.add(questsPanel, BorderLayout.WEST);
-        topPanel.add(connectionPanel, BorderLayout.EAST);
         topPanel.add(findPanel, BorderLayout.SOUTH);
         add(topPanel, BorderLayout.NORTH);
 
@@ -430,7 +427,7 @@ public class QuestPanel extends Editor implements EventProducer<QuestPanel.Event
     private void refreshConnLabel() {
         boolean isConnected = conn != null && conn.isOpen();
         String connKey = conn != null ? conn.getUniqueId() : "None set";
-        connLabel.setText(String.format("%s", connKey));
+        connLabel.setText(String.format("on %s", connKey));
         connLabel.setForeground(isConnected ? CONNECTED_COLOR : NOT_CONNECTED_COLOR);
     }
 

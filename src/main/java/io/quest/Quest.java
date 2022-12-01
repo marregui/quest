@@ -20,6 +20,7 @@ import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.KeyEvent;
 import java.util.Set;
+import java.util.function.Consumer;
 
 import javax.swing.*;
 
@@ -203,22 +204,26 @@ public final class Quest {
     }
 
     private void onToggleConnsWidget(ActionEvent event) {
-        boolean wasVisible = conns.isVisible();
-        if (!wasVisible) {
-            conns.setLocation(MouseInfo.getPointerInfo().getLocation());
-        }
-        conns.setVisible(!wasVisible);
-        toggleConnsWidget.setText(wasVisible ? "Connections" : "Hide Connections");
-        toggleConnsWidget.setIcon((wasVisible ? GTk.Icon.CONN_SHOW : GTk.Icon.CONN_HIDE).icon());
+        onToggleWidget(conns, wasVisible -> {
+            toggleConnsWidget.setText(wasVisible ? "Connections" : "Hide Connections");
+            toggleConnsWidget.setIcon((wasVisible ? GTk.Icon.CONN_SHOW : GTk.Icon.CONN_HIDE).icon());
+        });
     }
 
     private void onToggleMetaExaminerWidget(ActionEvent event) {
-        boolean wasVisible = meta.isVisible();
+        onToggleWidget(meta, wasVisible ->
+                toggleMetaExaminerWidget.setText(wasVisible ? "Meta Explorer" : "Close Meta Explorer")
+        );
+    }
+
+    private void onToggleWidget(JDialog dialog, Consumer<Boolean> consumer) {
+        boolean wasVisible = dialog.isVisible();
         if (!wasVisible) {
-            meta.setLocation(MouseInfo.getPointerInfo().getLocation());
+            Dimension location = GTk.frameLocation(dialog.getSize());
+            dialog.setLocation(location.width, location.height);
         }
-        meta.setVisible(!wasVisible);
-        toggleMetaExaminerWidget.setText(wasVisible ? "Meta Explorer" : "Close Meta Explorer");
+        dialog.setVisible(!wasVisible);
+        consumer.accept(wasVisible);
     }
 
     private void onToggleQuestDB(ActionEvent event) {
