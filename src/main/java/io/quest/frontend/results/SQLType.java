@@ -26,6 +26,14 @@ import io.quest.frontend.GTk;
  * Resolves {@link java.sql.Types} to their text representation, column width and rendering color.
  */
 final class SQLType {
+    private static final Color BLUE_GREENISH_COLOR = new Color(0, 112, 112); // blue-greenish
+    private static final Color OLIVE_COLOR = new Color(140, 140, 0); // olive
+    private static final Color CYAN_DULL_COLOR = new Color(0, 168, 188); // cyan dull
+
+    private SQLType() {
+        throw new IllegalStateException("not meant to me instantiated");
+    }
+
     static String resolveName(int sqlType) {
         String type;
         switch (sqlType) {
@@ -176,17 +184,9 @@ final class SQLType {
                 color = CYAN_DULL_COLOR;
                 break;
             case Types.VARCHAR:
-                color = GTk.APP_THEME_COLOR;
+                color = GTk.MAIN_FONT_COLOR;
                 break;
         }
         return color;
-    }
-
-    private static final Color BLUE_GREENISH_COLOR = new Color(0, 112, 112); // blue-greenish
-    private static final Color OLIVE_COLOR = new Color(140, 140, 0); // olive
-    private static final Color CYAN_DULL_COLOR = new Color(0, 168, 188); // cyan dull
-
-    private SQLType() {
-        throw new IllegalStateException("not meant to me instantiated");
     }
 }

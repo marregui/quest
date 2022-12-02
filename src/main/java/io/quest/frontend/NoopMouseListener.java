@@ -27,81 +27,36 @@ import java.awt.event.MouseMotionListener;
  */
 public interface NoopMouseListener extends MouseListener, MouseMotionListener {
 
-    /**
-     * Invoked when the mouse button has been pressed/released (clicked).
-     * <p>
-     * Does nothing.
-     * 
-     * @param e the event to be processed
-     */
     @Override
     default void mouseClicked(MouseEvent e) {
         // nothing
     }
 
-    /**
-     * Invoked when a mouse button has been pressed.
-     * <p>
-     * Does nothing.
-     * 
-     * @param e the event to be processed
-     */
     @Override
     default void mousePressed(MouseEvent e) {
         // nothing
     }
 
-    /**
-     * Invoked when a mouse button has been released.
-     * <p>
-     * Does nothing.
-     * 
-     * @param e the event to be processed
-     */
     @Override
     default void mouseReleased(MouseEvent e) {
         // nothing
     }
 
-    /**
-     * Invoked when the mouse enters a component.
-     * <p>
-     * Does nothing.
-     * 
-     * @param e the event to be processed
-     */
     @Override
     default void mouseEntered(MouseEvent e) {
         // nothing
     }
 
-    /**
-     * Invoked when the mouse exits a component.
-     * <p>
-     * Does nothing.
-     * 
-     * @param e the event to be processed
-     */
     @Override
     default void mouseExited(MouseEvent e) {
         // nothing
     }
 
-    /**
-     * Invoked when a mouse button is pressed on a component and then dragged.
-     * 
-     * @param e the event to be processed
-     */
     @Override
     default void mouseDragged(MouseEvent e) {
         // nothing
     }
 
-    /**
-     * Invoked when the mouse cursor has been moved, no buttons pressed.
-     * 
-     * @param e the event to be processed
-     */
     @Override
     default void mouseMoved(MouseEvent e) {
         // nothing

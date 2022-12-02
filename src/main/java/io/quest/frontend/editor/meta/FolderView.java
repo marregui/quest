@@ -48,24 +48,22 @@ class FolderView extends JPanel {
         treeView.getSelectionModel().setSelectionMode(TreeSelectionModel.SINGLE_TREE_SELECTION);
         final ImageIcon fileIcon = GTk.Icon.META_FILE.icon();
         final ImageIcon folderIcon = GTk.Icon.META_FOLDER.icon();
+        final ImageIcon unknownIcon = GTk.Icon.META_UNKNOWN.icon();
         treeView.setCellRenderer(new DefaultTreeCellRenderer() {
             @Override
-            public Component getTreeCellRendererComponent(
-                    JTree tree,
-                    Object value,
-                    boolean selected,
-                    boolean expanded,
-                    boolean leaf,
-                    int row,
-                    boolean hasFocus
-            ) {
+            public Component getTreeCellRendererComponent(JTree tree, Object value, boolean selected, boolean expanded, boolean leaf, int row, boolean hasFocus) {
                 super.getTreeCellRendererComponent(tree, value, selected, expanded, leaf, row, hasFocus);
                 setOpaque(true);
                 setFont(GTk.TABLE_CELL_FONT);
                 setBackground(Color.BLACK);
-                setForeground(GTk.TERMINAL_COLOR);
-                setText(value.toString());
-                setIcon(leaf ? fileIcon : folderIcon);
+                setForeground(GTk.TERMINAL_FONT_COLOR);
+                String text = value.toString();
+                if (leaf && !text.endsWith("" + Files.SEPARATOR)) {
+                    setIcon(FileType.of(extractItemName(text)) != FileType.UNKNOWN ? fileIcon : unknownIcon);
+                } else {
+                    setIcon(folderIcon);
+                }
+                setText(text);
                 return this;
             }
         });
@@ -81,12 +79,10 @@ class FolderView extends JPanel {
         chooser.setAcceptAllFileFilterUsed(false);
         chooser.setMultiSelectionEnabled(false);
 
-        JPanel checkBoxPane = new JPanel(new GridLayout(2, 5, 0, 0));
+        JPanel checkBoxPane = new JPanel(new GridLayout(4, 4, 0, 0));
         checkBoxPane.setBackground(Color.BLACK);
         for (FileType type : FileType.values()) {
-            if (type != FileType.UNKNOWN) {
-                checkBoxPane.add(createVisibleFileTypeCheckBox(type));
-            }
+            checkBoxPane.add(createVisibleFileTypeCheckBox(type));
         }
 
         // button panel to be added to the south
@@ -115,6 +111,18 @@ class FolderView extends JPanel {
         add(buttonPanel, BorderLayout.SOUTH);
     }
 
+    static String formatItemName(String itemName, long size) {
+        int z = (63 - Long.numberOfLeadingZeros(size)) / 10;
+        return String.format("%s (%.1f %sB)", itemName, (double) size / (1L << (z * 10)), " KMGTPE".charAt(z));
+    }
+
+    static String extractItemName(String withSize) {
+        if (withSize.endsWith("B)")) {
+            return withSize.substring(0, withSize.indexOf(" ("));
+        }
+        return withSize;
+    }
+
     void setRoot(File root) {
         this.root = root;
         reloadModel();
@@ -125,22 +133,6 @@ class FolderView extends JPanel {
         if (root != null) {
             treeView.setModel(createModel(root));
         }
-    }
-
-    static String formatItemName(String itemName, long size) {
-        int z = (63 - Long.numberOfLeadingZeros(size)) / 10;
-        return String.format("%s (%.1f %sB)",
-                itemName,
-                (double) size / (1L << (z * 10)),
-                " KMGTPE".charAt(z)
-        );
-    }
-
-    static String extractItemName(String withSize) {
-        if (withSize.endsWith("B)")) {
-            return withSize.substring(0, withSize.indexOf(" ("));
-        }
-        return withSize;
     }
 
     private DefaultTreeModel createModel(File folder) {
@@ -181,7 +173,7 @@ class FolderView extends JPanel {
         JCheckBox checkBox = new JCheckBox(type.name(), type.isDefaultChecked());
         checkBox.setFont(GTk.MENU_FONT);
         checkBox.setBackground(Color.BLACK);
-        checkBox.setForeground(GTk.APP_THEME_COLOR);
+        checkBox.setForeground(GTk.MAIN_FONT_COLOR);
         checkBox.addActionListener(e -> {
             if (checkBox.isSelected()) {
                 visibleFileTypes.add(type);

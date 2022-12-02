@@ -14,6 +14,8 @@ public enum FileType {
     O,
     K,
     V,
+    TXT,
+    JSON,
     UNKNOWN;
 
     private final boolean defaultChecked;
@@ -25,11 +27,6 @@ public enum FileType {
     FileType(boolean checked) {
         defaultChecked = checked;
     }
-
-    public boolean isDefaultChecked() {
-        return defaultChecked;
-    }
-
 
     public static FileType of(String fileName) {
         if (fileName == null || fileName.isBlank()) {
@@ -97,6 +94,18 @@ public enum FileType {
             return FileType.D;
         }
 
+        if (fileName.endsWith(".txt")) {
+            return FileType.TXT;
+        }
+
+        if (fileName.endsWith(".json")) {
+            return FileType.JSON;
+        }
+
         return FileType.UNKNOWN;
+    }
+
+    public boolean isDefaultChecked() {
+        return defaultChecked;
     }
 }

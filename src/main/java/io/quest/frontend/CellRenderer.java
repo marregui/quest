@@ -20,28 +20,32 @@ import java.awt.Color;
 import java.awt.Component;
 
 import javax.swing.*;
+import javax.swing.border.Border;
 import javax.swing.table.DefaultTableCellRenderer;
 
 
 public class CellRenderer extends DefaultTableCellRenderer {
 
+    private static final Border EMPTY_BORDER = BorderFactory.createEmptyBorder();
+
     @Override
-    public Component getTableCellRendererComponent(JTable table,
-                                                   Object value,
-                                                   boolean isSelected,
-                                                   boolean hasFocus,
-                                                   int rowIdx,
-                                                   int colIdx
+    public Component getTableCellRendererComponent(
+            JTable table,
+            Object value,
+            boolean isSelected,
+            boolean hasFocus,
+            int rowIdx,
+            int colIdx
     ) {
         super.getTableCellRendererComponent(table, value, isSelected, hasFocus, rowIdx, colIdx);
         setFont(GTk.TABLE_CELL_FONT);
         setBackground(Color.BLACK);
-        setBorder(BorderFactory.createEmptyBorder());
-        if (rowIdx >= 0 && rowIdx < table.getModel().getRowCount()) {
+        setBorder(EMPTY_BORDER);
+        if (rowIdx > -1 && rowIdx < table.getModel().getRowCount()) {
             if (isSelected) {
-                setForeground(GTk.TERMINAL_COLOR);
+                setForeground(GTk.TERMINAL_FONT_COLOR);
             } else {
-                setForeground(GTk.APP_THEME_COLOR);
+                setForeground(GTk.MAIN_FONT_COLOR);
             }
             return this;
         }

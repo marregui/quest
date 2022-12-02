@@ -38,24 +38,22 @@ import io.questdb.log.LogFactory;
 
 public class SQLExecutor implements EventProducer<SQLExecutor.EventType>, Closeable {
 
-    public enum EventType {
-        STARTED,            // connection is valid, execution has started
-        RESULTS_AVAILABLE,  // execution is going well so far, partial results have been collected
-        COMPLETED,          // execution went well, all results have been collected
-        CANCELLED,          // execution was cancelled
-        FAILURE             // execution failed
-    }
-
     public static final int MAX_BATCH_SIZE = 20_000;
-    private static final int START_BATCH_SIZE = 100;
     public static final int QUERY_EXECUTION_TIMEOUT_SECS = 30;
+    private static final int START_BATCH_SIZE = 100;
     private static final Log LOG = LogFactory.getLog(SQLExecutor.class);
     private static final ThreadFactory THREAD_FACTORY = Executors.defaultThreadFactory();
     private static final int NUMBER_OF_THREADS = 1;
-
-
     private final ConcurrentMap<String, Future<?>> runningQueries = new ConcurrentHashMap<>();
     private ExecutorService executor;
+
+    private static long elapsedMillis(long start) {
+        return millis(System.nanoTime() - start);
+    }
+
+    private static long millis(long nanos) {
+        return TimeUnit.MILLISECONDS.convert(nanos, TimeUnit.NANOSECONDS);
+    }
 
     public synchronized void start() {
         if (executor == null) {
@@ -80,7 +78,7 @@ public class SQLExecutor implements EventProducer<SQLExecutor.EventType>, Closea
                 }
             }
             try {
-                GTk.shutdown(executor);
+                GTk.shutdownExecutor(executor);
             } finally {
                 executor = null;
                 runningQueries.clear();
@@ -210,11 +208,11 @@ public class SQLExecutor implements EventProducer<SQLExecutor.EventType>, Closea
                 new SQLExecutionResponse(req, table, totalMs, execMillis, fetchMs));
     }
 
-    private static long elapsedMillis(long start) {
-        return millis(System.nanoTime() - start);
-    }
-
-    private static long millis(long nanos) {
-        return TimeUnit.MILLISECONDS.convert(nanos, TimeUnit.NANOSECONDS);
+    public enum EventType {
+        STARTED,            // connection is valid, execution has started
+        RESULTS_AVAILABLE,  // execution is going well so far, partial results have been collected
+        COMPLETED,          // execution went well, all results have been collected
+        CANCELLED,          // execution was cancelled
+        FAILURE             // execution failed
     }
 }

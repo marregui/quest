@@ -33,17 +33,18 @@ class SQLCellRenderer extends CellRenderer {
     }
 
     @Override
-    public Component getTableCellRendererComponent(JTable table,
-                                                   Object value,
-                                                   boolean isSelected,
-                                                   boolean hasFocus,
-                                                   int rowIdx,
-                                                   int colIdx
+    public Component getTableCellRendererComponent(
+            JTable table,
+            Object value,
+            boolean isSelected,
+            boolean hasFocus,
+            int rowIdx,
+            int colIdx
     ) {
         super.getTableCellRendererComponent(table, value, isSelected, hasFocus, rowIdx, colIdx);
         Table sqlTable = tableSupplier.get();
-        if (sqlTable != null && !isSelected && rowIdx >= 0 && rowIdx < table.getModel().getRowCount()) {
-            if (colIdx >= 0) {
+        if (sqlTable != null && !isSelected && rowIdx > -1 && rowIdx < table.getModel().getRowCount()) {
+            if (colIdx > -1) {
                 int[] columnTypes = sqlTable.getColTypes();
                 if (columnTypes != null) {
                     setForeground(SQLType.resolveColor(columnTypes[colIdx]));

@@ -22,13 +22,17 @@ import javax.swing.JTable;
 
 
 public class PasswordCellRenderer extends CellRenderer {
-
-    private static final long serialVersionUID = 1L;
     private static final String PASSWORD = "*********";
 
     @Override
-    public Component getTableCellRendererComponent(JTable table, Object value, boolean isSelected, boolean hasFocus,
-        int rowIdx, int colIdx) {
+    public Component getTableCellRendererComponent(
+            JTable table,
+            Object value,
+            boolean isSelected,
+            boolean hasFocus,
+            int rowIdx,
+            int colIdx
+    ) {
         super.getTableCellRendererComponent(table, value, isSelected, hasFocus, rowIdx, colIdx);
         setValue(PASSWORD);
         return this;

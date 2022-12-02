@@ -130,7 +130,7 @@ public class ConnsChecker implements Closeable {
     public synchronized void close() {
         if (scheduler != null) {
             try {
-                GTk.shutdown(scheduler);
+                GTk.shutdownExecutor(scheduler);
             } finally {
                 scheduler = null;
                 isChecking.set(false);

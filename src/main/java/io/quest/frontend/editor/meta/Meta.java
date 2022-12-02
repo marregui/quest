@@ -18,9 +18,7 @@ package io.quest.frontend.editor.meta;
 
 import io.quest.frontend.GTk;
 import io.quest.frontend.conns.ConnsManager;
-import io.quest.model.EventConsumer;
-import io.quest.model.EventProducer;
-import io.quest.model.Store;
+import io.quest.model.*;
 import io.questdb.cairo.*;
 import io.questdb.cairo.sql.RowCursor;
 import io.questdb.std.*;
@@ -37,23 +35,19 @@ import java.util.function.Consumer;
 
 public class Meta extends JDialog implements EventProducer<ConnsManager.EventType>, Closeable {
 
-    public enum EventType {
-        HIDE_REQUEST // Request to hide the metadata files explorer
-    }
-
     private final CairoConfiguration configuration = new DefaultCairoConfiguration(Store.ROOT_PATH.getAbsolutePath());
     private final FilesFacade ff = configuration.getFilesFacade();
-    private final TableReaderMetadata metaReader = new TableReaderMetadata(configuration);
     private final TxReader txReader = new TxReader(ff);
-    private final ColumnVersionReader cvReader = new ColumnVersionReader();
     private final CounterReader counterReader = new CounterReader(ff);
-
-    private int rootLen;
-    private String partitionFolderName;
+    private final TableReaderMetadata metaReader = new TableReaderMetadata(configuration);
+    private final ColumnVersionReader cvReader = new ColumnVersionReader();
+    private final TxtFileReader txtFileReader = new TxtFileReader();
     private final Path selectedPath = new Path();
     private final Path auxPath = new Path();
     private final Display display = new Display();
     private final FolderView treeView;
+    private int rootLen;
+    private String partitionFolderName;
 
     public Meta(Frame owner, EventConsumer<Meta, Object> eventConsumer) {
         super(owner, "Metadata Files Explorer", false);
@@ -81,6 +75,44 @@ public class Meta extends JDialog implements EventProducer<ConnsManager.EventTyp
         splitPane.setDividerLocation(0.2);
         contentPane.add(BorderLayout.CENTER, splitPane);
         setRoot(Store.ROOT_PATH);
+    }
+
+    private static void selectFileInFolder(Path p, int levelUpCount, String fileName) {
+        int idx = findSeparatorIdx(p, levelUpCount);
+        if (idx != -1) {
+            p.trimTo(idx);
+            if (fileName != null) {
+                p.concat(fileName);
+            }
+        }
+    }
+
+    private static int findNextDotIdx(CharSequence p, int start) {
+        if (p == null) {
+            return -1;
+        }
+        int len = p.length();
+        int idx = start;
+        while (idx < len && p.charAt(idx) != '.') {
+            idx++;
+        }
+        return idx < len ? idx : -1;
+    }
+
+    private static int findSeparatorIdx(CharSequence p, int levelUpCount) {
+        int idx = p == null ? 0 : p.length() - 2; // may end in separatorChar
+        int found = 0;
+        while (idx > 0) {
+            char c = p.charAt(idx);
+            if (c == Files.SEPARATOR) {
+                found++;
+                if (found == levelUpCount) {
+                    break;
+                }
+            }
+            idx--;
+        }
+        return idx > 0 ? idx : -1;
     }
 
     @Override
@@ -153,6 +185,7 @@ public class Meta extends JDialog implements EventProducer<ConnsManager.EventTyp
                     selectedPath.concat(fileName.replace(".v", ".k")).$();
                     displayKV();
                 }
+                case TXT, JSON -> displayTxt();
                 default -> display.displayMessage("No reader available.");
             }
         } catch (Throwable t) {
@@ -256,6 +289,12 @@ public class Meta extends JDialog implements EventProducer<ConnsManager.EventTyp
             }
             display.render();
         }
+    }
+
+    private void displayTxt() throws IOException {
+        display.clear();
+        txtFileReader.fetchAvailableLines(new File(selectedPath.toString())).forEach(display::addLn);
+        display.render();
     }
 
     private void displayCounter() {
@@ -439,6 +478,10 @@ public class Meta extends JDialog implements EventProducer<ConnsManager.EventTyp
         return false;
     }
 
+    public enum EventType {
+        HIDE_REQUEST // Request to hide the metadata files explorer
+    }
+
     private record ColumnNameTxn(String columnName, long columnNameTxn) {
         static ColumnNameTxn of(Path p) {
             // columnName and columnNameTxn (selected path may contain suffix columnName.c.txn)
@@ -451,43 +494,5 @@ public class Meta extends JDialog implements EventProducer<ConnsManager.EventTyp
             long columnNameTxn = dotIdx2 == -1 ? -1L : Long.parseLong(tmp.substring(dotIdx2 + 1, len));
             return new ColumnNameTxn(columnName, columnNameTxn);
         }
-    }
-
-    private static void selectFileInFolder(Path p, int levelUpCount, String fileName) {
-        int idx = findSeparatorIdx(p, levelUpCount);
-        if (idx != -1) {
-            p.trimTo(idx);
-            if (fileName != null) {
-                p.concat(fileName);
-            }
-        }
-    }
-
-    private static int findNextDotIdx(CharSequence p, int start) {
-        if (p == null) {
-            return -1;
-        }
-        int len = p.length();
-        int idx = start;
-        while (idx < len && p.charAt(idx) != '.') {
-            idx++;
-        }
-        return idx < len ? idx : -1;
-    }
-
-    private static int findSeparatorIdx(CharSequence p, int levelUpCount) {
-        int idx = p == null ? 0 : p.length() - 2; // may end in separatorChar
-        int found = 0;
-        while (idx > 0) {
-            char c = p.charAt(idx);
-            if (c == Files.SEPARATOR) {
-                found++;
-                if (found == levelUpCount) {
-                    break;
-                }
-            }
-            idx--;
-        }
-        return idx > 0 ? idx : -1;
     }
 }

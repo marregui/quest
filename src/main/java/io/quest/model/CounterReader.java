@@ -14,7 +14,7 @@
  * Copyright (c) 2019 - 2022, Miguel Arregui a.k.a. marregui
  */
 
-package io.quest.frontend.editor.meta;
+package io.quest.model;
 
 import io.questdb.cairo.TableUtils;
 import io.questdb.std.*;

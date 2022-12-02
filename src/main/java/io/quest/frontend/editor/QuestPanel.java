@@ -36,47 +36,10 @@ import io.quest.frontend.conns.ConnsManager;
 
 public class QuestPanel extends Editor implements EventProducer<QuestPanel.EventType>, Closeable {
 
-    public enum EventType {
-        COMMAND_AVAILABLE,
-        COMMAND_CANCEL,
-        CONNECTION_STATUS_CLICKED
-    }
-
-    public static class Content extends StoreEntry {
-        private static final String ATTR_NAME = "content";
-
-        public Content() {
-            this("default");
-        }
-
-        public Content(String name) {
-            super(name);
-            setAttr(ATTR_NAME, GTk.BANNER);
-        }
-
-        public Content(StoreEntry other) {
-            super(other);
-        }
-
-        @Override
-        public final String getUniqueId() {
-            return getName();
-        }
-
-        public String getContent() {
-            return getAttr(ATTR_NAME);
-        }
-
-        public void setContent(String content) {
-            setAttr(ATTR_NAME, content);
-        }
-    }
-
     private static final Color CONNECTED_COLOR = new Color(69, 191, 84); //  green
-    private static final Color NOT_CONNECTED_COLOR = GTk.APP_THEME_COLOR;
+    private static final Color NOT_CONNECTED_COLOR = GTk.MAIN_FONT_COLOR;
     private static final int COMPONENT_HEIGHT = 33;
     private static final String STORE_FILE_NAME = "default-notebook.json";
-
     private final EventConsumer<QuestPanel, SQLExecutionRequest> eventConsumer;
     private final JComboBox<String> questEntryNames;
     private final List<UndoManager> undoManagers;
@@ -88,7 +51,6 @@ public class QuestPanel extends Editor implements EventProducer<QuestPanel.Event
     private Conn conn; // uses it when set
     private SQLExecutionRequest lastRequest;
     private Content content;
-
     public QuestPanel(EventConsumer<QuestPanel, SQLExecutionRequest> eventConsumer) {
         super();
         this.eventConsumer = eventConsumer;
@@ -493,5 +455,41 @@ public class QuestPanel extends Editor implements EventProducer<QuestPanel.Event
                         GTk.NO_KEY_EVENT,
                         this::onBackupQuests));
         return questsMenu;
+    }
+
+    public enum EventType {
+        COMMAND_AVAILABLE,
+        COMMAND_CANCEL,
+        CONNECTION_STATUS_CLICKED
+    }
+
+    public static class Content extends StoreEntry {
+        private static final String ATTR_NAME = "content";
+
+        public Content() {
+            this("default");
+        }
+
+        public Content(String name) {
+            super(name);
+            setAttr(ATTR_NAME, GTk.BANNER);
+        }
+
+        public Content(StoreEntry other) {
+            super(other);
+        }
+
+        @Override
+        public final String getUniqueId() {
+            return getName();
+        }
+
+        public String getContent() {
+            return getAttr(ATTR_NAME);
+        }
+
+        public void setContent(String content) {
+            setAttr(ATTR_NAME, content);
+        }
     }
 }

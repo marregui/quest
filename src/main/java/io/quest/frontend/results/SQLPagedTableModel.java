@@ -32,7 +32,6 @@ import io.quest.model.Table;
  * SQL query execution is started.
  */
 class SQLPagedTableModel extends AbstractTableModel {
-    private static final long serialVersionUID = 1L;
     private static final int PAGE_SIZE = 1000; // number of rows
 
     private final Supplier<Table> tableSupplier;

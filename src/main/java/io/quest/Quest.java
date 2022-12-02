@@ -90,106 +90,35 @@ public final class Quest {
     private JMenuBar createMenuBar() {
         // Connections
         JMenu connsMenu = GTk.jmenu("Connections", GTk.Icon.CONNS);
-        connsMenu.add(configureMenuItem(
-                toggleConnsWidget,
-                GTk.Icon.CONN_SHOW,
-                "Connections",
-                KeyEvent.VK_T,
-                this::onToggleConnsWidget
-        ));
-        connsMenu.add(configureMenuItem(
-                toggleConn,
-                GTk.Icon.CONN_CONNECT,
-                "Connect",
-                KeyEvent.VK_O,
-                this::onToggleConn
-        ));
+        connsMenu.add(configureMenuItem(toggleConnsWidget, GTk.Icon.CONN_SHOW, "Connections", KeyEvent.VK_T, this::onToggleConnsWidget));
+        connsMenu.add(configureMenuItem(toggleConn, GTk.Icon.CONN_CONNECT, "Connect", KeyEvent.VK_O, this::onToggleConn));
 
         // Commands
         JMenu commandsMenu = GTk.jmenu("Commands", GTk.Icon.COMMANDS);
-        commandsMenu.add(configureMenuItem(
-                new JMenuItem(),
-                GTk.Icon.COMMAND_EXEC_LINE,
-                "L.Exec",
-                KeyEvent.VK_L,
-                commands::onExecLine
-        ));
-        commandsMenu.add(configureMenuItem(
-                new JMenuItem(),
-                GTk.Icon.COMMAND_EXEC,
-                "Exec",
-                KeyEvent.VK_ENTER,
-                commands::onExec
-        ));
-        commandsMenu.add(configureMenuItem(
-                new JMenuItem(),
-                GTk.Icon.COMMAND_EXEC_ABORT,
-                "Abort",
-                KeyEvent.VK_W,
-                commands::fireCancelEvent
-        ));
+        commandsMenu.add(configureMenuItem(new JMenuItem(), GTk.Icon.COMMAND_EXEC_LINE, "L.Exec", KeyEvent.VK_L, commands::onExecLine));
+        commandsMenu.add(configureMenuItem(new JMenuItem(), GTk.Icon.COMMAND_EXEC, "Exec", KeyEvent.VK_ENTER, commands::onExec));
+        commandsMenu.add(configureMenuItem(new JMenuItem(), GTk.Icon.COMMAND_EXEC_ABORT, "Abort", KeyEvent.VK_W, commands::fireCancelEvent));
         commandsMenu.addSeparator();
-        commandsMenu.add(configureMenuItem(
-                new JMenuItem(),
-                GTk.Icon.COMMAND_FIND,
-                "Find",
-                KeyEvent.VK_F,
-                e -> commands.onFind()
-        ));
-        commandsMenu.add(configureMenuItem(
-                new JMenuItem(),
-                GTk.Icon.COMMAND_REPLACE,
-                "Replace",
-                KeyEvent.VK_R,
-                e -> commands.onReplace()
-        ));
+        commandsMenu.add(configureMenuItem(new JMenuItem(), GTk.Icon.COMMAND_FIND, "Find", KeyEvent.VK_F, e -> commands.onFind()));
+        commandsMenu.add(configureMenuItem(new JMenuItem(), GTk.Icon.COMMAND_REPLACE, "Replace", KeyEvent.VK_R, e -> commands.onReplace()));
 
         // Results
         JMenu resultsMenu = GTk.jmenu("Results", GTk.Icon.RESULTS);
-        resultsMenu.add(configureMenuItem(new JMenuItem(),
-                GTk.Icon.RESULTS_PREV,
-                "PREV",
-                KeyEvent.VK_B,
-                results::onPrevButton
-        ));
-        resultsMenu.add(configureMenuItem(
-                new JMenuItem(),
-                GTk.Icon.RESULTS_NEXT,
-                "NEXT",
-                KeyEvent.VK_N,
-                results::onNextButton
-        ));
+        resultsMenu.add(configureMenuItem(new JMenuItem(), GTk.Icon.RESULTS_PREV, "PREV", KeyEvent.VK_B, results::onPrevButton));
+        resultsMenu.add(configureMenuItem(new JMenuItem(), GTk.Icon.RESULTS_NEXT, "NEXT", KeyEvent.VK_N, results::onNextButton));
 
         JMenu menu = GTk.jmenu("", GTk.Icon.MENU);
         menu.add(commands.getQuestsMenu()); // Quests Menu
         menu.addSeparator();
-        menu.add(configureMenuItem(
-                toggleQuestDB,
-                GTk.Icon.ROCKET,
-                "Run QuestDB",
-                KeyEvent.VK_PERIOD,
-                this::onToggleQuestDB
-        ));
+        menu.add(configureMenuItem(toggleQuestDB, GTk.Icon.ROCKET, "Run QuestDB", KeyEvent.VK_PERIOD, this::onToggleQuestDB));
         menu.addSeparator();
-        menu.add(configureMenuItem(
-                toggleMetaExaminerWidget,
-                GTk.Icon.META,
-                "Meta Explorer",
-                KeyEvent.VK_M,
-                this::onToggleMetaExaminerWidget
-        ));
+        menu.add(configureMenuItem(toggleMetaExaminerWidget, GTk.Icon.META, "Meta Explorer", KeyEvent.VK_M, this::onToggleMetaExaminerWidget));
         menu.addSeparator();
         menu.add(connsMenu);
         menu.add(commandsMenu);
         menu.add(resultsMenu);
         menu.addSeparator();
-        menu.add(configureMenuItem(
-                new JMenuItem(),
-                GTk.Icon.HELP,
-                "QuestDB Docs",
-                NO_KEY_EVENT,
-                GTk::openQuestDBDocs
-        ));
+        menu.add(configureMenuItem(new JMenuItem(), GTk.Icon.HELP, "QuestDB Docs", NO_KEY_EVENT, GTk::openQuestDBDocs));
 
         JMenuBar menuBar = new JMenuBar();
         menuBar.setBorder(BorderFactory.createLoweredSoftBevelBorder());
@@ -211,9 +140,7 @@ public final class Quest {
     }
 
     private void onToggleMetaExaminerWidget(ActionEvent event) {
-        onToggleWidget(meta, wasVisible ->
-                toggleMetaExaminerWidget.setText(wasVisible ? "Meta Explorer" : "Close Meta Explorer")
-        );
+        onToggleWidget(meta, wasVisible -> toggleMetaExaminerWidget.setText(wasVisible ? "Meta Explorer" : "Close Meta Explorer"));
     }
 
     private void onToggleWidget(JDialog dialog, Consumer<Boolean> consumer) {
@@ -228,20 +155,27 @@ public final class Quest {
 
     private void onToggleQuestDB(ActionEvent event) {
         if (questdb == null) {
-            questdb = new ServerMain("-d", Store.ROOT_PATH.getAbsolutePath());
-            questdb.start(false);
-            toggleQuestDB.setText("Shutdown QuestDB");
-            results.displayMessage("QuestDB is UP");
-            Conn conn = commands.getConnection();
-            if (conn == null || !conn.isValid()) {
-                onToggleConn(null);
+            try {
+                results.showInfiniteSpinner();
+                questdb = new ServerMain("-d", Store.ROOT_PATH.getAbsolutePath());
+                questdb.start(false);
+                toggleQuestDB.setText("Shutdown QuestDB");
+                Conn conn = commands.getConnection();
+                if (conn == null || !conn.isValid()) {
+                    onToggleConn(null);
+                }
+            } finally {
+                results.hideInfiniteSpinner();
+                results.displayMessage("QuestDB is UP");
             }
         } else {
-            questdb.close();
-            questdb = null;
-            toggleQuestDB.setText("Run QuestDB");
-            results.displayMessage("QuestDB is DOWN");
-            onToggleConn(null);
+            if (JOptionPane.OK_OPTION == JOptionPane.showConfirmDialog(null, "Shutdown QuestDB?")) {
+                questdb.close();
+                questdb = null;
+                toggleQuestDB.setText("Run QuestDB");
+                results.displayMessage("QuestDB is DOWN");
+                onToggleConn(null);
+            }
         }
     }
 
@@ -311,8 +245,7 @@ public final class Quest {
                 break;
 
             case CONNECTIONS_LOST:
-                @SuppressWarnings("unchecked")
-                Set<Conn> droppedConns = (Set<Conn>) data;
+                @SuppressWarnings("unchecked") Set<Conn> droppedConns = (Set<Conn>) data;
                 current = commands.getConnection();
                 if (current != null) {
                     for (Conn dc : droppedConns) {

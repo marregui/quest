@@ -62,6 +62,14 @@ class ConnsTableModel extends AbstractTableModel implements Closeable {
     private static final int[] COL_WIDTHS = {
             200, 400, 100, 200, 200, 200, 200
     };
+    private static final long serialVersionUID = 1L;
+    private final List<Conn> conns;
+    private final Set<String> existingNames;
+
+    private ConnsTableModel() {
+        conns = new ArrayList<>();
+        existingNames = new TreeSet<>();
+    }
 
     /**
      * Factory method, creates a table that has a {@link ConnsTableModel} model.
@@ -77,7 +85,7 @@ class ConnsTableModel extends AbstractTableModel implements Closeable {
         JTable table = new JTable(tableModel);
         table.setAutoCreateRowSorter(false);
         table.setRowHeight(ROW_HEIGHT);
-        table.setGridColor(GTk.APP_THEME_COLOR.darker().darker().darker());
+        table.setGridColor(GTk.MAIN_FONT_COLOR.darker().darker().darker());
         table.setFont(GTk.TABLE_CELL_FONT);
         table.setDefaultRenderer(String.class, new CellRenderer());
         table.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
@@ -100,13 +108,8 @@ class ConnsTableModel extends AbstractTableModel implements Closeable {
         return table;
     }
 
-    private static final long serialVersionUID = 1L;
-    private final List<Conn> conns;
-    private final Set<String> existingNames;
-
-    private ConnsTableModel() {
-        conns = new ArrayList<>();
-        existingNames = new TreeSet<>();
+    List<Conn> getConns() {
+        return conns;
     }
 
     void setConns(List<Conn> newConns) {
@@ -119,10 +122,6 @@ class ConnsTableModel extends AbstractTableModel implements Closeable {
             }
             fireTableDataChanged();
         }
-    }
-
-    List<Conn> getConns() {
-        return conns;
     }
 
     boolean containsName(String name) {
@@ -230,7 +229,7 @@ class ConnsTableModel extends AbstractTableModel implements Closeable {
         if (event.getType() == TableModelEvent.UPDATE) {
             int ri = event.getFirstRow();
             int ci = event.getColumn();
-            if (ri >= 0 && ri < conns.size() && ci >= 1 && ci < COL_NAMES.length) {
+            if (ri > -1 && ri < conns.size() && ci > 0 && ci < COL_NAMES.length) {
                 Conn updated = conns.get(ri);
                 if (updated.isOpen()) {
                     updated.close();

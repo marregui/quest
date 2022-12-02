@@ -43,15 +43,11 @@ import io.quest.frontend.editor.Editor;
 
 
 public class SQLResultsTable extends JPanel implements Closeable {
-    private static final long serialVersionUID = 1L;
     private static final Dimension STATUS_LABEL_SIZE = new Dimension(600, 35);
     private static final Dimension NAVIGATION_LABEL_SIZE = new Dimension(300, 35);
     private static final Dimension NAVIGATION_BUTTON_SIZE = new Dimension(100, 35);
     private static final int TABLE_ROW_HEIGHT = 30;
     private static final int TABLE_HEADER_HEIGHT = 50;
-
-    private enum Mode {INFINITE, TABLE, MESSAGE}
-
     private final JTable table;
     private final JScrollPane tableScrollPanel;
     private final SQLPagedTableModel tableModel;
@@ -75,7 +71,7 @@ public class SQLResultsTable extends JPanel implements Closeable {
         table.setColumnSelectionAllowed(true);
         table.setCellSelectionEnabled(true);
         table.setRowHeight(TABLE_ROW_HEIGHT);
-        table.setGridColor(GTk.APP_THEME_COLOR.darker().darker().darker());
+        table.setGridColor(GTk.MAIN_FONT_COLOR.darker().darker().darker());
         table.setFont(GTk.TABLE_CELL_FONT);
         table.setDefaultRenderer(String.class, new SQLCellRenderer(results::get));
         table.setSelectionMode(ListSelectionModel.MULTIPLE_INTERVAL_SELECTION);
@@ -190,6 +186,11 @@ public class SQLResultsTable extends JPanel implements Closeable {
         changeMode(Mode.INFINITE);
     }
 
+    public void hideInfiniteSpinner() {
+        infiniteSpinner.close();
+        changeMode(Mode.MESSAGE);
+    }
+
     public void onPrevButton(ActionEvent event) {
         if (prevButton.isEnabled() && tableModel.canDecrPage()) {
             tableModel.decrPage();
@@ -262,4 +263,6 @@ public class SQLResultsTable extends JPanel implements Closeable {
             repaint();
         }
     }
+
+    private enum Mode {INFINITE, TABLE, MESSAGE}
 }

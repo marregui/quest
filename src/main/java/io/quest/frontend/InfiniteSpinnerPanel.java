@@ -53,9 +53,6 @@ public class InfiniteSpinnerPanel extends JPanel implements NoopMouseListener, C
     private final AtomicReference<Thread> animation;
     private final AtomicReference<Spinner> spinner;
 
-    /**
-     * Constructor.
-     */
     public InfiniteSpinnerPanel() {
         spinner = new AtomicReference<>();
         animation = new AtomicReference<>();
@@ -97,8 +94,7 @@ public class InfiniteSpinnerPanel extends JPanel implements NoopMouseListener, C
             spinner.get().rotateByFixedAngle();
             try {
                 TimeUnit.MILLISECONDS.sleep(REFRESH_MILLIS);
-            }
-            catch (InterruptedException e) {
+            } catch (InterruptedException e) {
                 Thread.currentThread().interrupt();
                 break;
             }

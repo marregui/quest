@@ -55,6 +55,12 @@ import javax.swing.*;
 public abstract class Store<T extends StoreEntry> implements Closeable, Iterable<T> {
 
     public static final File ROOT_PATH;
+    private static final Log LOG = LogFactory.getLog(Store.class);
+    private static final Class<?>[] ITEM_CONSTRUCTOR_SIGNATURE = {StoreEntry.class};
+    private static final Gson GSON = new GsonBuilder().setPrettyPrinting().create();
+    private static final Type STORE_TYPE = new TypeToken<ArrayList<StoreEntry>>() {
+        /* type */
+    }.getType();
 
     static {
         synchronized (Meta.class) {
@@ -71,14 +77,6 @@ public abstract class Store<T extends StoreEntry> implements Closeable, Iterable
             }
         }
     }
-
-    private static final Log LOG = LogFactory.getLog(Store.class);
-    private static final Class<?>[] ITEM_CONSTRUCTOR_SIGNATURE = {StoreEntry.class};
-    private static final Gson GSON = new GsonBuilder().setPrettyPrinting().create();
-    private static final Type STORE_TYPE = new TypeToken<ArrayList<StoreEntry>>() {
-        /* type */
-    }.getType();
-
 
     private final File rootPath;
     private final String fileName;
@@ -103,9 +101,22 @@ public abstract class Store<T extends StoreEntry> implements Closeable, Iterable
         this(ROOT_PATH, fileName, clazz);
     }
 
+    private static List<StoreEntry> loadFromFile(File file) {
+        List<StoreEntry> entries = null;
+        try (BufferedReader in = new BufferedReader(new FileReader(file, StandardCharsets.UTF_8))) {
+            entries = GSON.fromJson(in, STORE_TYPE);
+            LOG.info().$("Loaded [path=").$(file.getAbsolutePath()).I$();
+        } catch (Exception e) {
+            LOG.error().$("Could not load store [path=").$(file.getAbsolutePath())
+                    .$(", e=").$(e.getMessage())
+                    .I$();
+        }
+        return entries;
+    }
+
     @Override
     public void close() {
-        GTk.shutdown(asyncPersist);
+        GTk.shutdownExecutor(asyncPersist);
     }
 
     public abstract T[] defaultStoreEntries();
@@ -233,20 +244,6 @@ public abstract class Store<T extends StoreEntry> implements Closeable, Iterable
             }
         }
     }
-
-    private static List<StoreEntry> loadFromFile(File file) {
-        List<StoreEntry> entries = null;
-        try (BufferedReader in = new BufferedReader(new FileReader(file, StandardCharsets.UTF_8))) {
-            entries = GSON.fromJson(in, STORE_TYPE);
-            LOG.info().$("Loaded [path=").$(file.getAbsolutePath()).I$();
-        } catch (Exception e) {
-            LOG.error().$("Could not load store [path=").$(file.getAbsolutePath())
-                    .$(", e=").$(e.getMessage())
-                    .I$();
-        }
-        return entries;
-    }
-
 
     private File getFile() {
         if (!rootPath.exists()) {

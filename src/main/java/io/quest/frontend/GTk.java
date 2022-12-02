@@ -19,7 +19,6 @@ package io.quest.frontend;
 import io.quest.model.Table;
 import io.questdb.log.Log;
 import io.questdb.log.LogFactory;
-import io.questdb.std.Os;
 
 import java.awt.BorderLayout;
 import java.awt.Color;
@@ -45,12 +44,6 @@ import javax.swing.border.Border;
 
 public final class GTk {
 
-    static {
-        // anti-aliased fonts
-        System.setProperty("awt.useSystemAAFontSettings", "on");
-        System.setProperty("swing.aatext", "true");
-    }
-
     // https://patorjk.com/software/taag/#p=display&h=0&f=Ivrit&t=quest
     public static final String BANNER = "\n" +
             ".                              _   \n" +
@@ -61,27 +54,36 @@ public final class GTk {
             "     |_|\n" +
             "  Copyright (c) 2019 - " + Calendar.getInstance().get(Calendar.YEAR) + "\n";
     public static final String MAIN_FONT_NAME = "Arial"; // excluding commands' TextPane, which is Monospaced
-    public static final Color APP_THEME_COLOR = new Color(200, 50, 90);
-    public static final Color TERMINAL_COLOR = new Color(95, 235, 150);
+    public static final Color MAIN_FONT_COLOR = new Color(200, 50, 90);
+    public static final Color TERMINAL_FONT_COLOR = new Color(95, 235, 150);
+    public static final Font MENU_FONT = new Font(MAIN_FONT_NAME, Font.BOLD, 15);
     public static final Font TABLE_HEADER_FONT = new Font(MAIN_FONT_NAME, Font.BOLD, 18);
     private static final Font TABLE_HEADER_UNDERLINE_FONT = TABLE_HEADER_FONT.deriveFont(Map.of(
             TextAttribute.UNDERLINE, TextAttribute.UNDERLINE_ON));
     public static final Font TABLE_CELL_FONT = new Font(MAIN_FONT_NAME, Font.PLAIN, 16);
-    public static final Font MENU_FONT = new Font(MAIN_FONT_NAME, Font.BOLD, 15);
-    public static final int CMD_DOWN_MASK = (Os.type == Os.WINDOWS || Os.isLinux()) ? InputEvent.CTRL_DOWN_MASK : InputEvent.META_DOWN_MASK;
+    public static final int CMD_DOWN_MASK = InputEvent.CTRL_DOWN_MASK;
     public static final int CMD_SHIFT_DOWN_MASK = CMD_DOWN_MASK | InputEvent.SHIFT_DOWN_MASK;
     public static final int ALT_DOWN_MASK = InputEvent.ALT_DOWN_MASK;
     public static final int ALT_SHIFT_DOWN_MASK = ALT_DOWN_MASK | InputEvent.SHIFT_DOWN_MASK;
     public static final int NO_KEY_EVENT = -1;
-
     private static final String DOCUMENTATION_URL = "https://questdb.io/docs/introduction/";
     private static final Log LOG = LogFactory.getLog(GTk.class);
     private static final Toolkit TK = Toolkit.getDefaultToolkit();
     private static final DataFlavor[] SUPPORTED_COPY_PASTE_FLAVOR = {DataFlavor.stringFlavor};
 
+    static {
+        // anti-aliased fonts
+        System.setProperty("awt.useSystemAAFontSettings", "on");
+        System.setProperty("swing.aatext", "true");
+    }
+
+
+    private GTk() {
+        throw new IllegalStateException("not meant to be instantiated");
+    }
 
     public static void addCmdKeyAction(int keyEvent, JComponent component, ActionListener action) {
-        Action cmd = createAction(action);
+        Action cmd = action(action);
         component.getInputMap(JComponent.WHEN_FOCUSED).put(
                 KeyStroke.getKeyStroke(keyEvent, CMD_DOWN_MASK),
                 cmd
@@ -90,7 +92,7 @@ public final class GTk {
     }
 
     public static void addCmdShiftKeyAction(int keyEvent, JComponent component, ActionListener action) {
-        Action cmd = createAction(action);
+        Action cmd = action(action);
         component.getInputMap(JComponent.WHEN_FOCUSED).put(
                 KeyStroke.getKeyStroke(keyEvent, CMD_SHIFT_DOWN_MASK),
                 cmd
@@ -99,7 +101,7 @@ public final class GTk {
     }
 
     public static void addAltKeyAction(int keyEvent, JComponent component, ActionListener action) {
-        Action cmd = createAction(action);
+        Action cmd = action(action);
         component.getInputMap(JComponent.WHEN_FOCUSED).put(
                 KeyStroke.getKeyStroke(keyEvent, ALT_DOWN_MASK),
                 cmd
@@ -108,7 +110,7 @@ public final class GTk {
     }
 
     public static void addAltShiftKeyAction(int keyEvent, JComponent component, ActionListener action) {
-        Action cmd = createAction(action);
+        Action cmd = action(action);
         component.getInputMap(JComponent.WHEN_FOCUSED).put(
                 KeyStroke.getKeyStroke(keyEvent, ALT_SHIFT_DOWN_MASK),
                 cmd
@@ -116,7 +118,7 @@ public final class GTk {
         component.getActionMap().put(cmd, cmd);
     }
 
-    private static Action createAction(ActionListener action) {
+    private static Action action(ActionListener action) {
         return new AbstractAction() {
             @Override
             public void actionPerformed(ActionEvent e) {
@@ -191,6 +193,14 @@ public final class GTk {
         }
     }
 
+    public static String getClipboardContent() {
+        try {
+            return (String) TK.getSystemClipboard().getData(DataFlavor.stringFlavor);
+        } catch (IOException | UnsupportedFlavorException err) {
+            return "";
+        }
+    }
+
     public static void setClipboardContent(final String str) {
         TK.getSystemClipboard().setContents(
                 new Transferable() {
@@ -211,14 +221,6 @@ public final class GTk {
                 },
                 null
         );
-    }
-
-    public static String getClipboardContent() {
-        try {
-            return (String) TK.getSystemClipboard().getData(DataFlavor.stringFlavor);
-        } catch (IOException | UnsupportedFlavorException err) {
-            return "";
-        }
     }
 
     public static Dimension frameDimension() {
@@ -394,7 +396,7 @@ public final class GTk {
             label.setText(text);
         }
         if (consumer != null) {
-            label.addMouseListener(new LabelMouseListener(label) {
+            label.addMouseListener(new UnderlineLabelMouseListener(label) {
                 @Override
                 public void mouseClicked(MouseEvent e) {
                     super.mouseClicked(e);
@@ -453,6 +455,19 @@ public final class GTk {
         }
     }
 
+    public static void shutdownExecutor(ExecutorService executor) {
+        executor.shutdown();
+        try {
+            boolean completed;
+            int attempts = 2;
+            do {
+                completed = executor.awaitTermination(200L, TimeUnit.MILLISECONDS);
+            } while (!completed && attempts-- > 0);
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+        }
+    }
+
     public enum Icon {
         // https://p.yusukekamiyamane.com/
         // 16x16 icons
@@ -487,6 +502,7 @@ public final class GTk {
         MENU("Menu.png"),
         META("Meta.png"),
         META_FILE("MetaFile.png"),
+        META_UNKNOWN("MetaUnknown.png"),
         META_FOLDER("MetaFolder.png"),
         PLOT_CHANGE_RANGES("PlotChangeRanges.png"),
         PLOT_RESTORE_RANGES("PlotRestoreRanges.png"),
@@ -535,23 +551,10 @@ public final class GTk {
         }
     }
 
-    public static void shutdown(ExecutorService executor) {
-        executor.shutdown();
-        try {
-            boolean completed;
-            int attempts = 2;
-            do {
-                completed = executor.awaitTermination(200L, TimeUnit.MILLISECONDS);
-            } while (!completed && attempts-- > 0);
-        } catch (InterruptedException e) {
-            Thread.currentThread().interrupt();
-        }
-    }
-
-    private static class LabelMouseListener implements NoopMouseListener {
+    private static class UnderlineLabelMouseListener implements NoopMouseListener {
         private final JLabel label;
 
-        private LabelMouseListener(JLabel label) {
+        private UnderlineLabelMouseListener(JLabel label) {
             this.label = label;
         }
 
@@ -564,9 +567,5 @@ public final class GTk {
         public void mouseExited(MouseEvent e) {
             label.setFont(TABLE_HEADER_FONT);
         }
-    }
-
-    private GTk() {
-        throw new IllegalStateException("not meant to be instantiated");
     }
 }

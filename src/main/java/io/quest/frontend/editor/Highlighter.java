@@ -32,15 +32,45 @@ import java.util.regex.PatternSyntaxException;
 
 public class Highlighter extends DocumentFilter {
     public static final String EVENT_TYPE = "style change";
-
-    public static Highlighter of(JTextPane textPane) {
-        Highlighter highlighter = new Highlighter(textPane.getStyledDocument()); // produces EVENT_TYPE
-        AbstractDocument doc = (AbstractDocument) textPane.getDocument();
-        doc.putProperty(DefaultEditorKit.EndOfLineStringProperty, "\n");
-        doc.setDocumentFilter(highlighter);
-        return highlighter;
-    }
-
+    protected static final int PATTERN_FLAGS = Pattern.CASE_INSENSITIVE | Pattern.UNICODE_CASE;
+    protected static final AttributeSet HIGHLIGHT_NORMAL = styleForegroundColor(
+            GTk.TERMINAL_FONT_COLOR.getRed(),
+            GTk.TERMINAL_FONT_COLOR.getGreen(),
+            GTk.TERMINAL_FONT_COLOR.getBlue()); // terminal green
+    protected static final AttributeSet HIGHLIGHT_KEYWORD = styleForegroundColor(
+            GTk.MAIN_FONT_COLOR.getRed(),
+            GTk.MAIN_FONT_COLOR.getGreen(),
+            GTk.MAIN_FONT_COLOR.getBlue()); // red
+    private static final String NON_KEYWORDS = "|;|,|\\.|\\(|\\)";
+    private static final Pattern KEYWORDS_PATTERN = Pattern.compile(
+            // src/main/python/keywords.py
+            "\\bindex\\b|\\bday\\b|\\bdouble\\b|\\bas\\b|\\blt\\b|\\block\\b|"
+                    + "\\bexcept\\b|\\bisolation\\b|\\bgrant\\b|\\bdrop\\b|\\bintersect\\b|"
+                    + "\\bcopy\\b|\\bnot\\b|\\bover\\b|\\bwith\\b|\\bdate\\b|\\brepair\\b|"
+                    + "\\bright\\b|\\bnocache\\b|\\bbackup\\b|\\bouter\\b|\\bif\\b|\\bshow\\b|"
+                    + "\\bby\\b|\\bfrom\\b|\\btransaction\\b|\\blevel\\b|\\bselect\\b|\\bbyte\\b|"
+                    + "\\bmonth\\b|\\bjoin\\b|\\basc\\b|\\binto\\b|\\bnan\\b|\\bcolumns\\b|"
+                    + "\\breferences\\b|\\btable\\b|\\bhour\\b|\\bcast\\b|\\bsample\\b|\\bdistinct\\b|"
+                    + "\\btruncate\\b|\\basof\\b|\\bpartition\\b|\\ball\\b|\\bdefault\\b|"
+                    + "\\bon\\b|\\bdelete\\b|\\bforeign\\b|\\belse\\b|\\bin\\b|\\bcreate\\b|"
+                    + "\\bheader\\b|\\balter\\b|\\bto\\b|\\bleft\\b|\\bvalues\\b|\\bquestdb\\b|"
+                    + "\\bcache\\b|\\bbetween\\b|\\bnatural\\b|\\bdesc\\b|\\bonly\\b|\\bbinary\\b|"
+                    + "\\bnone\\b|\\bcross\\b|\\bunion\\b|\\bupdate\\b|\\bcolumn\\b|\\brename\\b|"
+                    + "\\bthen\\b|\\bwhere\\b|\\badd\\b|\\blong\\b|\\bgeohash\\b|\\bboolean\\b|"
+                    + "\\bint\\b|\\btables\\b|\\bwhen\\b|\\bgroup\\b|\\bnull\\b|\\bshort\\b|"
+                    + "\\bkey\\b|\\binner\\b|\\btype\\b|\\bexists\\b|\\bfloat\\b|\\bunlock\\b|"
+                    + "\\bchar\\b|\\bsymbol\\b|\\border\\b|\\bwriter\\b|\\bstring\\b|\\bcase\\b|"
+                    + "\\blatest\\b|\\bsplice\\b|\\bdatabase\\b|\\bor\\b|\\bcapacity\\b|\\band\\b|"
+                    + "\\bend\\b|\\bfill\\b|\\bprimary\\b|\\binsert\\b|\\bsystem\\b|\\blong256\\b|"
+                    + "\\blimit\\b|\\btimestamp\\b" + NON_KEYWORDS,
+            PATTERN_FLAGS);
+    private static final String ERROR_HEADER = "==========  ERROR  ==========\n";
+    private static final Pattern ERROR_HEADER_PATTERN = Pattern.compile(ERROR_HEADER);
+    private static final AttributeSet HIGHLIGHT_FIND_MATCH = styleForegroundColor(
+            Color.YELLOW.getRed(),
+            Color.YELLOW.getGreen(),
+            Color.YELLOW.getBlue());
+    private static final AttributeSet HIGHLIGHT_ERROR = styleForegroundColor(255, 55, 5); // bright red
     protected final StyledDocument styledDocument;
     private final StringBuilder errorBuilder;
     private final int errorHeaderLen;
@@ -54,6 +84,23 @@ public class Highlighter extends DocumentFilter {
         errorHeaderLen = errorBuilder.length();
     }
 
+    public static Highlighter of(JTextPane textPane) {
+        Highlighter highlighter = new Highlighter(textPane.getStyledDocument()); // produces EVENT_TYPE
+        AbstractDocument doc = (AbstractDocument) textPane.getDocument();
+        doc.putProperty(DefaultEditorKit.EndOfLineStringProperty, "\n");
+        doc.setDocumentFilter(highlighter);
+        return highlighter;
+    }
+
+    private static String replaceAllTabs(String text) {
+        return text.replaceAll("\t", "    ");
+    }
+
+    protected static AttributeSet styleForegroundColor(int r, int g, int b) {
+        StyleContext sc = StyleContext.getDefaultStyleContext();
+        return sc.addAttribute(sc.getEmptySet(), StyleConstants.Foreground, new Color(r, g, b));
+    }
+
     @Override
     public void insertString(FilterBypass fb, int offset, String text, AttributeSet attributeSet) {
         try {
@@ -63,6 +110,15 @@ public class Highlighter extends DocumentFilter {
             // do nothing
         }
     }
+
+
+    // | Boundary Construct | Description             |
+    // | ================== | ======================= |
+    // |       ^            | The beginning of a line |
+    // |       $            | The end of a line       |
+    // |       \\b          | A word boundary         |
+    // |       \\B          | A non-word boundary     |
+    // https://docs.oracle.com/javase/tutorial/essential/regex/bounds.html
 
     @Override
     public void remove(FilterBypass fb, int offset, int length) {
@@ -165,10 +221,6 @@ public class Highlighter extends DocumentFilter {
         return 0;
     }
 
-    private static String replaceAllTabs(String text) {
-        return text.replaceAll("\t", "    ");
-    }
-
     private int replaceAllWith(Matcher matcher, String replaceWith) {
         int matchCount = 0;
         while (matcher.find()) {
@@ -177,59 +229,5 @@ public class Highlighter extends DocumentFilter {
         matcher.reset();
         matcher.replaceAll(replaceWith);
         return matchCount;
-    }
-
-
-    // | Boundary Construct | Description             |
-    // | ================== | ======================= |
-    // |       ^            | The beginning of a line |
-    // |       $            | The end of a line       |
-    // |       \\b          | A word boundary         |
-    // |       \\B          | A non-word boundary     |
-    // https://docs.oracle.com/javase/tutorial/essential/regex/bounds.html
-
-    protected static final int PATTERN_FLAGS = Pattern.CASE_INSENSITIVE | Pattern.UNICODE_CASE;
-    private static final String NON_KEYWORDS = "|;|,|\\.|\\(|\\)";
-    private static final Pattern KEYWORDS_PATTERN = Pattern.compile(
-            // src/main/python/keywords.py
-            "\\bindex\\b|\\bday\\b|\\bdouble\\b|\\bas\\b|\\blt\\b|\\block\\b|"
-                    + "\\bexcept\\b|\\bisolation\\b|\\bgrant\\b|\\bdrop\\b|\\bintersect\\b|"
-                    + "\\bcopy\\b|\\bnot\\b|\\bover\\b|\\bwith\\b|\\bdate\\b|\\brepair\\b|"
-                    + "\\bright\\b|\\bnocache\\b|\\bbackup\\b|\\bouter\\b|\\bif\\b|\\bshow\\b|"
-                    + "\\bby\\b|\\bfrom\\b|\\btransaction\\b|\\blevel\\b|\\bselect\\b|\\bbyte\\b|"
-                    + "\\bmonth\\b|\\bjoin\\b|\\basc\\b|\\binto\\b|\\bnan\\b|\\bcolumns\\b|"
-                    + "\\breferences\\b|\\btable\\b|\\bhour\\b|\\bcast\\b|\\bsample\\b|\\bdistinct\\b|"
-                    + "\\btruncate\\b|\\basof\\b|\\bpartition\\b|\\ball\\b|\\bdefault\\b|"
-                    + "\\bon\\b|\\bdelete\\b|\\bforeign\\b|\\belse\\b|\\bin\\b|\\bcreate\\b|"
-                    + "\\bheader\\b|\\balter\\b|\\bto\\b|\\bleft\\b|\\bvalues\\b|\\bquestdb\\b|"
-                    + "\\bcache\\b|\\bbetween\\b|\\bnatural\\b|\\bdesc\\b|\\bonly\\b|\\bbinary\\b|"
-                    + "\\bnone\\b|\\bcross\\b|\\bunion\\b|\\bupdate\\b|\\bcolumn\\b|\\brename\\b|"
-                    + "\\bthen\\b|\\bwhere\\b|\\badd\\b|\\blong\\b|\\bgeohash\\b|\\bboolean\\b|"
-                    + "\\bint\\b|\\btables\\b|\\bwhen\\b|\\bgroup\\b|\\bnull\\b|\\bshort\\b|"
-                    + "\\bkey\\b|\\binner\\b|\\btype\\b|\\bexists\\b|\\bfloat\\b|\\bunlock\\b|"
-                    + "\\bchar\\b|\\bsymbol\\b|\\border\\b|\\bwriter\\b|\\bstring\\b|\\bcase\\b|"
-                    + "\\blatest\\b|\\bsplice\\b|\\bdatabase\\b|\\bor\\b|\\bcapacity\\b|\\band\\b|"
-                    + "\\bend\\b|\\bfill\\b|\\bprimary\\b|\\binsert\\b|\\bsystem\\b|\\blong256\\b|"
-                    + "\\blimit\\b|\\btimestamp\\b" + NON_KEYWORDS,
-            PATTERN_FLAGS);
-    private static final String ERROR_HEADER = "==========  ERROR  ==========\n";
-    private static final Pattern ERROR_HEADER_PATTERN = Pattern.compile(ERROR_HEADER);
-    protected static final AttributeSet HIGHLIGHT_NORMAL = styleForegroundColor(
-            GTk.TERMINAL_COLOR.getRed(),
-            GTk.TERMINAL_COLOR.getGreen(),
-            GTk.TERMINAL_COLOR.getBlue()); // terminal green
-    protected static final AttributeSet HIGHLIGHT_KEYWORD = styleForegroundColor(
-            GTk.APP_THEME_COLOR.getRed(),
-            GTk.APP_THEME_COLOR.getGreen(),
-            GTk.APP_THEME_COLOR.getBlue()); // red
-    private static final AttributeSet HIGHLIGHT_FIND_MATCH = styleForegroundColor(
-            Color.YELLOW.getRed(),
-            Color.YELLOW.getGreen(),
-            Color.YELLOW.getBlue());
-    private static final AttributeSet HIGHLIGHT_ERROR = styleForegroundColor(255, 55, 5); // bright red
-
-    protected static AttributeSet styleForegroundColor(int r, int g, int b) {
-        StyleContext sc = StyleContext.getDefaultStyleContext();
-        return sc.addAttribute(sc.getEmptySet(), StyleConstants.Foreground, new Color(r, g, b));
     }
 }

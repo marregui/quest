@@ -49,14 +49,6 @@ import static io.quest.frontend.GTk.Icon;
  */
 public class ConnsManager extends JDialog implements EventProducer<ConnsManager.EventType>, Closeable {
 
-    public enum EventType {
-        CONNECTION_SELECTED,     // A connection has been selected
-        CONNECTION_ESTABLISHED,  // A connection has been established.
-        CONNECTION_CLOSED,       // A connection has been closed.
-        CONNECTIONS_LOST,        // A set of connections, possibly only one, has been lost.
-        HIDE_REQUEST             // Request to hide the connection's manager.
-    }
-
     public static final String STORE_FILE_NAME = "connections.json";
     private static final Log LOG = LogFactory.getLog(ConnsManager.class);
     private final EventConsumer<ConnsManager, Object> eventConsumer;
@@ -70,7 +62,6 @@ public class ConnsManager extends JDialog implements EventProducer<ConnsManager.
     private final JTable table;
     private final ConnsTableModel tableModel;
     private final ConnsChecker connsValidityChecker;
-
     public ConnsManager(Frame owner, EventConsumer<ConnsManager, Object> eventConsumer) {
         super(owner, "Connections", false); // does not block use of the main app
         this.eventConsumer = eventConsumer;
@@ -368,13 +359,19 @@ public class ConnsManager extends JDialog implements EventProducer<ConnsManager.
             testButton.setEnabled(isSetButNotOpen);
             removeButton.setEnabled(isSetButNotOpen);
             connectButton.setText(conn != null && conn.isOpen() ? "Disconnect" : "Connect");
-            connectButton.setIcon((conn != null && conn.isOpen() ?
-                    Icon.CONN_DISCONNECT : Icon.CONN_CONNECT)
-                    .icon());
+            connectButton.setIcon((conn != null && conn.isOpen() ? Icon.CONN_DISCONNECT : Icon.CONN_CONNECT).icon());
             reloadButton.setEnabled(tableModel.getConns().stream().noneMatch(Conn::isOpen));
         }
         table.repaint();
         validate();
         repaint();
+    }
+
+    public enum EventType {
+        CONNECTION_SELECTED,     // A connection has been selected
+        CONNECTION_ESTABLISHED,  // A connection has been established.
+        CONNECTION_CLOSED,       // A connection has been closed.
+        CONNECTIONS_LOST,        // A set of connections, possibly only one, has been lost.
+        HIDE_REQUEST             // Request to hide the connection's manager.
     }
 }

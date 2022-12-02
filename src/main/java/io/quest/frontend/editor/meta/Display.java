@@ -58,6 +58,10 @@ class Display extends Editor {
         sink.put(System.lineSeparator());
     }
 
+    public void addLn(String name) {
+        sink.put(name).put(System.lineSeparator());
+    }
+
     public void addLn(String name, int value) {
         sink.put(name).put(value).put(System.lineSeparator());
     }
