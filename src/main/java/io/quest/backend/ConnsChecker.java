@@ -30,8 +30,8 @@ import java.util.function.Consumer;
 import java.util.function.Supplier;
 
 import io.quest.model.Conn;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import io.questdb.log.Log;
+import io.questdb.log.LogFactory;
 
 
 /**
@@ -51,7 +51,7 @@ import org.slf4j.LoggerFactory;
 public class ConnsChecker implements Closeable {
     private static final int PERIOD_SECS = 30; // validity period
     private static final int NUM_THREADS = 2;
-    private static final Logger LOGGER = LoggerFactory.getLogger(ConnsChecker.class);
+    private static final Log LOG = LogFactory.getLog(ConnsChecker.class);
 
     private final Supplier<List<Conn>> connsSupplier;
     private final Consumer<Set<Conn>> lostConnsConsumer;
@@ -83,7 +83,7 @@ public class ConnsChecker implements Closeable {
         if (scheduler == null) {
             scheduler = Executors.newScheduledThreadPool(NUM_THREADS);
             scheduler.scheduleAtFixedRate(this::dbConnsValidityCheck, PERIOD_SECS, PERIOD_SECS, TimeUnit.SECONDS);
-            LOGGER.info("Check every {} secs", PERIOD_SECS);
+            LOG.info().$("Check every [period=").$(PERIOD_SECS).$(", unit=sec").I$();
         }
     }
 
@@ -110,7 +110,7 @@ public class ConnsChecker implements Closeable {
                                     invalidSet.add(conn);
                                 }
                             } catch (Exception unexpected) {
-                                LOGGER.error("Unexpected turn of events", unexpected);
+                                LOG.error().$("Unexpected error [e=").$(unexpected.getMessage()).I$();
                             } finally {
                                 it.remove();
                             }
@@ -141,7 +141,7 @@ public class ConnsChecker implements Closeable {
             } finally {
                 scheduler = null;
                 isChecking.set(false);
-                LOGGER.info("Connectivity check stopped");
+                LOG.info().$("Connectivity check stopped").$();
             }
         }
     }

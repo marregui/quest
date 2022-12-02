@@ -17,9 +17,9 @@
 package io.quest.frontend;
 
 import io.quest.model.Table;
+import io.questdb.log.Log;
+import io.questdb.log.LogFactory;
 import io.questdb.std.Os;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.awt.BorderLayout;
 import java.awt.Color;
@@ -58,7 +58,7 @@ public final class GTk {
             "  \\__, |  \\__,_|  \\___| |___/  \\__|\n" +
             "     |_|\n" +
             "  Copyright (c) 2019 - " + Calendar.getInstance().get(Calendar.YEAR) + "\n";
-    public static final String MAIN_FONT_NAME = "Arial"; // excluding commands' TextPane, which is Monospaced
+    public static final String MAIN_FONT_NAME = "Monospaced"; // excluding commands' TextPane, which is Monospaced
     public static final Color APP_THEME_COLOR = new Color(200, 50, 90);
     public static final Color TERMINAL_COLOR = new Color(95, 235, 150);
     public static final Font TABLE_HEADER_FONT = new Font(MAIN_FONT_NAME, Font.BOLD, 18);
@@ -73,7 +73,7 @@ public final class GTk {
     public static final int NO_KEY_EVENT = -1;
 
     private static final String DOCUMENTATION_URL = "https://questdb.io/docs/introduction/";
-    private static final Logger LOGGER = LoggerFactory.getLogger(GTk.class);
+    private static final Log LOG = LogFactory.getLog(GTk.class);
     private static final Toolkit TK = Toolkit.getDefaultToolkit();
     private static final DataFlavor[] SUPPORTED_COPY_PASTE_FLAVOR = {DataFlavor.stringFlavor};
 
@@ -518,13 +518,16 @@ public final class GTk {
                 throw new UnsupportedOperationException();
             }
             ImageIcon icon = ICON_MAP.get(iconName);
+            String resource = "/" + FOLDER + "/" + iconName;
             try {
                 if (icon == null) {
-                    URL url = GTk.class.getResource("/" + FOLDER + "/" + iconName);
+                    URL url = GTk.class.getResource(resource);
                     ICON_MAP.put(iconName, icon = new ImageIcon(TK.getImage(url)));
                 }
             } catch (Throwable err) {
-                LOGGER.error("Icon not available: [/{}/{}] -> {}", FOLDER, iconName, err.getMessage());
+                LOG.error().$("Icon not available [resource=").$(resource)
+                        .$(", e=").$(err.getMessage())
+                        .I$();
             }
             return icon;
         }

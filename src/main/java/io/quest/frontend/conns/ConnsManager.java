@@ -33,10 +33,10 @@ import io.quest.model.EventProducer;
 import io.quest.model.Conn;
 import io.quest.backend.ConnsChecker;
 import io.quest.model.Store;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import io.quest.frontend.editor.QuestPanel;
+import io.questdb.log.Log;
+import io.questdb.log.LogFactory;
 
 import static io.quest.frontend.GTk.*;
 import static io.quest.frontend.GTk.Icon;
@@ -58,7 +58,7 @@ public class ConnsManager extends JDialog implements EventProducer<ConnsManager.
     }
 
     public static final String STORE_FILE_NAME = "connections.json";
-    private static final Logger LOGGER = LoggerFactory.getLogger(ConnsManager.class);
+    private static final Log LOG = LogFactory.getLog(ConnsManager.class);
     private final EventConsumer<ConnsManager, Object> eventConsumer;
     private final Store<Conn> store;
     private final JButton assignButton;
@@ -184,7 +184,7 @@ public class ConnsManager extends JDialog implements EventProducer<ConnsManager.
                 conn.open();
                 eventConsumer.onSourceEvent(this, EventType.CONNECTION_ESTABLISHED, conn);
             } catch (Exception e) {
-                LOGGER.error("Connect: {}", e.getMessage());
+                LOG.error().$("Connect [e=").$(e.getMessage()).I$();
                 JOptionPane.showMessageDialog(
                         this,
                         e.getMessage(),
@@ -195,7 +195,7 @@ public class ConnsManager extends JDialog implements EventProducer<ConnsManager.
             try {
                 conn.close();
             } catch (RuntimeException e) {
-                LOGGER.error("Disconnect", e);
+                LOG.error().$("Disconnect [e=").$(e.getMessage()).I$();
             } finally {
                 eventConsumer.onSourceEvent(this, EventType.CONNECTION_CLOSED, conn);
             }
@@ -212,7 +212,7 @@ public class ConnsManager extends JDialog implements EventProducer<ConnsManager.
                     conn.getUsername());
             sb.append(msg).append("\n");
         }
-        LOGGER.error(sb.toString());
+        LOG.error().$("lost connection [conn=").$(sb.toString()).I$();
         invokeLater(() -> {
             toggleComponents();
             eventConsumer.onSourceEvent(this, EventType.CONNECTIONS_LOST, lostConns);

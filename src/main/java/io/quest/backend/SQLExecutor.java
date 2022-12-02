@@ -32,8 +32,8 @@ import io.quest.model.EventConsumer;
 import io.quest.model.EventProducer;
 import io.quest.model.Conn;
 import io.quest.model.Table;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import io.questdb.log.Log;
+import io.questdb.log.LogFactory;
 
 public class SQLExecutor implements EventProducer<SQLExecutor.EventType>, Closeable {
 
@@ -48,7 +48,7 @@ public class SQLExecutor implements EventProducer<SQLExecutor.EventType>, Closea
     public static final int MAX_BATCH_SIZE = 20_000;
     private static final int START_BATCH_SIZE = 100;
     public static final int QUERY_EXECUTION_TIMEOUT_SECS = 30;
-    private static final Logger LOGGER = LoggerFactory.getLogger(SQLExecutor.class);
+    private static final Log LOG = LogFactory.getLog(SQLExecutor.class);
     private static final ThreadFactory THREAD_FACTORY = Executors.defaultThreadFactory();
     private static final int NUMBER_OF_THREADS = 1;
 
@@ -66,7 +66,7 @@ public class SQLExecutor implements EventProducer<SQLExecutor.EventType>, Closea
                 thread.setName(name);
                 return thread;
             });
-            LOGGER.info("{} is running", name);
+            LOG.info().$(name).$("is running").$();
         }
     }
 
@@ -86,7 +86,7 @@ public class SQLExecutor implements EventProducer<SQLExecutor.EventType>, Closea
             } finally {
                 executor = null;
                 runningQueries.clear();
-                LOGGER.info("has finished");
+                LOG.info().$("has finished").$();
             }
         }
     }
@@ -101,7 +101,9 @@ public class SQLExecutor implements EventProducer<SQLExecutor.EventType>, Closea
         cancelExistingRequest(req);
         String sourceId = req.getSourceId();
         runningQueries.put(sourceId, executor.submit(() -> executeRequest(req, eventConsumer)));
-        LOGGER.info("Execution submitted [{}] from [{}]", req.getUniqueId(), sourceId);
+        LOG.info().$("Execution submitted [reqId=").$(req.getUniqueId())
+                .$(", srcId=").$(sourceId)
+                .I$();
     }
 
     public synchronized void cancelExistingRequest(SQLExecutionRequest req) {
@@ -112,7 +114,9 @@ public class SQLExecutor implements EventProducer<SQLExecutor.EventType>, Closea
         final Future<?> exec = runningQueries.remove(sourceId);
         if (exec != null && !exec.isDone() && !exec.isCancelled()) {
             exec.cancel(true);
-            LOGGER.info("Cancelling [{}] from [{}]", req.getUniqueId(), sourceId);
+            LOG.info().$("Cancelling [reqId=").$(req.getUniqueId())
+                    .$(", srcId=").$(sourceId)
+                    .I$();
         }
     }
 
@@ -125,7 +129,10 @@ public class SQLExecutor implements EventProducer<SQLExecutor.EventType>, Closea
 
         if (!conn.isValid()) {
             runningQueries.remove(sourceId);
-            LOGGER.error("Failed [{}] from [{}], lost connection: {}", req.getUniqueId(), sourceId, conn);
+            LOG.info().$("Failed [reqId=").$(req.getUniqueId())
+                    .$(", srcId=").$(sourceId)
+                    .$(", conn=").$(conn)
+                    .I$();
             eventListener.onSourceEvent(
                     SQLExecutor.this,
                     EventType.FAILURE,
@@ -138,7 +145,11 @@ public class SQLExecutor implements EventProducer<SQLExecutor.EventType>, Closea
             return;
         }
 
-        LOGGER.info("Executing [{}] from [{}] over [{}]: {}", req.getUniqueId(), sourceId, conn.getUniqueId(), query);
+        LOG.info().$("Executing [reqId=").$(req.getUniqueId())
+                .$(", srcId=").$(sourceId)
+                .$(", connId=").$(conn.getUniqueId())
+                .$(", query=").$(query)
+                .I$();
         eventListener.onSourceEvent(
                 SQLExecutor.this,
                 EventType.STARTED,
@@ -173,7 +184,10 @@ public class SQLExecutor implements EventProducer<SQLExecutor.EventType>, Closea
             }
         } catch (SQLException fail) {
             runningQueries.remove(sourceId);
-            LOGGER.error("Failed [{}] from [{}]: {}", req.getUniqueId(), sourceId, fail.getMessage());
+            LOG.error().$("Failed [reqId=").$(req.getUniqueId())
+                    .$(", srcId=").$(sourceId)
+                    .$(", e=").$(fail.getMessage())
+                    .I$();
             eventListener.onSourceEvent(
                     SQLExecutor.this,
                     EventType.FAILURE,
@@ -185,8 +199,13 @@ public class SQLExecutor implements EventProducer<SQLExecutor.EventType>, Closea
         final long endNanos = System.nanoTime();
         final long totalMs = millis(endNanos - startNanos);
         final long fetchMs = millis(endNanos - fetchStartNanos);
-        LOGGER.info("{} [{}] {} rows, {} ms (exec:{}, fetch:{})",
-                eventType.name(), req.getUniqueId(), table.size(), totalMs, execMillis, fetchMs);
+        LOG.info().$("Event [name=").$(eventType.name())
+                .$(", reqId=").$(req.getUniqueId())
+                .$(", tableSize=").$(table.size())
+                .$(", totalMs=").$(totalMs)
+                .$(", execMs=").$(execMillis)
+                .$(", fetchMs=").$(fetchMs)
+                .I$();
         eventListener.onSourceEvent(
                 SQLExecutor.this,
                 eventType,

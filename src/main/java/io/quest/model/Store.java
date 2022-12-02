@@ -36,12 +36,12 @@ import java.util.concurrent.TimeUnit;
 import java.util.function.Supplier;
 
 import io.quest.frontend.editor.meta.Meta;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.reflect.TypeToken;
+import io.questdb.log.Log;
+import io.questdb.log.LogFactory;
 
 import javax.swing.*;
 
@@ -72,7 +72,7 @@ public abstract class Store<T extends StoreEntry> implements Closeable, Iterable
         }
     }
 
-    private static final Logger LOGGER = LoggerFactory.getLogger(Store.class);
+    private static final Log LOG = LogFactory.getLog(Store.class);
     private static final Class<?>[] ITEM_CONSTRUCTOR_SIGNATURE = {StoreEntry.class};
     private static final Gson GSON = new GsonBuilder().setPrettyPrinting().create();
     private static final Type STORE_TYPE = new TypeToken<ArrayList<StoreEntry>>() {
@@ -190,9 +190,11 @@ public abstract class Store<T extends StoreEntry> implements Closeable, Iterable
     public void saveToFile(File file) {
         try (FileWriter out = new FileWriter(file, StandardCharsets.UTF_8, false)) {
             GSON.toJson(entries, STORE_TYPE, out);
-            LOGGER.info("Saved [{}]", file.getAbsolutePath());
+            LOG.info().$("Saved [path=").$(file.getAbsolutePath()).I$();
         } catch (IOException e) {
-            LOGGER.error("Could not store into file [{}]: {}", file.getAbsolutePath(), e.getMessage());
+            LOG.error().$("Could not store into file [path=").$(file.getAbsolutePath())
+                    .$(", e=").$(e.getMessage())
+                    .I$();
         }
     }
 
@@ -204,7 +206,7 @@ public abstract class Store<T extends StoreEntry> implements Closeable, Iterable
                     entries.add(entry);
                 }
             }
-            saveToFile(() -> LOGGER.info("Created default store [{}]", file.getAbsolutePath()));
+            saveToFile(() -> LOG.info().$("Created default store [path=").$(file.getAbsolutePath()).I$());
             return;
         }
 
@@ -245,9 +247,11 @@ public abstract class Store<T extends StoreEntry> implements Closeable, Iterable
         List<StoreEntry> entries = null;
         try (BufferedReader in = new BufferedReader(new FileReader(file, StandardCharsets.UTF_8))) {
             entries = GSON.fromJson(in, STORE_TYPE);
-            LOGGER.info("Loaded [{}]", file.getAbsolutePath());
+            LOG.info().$("Loaded [path=").$(file.getAbsolutePath()).I$();
         } catch (Exception e) {
-            LOGGER.error("Could not load store [{}]: {}", file.getAbsolutePath(), e.getMessage());
+            LOG.error().$("Could not load store [path=").$(file.getAbsolutePath())
+                    .$(", e=").$(e.getMessage())
+                    .I$();
         }
         return entries;
     }
@@ -256,7 +260,9 @@ public abstract class Store<T extends StoreEntry> implements Closeable, Iterable
     private File getFile() {
         if (!rootPath.exists()) {
             boolean created = rootPath.mkdirs();
-            LOGGER.info("Creating Store [{}]: {}", rootPath.getAbsolutePath(), created ? "Ok" : "Fail");
+            LOG.info().$("Creating Store [path=").$(rootPath.getAbsolutePath())
+                    .$(", status=").$(created ? "Ok" : "Fail")
+                    .I$();
         }
         return new File(rootPath, fileName);
     }

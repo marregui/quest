@@ -31,9 +31,9 @@ import io.quest.frontend.editor.meta.Meta;
 import io.quest.model.*;
 import io.quest.frontend.GTk;
 import io.questdb.ServerMain;
+import io.questdb.log.Log;
+import io.questdb.log.LogFactory;
 import io.questdb.std.Misc;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import io.quest.frontend.editor.QuestPanel;
 import io.quest.frontend.conns.ConnsManager;
@@ -44,7 +44,7 @@ import static io.quest.frontend.GTk.configureMenuItem;
 
 
 public final class Quest {
-    private static final Logger LOGGER = LoggerFactory.getLogger(Quest.class);
+    private static final Log LOG = LogFactory.getLog(Quest.class);
     public static final String NAME = "quest";
     public static final String VERSION = "1.0";
 
@@ -81,7 +81,7 @@ public final class Quest {
         toggleMetaExaminerWidget = new JMenuItem();
         frame.setJMenuBar(createMenuBar());
         Runtime.getRuntime().addShutdownHook(new Thread(this::close, "shutdown-hook"));
-        LOGGER.info(GTk.BANNER + "  Version " + VERSION + "\n");
+        LOG.info().$(GTk.BANNER).$("  Version ").$(VERSION).$("\n").$();
         executor.start();
         conns.start();
         frame.setVisible(true);
@@ -343,7 +343,7 @@ public final class Quest {
         try {
             UIManager.setLookAndFeel(lookAndFeel);
         } catch (Exception e) {
-            LOGGER.warn("CrossPlatformLookAndFeel [{}] unavailable", lookAndFeel);
+            LOG.infoW().$("CrossPlatformLookAndFeel unavailable [name=").$(lookAndFeel).I$();
         }
         GTk.invokeLater(Quest::new);
     }

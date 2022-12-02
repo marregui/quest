@@ -16,15 +16,14 @@
 
 package io.quest.model;
 
+import io.questdb.log.Log;
+import io.questdb.log.LogFactory;
+
 import java.io.Closeable;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.SQLException;
 import java.util.concurrent.atomic.AtomicBoolean;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 
 /**
  * Database connection, extends {@link ConnAttrs} which provides persistence
@@ -40,14 +39,14 @@ public class Conn extends ConnAttrs implements Closeable {
     private static final int IS_VALID_TIMEOUT_SECS = 10;
 
     // non persistent attributes, transient:
-    private final transient Logger logger;
+    private final transient Log log;
     private final transient AtomicBoolean isOpen;
     private transient Connection conn;
 
     public Conn(String name) {
         super(name);
         isOpen = new AtomicBoolean();
-        logger = LoggerFactory.getLogger(String.format("%s [%s]", getClass().getSimpleName(), this.getUniqueId()));
+        log = LogFactory.getLog(String.format("%s [%s]", getClass().getSimpleName(), getUniqueId()));
     }
 
     /**
@@ -78,13 +77,13 @@ public class Conn extends ConnAttrs implements Closeable {
     public Conn(StoreEntry other) {
         super(other);
         isOpen = new AtomicBoolean();
-        logger = LoggerFactory.getLogger(String.format("%s [%s]", getClass().getSimpleName(), this.getUniqueId()));
+        log = LogFactory.getLog(String.format("%s [%s]", getClass().getSimpleName(), this.getUniqueId()));
     }
 
     public Conn(String name, String host, String port, String database, String username, String password) {
         super(name, host, port, username, database, password);
         isOpen = new AtomicBoolean();
-        logger = LoggerFactory.getLogger(String.format("%s [%s]", getClass().getSimpleName(), this.getUniqueId()));
+        log = LogFactory.getLog(String.format("%s [%s]", getClass().getSimpleName(), this.getUniqueId()));
     }
 
     /**
@@ -139,11 +138,11 @@ public class Conn extends ConnAttrs implements Closeable {
         if (isOpen.get()) {
             return conn;
         }
-        logger.info("Connecting");
+        log.info().$("Connecting").$();
         conn = DriverManager.getConnection(getUri(), loginProperties());
         conn.setAutoCommit(true);
         isOpen.set(true);
-        logger.info("Connected");
+        log.info().$("Connected").$();
         return conn;
     }
 
@@ -154,9 +153,9 @@ public class Conn extends ConnAttrs implements Closeable {
     public synchronized void close() {
         try {
             if (conn != null && !conn.isClosed()) {
-                logger.info("Closing");
+                log.info().$("Closing").$();
                 conn.close();
-                logger.info("Closed");
+                log.info().$("Closed").$();
             }
         } catch (Throwable throwable) {
             throw new RuntimeException(throwable);
