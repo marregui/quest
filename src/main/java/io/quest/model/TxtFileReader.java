@@ -16,9 +16,6 @@
 
 package io.quest.model;
 
-import io.questdb.log.Log;
-import io.questdb.log.LogFactory;
-
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
@@ -32,13 +29,10 @@ import java.util.List;
 import static java.nio.channels.FileChannel.MapMode;
 
 public class TxtFileReader {
-
-    private static final Log LOGGER = LogFactory.getLog(TxtFileReader.class);
-
     private byte[] lineBuffer = new byte[512]; // tune to average log size
 
 
-    public List<String> fetchAvailableLines(File file) throws IOException {
+    public List<String> readLines(File file) throws IOException {
         try (
                 RandomAccessFile raf = new RandomAccessFile(file, "r");
                 FileChannel channel = raf.getChannel()
@@ -64,7 +58,6 @@ public class TxtFileReader {
                     lineStartOffset = i + 1;
                 }
             }
-            LOGGER.debug().$("Loaded count: ").$(lines.size()).$();
             return lines;
         } catch (FileNotFoundException e) {
             throw new IllegalStateException("cannot access file: " + file, e);

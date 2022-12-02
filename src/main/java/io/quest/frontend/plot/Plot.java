@@ -76,6 +76,41 @@ public class Plot extends JPanel implements MouseListener, MouseMotionListener {
         addMouseMotionListener(this);
     }
 
+    private static double getAxisExtraVisibilityDelta(double min, double max, double factor) {
+        return Math.abs(max - min) * factor;
+    }
+
+    public static void main(String[] args) throws Exception {
+        Plot plot = new Plot("Time");
+        plot.setXAxisUnits("micro");
+        plot.setBackground(Color.WHITE);
+        plot.setOpaque(true);
+
+        Points xValues = new Points();
+        Points yValues = new Points();
+
+        double angle = Math.PI;
+        double step = Math.PI / 120;
+        for (int i = 0; i < 4000; i++) {
+            xValues.addPoint(angle);
+            yValues.addPoint(Math.sin(angle));
+            angle += step;
+        }
+        xValues.done();
+        yValues.done();
+
+
+        DataSet dataSet = new DataSet("example", xValues, yValues);
+        plot.setDataSet(dataSet);
+
+        JFrame frame = GTk.frame("Plot");
+        Dimension size = GTk.frameDimension(7.0F, 7.0F);
+        frame.add(new RangedPlot(plot), BorderLayout.CENTER);
+        Dimension location = GTk.frameLocation(size);
+        frame.setLocation(location.width, location.height);
+        frame.setVisible(true);
+    }
+
     public void setHorizontalRageSlider(RangeSlider horizontalRangeSlider) {
         this.horizontalRangeSlider = horizontalRangeSlider;
     }
@@ -276,10 +311,6 @@ public class Plot extends JPanel implements MouseListener, MouseMotionListener {
 
         // Plot ranges
         resetPlotRanges();
-    }
-
-    private static double getAxisExtraVisibilityDelta(double min, double max, double factor) {
-        return Math.abs(max - min) * factor;
     }
 
     private double getXAxisExtraVisibilityDelta() {
@@ -764,36 +795,5 @@ public class Plot extends JPanel implements MouseListener, MouseMotionListener {
     @Override
     public void mouseExited(MouseEvent e) {
         // Nothing needed to be done
-    }
-
-    public static void main(String[] args) throws Exception {
-        Plot plot = new Plot("Time");
-        plot.setXAxisUnits("micro");
-        plot.setBackground(Color.WHITE);
-        plot.setOpaque(true);
-
-        Points xValues = new Points();
-        Points yValues = new Points();
-
-        double angle = Math.PI;
-        double step = Math.PI / 120;
-        for (int i = 0; i < 4000; i++) {
-            xValues.addPoint(angle);
-            yValues.addPoint(Math.sin(angle));
-            angle += step;
-        }
-        xValues.done();
-        yValues.done();
-
-
-        DataSet dataSet = new DataSet("example", xValues, yValues);
-        plot.setDataSet(dataSet);
-
-        JFrame frame = GTk.frame("Plot", null);
-        Dimension size = GTk.frameDimension(7.0F, 7.0F);
-        frame.add(new RangedPlot(plot), BorderLayout.CENTER);
-        Dimension location = GTk.frameLocation(size);
-        frame.setLocation(location.width, location.height);
-        frame.setVisible(true);
     }
 }

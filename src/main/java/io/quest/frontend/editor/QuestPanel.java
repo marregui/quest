@@ -51,6 +51,7 @@ public class QuestPanel extends Editor implements EventProducer<QuestPanel.Event
     private Conn conn; // uses it when set
     private SQLExecutionRequest lastRequest;
     private Content content;
+
     public QuestPanel(EventConsumer<QuestPanel, SQLExecutionRequest> eventConsumer) {
         super();
         this.eventConsumer = eventConsumer;
@@ -165,7 +166,9 @@ public class QuestPanel extends Editor implements EventProducer<QuestPanel.Event
         store = new Store<>(fileName, Content.class) {
             @Override
             public Content[] defaultStoreEntries() {
-                return new Content[]{new Content()};
+                Content keyboardShortcuts = new Content("keyboard shortcuts");
+                keyboardShortcuts.setContent(GTk.KEYBOARD_SHORTCUTS);
+                return new Content[]{new Content(), keyboardShortcuts,};
             }
         };
         store.loadFromFile();

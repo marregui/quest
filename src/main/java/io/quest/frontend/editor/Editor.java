@@ -30,13 +30,8 @@ import io.quest.frontend.GTk;
 
 
 public class Editor extends JPanel {
-    private static final String MARGIN_TOKEN = ":99999:";
-    private static final int FONT_SIZE = 17;
-    private static final String FONT_NAME = "Monospaced";
-    private static final Font FONT = new Font(FONT_NAME, Font.BOLD, FONT_SIZE);
-    private static final Font LINENO_FONT = new Font(FONT_NAME, Font.ITALIC, FONT_SIZE);
     static final Color LINENO_COLOR = Color.LIGHT_GRAY.darker().darker();
-
+    private static final String MARGIN_TOKEN = ":99999:";
     protected final JTextPane textPane;
     private final Highlighter highlighter;
     private final AtomicReference<UndoManager> undoManager; // set by CommandBoard
@@ -58,7 +53,7 @@ public class Editor extends JPanel {
                 return getUI().getPreferredSize(this).width <= getParent().getSize().width;
             }
         };
-        final FontMetrics metrics = textPane.getFontMetrics(FONT);
+        final FontMetrics metrics = textPane.getFontMetrics(GTk.EDITOR_DEFAULT_FONT);
         final int topMargin = metrics.getHeight() / 2;
         final int bottomMargin = metrics.getHeight() / 2;
         final int leftMargin = metrics.stringWidth(MARGIN_TOKEN);
@@ -66,7 +61,7 @@ public class Editor extends JPanel {
         final Insets margin = new Insets(topMargin, leftMargin, bottomMargin, rightMargin);
         final JScrollPane scrollPane = new JScrollPane(textPane);
         textPane.setMargin(margin);
-        textPane.setFont(FONT);
+        textPane.setFont(GTk.EDITOR_DEFAULT_FONT);
         textPane.setBackground(Color.BLACK);
         textPane.setCaretColor(Color.CYAN);
         textPane.setEditorKit(new StyledEditorKit() {
@@ -92,40 +87,6 @@ public class Editor extends JPanel {
         scrollPane.getHorizontalScrollBar().setBlockIncrement(15);
         setLayout(new BorderLayout());
         add(scrollPane, BorderLayout.CENTER);
-    }
-
-    private static class ParagraphView extends javax.swing.text.ParagraphView {
-        private final int topMargin;
-
-        public ParagraphView(Element element, int topMargin) {
-            super(element);
-            this.topMargin = topMargin;
-        }
-
-        @Override
-        public void paintChild(Graphics g, Rectangle alloc, int index) {
-            super.paintChild(g, alloc, index);
-            g.setFont(LINENO_FONT);
-            g.setColor(LINENO_COLOR);
-            int line = getLineNumber() + 1;
-            String lineStr = String.valueOf(line);
-            FontMetrics metrics = g.getFontMetrics();
-            int strWidth = metrics.stringWidth(lineStr);
-            int marginWidth = metrics.stringWidth(MARGIN_TOKEN);
-            int x = marginWidth - strWidth - 10;
-            int y = topMargin + line * metrics.getHeight();
-            g.drawString(String.valueOf(line), x, y);
-        }
-
-        private int getLineNumber() {
-            Element root = getDocument().getDefaultRootElement();
-            for (int i = 0; i < root.getElementCount(); i++) {
-                if (root.getElement(i) == getElement()) {
-                    return i;
-                }
-            }
-            return 0;
-        }
     }
 
     public void displayMessage(String message) {
@@ -195,15 +156,15 @@ public class Editor extends JPanel {
         return 0;
     }
 
-    protected void setUndoManager(UndoManager undoManager) {
+    protected void setUndoManager(UndoManager newUndoManager) {
         AbstractDocument doc = (AbstractDocument) textPane.getDocument();
-        UndoManager current = this.undoManager.get();
+        UndoManager current = undoManager.get();
         if (current != null) {
             doc.removeUndoableEditListener(current);
         }
-        undoManager.discardAllEdits();
-        this.undoManager.set(undoManager);
-        doc.addUndoableEditListener(undoManager);
+        newUndoManager.discardAllEdits();
+        undoManager.set(newUndoManager);
+        doc.addUndoableEditListener(newUndoManager);
     }
 
     private void cmdZUndo(ActionEvent event) {
@@ -550,5 +511,39 @@ public class Editor extends JPanel {
         GTk.addAltKeyAction(KeyEvent.VK_RIGHT, textPane, this::altRight);
         GTk.addAltShiftKeyAction(KeyEvent.VK_LEFT, textPane, this::altShiftLeft);
         GTk.addAltShiftKeyAction(KeyEvent.VK_RIGHT, textPane, this::altShiftRight);
+    }
+
+    private static class ParagraphView extends javax.swing.text.ParagraphView {
+        private final int topMargin;
+
+        public ParagraphView(Element element, int topMargin) {
+            super(element);
+            this.topMargin = topMargin;
+        }
+
+        @Override
+        public void paintChild(Graphics g, Rectangle alloc, int index) {
+            super.paintChild(g, alloc, index);
+            g.setFont(GTk.EDITOR_DEFAULT_LINENO_FONT);
+            g.setColor(LINENO_COLOR);
+            int line = getLineNumber() + 1;
+            String lineStr = String.valueOf(line);
+            FontMetrics metrics = g.getFontMetrics();
+            int strWidth = metrics.stringWidth(lineStr);
+            int marginWidth = metrics.stringWidth(MARGIN_TOKEN);
+            int x = marginWidth - strWidth - 10;
+            int y = topMargin + line * metrics.getHeight();
+            g.drawString(String.valueOf(line), x, y);
+        }
+
+        private int getLineNumber() {
+            Element root = getDocument().getDefaultRootElement();
+            for (int i = 0; i < root.getElementCount(); i++) {
+                if (root.getElement(i) == getElement()) {
+                    return i;
+                }
+            }
+            return 0;
+        }
     }
 }

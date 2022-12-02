@@ -23,8 +23,8 @@ plugins {
 }
 
 group = 'io.quest'
-version = '1.0.0-SNAPSHOT'
-description = 'Desktop user interface to common Postgres Wire Protocol compatible databases.'
+version = '1.0.0'
+description = 'Desktop user interface to QuestDB through the Postgres Wire Protocol.'
 
 repositories {
     mavenCentral()
@@ -50,7 +50,7 @@ dependencies {
 
 application {
     mainClass = 'io.quest.Quest'
-    applicationDefaultJvmArgs = ['-Xmx2G', '-server', '-Dfile.encoding=UTF-8']
+    applicationDefaultJvmArgs = ['-Xmx3G', '-server', '-Dfile.encoding=UTF-8']
 }
 
 jar {

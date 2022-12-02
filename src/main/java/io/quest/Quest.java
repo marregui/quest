@@ -44,11 +44,11 @@ import static io.quest.frontend.GTk.configureMenuItem;
 
 
 public final class Quest {
-    private static final Log LOGGER = LogFactory.getLog(Quest.class);
     public static final String NAME = "quest";
-    public static final String VERSION = "1.0";
+    public static final String VERSION = "1.0.0";
+    private static final Log LOG = LogFactory.getLog(Quest.class);
 
-
+    private final JFrame frame;
     private final ConnsManager conns;
     private final SQLExecutor executor;
     private final QuestPanel commands;
@@ -58,33 +58,46 @@ public final class Quest {
     private final JMenuItem toggleQuestDB;
     private final JMenuItem toggleMetaExaminerWidget;
     private final JMenuItem toggleConn;
-    private ServerMain questdb;
+    private ServerMain questDb;
 
     private Quest() {
-        JFrame frame = GTk.frame(null, null);
+        frame = GTk.frame(String.format("%s %s [store: %s]", NAME, VERSION, Store.ROOT_PATH));
         frame.setIconImage(GTk.Icon.COMMAND_QUEST.icon().getImage());
         int width = frame.getWidth();
         int dividerHeight = (int) (frame.getHeight() * 0.6);
+
         executor = new SQLExecutor();
         conns = new ConnsManager(frame, this::dispatchEvent);
         commands = new QuestPanel(this::dispatchEvent);
         commands.setPreferredSize(new Dimension(0, dividerHeight));
         results = new SQLResultsTable(width, dividerHeight);
         meta = new Meta(frame, this::dispatchEvent);
+
         JSplitPane splitPane = new JSplitPane(JSplitPane.VERTICAL_SPLIT, true, commands, results);
         splitPane.setDividerLocation(dividerHeight);
         frame.add(splitPane, BorderLayout.CENTER);
-        frame.setTitle(String.format("%s %s [store: %s]", NAME, VERSION, Store.ROOT_PATH));
+
         toggleConnsWidget = new JMenuItem();
         toggleConn = new JMenuItem();
         toggleQuestDB = new JMenuItem();
         toggleMetaExaminerWidget = new JMenuItem();
         frame.setJMenuBar(createMenuBar());
+
         Runtime.getRuntime().addShutdownHook(new Thread(this::close, "shutdown-hook"));
-        LOGGER.info().$(GTk.BANNER).$("  Version ").$(VERSION).$("\n").$();
+        LOG.info().$(GTk.BANNER).$("  Version ").$(VERSION).$("\n").$();
         executor.start();
         conns.start();
         frame.setVisible(true);
+    }
+
+    public static void main(String[] args) {
+        final String lookAndFeel = UIManager.getCrossPlatformLookAndFeelClassName();
+        try {
+            UIManager.setLookAndFeel(lookAndFeel);
+        } catch (Exception e) {
+            LOG.infoW().$("CrossPlatformLookAndFeel unavailable [name=").$(lookAndFeel).I$();
+        }
+        GTk.invokeLater(Quest::new);
     }
 
     private JMenuBar createMenuBar() {
@@ -118,7 +131,7 @@ public final class Quest {
         menu.add(commandsMenu);
         menu.add(resultsMenu);
         menu.addSeparator();
-        menu.add(configureMenuItem(new JMenuItem(), GTk.Icon.HELP, "QuestDB Docs", NO_KEY_EVENT, GTk::openQuestDBDocs));
+        menu.add(configureMenuItem(new JMenuItem(), GTk.Icon.HELP, "QuestDB Docs", KeyEvent.VK_H, GTk::openQuestDBDocs));
 
         JMenuBar menuBar = new JMenuBar();
         menuBar.setBorder(BorderFactory.createLoweredSoftBevelBorder());
@@ -154,11 +167,11 @@ public final class Quest {
     }
 
     private void onToggleQuestDB(ActionEvent event) {
-        if (questdb == null) {
+        if (questDb == null) {
             try {
                 results.showInfiniteSpinner();
-                questdb = new ServerMain("-d", Store.ROOT_PATH.getAbsolutePath());
-                questdb.start(false);
+                questDb = new ServerMain("-d", Store.ROOT_PATH.getAbsolutePath());
+                questDb.start(false);
                 toggleQuestDB.setText("Shutdown QuestDB");
                 Conn conn = commands.getConnection();
                 if (conn == null || !conn.isValid()) {
@@ -170,8 +183,8 @@ public final class Quest {
             }
         } else {
             if (JOptionPane.OK_OPTION == JOptionPane.showConfirmDialog(null, "Shutdown QuestDB?")) {
-                questdb.close();
-                questdb = null;
+                questDb.close();
+                questDb = null;
                 toggleQuestDB.setText("Run QuestDB");
                 results.displayMessage("QuestDB is DOWN");
                 onToggleConn(null);
@@ -268,16 +281,6 @@ public final class Quest {
         Misc.free(conns);
         Misc.free(results);
         Misc.free(meta);
-        Misc.free(questdb);
-    }
-
-    public static void main(String[] args) {
-        final String lookAndFeel = UIManager.getCrossPlatformLookAndFeelClassName();
-        try {
-            UIManager.setLookAndFeel(lookAndFeel);
-        } catch (Exception e) {
-            LOGGER.infoW().$("CrossPlatformLookAndFeel unavailable [name=").$(lookAndFeel).I$();
-        }
-        GTk.invokeLater(Quest::new);
+        Misc.free(questDb);
     }
 }

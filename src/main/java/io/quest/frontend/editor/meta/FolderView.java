@@ -42,7 +42,6 @@ class FolderView extends JPanel {
         this.onRootChange = onRootChange;
 
         treeView = new JTree(new DefaultMutableTreeNode("UNDEFINED"));
-        treeView.setFont(GTk.MENU_FONT);
         treeView.setBackground(Color.BLACK);
         treeView.setBorder(BorderFactory.createEmptyBorder());
         treeView.getSelectionModel().setSelectionMode(TreeSelectionModel.SINGLE_TREE_SELECTION);
@@ -54,9 +53,9 @@ class FolderView extends JPanel {
             public Component getTreeCellRendererComponent(JTree tree, Object value, boolean selected, boolean expanded, boolean leaf, int row, boolean hasFocus) {
                 super.getTreeCellRendererComponent(tree, value, selected, expanded, leaf, row, hasFocus);
                 setOpaque(true);
-                setFont(GTk.TABLE_CELL_FONT);
+                setFont(GTk.MENU_FONT);
                 setBackground(Color.BLACK);
-                setForeground(GTk.TERMINAL_FONT_COLOR);
+                setForeground(GTk.EDITOR_FONT_COLOR);
                 String text = value.toString();
                 if (leaf && !text.endsWith("" + Files.SEPARATOR)) {
                     setIcon(FileType.of(extractItemName(text)) != FileType.UNKNOWN ? fileIcon : unknownIcon);

@@ -34,9 +34,9 @@ public class Highlighter extends DocumentFilter {
     public static final String EVENT_TYPE = "style change";
     protected static final int PATTERN_FLAGS = Pattern.CASE_INSENSITIVE | Pattern.UNICODE_CASE;
     protected static final AttributeSet HIGHLIGHT_NORMAL = styleForegroundColor(
-            GTk.TERMINAL_FONT_COLOR.getRed(),
-            GTk.TERMINAL_FONT_COLOR.getGreen(),
-            GTk.TERMINAL_FONT_COLOR.getBlue()); // terminal green
+            GTk.EDITOR_FONT_COLOR.getRed(),
+            GTk.EDITOR_FONT_COLOR.getGreen(),
+            GTk.EDITOR_FONT_COLOR.getBlue()); // terminal green
     protected static final AttributeSet HIGHLIGHT_KEYWORD = styleForegroundColor(
             GTk.MAIN_FONT_COLOR.getRed(),
             GTk.MAIN_FONT_COLOR.getGreen(),

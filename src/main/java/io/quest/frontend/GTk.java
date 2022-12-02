@@ -19,6 +19,7 @@ package io.quest.frontend;
 import io.quest.model.Table;
 import io.questdb.log.Log;
 import io.questdb.log.LogFactory;
+import io.questdb.std.Os;
 
 import java.awt.BorderLayout;
 import java.awt.Color;
@@ -53,19 +54,67 @@ public final class GTk {
             "  \\__, |  \\__,_|  \\___| |___/  \\__|\n" +
             "     |_|\n" +
             "  Copyright (c) 2019 - " + Calendar.getInstance().get(Calendar.YEAR) + "\n";
+
+    public static final String KEYBOARD_SHORTCUTS = "\n" +
+            "Mac users: ctrl -> command, alt -> option\n" +
+            " \n" +
+            "ctrl^.            run QuestDB in the background\n" +
+            "ctrl^m            open metadata files explorer\n" +
+            "ctrl^t            open connection assigner/editor\n" +
+            "ctrl^o            open assigned connection\n" +
+            "ctrl^h            open documentation in a browser tab\n" +
+            "\n" +
+            "ctrl^d            copy line under caret & paste it under current line\n" +
+            "ctrl^x            remove line under caret (upward direction)\n" +
+            "ctrl^c            copy selection to clipboard\n" +
+            "ctrl^v            paste the content of the clipboard\n" +
+            "ctrl^z            undo last edit\n" +
+            "ctrl^y            redo last undo\n" +
+            "ctrl^1            select all\n" +
+            "ctrl^f            find text or regular expression\n" +
+            "ctrl^r            replace text or regular expression\n" +
+            "ctrl^/            toggle line comment\n" +
+            "ctrl^'            wrap selection in 'selection'\n" +
+            "\n" +
+            "ctrl^l            execute line under caret\n" +
+            "ctrl^enter        execute selection, or full content of editor\n" +
+            "ctrl^w            abort current execution\n" +
+            "ctrl^p            prev page in results table\n" +
+            "ctrl^n            next page in results table\n" +
+            "\n" +
+            "ctrl^up           go to top\n" +
+            "ctrl^down         go to bottom\n" +
+            "ctrl^left         go to beginning of line\n" +
+            "ctrl^right        go to end of line\n" +
+            "\n" +
+            "ctrl+shift^up     select from current caret position to top\n" +
+            "ctrl+shift^down   select from current caret position to bottom\n" +
+            "ctrl+shift^left   select from current caret to beginning of line\n" +
+            "ctrl+shift^right  select from current caret to end of line\n" +
+            "\n" +
+            "alt^up            select current word\n" +
+            "alt^left          go to beginning of line\n" +
+            "alt^down          go to end of line\n" +
+            "alt+shift^left    select from current caret position go to beginning of word\n" +
+            "alt+shift^right   select from current caret position go to end of word\n";
     public static final String MAIN_FONT_NAME = "Arial"; // excluding commands' TextPane, which is Monospaced
     public static final Color MAIN_FONT_COLOR = new Color(200, 50, 90);
-    public static final Color TERMINAL_FONT_COLOR = new Color(95, 235, 150);
-    public static final Font MENU_FONT = new Font(MAIN_FONT_NAME, Font.BOLD, 15);
-    public static final Font TABLE_HEADER_FONT = new Font(MAIN_FONT_NAME, Font.BOLD, 18);
-    private static final Font TABLE_HEADER_UNDERLINE_FONT = TABLE_HEADER_FONT.deriveFont(Map.of(
-            TextAttribute.UNDERLINE, TextAttribute.UNDERLINE_ON));
-    public static final Font TABLE_CELL_FONT = new Font(MAIN_FONT_NAME, Font.PLAIN, 16);
-    public static final int CMD_DOWN_MASK = InputEvent.CTRL_DOWN_MASK;
+    public static final Color EDITOR_FONT_COLOR = new Color(95, 235, 150);
+    public static final Font MENU_FONT = new Font(MAIN_FONT_NAME, Font.BOLD, 14);
+    public static final int CMD_DOWN_MASK = Os.type == Os.WINDOWS || Os.isLinux() ? InputEvent.CTRL_DOWN_MASK : InputEvent.META_DOWN_MASK;
     public static final int CMD_SHIFT_DOWN_MASK = CMD_DOWN_MASK | InputEvent.SHIFT_DOWN_MASK;
     public static final int ALT_DOWN_MASK = InputEvent.ALT_DOWN_MASK;
     public static final int ALT_SHIFT_DOWN_MASK = ALT_DOWN_MASK | InputEvent.SHIFT_DOWN_MASK;
     public static final int NO_KEY_EVENT = -1;
+    private static final int DEFAULT_FONT_SIZE = 16;
+    public static final Font TABLE_HEADER_FONT = new Font(MAIN_FONT_NAME, Font.BOLD, DEFAULT_FONT_SIZE);
+    private static final Font TABLE_HEADER_UNDERLINE_FONT = TABLE_HEADER_FONT.deriveFont(Map.of(
+            TextAttribute.UNDERLINE, TextAttribute.UNDERLINE_ON));
+    public static final Font TABLE_CELL_FONT = new Font(MAIN_FONT_NAME, Font.PLAIN, DEFAULT_FONT_SIZE);
+    private static final String EDITOR_FONT_NAME = "Monospaced";
+
+    public static final Font EDITOR_DEFAULT_FONT = new Font(EDITOR_FONT_NAME, Font.BOLD, DEFAULT_FONT_SIZE);
+    public static final Font EDITOR_DEFAULT_LINENO_FONT = new Font(EDITOR_FONT_NAME, Font.ITALIC, DEFAULT_FONT_SIZE);
     private static final String DOCUMENTATION_URL = "https://questdb.io/docs/introduction/";
     private static final Log LOG = LogFactory.getLog(GTk.class);
     private static final Toolkit TK = Toolkit.getDefaultToolkit();
@@ -243,13 +292,10 @@ public final class GTk {
         return new Dimension(x, y);
     }
 
-    public static JFrame frame(String title, Runnable onExit) {
+    public static JFrame frame(String title) {
         JFrame frame = new JFrame() {
             @Override
             public void dispose() {
-                if (onExit != null) {
-                    onExit.run();
-                }
                 super.dispose();
                 System.exit(0);
             }

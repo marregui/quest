@@ -43,7 +43,7 @@ public class CellRenderer extends DefaultTableCellRenderer {
         setBorder(EMPTY_BORDER);
         if (rowIdx > -1 && rowIdx < table.getModel().getRowCount()) {
             if (isSelected) {
-                setForeground(GTk.TERMINAL_FONT_COLOR);
+                setForeground(GTk.EDITOR_FONT_COLOR);
             } else {
                 setForeground(GTk.MAIN_FONT_COLOR);
             }

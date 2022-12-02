@@ -293,7 +293,7 @@ public class Meta extends JDialog implements EventProducer<ConnsManager.EventTyp
 
     private void displayTxt() throws IOException {
         display.clear();
-        txtFileReader.fetchAvailableLines(new File(selectedPath.toString())).forEach(display::addLn);
+        txtFileReader.readLines(new File(selectedPath.toString())).forEach(display::addLn);
         display.render();
     }
 

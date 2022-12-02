@@ -36,13 +36,12 @@ public class WidgetTester {
             if (spinner.isRunning()) {
                 spinner.close();
                 button.setText("Start");
-            }
-            else {
+            } else {
                 spinner.start();
                 button.setText("Close");
             }
         });
-        JFrame frame = frame("InfiniteSpinnerPanel", null);
+        JFrame frame = frame("InfiniteSpinnerPanel");
         frame.add(spinner, BorderLayout.CENTER);
         frame.add(button, BorderLayout.SOUTH);
         frame.setVisible(true);
@@ -62,7 +61,7 @@ public class WidgetTester {
         QuestPanel board = new QuestPanel((owner, event, request) -> {
 
         });
-        JFrame frame = frame("CommandBoard", null);
+        JFrame frame = frame("QuestPanel");
         frame.add(board, BorderLayout.CENTER);
         frame.setVisible(true);
     }
