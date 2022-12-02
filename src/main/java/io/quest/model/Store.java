@@ -32,9 +32,9 @@ import java.util.List;
 import java.util.NoSuchElementException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
-import java.util.concurrent.TimeUnit;
 import java.util.function.Supplier;
 
+import io.quest.frontend.GTk;
 import io.quest.frontend.editor.meta.Meta;
 
 import com.google.gson.Gson;
@@ -105,16 +105,7 @@ public abstract class Store<T extends StoreEntry> implements Closeable, Iterable
 
     @Override
     public void close() {
-        asyncPersist.shutdown();
-        try {
-            boolean completed;
-            int attempts = 2;
-            do {
-                completed = asyncPersist.awaitTermination(400L, TimeUnit.MILLISECONDS);
-            } while (!completed && attempts-- > 0);
-        } catch (InterruptedException e) {
-            Thread.currentThread().interrupt();
-        }
+        GTk.shutdown(asyncPersist);
     }
 
     public abstract T[] defaultStoreEntries();

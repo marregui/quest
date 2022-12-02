@@ -28,6 +28,7 @@ import java.util.concurrent.Future;
 import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.TimeUnit;
 
+import io.quest.frontend.GTk;
 import io.quest.model.EventConsumer;
 import io.quest.model.EventProducer;
 import io.quest.model.Conn;
@@ -78,11 +79,8 @@ public class SQLExecutor implements EventProducer<SQLExecutor.EventType>, Closea
                     query.cancel(true);
                 }
             }
-            executor.shutdownNow();
             try {
-                executor.awaitTermination(400L, TimeUnit.MILLISECONDS);
-            } catch (InterruptedException e) {
-                Thread.currentThread().interrupt();
+                GTk.shutdown(executor);
             } finally {
                 executor = null;
                 runningQueries.clear();

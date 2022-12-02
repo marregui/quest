@@ -37,6 +37,8 @@ import java.awt.font.TextAttribute;
 import java.io.IOException;
 import java.net.URL;
 import java.util.*;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.TimeUnit;
 import java.util.function.Consumer;
 import javax.swing.*;
 import javax.swing.border.Border;
@@ -58,7 +60,7 @@ public final class GTk {
             "  \\__, |  \\__,_|  \\___| |___/  \\__|\n" +
             "     |_|\n" +
             "  Copyright (c) 2019 - " + Calendar.getInstance().get(Calendar.YEAR) + "\n";
-    public static final String MAIN_FONT_NAME = "Monospaced"; // excluding commands' TextPane, which is Monospaced
+    public static final String MAIN_FONT_NAME = "Arial"; // excluding commands' TextPane, which is Monospaced
     public static final Color APP_THEME_COLOR = new Color(200, 50, 90);
     public static final Color TERMINAL_COLOR = new Color(95, 235, 150);
     public static final Font TABLE_HEADER_FONT = new Font(MAIN_FONT_NAME, Font.BOLD, 18);
@@ -530,6 +532,19 @@ public final class GTk {
                         .I$();
             }
             return icon;
+        }
+    }
+
+    public static void shutdown(ExecutorService executor) {
+        executor.shutdown();
+        try {
+            boolean completed;
+            int attempts = 2;
+            do {
+                completed = executor.awaitTermination(200L, TimeUnit.MILLISECONDS);
+            } while (!completed && attempts-- > 0);
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
         }
     }
 

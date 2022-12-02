@@ -29,6 +29,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
 
+import io.quest.frontend.GTk;
 import io.quest.model.Conn;
 import io.questdb.log.Log;
 import io.questdb.log.LogFactory;
@@ -90,15 +91,10 @@ public class ConnsChecker implements Closeable {
     private void dbConnsValidityCheck() {
         if (isChecking.compareAndSet(false, true)) {
             try {
-                List<ScheduledFuture<Conn>> invalidConns = connsSupplier.get()
-                        .stream()
-                        .filter(Conn::isOpen)
-                        .map(conn -> scheduler.schedule(
-                                // might block for up DBConnection.VALID_CHECK_TIMEOUT_SECS
-                                () -> !conn.isValid() ? conn : null,
-                                0, // start immediately
-                                TimeUnit.SECONDS
-                        )).toList();
+                List<ScheduledFuture<Conn>> invalidConns = connsSupplier.get().stream().filter(Conn::isOpen).map(conn -> scheduler.schedule(
+                        // might block for up DBConnection.VALID_CHECK_TIMEOUT_SECS
+                        () -> !conn.isValid() ? conn : null, 0, // start immediately
+                        TimeUnit.SECONDS)).toList();
                 while (invalidConns.size() > 0) {
                     Set<Conn> invalidSet = new HashSet<>();
                     for (Iterator<ScheduledFuture<Conn>> it = invalidConns.iterator(); it.hasNext(); ) {
@@ -133,11 +129,8 @@ public class ConnsChecker implements Closeable {
     @Override
     public synchronized void close() {
         if (scheduler != null) {
-            scheduler.shutdownNow();
             try {
-                scheduler.awaitTermination(200L, TimeUnit.MILLISECONDS);
-            } catch (InterruptedException e) {
-                Thread.currentThread().interrupt();
+                GTk.shutdown(scheduler);
             } finally {
                 scheduler = null;
                 isChecking.set(false);

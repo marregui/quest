@@ -44,7 +44,7 @@ import static io.quest.frontend.GTk.configureMenuItem;
 
 
 public final class Quest {
-    private static final Log LOG = LogFactory.getLog(Quest.class);
+    private static final Log LOGGER = LogFactory.getLog(Quest.class);
     public static final String NAME = "quest";
     public static final String VERSION = "1.0";
 
@@ -81,7 +81,7 @@ public final class Quest {
         toggleMetaExaminerWidget = new JMenuItem();
         frame.setJMenuBar(createMenuBar());
         Runtime.getRuntime().addShutdownHook(new Thread(this::close, "shutdown-hook"));
-        LOG.info().$(GTk.BANNER).$("  Version ").$(VERSION).$("\n").$();
+        LOGGER.info().$(GTk.BANNER).$("  Version ").$(VERSION).$("\n").$();
         executor.start();
         conns.start();
         frame.setVisible(true);
@@ -343,7 +343,7 @@ public final class Quest {
         try {
             UIManager.setLookAndFeel(lookAndFeel);
         } catch (Exception e) {
-            LOG.infoW().$("CrossPlatformLookAndFeel unavailable [name=").$(lookAndFeel).I$();
+            LOGGER.infoW().$("CrossPlatformLookAndFeel unavailable [name=").$(lookAndFeel).I$();
         }
         GTk.invokeLater(Quest::new);
     }
