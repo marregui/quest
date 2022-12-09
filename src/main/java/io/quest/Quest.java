@@ -74,6 +74,7 @@ public final class Quest {
 
         JSplitPane splitPane = new JSplitPane(JSplitPane.VERTICAL_SPLIT, true, commands, results);
         splitPane.setDividerLocation(dividerHeight);
+        splitPane.setDividerSize(5);
         frame.add(splitPane, BorderLayout.CENTER);
 
         toggleConnsWidget = new JMenuItem();
