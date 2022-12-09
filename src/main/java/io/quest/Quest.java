@@ -39,7 +39,6 @@ import io.quest.frontend.editor.QuestPanel;
 import io.quest.frontend.conns.ConnsManager;
 import io.quest.frontend.results.SQLResultsTable;
 
-import static io.quest.frontend.GTk.NO_KEY_EVENT;
 import static io.quest.frontend.GTk.configureMenuItem;
 
 
