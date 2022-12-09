@@ -34,7 +34,6 @@ import io.quest.model.Conn;
 import io.quest.backend.ConnsChecker;
 import io.quest.model.Store;
 
-import io.quest.frontend.editor.QuestPanel;
 import io.questdb.log.Log;
 import io.questdb.log.LogFactory;
 
@@ -42,11 +41,6 @@ import static io.quest.frontend.GTk.*;
 import static io.quest.frontend.GTk.Icon;
 
 
-/**
- * Dialog that presents a table where each row is a {@link Conn}, allowing the
- * user to test, connect, disconnect, edit, as well as to assign them to the
- * {@link QuestPanel}. Connections are loaded/saved from/to a {@link Store}.
- */
 public class ConnsManager extends JDialog implements EventProducer<ConnsManager.EventType>, Closeable {
 
     public static final String STORE_FILE_NAME = "connections.json";
@@ -62,6 +56,7 @@ public class ConnsManager extends JDialog implements EventProducer<ConnsManager.
     private final JTable table;
     private final ConnsTableModel tableModel;
     private final ConnsChecker connsValidityChecker;
+
     public ConnsManager(Frame owner, EventConsumer<ConnsManager, Object> eventConsumer) {
         super(owner, "Connections", false); // does not block use of the main app
         this.eventConsumer = eventConsumer;
@@ -176,11 +171,6 @@ public class ConnsManager extends JDialog implements EventProducer<ConnsManager.
                 eventConsumer.onSourceEvent(this, EventType.CONNECTION_ESTABLISHED, conn);
             } catch (Exception e) {
                 LOG.error().$("Connect [e=").$(e.getMessage()).I$();
-                JOptionPane.showMessageDialog(
-                        this,
-                        e.getMessage(),
-                        "Connection Failed",
-                        JOptionPane.ERROR_MESSAGE);
             }
         } else {
             try {
