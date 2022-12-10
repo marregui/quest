@@ -65,18 +65,36 @@ jar {
     }
 }
 
-task fatJar(type: Jar) {
-    manifest.from jar.manifest
-    archiveClassifier.set('all')
-    duplicatesStrategy(DuplicatesStrategy.INCLUDE)
-    from {
-        configurations.runtimeClasspath.collect { it.isDirectory() ? it : zipTree(it) }
+distributions.main {
+    contents {
+        from startScripts
     }
-    with jar
 }
 
-artifacts {
-    archives fatJar
+startScripts {
+    startScripts.applicationName = 'quest'
+    doLast {
+        def windowsScriptFile = file getWindowsScript()
+        def unixScriptFile = file getUnixScript()
+        windowsScriptFile.text = windowsScriptFile.text.replace('set APP_HOME=%DIRNAME%..', 'set APP_HOME=%DIRNAME%')
+        unixScriptFile.text = unixScriptFile.text.replace('APP_HOME=$( cd "${APP_HOME:-./}.." && pwd -P ) || exit', 'APP_HOME=$(pwd -P) || exit')
+    }
+}
+
+distZip {
+    eachFile { file ->
+        if (file.path.contains('bin')) {
+            file.exclude()
+        }
+    }
+}
+
+distTar {
+    eachFile { file ->
+        if (file.path.contains('bin')) {
+            file.exclude()
+        }
+    }
 }
 
 test {
