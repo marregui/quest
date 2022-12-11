@@ -96,7 +96,10 @@ public final class GTk {
             "alt^left          go to beginning of line\n" +
             "alt^down          go to end of line\n" +
             "alt+shift^left    select from current caret position go to beginning of word\n" +
-            "alt+shift^right   select from current caret position go to end of word\n";
+            "alt+shift^right   select from current caret position go to end of word\n" +
+            "\n" +
+            "ctrl+^s          increase font size\n" +
+            "ctrl+shift^s     decrease font size\n";
     public static final String MAIN_FONT_NAME = "Arial"; // excluding commands' TextPane, which is Monospaced
     public static final Color MAIN_FONT_COLOR = new Color(200, 50, 90);
     public static final Color EDITOR_FONT_COLOR = new Color(95, 235, 150);
@@ -106,7 +109,9 @@ public final class GTk {
     public static final int ALT_DOWN_MASK = InputEvent.ALT_DOWN_MASK;
     public static final int ALT_SHIFT_DOWN_MASK = ALT_DOWN_MASK | InputEvent.SHIFT_DOWN_MASK;
     public static final int NO_KEY_EVENT = -1;
-    private static final int DEFAULT_FONT_SIZE = 16;
+    public static final int DEFAULT_FONT_SIZE = 16;
+    public static final int MIN_FONT_SIZE = 11;
+    public static final int MAX_FONT_SIZE = 21;
     public static final Font TABLE_HEADER_FONT = new Font(MAIN_FONT_NAME, Font.BOLD, DEFAULT_FONT_SIZE);
     private static final Font TABLE_HEADER_UNDERLINE_FONT = TABLE_HEADER_FONT.deriveFont(Map.of(
             TextAttribute.UNDERLINE, TextAttribute.UNDERLINE_ON));
@@ -129,6 +134,10 @@ public final class GTk {
 
     private GTk() {
         throw new IllegalStateException("not meant to be instantiated");
+    }
+
+    public static Font updateEditorFontSize(int newFontSize) {
+        return new Font(EDITOR_FONT_NAME, Font.BOLD, newFontSize);
     }
 
     public static void addCmdKeyAction(int keyEvent, JComponent component, ActionListener action) {

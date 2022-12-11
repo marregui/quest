@@ -89,6 +89,19 @@ public class Editor extends JPanel {
         add(scrollPane, BorderLayout.CENTER);
     }
 
+    public void setFontSize(int newFontSize) {
+        Font newFont = GTk.updateEditorFontSize(newFontSize);
+        final FontMetrics metrics = textPane.getFontMetrics(newFont);
+        final int topMargin = metrics.getHeight() / 2;
+        final int bottomMargin = metrics.getHeight() / 2;
+        final int leftMargin = metrics.stringWidth(MARGIN_TOKEN);
+        final int rightMargin = metrics.stringWidth(":");
+        final Insets margin = new Insets(topMargin, leftMargin, bottomMargin, rightMargin);
+        textPane.setMargin(margin);
+        textPane.setFont(newFont);
+        System.out.printf("changeto:%d%n", newFontSize);
+    }
+
     public void displayMessage(String message) {
         textPane.setText(message);
         repaint();
@@ -263,6 +276,24 @@ public class Editor extends JPanel {
     private void cmdUp(ActionEvent event) {
         // cmd-up, jump to the beginning of the document
         textPane.setCaretPosition(0);
+    }
+
+    private void cmdFontUp(ActionEvent event) {
+        // cmd-F, font size up
+        int newFontSize = textPane.getFont().getSize() + 1;
+        if (newFontSize < GTk.MAX_FONT_SIZE) {
+            setFontSize(newFontSize);
+        }
+    }
+
+    private void cmdFontDown(ActionEvent event) {
+        // cmd-shift-F, jump to the beginning of the document
+        int fontSize = textPane.getFont().getSize();
+        int newFontSize = fontSize - 1;
+        System.out.printf("cmdMinus from:%d, to:%d%n", fontSize, newFontSize);
+        if (newFontSize > GTk.MIN_FONT_SIZE) {
+            setFontSize(newFontSize);
+        }
     }
 
     private void cmdDown(ActionEvent event) {
@@ -485,7 +516,8 @@ public class Editor extends JPanel {
     }
 
     private void setupKeyboardActions(boolean isErrorPanel) {
-        // cmd/cmd+shift
+        GTk.addCmdKeyAction(KeyEvent.VK_S, textPane, this::cmdFontUp);
+        GTk.addCmdShiftKeyAction(KeyEvent.VK_S, textPane, this::cmdFontDown);
         GTk.addCmdKeyAction(KeyEvent.VK_UP, textPane, this::cmdUp);
         GTk.addCmdKeyAction(KeyEvent.VK_DOWN, textPane, this::cmdDown);
         GTk.addCmdKeyAction(KeyEvent.VK_LEFT, textPane, this::cmdLeft);
@@ -513,7 +545,7 @@ public class Editor extends JPanel {
         GTk.addAltShiftKeyAction(KeyEvent.VK_RIGHT, textPane, this::altShiftRight);
     }
 
-    private static class ParagraphView extends javax.swing.text.ParagraphView {
+    private class ParagraphView extends javax.swing.text.ParagraphView {
         private final int topMargin;
 
         public ParagraphView(Element element, int topMargin) {
@@ -524,7 +556,7 @@ public class Editor extends JPanel {
         @Override
         public void paintChild(Graphics g, Rectangle alloc, int index) {
             super.paintChild(g, alloc, index);
-            g.setFont(GTk.EDITOR_DEFAULT_LINENO_FONT);
+            g.setFont(textPane.getFont());
             g.setColor(LINENO_COLOR);
             int line = getLineNumber() + 1;
             String lineStr = String.valueOf(line);

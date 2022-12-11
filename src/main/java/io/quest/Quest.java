@@ -127,6 +127,19 @@ public final class Quest {
         menu.addSeparator();
         menu.add(configureMenuItem(toggleMetaExaminerWidget, GTk.Icon.META, "Meta Explorer", KeyEvent.VK_M, this::onToggleMetaExaminerWidget));
         menu.addSeparator();
+        JLabel editorFontSize = new JLabel("Editor font size");
+        editorFontSize.setFont(GTk.MENU_FONT);
+        menu.add(editorFontSize);
+        JSlider slider = new JSlider(JSlider.HORIZONTAL, GTk.MIN_FONT_SIZE, GTk.MAX_FONT_SIZE, GTk.DEFAULT_FONT_SIZE);
+        slider.setPaintTrack(true);
+        slider.setPaintTicks(true);
+        slider.setPaintLabels(true);
+        slider.addChangeListener(e -> {
+            JSlider x = (JSlider) e.getSource();
+            commands.setFontSize(x.getValue());
+        });
+        menu.add(slider);
+        menu.addSeparator();
         menu.add(connsMenu);
         menu.add(commandsMenu);
         menu.add(resultsMenu);

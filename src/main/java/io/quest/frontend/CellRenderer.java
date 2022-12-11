@@ -25,7 +25,6 @@ import javax.swing.table.DefaultTableCellRenderer;
 
 
 public class CellRenderer extends DefaultTableCellRenderer {
-
     private static final Border EMPTY_BORDER = BorderFactory.createEmptyBorder();
 
     @Override
