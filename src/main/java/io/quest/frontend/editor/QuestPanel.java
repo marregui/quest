@@ -45,6 +45,8 @@ public class QuestPanel extends Editor implements EventProducer<QuestPanel.Event
     private final List<UndoManager> undoManagers;
     private final JLabel questLabel;
     private final JLabel connLabel;
+    private final JLabel fontSizeLabel;
+    private final JSlider fontSizeSlider;
     private final FindReplace findPanel;
     private final JMenu questsMenu;
     private Store<Content> store;
@@ -75,17 +77,15 @@ public class QuestPanel extends Editor implements EventProducer<QuestPanel.Event
             }
         });
 
-        JPanel questsPanel = GTk.flowPanel(
-                GTk.horizontalSpace(24),
-                questLabel = GTk.label(GTk.Icon.COMMAND_QUEST, "uest", null),
-                GTk.horizontalSpace(6),
-                questEntryNames,
-                GTk.horizontalSpace(12),
-                connLabel = GTk.label(GTk.Icon.NO_ICON, null, e -> eventConsumer.onSourceEvent(
-                        QuestPanel.this,
-                        EventType.CONNECTION_STATUS_CLICKED,
-                        null)));
+        JPanel questsPanel = GTk.flowPanel(GTk.horizontalSpace(24), questLabel = GTk.label(GTk.Icon.COMMAND_QUEST, "uest", null), GTk.horizontalSpace(6), questEntryNames, GTk.horizontalSpace(12), connLabel = GTk.label(GTk.Icon.NO_ICON, null, e -> eventConsumer.onSourceEvent(QuestPanel.this, EventType.CONNECTION_STATUS_CLICKED, null)));
         questLabel.setForeground(Color.WHITE);
+        fontSizeLabel = new JLabel("");
+        fontSizeLabel.setFont(GTk.MENU_FONT);
+        fontSizeSlider = new JSlider(JSlider.HORIZONTAL, GTk.MIN_FONT_SIZE, GTk.MAX_FONT_SIZE, GTk.DEFAULT_FONT_SIZE);
+        fontSizeSlider.addChangeListener(e -> {
+            JSlider x = (JSlider) e.getSource();
+            setFontSize(x.getValue());
+        });
         questsMenu = createQuestsMenu();
         findPanel = new FindReplace((source, event, eventData) -> {
             switch ((FindReplace.EventType) EventProducer.eventType(event)) {
@@ -93,7 +93,7 @@ public class QuestPanel extends Editor implements EventProducer<QuestPanel.Event
                 case REPLACE -> onReplace();
             }
         });
-
+        setFontSize(GTk.DEFAULT_FONT_SIZE);
         JPanel topPanel = new JPanel(new BorderLayout(0, 0));
         topPanel.setPreferredSize(new Dimension(0, COMPONENT_HEIGHT + 2));
         topPanel.setBackground(Color.BLACK);
@@ -103,6 +103,13 @@ public class QuestPanel extends Editor implements EventProducer<QuestPanel.Event
 
         refreshConnLabel();
         loadStoreEntries(STORE_FILE_NAME);
+    }
+
+    public void setFontSize(int newFontSize) {
+        super.setFontSize(newFontSize);
+        fontSizeLabel.setText(String.format("Font size [%d,%d]: %d",
+                GTk.MIN_FONT_SIZE, GTk.MAX_FONT_SIZE, textPane.getFont().getSize()));
+        fontSizeSlider.setValue(newFontSize);
     }
 
     public Conn getConnection() {
@@ -209,11 +216,7 @@ public class QuestPanel extends Editor implements EventProducer<QuestPanel.Event
     }
 
     private void onCreateQuest(ActionEvent event) {
-        String entryName = JOptionPane.showInputDialog(
-                this,
-                "Name",
-                "New quest",
-                JOptionPane.INFORMATION_MESSAGE);
+        String entryName = JOptionPane.showInputDialog(this, "Name", "New quest", JOptionPane.INFORMATION_MESSAGE);
         if (entryName == null || entryName.isEmpty()) {
             return;
         }
@@ -233,12 +236,7 @@ public class QuestPanel extends Editor implements EventProducer<QuestPanel.Event
     private void onDeleteQuest(ActionEvent event) {
         int idx = questEntryNames.getSelectedIndex();
         if (idx > 0) {
-            if (JOptionPane.YES_OPTION == JOptionPane.showConfirmDialog(
-                    this,
-                    String.format("Delete %s?",
-                            questEntryNames.getSelectedItem()),
-                    "Deleting quest",
-                    JOptionPane.YES_NO_OPTION)) {
+            if (JOptionPane.YES_OPTION == JOptionPane.showConfirmDialog(this, String.format("Delete %s?", questEntryNames.getSelectedItem()), "Deleting quest", JOptionPane.YES_NO_OPTION)) {
                 store.removeEntry(idx);
                 content = null;
                 questEntryNames.removeItemAt(idx);
@@ -252,11 +250,7 @@ public class QuestPanel extends Editor implements EventProducer<QuestPanel.Event
         int idx = questEntryNames.getSelectedIndex();
         if (idx >= 0) {
             String currentName = (String) questEntryNames.getSelectedItem();
-            String newName = JOptionPane.showInputDialog(
-                    this,
-                    "New name",
-                    "Renaming quest",
-                    JOptionPane.QUESTION_MESSAGE);
+            String newName = JOptionPane.showInputDialog(this, "New name", "Renaming quest", JOptionPane.QUESTION_MESSAGE);
             if (newName != null && !newName.isBlank() && !newName.equals(currentName)) {
                 store.getEntry(idx, null).setName(newName);
                 refreshQuestEntryNames(idx);
@@ -276,23 +270,12 @@ public class QuestPanel extends Editor implements EventProducer<QuestPanel.Event
                 if (!selectedFile.exists()) {
                     store.saveToFile(selectedFile);
                 } else {
-                    if (JOptionPane.YES_OPTION == JOptionPane.showConfirmDialog(
-                            this,
-                            "Override file?",
-                            "Dilemma",
-                            JOptionPane.YES_NO_OPTION)) {
+                    if (JOptionPane.YES_OPTION == JOptionPane.showConfirmDialog(this, "Override file?", "Dilemma", JOptionPane.YES_NO_OPTION)) {
                         store.saveToFile(selectedFile);
                     }
                 }
             } catch (Throwable t) {
-                JOptionPane.showMessageDialog(
-                        this,
-                        String.format("Could not save file '%s': %s",
-                                selectedFile.getAbsolutePath(),
-                                t.getMessage()),
-                        "Error",
-                        JOptionPane.ERROR_MESSAGE
-                );
+                JOptionPane.showMessageDialog(this, String.format("Could not save file '%s': %s", selectedFile.getAbsolutePath(), t.getMessage()), "Error", JOptionPane.ERROR_MESSAGE);
             }
         }
     }
@@ -321,14 +304,7 @@ public class QuestPanel extends Editor implements EventProducer<QuestPanel.Event
             try {
                 loadStoreEntries(selectedFile.getName());
             } catch (Throwable t) {
-                JOptionPane.showMessageDialog(
-                        this,
-                        String.format("Could not load file '%s': %s",
-                                selectedFile.getAbsolutePath(),
-                                t.getMessage()),
-                        "Error",
-                        JOptionPane.ERROR_MESSAGE
-                );
+                JOptionPane.showMessageDialog(this, String.format("Could not load file '%s': %s", selectedFile.getAbsolutePath(), t.getMessage()), "Error", JOptionPane.ERROR_MESSAGE);
             }
         }
     }
@@ -369,16 +345,12 @@ public class QuestPanel extends Editor implements EventProducer<QuestPanel.Event
 
     private void fireCommandEvent(Supplier<String> commandSupplier) {
         if (conn == null) {
-            JOptionPane.showMessageDialog(
-                    this,
-                    "Connection not set, assign one");
+            JOptionPane.showMessageDialog(this, "Connection not set, assign one");
             return;
         }
         String command = commandSupplier.get();
         if (command == null || command.isEmpty()) {
-            JOptionPane.showMessageDialog(
-                    this,
-                    "Command not available, type something");
+            JOptionPane.showMessageDialog(this, "Command not available, type something");
             return;
         }
         if (lastRequest != null) {
@@ -398,72 +370,24 @@ public class QuestPanel extends Editor implements EventProducer<QuestPanel.Event
 
     private JMenu createQuestsMenu() {
         final JMenu questsMenu = GTk.jmenu("uest", GTk.Icon.COMMAND_QUEST); // the Q comes from an icon
-        questsMenu.add(
-                GTk.configureMenuItem(
-                        new JMenuItem(),
-                        GTk.Icon.COMMAND_ADD,
-                        "New",
-                        GTk.NO_KEY_EVENT,
-                        this::onCreateQuest));
-        questsMenu.add(
-                GTk.configureMenuItem(
-                        new JMenuItem(),
-                        GTk.Icon.COMMAND_EDIT,
-                        "Rename",
-                        GTk.NO_KEY_EVENT,
-                        this::onRenameQuest));
-        questsMenu.add(
-                GTk.configureMenuItem(
-                        new JMenuItem(),
-                        GTk.Icon.COMMAND_REMOVE,
-                        "Delete",
-                        GTk.NO_KEY_EVENT,
-                        this::onDeleteQuest));
+        questsMenu.add(GTk.configureMenuItem(new JMenuItem(), GTk.Icon.COMMAND_ADD, "New", GTk.NO_KEY_EVENT, this::onCreateQuest));
+        questsMenu.add(GTk.configureMenuItem(new JMenuItem(), GTk.Icon.COMMAND_EDIT, "Rename", GTk.NO_KEY_EVENT, this::onRenameQuest));
+        questsMenu.add(GTk.configureMenuItem(new JMenuItem(), GTk.Icon.COMMAND_REMOVE, "Delete", GTk.NO_KEY_EVENT, this::onDeleteQuest));
         questsMenu.addSeparator();
-        questsMenu.add(
-                GTk.configureMenuItem(
-                        new JMenuItem(),
-                        GTk.Icon.COMMAND_CLEAR,
-                        "Clear",
-                        GTk.NO_KEY_EVENT,
-                        this::onClearQuest));
-        questsMenu.add(
-                GTk.configureMenuItem(
-                        new JMenuItem(),
-                        GTk.Icon.COMMAND_RELOAD,
-                        "Reload",
-                        "Recovers quest from last save",
-                        GTk.NO_KEY_EVENT,
-                        this::onReloadQuest));
-        questsMenu.add(
-                GTk.configureMenuItem(
-                        new JMenuItem(),
-                        GTk.Icon.COMMAND_SAVE,
-                        "Save",
-                        GTk.NO_KEY_EVENT,
-                        this::onSaveQuest));
+        questsMenu.add(GTk.configureMenuItem(new JMenuItem(), GTk.Icon.COMMAND_CLEAR, "Clear", GTk.NO_KEY_EVENT, this::onClearQuest));
+        questsMenu.add(GTk.configureMenuItem(new JMenuItem(), GTk.Icon.COMMAND_RELOAD, "Reload", "Recovers quest from last save", GTk.NO_KEY_EVENT, this::onReloadQuest));
+        questsMenu.add(GTk.configureMenuItem(new JMenuItem(), GTk.Icon.COMMAND_SAVE, "Save", GTk.NO_KEY_EVENT, this::onSaveQuest));
         questsMenu.addSeparator();
-        questsMenu.add(
-                GTk.configureMenuItem(
-                        new JMenuItem(),
-                        GTk.Icon.COMMAND_STORE_LOAD,
-                        "Read from notebook",
-                        GTk.NO_KEY_EVENT,
-                        this::onLoadQuestsFromBackup));
-        questsMenu.add(
-                GTk.configureMenuItem(
-                        new JMenuItem(),
-                        GTk.Icon.COMMAND_STORE_BACKUP,
-                        "Write to new notebook",
-                        GTk.NO_KEY_EVENT,
-                        this::onBackupQuests));
+        questsMenu.add(GTk.configureMenuItem(new JMenuItem(), GTk.Icon.COMMAND_STORE_LOAD, "Read from notebook", GTk.NO_KEY_EVENT, this::onLoadQuestsFromBackup));
+        questsMenu.add(GTk.configureMenuItem(new JMenuItem(), GTk.Icon.COMMAND_STORE_BACKUP, "Write to new notebook", GTk.NO_KEY_EVENT, this::onBackupQuests));
+        questsMenu.addSeparator();
+        questsMenu.add(fontSizeLabel);
+        questsMenu.add(fontSizeSlider);
         return questsMenu;
     }
 
     public enum EventType {
-        COMMAND_AVAILABLE,
-        COMMAND_CANCEL,
-        CONNECTION_STATUS_CLICKED
+        COMMAND_AVAILABLE, COMMAND_CANCEL, CONNECTION_STATUS_CLICKED
     }
 
     public static class Content extends StoreEntry {

@@ -64,19 +64,19 @@ public class Editor extends JPanel {
         textPane.setFont(GTk.EDITOR_DEFAULT_FONT);
         textPane.setBackground(Color.BLACK);
         textPane.setCaretColor(Color.CYAN);
+        textPane.setCaretPosition(0);
         textPane.setEditorKit(new StyledEditorKit() {
             @Override
             public ViewFactory getViewFactory() {
                 final ViewFactory defaultViewFactory = super.getViewFactory();
                 return elem -> {
                     if (elem.getName().equals(AbstractDocument.ParagraphElementName)) {
-                        return new ParagraphView(elem, topMargin / 2);
+                        return new ParagraphView(elem);
                     }
                     return defaultViewFactory.create(elem);
                 };
             }
         });
-        textPane.setCaretPosition(0);
         textPane.setEditable(!isErrorPanel);
         setupKeyboardActions(isErrorPanel);
         highlighter = highlighterFactory.apply(textPane); // produces "style change" events
@@ -91,15 +91,13 @@ public class Editor extends JPanel {
 
     public void setFontSize(int newFontSize) {
         Font newFont = GTk.updateEditorFontSize(newFontSize);
-        final FontMetrics metrics = textPane.getFontMetrics(newFont);
-        final int topMargin = metrics.getHeight() / 2;
-        final int bottomMargin = metrics.getHeight() / 2;
-        final int leftMargin = metrics.stringWidth(MARGIN_TOKEN);
-        final int rightMargin = metrics.stringWidth(":");
-        final Insets margin = new Insets(topMargin, leftMargin, bottomMargin, rightMargin);
+        FontMetrics metrics = textPane.getFontMetrics(newFont);
+        int h = metrics.getHeight() / 2;
+        int leftMargin = metrics.stringWidth(MARGIN_TOKEN);
+        int rightMargin = metrics.stringWidth(":");
+        Insets margin = new Insets(h, leftMargin, h, rightMargin);
         textPane.setMargin(margin);
         textPane.setFont(newFont);
-        System.out.printf("changeto:%d%n", newFontSize);
     }
 
     public void displayMessage(String message) {
@@ -159,11 +157,7 @@ public class Editor extends JPanel {
                 textPane.setText(getText().replaceAll(findRegex, replaceWith));
                 return highlighter.handleTextChanged();
             } catch (PatternSyntaxException err) {
-                JOptionPane.showMessageDialog(
-                        null,
-                        String.format(
-                                "Not a valid filter: %s",
-                                err.getMessage()));
+                JOptionPane.showMessageDialog(null, String.format("Not a valid filter: %s", err.getMessage()));
             }
         }
         return 0;
@@ -281,17 +275,15 @@ public class Editor extends JPanel {
     private void cmdFontUp(ActionEvent event) {
         // cmd-F, font size up
         int newFontSize = textPane.getFont().getSize() + 1;
-        if (newFontSize < GTk.MAX_FONT_SIZE) {
+        if (newFontSize <= GTk.MAX_FONT_SIZE) {
             setFontSize(newFontSize);
         }
     }
 
     private void cmdFontDown(ActionEvent event) {
         // cmd-shift-F, jump to the beginning of the document
-        int fontSize = textPane.getFont().getSize();
-        int newFontSize = fontSize - 1;
-        System.out.printf("cmdMinus from:%d, to:%d%n", fontSize, newFontSize);
-        if (newFontSize > GTk.MIN_FONT_SIZE) {
+        int newFontSize = textPane.getFont().getSize() - 1;
+        if (newFontSize >= GTk.MIN_FONT_SIZE) {
             setFontSize(newFontSize);
         }
     }
@@ -454,9 +446,7 @@ public class Editor extends JPanel {
             for (int i = 0; i < linesLen; i++) {
                 char c = lines.charAt(i);
                 if (c == '\n') {
-                    if (i - lineStart >= 2 &&
-                            lines.charAt(lineStart) == '-' &&
-                            lines.charAt(lineStart + 1) == '-') {
+                    if (i - lineStart >= 2 && lines.charAt(lineStart) == '-' && lines.charAt(lineStart + 1) == '-') {
                         sb.append(lines, lineStart + 2, i + 1);
                     } else {
                         sb.append("--").append(lines, lineStart, i + 1);
@@ -464,9 +454,7 @@ public class Editor extends JPanel {
                     lineStart = i + 1;
                 }
             }
-            if (linesLen - lineStart >= 2 &&
-                    lines.charAt(lineStart) == '-' &&
-                    lines.charAt(lineStart + 1) == '-') {
+            if (linesLen - lineStart >= 2 && lines.charAt(lineStart) == '-' && lines.charAt(lineStart + 1) == '-') {
                 sb.append(lines, lineStart + 2, linesLen);
             } else {
                 sb.append("--").append(lines, lineStart, linesLen);
@@ -546,36 +534,34 @@ public class Editor extends JPanel {
     }
 
     private class ParagraphView extends javax.swing.text.ParagraphView {
-        private final int topMargin;
 
-        public ParagraphView(Element element, int topMargin) {
+        public ParagraphView(Element element) {
             super(element);
-            this.topMargin = topMargin;
+        }
+
+        private static int getLineNumber(Element root, Element target) {
+            for (int i = 0, n = root.getElementCount(); i < n; i++) {
+                if (root.getElement(i) == target) {
+                    return i + 1;
+                }
+            }
+            return 1;
         }
 
         @Override
         public void paintChild(Graphics g, Rectangle alloc, int index) {
             super.paintChild(g, alloc, index);
-            g.setFont(textPane.getFont());
+            Font font = textPane.getFont();
+            g.setFont(font);
             g.setColor(LINENO_COLOR);
-            int line = getLineNumber() + 1;
+            int line = getLineNumber(getDocument().getDefaultRootElement(), getElement());
             String lineStr = String.valueOf(line);
-            FontMetrics metrics = g.getFontMetrics();
+            FontMetrics metrics = textPane.getFontMetrics(textPane.getFont());
             int strWidth = metrics.stringWidth(lineStr);
             int marginWidth = metrics.stringWidth(MARGIN_TOKEN);
             int x = marginWidth - strWidth - 10;
-            int y = topMargin + line * metrics.getHeight();
-            g.drawString(String.valueOf(line), x, y);
-        }
-
-        private int getLineNumber() {
-            Element root = getDocument().getDefaultRootElement();
-            for (int i = 0; i < root.getElementCount(); i++) {
-                if (root.getElement(i) == getElement()) {
-                    return i;
-                }
-            }
-            return 0;
+            int y = (int) (metrics.getHeight() * 0.27) + line * metrics.getHeight();
+            g.drawString(lineStr, x, y);
         }
     }
 }

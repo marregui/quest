@@ -44,6 +44,7 @@ class Display extends Editor {
 
     public Display() {
         super(true, MetaHighlighter::of);
+        setFontSize(13);
     }
 
     public void clear() {
@@ -176,11 +177,13 @@ class Display extends Editor {
             sink.put(" - ");
         }
         sink.put("column ").put(columnIndex)
-                .put(" -> name: ").put(columnName)
-                .put(", type: ").put(ColumnType.nameOf(columnType))
-                .put(", indexed: ").put(columnIsIndexed)
-                .put(", indexBlockCapacity: ").put(columnIndexBlockCapacity)
-                .put(System.lineSeparator());
+                .put(" -> ").put(columnName)
+                .put(" ").put(ColumnType.nameOf(columnType));
+        if (columnIsIndexed) {
+            sink.put(", indexed: ").put(columnIsIndexed)
+                    .put(", indexBlockCapacity: ").put(columnIndexBlockCapacity);
+        }
+        sink.put(System.lineSeparator());
     }
 
     public void addCreateTableLn(TableReaderMetadata metadata) {

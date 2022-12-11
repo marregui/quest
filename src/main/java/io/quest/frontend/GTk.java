@@ -55,51 +55,53 @@ public final class GTk {
             "     |_|\n" +
             "  Copyright (c) 2019 - " + Calendar.getInstance().get(Calendar.YEAR) + "\n";
 
-    public static final String KEYBOARD_SHORTCUTS = "\n" +
-            "Mac users: ctrl -> command, alt -> option\n" +
-            " \n" +
-            "ctrl^.            run QuestDB in the background\n" +
-            "ctrl^m            open metadata files explorer\n" +
-            "ctrl^t            open connection assigner/editor\n" +
-            "ctrl^o            open assigned connection\n" +
-            "ctrl^h            open documentation in a browser tab\n" +
-            "\n" +
-            "ctrl^d            copy line under caret & paste it under current line\n" +
-            "ctrl^x            remove line under caret (upward direction)\n" +
-            "ctrl^c            copy selection to clipboard\n" +
-            "ctrl^v            paste the content of the clipboard\n" +
-            "ctrl^z            undo last edit\n" +
-            "ctrl^y            redo last undo\n" +
-            "ctrl^1            select all\n" +
-            "ctrl^f            find text or regular expression\n" +
-            "ctrl^r            replace text or regular expression\n" +
-            "ctrl^/            toggle line comment\n" +
-            "ctrl^'            wrap selection in 'selection'\n" +
-            "\n" +
-            "ctrl^l            execute line under caret\n" +
-            "ctrl^enter        execute selection, or full content of editor\n" +
-            "ctrl^w            abort current execution\n" +
-            "ctrl^p            prev page in results table\n" +
-            "ctrl^n            next page in results table\n" +
-            "\n" +
-            "ctrl^up           go to top\n" +
-            "ctrl^down         go to bottom\n" +
-            "ctrl^left         go to beginning of line\n" +
-            "ctrl^right        go to end of line\n" +
-            "\n" +
-            "ctrl+shift^up     select from current caret position to top\n" +
-            "ctrl+shift^down   select from current caret position to bottom\n" +
-            "ctrl+shift^left   select from current caret to beginning of line\n" +
-            "ctrl+shift^right  select from current caret to end of line\n" +
-            "\n" +
-            "alt^up            select current word\n" +
-            "alt^left          go to beginning of line\n" +
-            "alt^down          go to end of line\n" +
-            "alt+shift^left    select from current caret position go to beginning of word\n" +
-            "alt+shift^right   select from current caret position go to end of word\n" +
-            "\n" +
-            "ctrl+^s          increase font size\n" +
-            "ctrl+shift^s     decrease font size\n";
+    public static final String KEYBOARD_SHORTCUTS = """
+
+            Mac users: ctrl -> command, alt -> option
+            \s
+            ctrl^.            run QuestDB in the background
+            ctrl^m            open metadata files explorer
+            ctrl^t            open connection assigner/editor
+            ctrl^o            open assigned connection
+            ctrl^h            open documentation in a browser tab
+
+            ctrl^d            copy line under caret & paste it under current line
+            ctrl^x            remove line under caret (upward direction)
+            ctrl^c            copy selection to clipboard
+            ctrl^v            paste the content of the clipboard
+            ctrl^z            undo last edit
+            ctrl^y            redo last undo
+            ctrl^1            select all
+            ctrl^f            find text or regular expression
+            ctrl^r            replace text or regular expression
+            ctrl^/            toggle line comment
+            ctrl^'            wrap selection in 'selection'
+
+            ctrl^l            execute line under caret
+            ctrl^enter        execute selection, or full content of editor
+            ctrl^w            abort current execution
+            ctrl^p            prev page in results table
+            ctrl^n            next page in results table
+
+            ctrl^up           go to top
+            ctrl^down         go to bottom
+            ctrl^left         go to beginning of line
+            ctrl^right        go to end of line
+
+            ctrl+shift^up     select from current caret position to top
+            ctrl+shift^down   select from current caret position to bottom
+            ctrl+shift^left   select from current caret to beginning of line
+            ctrl+shift^right  select from current caret to end of line
+
+            alt^up            select current word
+            alt^left          go to beginning of line
+            alt^down          go to end of line
+            alt+shift^left    select from current caret position go to beginning of word
+            alt+shift^right   select from current caret position go to end of word
+
+            ctrl+^s          increase font size
+            ctrl+shift^s     decrease font size
+            """;
     public static final String MAIN_FONT_NAME = "Arial"; // excluding commands' TextPane, which is Monospaced
     public static final Color MAIN_FONT_COLOR = new Color(200, 50, 90);
     public static final Color EDITOR_FONT_COLOR = new Color(95, 235, 150);
@@ -109,7 +111,7 @@ public final class GTk {
     public static final int ALT_DOWN_MASK = InputEvent.ALT_DOWN_MASK;
     public static final int ALT_SHIFT_DOWN_MASK = ALT_DOWN_MASK | InputEvent.SHIFT_DOWN_MASK;
     public static final int NO_KEY_EVENT = -1;
-    public static final int DEFAULT_FONT_SIZE = 16;
+    public static final int DEFAULT_FONT_SIZE = 14;
     public static final int MIN_FONT_SIZE = 11;
     public static final int MAX_FONT_SIZE = 21;
     public static final Font TABLE_HEADER_FONT = new Font(MAIN_FONT_NAME, Font.BOLD, DEFAULT_FONT_SIZE);
@@ -119,7 +121,6 @@ public final class GTk {
     private static final String EDITOR_FONT_NAME = "Monospaced";
 
     public static final Font EDITOR_DEFAULT_FONT = new Font(EDITOR_FONT_NAME, Font.BOLD, DEFAULT_FONT_SIZE);
-    public static final Font EDITOR_DEFAULT_LINENO_FONT = new Font(EDITOR_FONT_NAME, Font.ITALIC, DEFAULT_FONT_SIZE);
     private static final String DOCUMENTATION_URL = "https://questdb.io/docs/introduction/";
     private static final Log LOG = LogFactory.getLog(GTk.class);
     private static final Toolkit TK = Toolkit.getDefaultToolkit();
