@@ -28,10 +28,6 @@ import java.util.regex.Pattern;
 
 public class FindReplace extends JPanel implements EventProducer<FindReplace.EventType> {
 
-    public enum EventType {
-        FIND, REPLACE
-    }
-
     private static final Color FIND_FONT_COLOR = new Color(58, 138, 138);
     private static final Pattern SPECIAL_REGEX_CHARS = Pattern.compile("[{}()\\[\\].+*?^$\\\\|]");
     private final EventConsumer<FindReplace, Object> eventConsumer;
@@ -67,9 +63,9 @@ public class FindReplace extends JPanel implements EventProducer<FindReplace.Eve
         add(findTextIsRegex);
         add(GTk.label("replace All with", FIND_FONT_COLOR));
         add(replaceWithText);
-        add(GTk.horizontalSpace(4));
+        add(GTk.gap(4));
         add(findMatchesLabel);
-        add(GTk.horizontalSpace(4));
+        add(GTk.gap(4));
         add(GTk.button(
                 "X",
                 "Close find/replace view",
@@ -168,5 +164,9 @@ public class FindReplace extends JPanel implements EventProducer<FindReplace.Eve
                 }
             }
         });
+    }
+
+    public enum EventType {
+        FIND, REPLACE
     }
 }

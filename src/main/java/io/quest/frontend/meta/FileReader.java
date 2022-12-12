@@ -14,7 +14,7 @@
  * Copyright (c) 2019 - 2022, Miguel Arregui a.k.a. marregui
  */
 
-package io.quest.model;
+package io.quest.frontend.meta;
 
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -28,8 +28,8 @@ import java.util.List;
 
 import static java.nio.channels.FileChannel.MapMode;
 
-public class TxtFileReader {
-    private byte[] lineBuffer = new byte[512]; // tune to average log size
+public class FileReader {
+    private byte[] lineBuffer = new byte[512];
 
 
     public List<String> readLines(File file) throws IOException {
@@ -46,7 +46,7 @@ public class TxtFileReader {
                     if (lineStartOffset != i) {
                         int lineLength = i - lineStartOffset;
                         if (lineLength > lineBuffer.length) {
-                            lineBuffer = new byte[(int) Math.ceil(lineLength * 1.5f)];
+                            lineBuffer = new byte[(int) Math.ceil(lineLength * 1.5F)];
                         }
                         mappedBuffer.position(lineStartOffset);
                         mappedBuffer.get(lineBuffer, 0, lineLength);

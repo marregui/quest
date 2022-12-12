@@ -14,7 +14,7 @@
  * Copyright (c) 2019 - 2022, Miguel Arregui a.k.a. marregui
  */
 
-package io.quest.frontend.editor.meta;
+package io.quest.frontend.meta;
 
 import io.quest.frontend.editor.Editor;
 import io.questdb.cairo.ColumnType;
@@ -26,13 +26,9 @@ import io.questdb.std.str.StringSink;
 
 import java.util.concurrent.TimeUnit;
 
-class Display extends Editor {
+class MetaDisplay extends Editor {
     private static final DateFormat TS_FORMATTER = new TimestampFormatCompiler().compile(
-            "yyyy-MM-ddTHH:mm:ss.SSSz"
-    );
-
-    private static final DateFormat DATE_FORMATTER = new TimestampFormatCompiler().compile(
-            "yyyy-MM-dd"
+            "yyyy-MM-ddTHH:mm:ss.SSSSSSZ"
     );
 
     static {
@@ -42,9 +38,9 @@ class Display extends Editor {
 
     private final StringSink sink = new StringSink();
 
-    public Display() {
+    public MetaDisplay() {
         super(true, MetaHighlighter::of);
-        setFontSize(13);
+        setFontSize(14);
     }
 
     public void clear() {
@@ -96,21 +92,13 @@ class Display extends Editor {
     }
 
     public void addTimestampLn(String name, long timestamp) {
-        addFormattedTimestampLn(name, timestamp, TS_FORMATTER);
-    }
-
-    public void addDateLn(String name, long timestamp) {
-        addFormattedTimestampLn(name, timestamp, DATE_FORMATTER);
-    }
-
-    private void addFormattedTimestampLn(String name, long timestamp, DateFormat formatter) {
         if (Long.MAX_VALUE == timestamp) {
             sink.put(name).put("MAX_VALUE").put(System.lineSeparator());
         } else if (Long.MIN_VALUE == timestamp) {
             sink.put(name).put("MIN_VALUE").put(System.lineSeparator());
         } else {
             sink.put(name).put(timestamp).put(" (");
-            formatter.format(timestamp, null, "Z", sink);
+            TS_FORMATTER.format(timestamp, null, "Z", sink);
             sink.put(')').put(System.lineSeparator());
         }
     }
@@ -120,47 +108,15 @@ class Display extends Editor {
             long partitionTimestamp,
             long partitionNameTxn,
             long partitionSize,
-            long partitionColumnVersion,
-            long partitionSymbolValueCount,
-            long partitionMask,
-            boolean partitionIsRO,
-            long partitionAvailable0,
-            long partitionAvailable1,
-            long partitionAvailable2
+            long partitionColumnVersion
     ) {
-        sink.put(" - partition ").put(partitionIndex)
-                .put(" [").put(partitionTimestamp).put(" (");
-        DATE_FORMATTER.format(partitionTimestamp, null, "Z", sink);
+        sink.put(" - ").put(partitionIndex)
+                .put("/").put(partitionTimestamp).put(" (");
+        TS_FORMATTER.format(partitionTimestamp, null, "Z", sink);
         sink.put(')')
-                .put("] size: ").put(partitionSize)
+                .put(" size: ").put(partitionSize)
                 .put(", txn: ").put(partitionNameTxn)
-                .put(", column version: ").put(partitionColumnVersion)
-                .put(System.lineSeparator())
-                .put(", symbol value count: ").put(partitionSymbolValueCount)
-                .put(", isRO: ").put(partitionIsRO)
-                .put(", mask: ").put(partitionMask)
-                .put(", av0: ").put(partitionAvailable0)
-                .put(", av1: ").put(partitionAvailable1)
-                .put(", av2: ").put(partitionAvailable2)
-                .put(System.lineSeparator());
-    }
-
-    public void addPartitionLn(
-            int partitionIndex,
-            long partitionTimestamp,
-            long partitionNameTxn,
-            long partitionSize,
-            long partitionColumnVersion,
-            long partitionSymbolValueCount
-    ) {
-        sink.put(" - partition ").put(partitionIndex)
-                .put(" [").put(partitionTimestamp).put(" (");
-        DATE_FORMATTER.format(partitionTimestamp, null, "Z", sink);
-        sink.put(')')
-                .put("] size: ").put(partitionSize)
-                .put(", txn: ").put(partitionNameTxn)
-                .put(", column version: ").put(partitionColumnVersion)
-                .put(", symbol value count: ").put(partitionSymbolValueCount)
+                .put(", cv: ").put(partitionColumnVersion)
                 .put(System.lineSeparator());
     }
 
@@ -176,12 +132,11 @@ class Display extends Editor {
         if (indented) {
             sink.put(" - ");
         }
-        sink.put("column ").put(columnIndex)
-                .put(" -> ").put(columnName)
+        sink.put(columnIndex)
+                .put(": ").put(columnName)
                 .put(" ").put(ColumnType.nameOf(columnType));
         if (columnIsIndexed) {
-            sink.put(", indexed: ").put(columnIsIndexed)
-                    .put(", indexBlockCapacity: ").put(columnIndexBlockCapacity);
+            sink.put(" indexed (block capacity=").put(columnIndexBlockCapacity).put(')');
         }
         sink.put(System.lineSeparator());
     }

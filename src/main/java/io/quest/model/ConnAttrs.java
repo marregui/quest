@@ -31,30 +31,6 @@ public class ConnAttrs extends StoreEntry {
     private static final String DEFAULT_USERNAME = "admin";
     private static final String DEFAULT_PASSWORD = "quest";
 
-    public enum AttrName implements UniqueId<String> {
-        host(DEFAULT_HOST),
-        port(DEFAULT_PORT),
-        database(DEFAULT_DATABASE),
-        username(DEFAULT_USERNAME),
-        password(DEFAULT_PASSWORD),
-        isDefault(String.valueOf(false));
-
-        private final String defaultValue;
-
-        AttrName(String defaultValue) {
-            this.defaultValue = defaultValue;
-        }
-
-        @Override
-        public String getUniqueId() {
-            return name();
-        }
-
-        public String getDefaultValue() {
-            return defaultValue;
-        }
-    }
-
     /**
      * Shallow copy constructor, used by the store, attributes are a reference to
      * the attributes of 'other'.
@@ -109,7 +85,7 @@ public class ConnAttrs extends StoreEntry {
         // This allows a database administrator to see what applications are
         // connected to the server and what resources they are using through
         // views like pgstatactivity.
-        props.put("ApplicationName", Quest.NAME + "-" + Quest.VERSION);
+        props.put("ApplicationName", Quest.NAME);
 
         // Connect using SSL. The server must have been compiled with SSL
         // support. This property does not need a value associated with it.
@@ -229,5 +205,29 @@ public class ConnAttrs extends StoreEntry {
 
     public void setDefault(boolean isDefault) {
         setAttr(AttrName.isDefault, String.valueOf(isDefault), AttrName.isDefault.getDefaultValue());
+    }
+
+    public enum AttrName implements UniqueId<String> {
+        host(DEFAULT_HOST),
+        port(DEFAULT_PORT),
+        database(DEFAULT_DATABASE),
+        username(DEFAULT_USERNAME),
+        password(DEFAULT_PASSWORD),
+        isDefault(String.valueOf(false));
+
+        private final String defaultValue;
+
+        AttrName(String defaultValue) {
+            this.defaultValue = defaultValue;
+        }
+
+        @Override
+        public String getUniqueId() {
+            return name();
+        }
+
+        public String getDefaultValue() {
+            return defaultValue;
+        }
     }
 }

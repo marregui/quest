@@ -22,9 +22,7 @@ import java.sql.Types;
 import io.quest.model.Table;
 import io.quest.frontend.GTk;
 
-/**
- * Resolves {@link java.sql.Types} to their text representation, column width and rendering color.
- */
+// Resolves {@link java.sql.Types} to their text representation, column width and rendering color
 final class SQLType {
     private static final Color BLUE_GREENISH_COLOR = new Color(0, 112, 112); // blue-greenish
     private static final Color OLIVE_COLOR = new Color(140, 140, 0); // olive
@@ -35,114 +33,45 @@ final class SQLType {
     }
 
     static String resolveName(int sqlType) {
-        String type;
-        switch (sqlType) {
-            case Types.OTHER:
-                type = "OBJECT";
-                break;
-            case Types.BOOLEAN:
-                type = "BOOLEAN";
-                break;
-            case Types.TINYINT:
-                type = "TINYINT";
-                break;
-            case Types.SMALLINT:
-                type = "SMALLINT";
-                break;
-            case Types.INTEGER:
-                type = "INTEGER";
-                break;
-            case Types.BIGINT:
-                type = "BIGINT";
-                break;
-            case Types.REAL:
-                type = "REAL";
-                break;
-            case Types.DOUBLE:
-                type = "DOUBLE";
-                break;
-            case Types.DATE:
-                type = "DATE";
-                break;
-            case Types.TIMESTAMP:
-                type = "TIMESTAMP";
-                break;
-            case Types.TIMESTAMP_WITH_TIMEZONE:
-                type = "TIMESTAMPTZ";
-                break;
-            case Types.TIME:
-                type = "TIME";
-                break;
-            case Types.TIME_WITH_TIMEZONE:
-                type = "TIMETZ";
-                break;
-            case Types.ARRAY:
-                type = "ARRAY";
-                break;
-            case Types.BLOB:
-                type = "BLOB";
-                break;
-            case Types.BINARY:
-                type = "BINARY";
-                break;
-            case Types.VARBINARY:
-                type = "VARBINARY";
-                break;
-            case Types.CHAR:
-                type = "CHAR";
-                break;
-            case Types.CLOB:
-                type = "CLOB";
-                break;
-            case Types.VARCHAR:
-                type = "VARCHAR";
-                break;
-            case Types.BIT:
-                type = "BIT";
-                break;
-            case Types.STRUCT:
-                type = "STRUCT";
-                break;
-            case Types.JAVA_OBJECT:
-                type = "JAVA_OBJECT";
-                break;
-            case Types.ROWID:
-                type = "";
-                break;
-            default:
-                type = String.valueOf(sqlType);
-        }
-        return type;
+        return switch (sqlType) {
+            case Types.OTHER -> "OBJECT";
+            case Types.BOOLEAN -> "BOOLEAN";
+            case Types.TINYINT -> "TINYINT";
+            case Types.SMALLINT -> "SMALLINT";
+            case Types.INTEGER -> "INTEGER";
+            case Types.BIGINT -> "BIGINT";
+            case Types.REAL -> "REAL";
+            case Types.DOUBLE -> "DOUBLE";
+            case Types.DATE -> "DATE";
+            case Types.TIMESTAMP -> "TIMESTAMP";
+            case Types.TIMESTAMP_WITH_TIMEZONE -> "TIMESTAMPTZ";
+            case Types.TIME -> "TIME";
+            case Types.TIME_WITH_TIMEZONE -> "TIMETZ";
+            case Types.ARRAY -> "ARRAY";
+            case Types.BLOB -> "BLOB";
+            case Types.BINARY -> "BINARY";
+            case Types.VARBINARY -> "VARBINARY";
+            case Types.CHAR -> "CHAR";
+            case Types.CLOB -> "CLOB";
+            case Types.VARCHAR -> "VARCHAR";
+            case Types.BIT -> "BIT";
+            case Types.STRUCT -> "STRUCT";
+            case Types.JAVA_OBJECT -> "JAVA_OBJECT";
+            case Types.ROWID -> "";
+            default -> String.valueOf(sqlType);
+        };
     }
 
     static int resolveColWidth(Table table, int colIdx) {
         int sqlType = table.getColTypes()[colIdx];
         final int width;
         switch (sqlType) {
-            case Types.BIT:
-            case Types.BOOLEAN:
-            case Types.CHAR:
-            case Types.ROWID:
-            case Types.SMALLINT:
-                width = 100;
-                break;
-            case Types.INTEGER:
-                width = 120;
-                break;
-            case Types.DATE:
-            case Types.TIME:
-            case Types.BIGINT:
-                width = 200;
-                break;
-            case Types.TIMESTAMP:
-            case Types.DOUBLE:
-            case Types.REAL:
-                width = 250;
-                break;
-            case Types.BINARY:
-                width = 400;
-                break;
-            case Types.VARCHAR:
+            case Types.BIT, Types.BOOLEAN, Types.CHAR, Types.ROWID, Types.SMALLINT -> width = 100;
+            case Types.INTEGER -> width = 120;
+            case Types.DATE, Types.TIME, Types.BIGINT -> width = 200;
+            case Types.TIMESTAMP, Types.DOUBLE, Types.REAL -> width = 250;
+            case Types.BINARY -> width = 400;
+            case Types.VARCHAR -> {
                 int w = 0;
                 for (int rowIdx = 0; rowIdx < Math.min(table.size(), 20); rowIdx++) {
                     Object value = table.getValueAt(rowIdx, colIdx);
@@ -151,9 +80,8 @@ final class SQLType {
                     }
                 }
                 width = Math.min(w, 620);
-                break;
-            default:
-                width = 150;
+            }
+            default -> width = 150;
         }
         String colName = table.getColNames()[colIdx];
         String typeName = resolveName(sqlType);
@@ -161,32 +89,14 @@ final class SQLType {
     }
 
     static Color resolveColor(int sqlType) {
-        Color color = Color.MAGENTA;
-        switch (sqlType) {
-            case Types.OTHER:
-                color = Color.ORANGE;
-                break;
-            case Types.BOOLEAN:
-                color = BLUE_GREENISH_COLOR;
-                break;
-            case Types.TINYINT:
-            case Types.SMALLINT:
-            case Types.INTEGER:
-            case Types.BIGINT:
-                color = OLIVE_COLOR;
-                break;
-            case Types.REAL:
-            case Types.DOUBLE:
-                color = Color.GREEN;
-                break;
-            case Types.TIMESTAMP:
-            case Types.TIMESTAMP_WITH_TIMEZONE:
-                color = CYAN_DULL_COLOR;
-                break;
-            case Types.VARCHAR:
-                color = GTk.MAIN_FONT_COLOR;
-                break;
-        }
-        return color;
+        return switch (sqlType) {
+            case Types.OTHER -> Color.ORANGE;
+            case Types.BOOLEAN -> BLUE_GREENISH_COLOR;
+            case Types.TINYINT, Types.SMALLINT, Types.INTEGER, Types.BIGINT -> OLIVE_COLOR;
+            case Types.REAL, Types.DOUBLE -> Color.GREEN;
+            case Types.TIMESTAMP, Types.TIMESTAMP_WITH_TIMEZONE -> CYAN_DULL_COLOR;
+            case Types.VARCHAR -> GTk.MAIN_FONT_COLOR;
+            default -> Color.MAGENTA;
+        };
     }
 }

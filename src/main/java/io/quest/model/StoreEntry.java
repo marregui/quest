@@ -37,8 +37,8 @@ public class StoreEntry implements UniqueId<String>, Comparable<StoreEntry> {
         return k1.compareTo(k2);
     };
 
-    private volatile String name;
     private final Map<String, String> attrs;
+    private volatile String name;
 
     public StoreEntry(String name) {
         if (name == null || name.isEmpty()) {
@@ -103,34 +103,14 @@ public class StoreEntry implements UniqueId<String>, Comparable<StoreEntry> {
         setAttr(attr, value, "");
     }
 
-    /**
-     * Attribute setter.
-     *
-     * @param attr         an implementor of HasKey
-     * @param value        value for the attribute
-     * @param defaultValue default value when the supplied value is null or empty
-     */
     public void setAttr(UniqueId<String> attr, String value, String defaultValue) {
         attrs.put(attr.getUniqueId(), null == value || value.isEmpty() ? defaultValue : value);
     }
 
-    /**
-     * Attribute value setter.
-     *
-     * @param attrName     name of the attribute
-     * @param value        value for the attribute
-     * @param defaultValue default value when the supplied value is null or empty
-     */
     public void setAttr(String attrName, String value, String defaultValue) {
         attrs.put(attrName, value == null || value.isEmpty() ? defaultValue : value);
     }
 
-    /**
-     * Attribute value setter.
-     *
-     * @param attrName name of the attribute
-     * @param value    value for the attribute
-     */
     public void setAttr(String attrName, String value) {
         attrs.put(attrName, value);
     }
@@ -163,11 +143,6 @@ public class StoreEntry implements UniqueId<String>, Comparable<StoreEntry> {
         return COMPARING.compare(getUniqueId(), that.getUniqueId());
     }
 
-    /**
-     * Changes as attributes are changed.
-     *
-     * @return the entry's unique id
-     */
     @Override
     public String getUniqueId() {
         return String.format("%s.%s", name, attrs);

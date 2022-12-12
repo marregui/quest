@@ -13,7 +13,7 @@ public class Row implements UniqueId<Long> {
     public Row(long uniqueId, Object[] values) {
         this.uniqueId = uniqueId;
         this.values = Objects.requireNonNull(values);
-        this.toString = new AtomicReference<>();
+        toString = new AtomicReference<>();
     }
 
     @Override

@@ -1,4 +1,4 @@
-package io.quest.frontend.editor.meta;
+package io.quest.frontend.meta;
 
 import io.questdb.cairo.TableUtils;
 

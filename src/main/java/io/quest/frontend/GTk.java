@@ -105,22 +105,21 @@ public final class GTk {
     public static final String MAIN_FONT_NAME = "Arial"; // excluding commands' TextPane, which is Monospaced
     public static final Color MAIN_FONT_COLOR = new Color(200, 50, 90);
     public static final Color EDITOR_FONT_COLOR = new Color(95, 235, 150);
+    public static final int EDITOR_DEFAULT_FONT_SIZE = 15;
+    public static final int EDITOR_MIN_FONT_SIZE = 11;
+    public static final int EDITOR_MAX_FONT_SIZE = 21;
     public static final Font MENU_FONT = new Font(MAIN_FONT_NAME, Font.BOLD, 14);
     public static final int CMD_DOWN_MASK = Os.type == Os.WINDOWS || Os.isLinux() ? InputEvent.CTRL_DOWN_MASK : InputEvent.META_DOWN_MASK;
     public static final int CMD_SHIFT_DOWN_MASK = CMD_DOWN_MASK | InputEvent.SHIFT_DOWN_MASK;
     public static final int ALT_DOWN_MASK = InputEvent.ALT_DOWN_MASK;
     public static final int ALT_SHIFT_DOWN_MASK = ALT_DOWN_MASK | InputEvent.SHIFT_DOWN_MASK;
     public static final int NO_KEY_EVENT = -1;
-    public static final int DEFAULT_FONT_SIZE = 14;
-    public static final int MIN_FONT_SIZE = 11;
-    public static final int MAX_FONT_SIZE = 21;
-    public static final Font TABLE_HEADER_FONT = new Font(MAIN_FONT_NAME, Font.BOLD, DEFAULT_FONT_SIZE);
+    public static final Font TABLE_HEADER_FONT = new Font(MAIN_FONT_NAME, Font.BOLD, EDITOR_DEFAULT_FONT_SIZE);
     private static final Font TABLE_HEADER_UNDERLINE_FONT = TABLE_HEADER_FONT.deriveFont(Map.of(
             TextAttribute.UNDERLINE, TextAttribute.UNDERLINE_ON));
-    public static final Font TABLE_CELL_FONT = new Font(MAIN_FONT_NAME, Font.PLAIN, DEFAULT_FONT_SIZE);
+    public static final Font TABLE_CELL_FONT = new Font(MAIN_FONT_NAME, Font.PLAIN, EDITOR_DEFAULT_FONT_SIZE);
     private static final String EDITOR_FONT_NAME = "Monospaced";
-
-    public static final Font EDITOR_DEFAULT_FONT = new Font(EDITOR_FONT_NAME, Font.BOLD, DEFAULT_FONT_SIZE);
+    public static final Font EDITOR_DEFAULT_FONT = new Font(EDITOR_FONT_NAME, Font.BOLD, EDITOR_DEFAULT_FONT_SIZE);
     private static final String DOCUMENTATION_URL = "https://questdb.io/docs/introduction/";
     private static final Log LOG = LogFactory.getLog(GTk.class);
     private static final Toolkit TK = Toolkit.getDefaultToolkit();
@@ -132,48 +131,43 @@ public final class GTk {
         System.setProperty("swing.aatext", "true");
     }
 
-
     private GTk() {
         throw new IllegalStateException("not meant to be instantiated");
     }
 
-    public static Font updateEditorFontSize(int newFontSize) {
+    public static Font newEditorFontSize(int newFontSize) {
         return new Font(EDITOR_FONT_NAME, Font.BOLD, newFontSize);
     }
 
     public static void addCmdKeyAction(int keyEvent, JComponent component, ActionListener action) {
         Action cmd = action(action);
-        component.getInputMap(JComponent.WHEN_FOCUSED).put(
+        component.getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW).put(
                 KeyStroke.getKeyStroke(keyEvent, CMD_DOWN_MASK),
-                cmd
-        );
+                cmd);
         component.getActionMap().put(cmd, cmd);
     }
 
     public static void addCmdShiftKeyAction(int keyEvent, JComponent component, ActionListener action) {
         Action cmd = action(action);
-        component.getInputMap(JComponent.WHEN_FOCUSED).put(
+        component.getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW).put(
                 KeyStroke.getKeyStroke(keyEvent, CMD_SHIFT_DOWN_MASK),
-                cmd
-        );
+                cmd);
         component.getActionMap().put(cmd, cmd);
     }
 
     public static void addAltKeyAction(int keyEvent, JComponent component, ActionListener action) {
         Action cmd = action(action);
-        component.getInputMap(JComponent.WHEN_FOCUSED).put(
+        component.getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW).put(
                 KeyStroke.getKeyStroke(keyEvent, ALT_DOWN_MASK),
-                cmd
-        );
+                cmd);
         component.getActionMap().put(cmd, cmd);
     }
 
     public static void addAltShiftKeyAction(int keyEvent, JComponent component, ActionListener action) {
         Action cmd = action(action);
-        component.getInputMap(JComponent.WHEN_FOCUSED).put(
+        component.getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW).put(
                 KeyStroke.getKeyStroke(keyEvent, ALT_SHIFT_DOWN_MASK),
-                cmd
-        );
+                cmd);
         component.getActionMap().put(cmd, cmd);
     }
 
@@ -324,11 +318,11 @@ public final class GTk {
     }
 
     public static JButton button(Icon icon, String tooltip, ActionListener listener) {
-        return button(icon.getText(), true, icon, tooltip, listener);
+        return button(icon.getText(), icon, tooltip, listener);
     }
 
     public static JButton button(String text, Runnable runnable) {
-        return button(text, true, Icon.NO_ICON, null, e -> runnable.run());
+        return button(text, Icon.NO_ICON, null, e -> runnable.run());
     }
 
     public static JButton button(
@@ -339,15 +333,14 @@ public final class GTk {
             Color foregroundColor,
             ActionListener listener
     ) {
-        JButton button = button(text, true, GTk.Icon.NO_ICON, tooltip, listener);
+        JButton button = button(text, GTk.Icon.NO_ICON, tooltip, listener);
         button.setPreferredSize(new Dimension(width, height));
         button.setForeground(foregroundColor);
         return button;
     }
 
-    public static JButton button(
+    private static JButton button(
             String text,
-            boolean isEnabled,
             Icon icon,
             String tooltip,
             ActionListener listener
@@ -363,7 +356,7 @@ public final class GTk {
             button.setToolTipText(tooltip);
         }
         button.addActionListener(Objects.requireNonNull(listener));
-        button.setEnabled(isEnabled);
+        button.setEnabled(true);
         return button;
     }
 
@@ -385,13 +378,17 @@ public final class GTk {
         return panel;
     }
 
-    public static JPanel horizontalSpace(int hgap) {
+    public static JPanel gap(int hgap) {
         JPanel panel = new JPanel(new FlowLayout(FlowLayout.CENTER, hgap, 0));
         panel.setBackground(Color.BLACK);
         return panel;
     }
 
-    public static JMenu jmenu(String title, Icon icon) {
+    public static JMenu menu(Icon icon) {
+        return menu(icon, "");
+    }
+
+    public static JMenu menu(Icon icon, String title) {
         JMenu connsMenu = new JMenu(title);
         connsMenu.setFont(GTk.MENU_FONT);
         if (icon != Icon.NO_ICON) {
@@ -400,17 +397,37 @@ public final class GTk {
         return connsMenu;
     }
 
-    public static JMenuItem configureMenuItem(
+    public static JMenuItem menuItem(
+            GTk.Icon icon,
+            String title,
+            int keyEvent,
+            ActionListener listener
+    ) {
+        return menuItem(new JMenuItem(), icon, title, null, keyEvent, listener);
+    }
+
+    public static JMenuItem menuItem(
+            GTk.Icon icon,
+            String title,
+            String tooltip,
+            int keyEvent,
+            ActionListener listener
+    ) {
+        return menuItem(new JMenuItem(), icon, title, tooltip, keyEvent, listener);
+    }
+
+    public static JMenuItem menuItem(
             JMenuItem item,
             GTk.Icon icon,
             String title,
             int keyEvent,
             ActionListener listener
     ) {
-        return configureMenuItem(item, icon, title, null, keyEvent, listener);
+        return menuItem(item, icon, title, null, keyEvent, listener);
     }
 
-    public static JMenuItem configureMenuItem(
+
+    private static JMenuItem menuItem(
             JMenuItem item,
             GTk.Icon icon,
             String title,
@@ -541,7 +558,6 @@ public final class GTk {
         CONN_HIDE("ConnHide.png"),
         CONN_TEST("ConnTest.png", "Test"),
         COMMANDS("Commands.png"),
-        COMMAND_QUEST("CommandQuestDB.png"),
         COMMAND_ADD("CommandAdd.png"),
         COMMAND_REMOVE("CommandRemove.png"),
         COMMAND_EDIT("CommandEdit.png"),
@@ -555,6 +571,7 @@ public final class GTk {
         COMMAND_EXEC("CommandExec.png"),
         COMMAND_EXEC_ABORT("CommandExecAbort.png"),
         COMMAND_EXEC_LINE("CommandExecLine.png"),
+        QUEST("QuestDB.png"),
         MENU("Menu.png"),
         META("Meta.png"),
         META_FILE("MetaFile.png"),
@@ -567,7 +584,6 @@ public final class GTk {
         RESULTS_PREV("ResultsPrev.png", "Prev"),
         ROCKET("Rocket.png");
 
-        private static final String FOLDER = "images";
         private static final Map<String, ImageIcon> ICON_MAP = new HashMap<>();
 
         private final String iconName;
@@ -592,7 +608,7 @@ public final class GTk {
                 throw new UnsupportedOperationException();
             }
             ImageIcon icon = ICON_MAP.get(iconName);
-            String resource = "/" + FOLDER + "/" + iconName;
+            String resource = "/images/" + iconName;
             try {
                 if (icon == null) {
                     URL url = GTk.class.getResource(resource);

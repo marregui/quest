@@ -245,15 +245,9 @@ public class SQLResultsTable extends JPanel implements Closeable {
             mode = newMode;
             Component toRemove = currentModePanel;
             switch (newMode) {
-                case TABLE:
-                    currentModePanel = tableScrollPanel;
-                    break;
-                case INFINITE:
-                    currentModePanel = infiniteSpinner;
-                    break;
-                case MESSAGE:
-                    currentModePanel = questPanel;
-                    break;
+                case TABLE -> currentModePanel = tableScrollPanel;
+                case INFINITE -> currentModePanel = infiniteSpinner;
+                case MESSAGE -> currentModePanel = questPanel;
             }
             if (toRemove != null) {
                 remove(toRemove);

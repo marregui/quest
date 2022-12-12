@@ -24,7 +24,7 @@ import java.awt.event.*;
 import java.awt.geom.*;
 import java.util.Stack;
 
-import static io.quest.frontend.GTk.configureMenuItem;
+import static io.quest.frontend.GTk.menuItem;
 
 public class Plot extends JPanel implements MouseListener, MouseMotionListener {
 
@@ -137,7 +137,7 @@ public class Plot extends JPanel implements MouseListener, MouseMotionListener {
         this.plotMenu.add(this.yDataRangeMenuItem);
 
         // Restore original range
-        this.plotMenu.add(configureMenuItem(
+        this.plotMenu.add(menuItem(
                 new JMenuItem(),
                 GTk.Icon.PLOT_RESTORE_RANGES,
                 "Restore original X-Y Range",
@@ -145,7 +145,7 @@ public class Plot extends JPanel implements MouseListener, MouseMotionListener {
                 this::restoreOriginalRanges
         ));
         // Change ranges
-        this.plotMenu.add(configureMenuItem(
+        this.plotMenu.add(menuItem(
                 new JMenuItem(),
                 GTk.Icon.PLOT_CHANGE_RANGES,
                 "Change X-Y Range",

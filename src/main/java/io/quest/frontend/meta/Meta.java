@@ -14,10 +14,9 @@
  * Copyright (c) 2019 - 2022, Miguel Arregui a.k.a. marregui
  */
 
-package io.quest.frontend.editor.meta;
+package io.quest.frontend.meta;
 
 import io.quest.frontend.GTk;
-import io.quest.frontend.conns.ConnsManager;
 import io.quest.model.*;
 import io.questdb.cairo.*;
 import io.questdb.cairo.sql.RowCursor;
@@ -33,7 +32,7 @@ import java.awt.event.WindowEvent;
 import java.io.*;
 import java.util.function.Consumer;
 
-public class Meta extends JDialog implements EventProducer<ConnsManager.EventType>, Closeable {
+public class Meta extends JDialog implements EventProducer<Meta.EventType>, Closeable {
 
     private final CairoConfiguration configuration = new DefaultCairoConfiguration(Store.ROOT_PATH.getAbsolutePath());
     private final FilesFacade ff = configuration.getFilesFacade();
@@ -41,38 +40,36 @@ public class Meta extends JDialog implements EventProducer<ConnsManager.EventTyp
     private final CounterReader counterReader = new CounterReader(ff);
     private final TableReaderMetadata metaReader = new TableReaderMetadata(configuration);
     private final ColumnVersionReader cvReader = new ColumnVersionReader();
-    private final TxtFileReader txtFileReader = new TxtFileReader();
+    private final FileReader fileReader = new FileReader();
     private final Path selectedPath = new Path();
     private final Path auxPath = new Path();
-    private final Display display = new Display();
+    private final MetaDisplay display = new MetaDisplay();
     private final FolderView treeView;
     private int rootLen;
     private String partitionFolderName;
 
     public Meta(Frame owner, EventConsumer<Meta, Object> eventConsumer) {
-        super(owner, "Metadata Files Explorer", false);
+        super(owner, "Metadata Files", false);
         setAlwaysOnTop(false);
-        setModal(false);
         setDefaultCloseOperation(WindowConstants.HIDE_ON_CLOSE);
-        Dimension dimension = GTk.frameDimension(0.85F, 0.66F);
+        Dimension dimension = GTk.frameDimension(0.78F, 0.66F);
         setSize(dimension);
         setPreferredSize(dimension);
         Dimension location = GTk.frameLocation(dimension);
         setLocation(location.width, location.height);
-        if (eventConsumer != null) {
-            addWindowListener(new WindowAdapter() {
-                @Override
-                public void windowClosing(WindowEvent we) {
-                    eventConsumer.onSourceEvent(Meta.this, Meta.EventType.HIDE_REQUEST, null);
-                }
-            });
-        }
+        addWindowListener(new WindowAdapter() {
+            @Override
+            public void windowClosing(WindowEvent we) {
+                eventConsumer.onSourceEvent(Meta.this, Meta.EventType.HIDE_REQUEST, null);
+            }
+        });
         treeView = new FolderView(this::onRootSet, this::onSelectedFile);
         treeView.setPreferredSize(new Dimension(dimension.width / 4, 0));
         Container contentPane = getContentPane();
         contentPane.setLayout(new BorderLayout());
         JSplitPane splitPane = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT, true, treeView, display);
         splitPane.setDividerLocation(0.2);
+        splitPane.setDividerSize(5);
         contentPane.add(BorderLayout.CENTER, splitPane);
         setRoot(Store.ROOT_PATH);
     }
@@ -117,6 +114,7 @@ public class Meta extends JDialog implements EventProducer<ConnsManager.EventTyp
 
     @Override
     public void close() {
+        Misc.free(treeView);
         Misc.free(metaReader);
         Misc.free(txReader);
         Misc.free(cvReader);
@@ -234,7 +232,7 @@ public class Meta extends JDialog implements EventProducer<ConnsManager.EventTyp
         for (int i = 0; i < limit; i += 4) {
             long partitionTimestamp = cvEntries.getQuick(i);
             display.addLn("  + entry ", i / 4);
-            display.addDateLn("     - partitionTimestamp: ", partitionTimestamp);
+            display.addTimestampLn("     - partitionTimestamp: ", partitionTimestamp);
             display.addLn("     - columnIndex: ", cvEntries.getQuick(i + 1));
             display.addLn("     - columnNameTxn: ", cvEntries.getQuick(i + 2));
             display.addLn("     - columnTop: ", cvEntries.getQuick(i + 3));
@@ -278,13 +276,7 @@ public class Meta extends JDialog implements EventProducer<ConnsManager.EventTyp
                         txReader.getPartitionTimestamp(i),
                         txReader.getPartitionNameTxn(i),
                         txReader.getPartitionSize(i),
-                        txReader.getPartitionColumnVersion(i),
-                        txReader.getSymbolValueCount(i)//,
-                        //txReader.getPartitionMask(i),
-                        //txReader.getPartitionIsRO(i),
-                        //txReader.getPartitionAvailable0(i),
-                        //txReader.getPartitionAvailable1(i),
-                        //txReader.getPartitionAvailable2(i)
+                        txReader.getPartitionColumnVersion(i)
                 );
             }
             display.render();
@@ -293,7 +285,7 @@ public class Meta extends JDialog implements EventProducer<ConnsManager.EventTyp
 
     private void displayTxt() throws IOException {
         display.clear();
-        txtFileReader.readLines(new File(selectedPath.toString())).forEach(display::addLn);
+        fileReader.readLines(new File(selectedPath.toString())).forEach(display::addLn);
         display.render();
     }
 

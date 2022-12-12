@@ -35,7 +35,7 @@ import java.util.concurrent.Executors;
 import java.util.function.Supplier;
 
 import io.quest.frontend.GTk;
-import io.quest.frontend.editor.meta.Meta;
+import io.quest.frontend.meta.Meta;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
@@ -45,13 +45,7 @@ import io.questdb.log.LogFactory;
 
 import javax.swing.*;
 
-/**
- * A store is a persistent list of entries, each a subclass of {@link StoreEntry},
- * backed by a JSON formatted file. Each entry has a unique key and a set of
- * identified attributes (key, value pairs).
- *
- * @param <T> a subclass of StoreItem
- */
+
 public abstract class Store<T extends StoreEntry> implements Closeable, Iterable<T> {
 
     public static final File ROOT_PATH;
@@ -67,6 +61,7 @@ public abstract class Store<T extends StoreEntry> implements Closeable, Iterable
             String userHome = System.getProperty("user.home");
             ROOT_PATH = new File(userHome != null ? userHome : ".", "QUEST").getAbsoluteFile();
             if (!ROOT_PATH.exists()) {
+                LOG.info().$("Creating Store [path=").$(ROOT_PATH).I$();
                 if (!ROOT_PATH.mkdirs()) {
                     JOptionPane.showMessageDialog(
                             null,
@@ -78,14 +73,12 @@ public abstract class Store<T extends StoreEntry> implements Closeable, Iterable
         }
     }
 
-    private final File rootPath;
     private final String fileName;
     private final Class<? extends StoreEntry> entryClass;
     private final List<T> entries;
     private final ExecutorService asyncPersist;
 
-    public Store(File rootPath, String fileName, Class<? extends StoreEntry> entryClass) {
-        this.rootPath = rootPath;
+    public Store(String fileName, Class<? extends StoreEntry> entryClass) {
         this.fileName = fileName;
         this.entryClass = entryClass;
         entries = new ArrayList<>();
@@ -95,10 +88,6 @@ public abstract class Store<T extends StoreEntry> implements Closeable, Iterable
             thread.setName("Store-" + fileName);
             return thread;
         });
-    }
-
-    public Store(String fileName, Class<? extends StoreEntry> clazz) {
-        this(ROOT_PATH, fileName, clazz);
     }
 
     private static List<StoreEntry> loadFromFile(File file) {
@@ -121,9 +110,6 @@ public abstract class Store<T extends StoreEntry> implements Closeable, Iterable
 
     public abstract T[] defaultStoreEntries();
 
-    public File getRootPath() {
-        return rootPath;
-    }
 
     public synchronized void addEntry(T entry) {
         if (entry != null) {
@@ -246,12 +232,6 @@ public abstract class Store<T extends StoreEntry> implements Closeable, Iterable
     }
 
     private File getFile() {
-        if (!rootPath.exists()) {
-            boolean created = rootPath.mkdirs();
-            LOG.info().$("Creating Store [path=").$(rootPath.getAbsolutePath())
-                    .$(", status=").$(created ? "Ok" : "Fail")
-                    .I$();
-        }
-        return new File(rootPath, fileName);
+        return new File(ROOT_PATH, fileName);
     }
 }

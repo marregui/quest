@@ -14,7 +14,7 @@
  * Copyright (c) 2019 - 2022, Miguel Arregui a.k.a. marregui
  */
 
-package io.quest.frontend.editor.meta;
+package io.quest.frontend.meta;
 
 import io.quest.frontend.editor.Highlighter;
 
@@ -23,23 +23,6 @@ import javax.swing.text.*;
 import java.util.regex.Pattern;
 
 public class MetaHighlighter extends Highlighter {
-
-    public static MetaHighlighter of(JTextPane textPane) {
-        MetaHighlighter highlighter = new MetaHighlighter(textPane.getStyledDocument());
-        AbstractDocument doc = (AbstractDocument) textPane.getDocument();
-        doc.putProperty(DefaultEditorKit.EndOfLineStringProperty, "\n");
-        doc.setDocumentFilter(highlighter);
-        return highlighter;
-    }
-
-    MetaHighlighter(StyledDocument styledDocument) {
-        super(styledDocument);
-    }
-
-    @Override
-    public void handleTextChanged(String txt) {
-        applyStyle(KEY_PATTERN.matcher(txt), HIGHLIGHT_KEYWORD, false);
-    }
 
     // https://docs.oracle.com/javase/tutorial/essential/regex/bounds.html
     static final Pattern KEY_PATTERN = Pattern.compile(
@@ -54,8 +37,25 @@ public class MetaHighlighter extends Highlighter {
                     + "\\browCount\\b|\\bfixedRowCount\\b|\\btransientRowCount\\b|\\bminTimestamp\\b|"
                     + "\\bmaxTimestamp\\b|\\brecordSize\\b|\\bsymbolColumnCount\\b|\\bpartitionCount\\b|"
                     + "\\bsymbolCapacity\\b|\\bisCached\\b|\\bisDeleted\\b|\\bcontainsNullValue\\b|\\brecord\\b|"
-                    + "\\bor\\b|\\bentry\\b|\\bsize\\b|\\btotal\\b|"
+                    + "\\bcv\\b|\\bor\\b|\\bentry\\b|\\bsize\\b|\\btotal\\b|"
                     + "-|\\+|:|>|<|=|\\.|,|;|\\(|\\)|\\[|\\]"
                     + "",
             PATTERN_FLAGS);
+
+    MetaHighlighter(StyledDocument styledDocument) {
+        super(styledDocument);
+    }
+
+    public static MetaHighlighter of(JTextPane textPane) {
+        MetaHighlighter highlighter = new MetaHighlighter(textPane.getStyledDocument());
+        AbstractDocument doc = (AbstractDocument) textPane.getDocument();
+        doc.putProperty(DefaultEditorKit.EndOfLineStringProperty, "\n");
+        doc.setDocumentFilter(highlighter);
+        return highlighter;
+    }
+
+    @Override
+    public void handleTextChanged(String txt) {
+        applyStyle(KEY_PATTERN.matcher(txt), HIGHLIGHT_KEYWORD, false);
+    }
 }

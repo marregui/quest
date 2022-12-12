@@ -14,13 +14,16 @@
  * Copyright (c) 2019 - 2022, Miguel Arregui a.k.a. marregui
  */
 
-package io.quest.model;
+package io.quest;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.is;
 
 import java.io.File;
 
+import io.quest.model.ConnAttrs;
+import io.quest.model.Store;
+import io.quest.model.StoreEntry;
 import org.hamcrest.Matchers;
 import org.junit.jupiter.api.Test;
 
@@ -28,15 +31,15 @@ import static io.quest.frontend.editor.QuestPanel.Content;
 
 public class StoreTest {
 
-    private static class TStore<T extends StoreEntry> extends Store<T> {
-        public TStore(String fileName, Class<? extends StoreEntry> clazz) {
-            super(fileName, clazz);
+    private static String deleteIfExists(String fileName) {
+        if (fileName != null) {
+            File file = new File(Store.ROOT_PATH, fileName);
+            if (file.exists()) {
+                assertThat("delete", file.delete());
+            }
+            assertThat(file.exists(), is(false));
         }
-
-        @Override
-        public T[] defaultStoreEntries() {
-            return null;
-        }
+        return fileName;
     }
 
     @Test
@@ -124,14 +127,14 @@ public class StoreTest {
         }
     }
 
-    private static String deleteIfExists(String fileName) {
-        if (fileName != null) {
-            File file = new File(Store.ROOT_PATH, fileName);
-            if (file.exists()) {
-                assertThat("delete", file.delete());
-            }
-            assertThat(file.exists(), is(false));
+    private static class TStore<T extends StoreEntry> extends Store<T> {
+        public TStore(String fileName, Class<? extends StoreEntry> clazz) {
+            super(fileName, clazz);
         }
-        return fileName;
+
+        @Override
+        public T[] defaultStoreEntries() {
+            return null;
+        }
     }
 }

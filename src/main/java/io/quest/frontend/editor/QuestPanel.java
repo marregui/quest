@@ -32,7 +32,14 @@ import javax.swing.undo.UndoManager;
 import io.quest.backend.SQLExecutionRequest;
 import io.quest.model.*;
 import io.quest.frontend.GTk;
-import io.quest.frontend.conns.ConnsManager;
+import io.quest.frontend.conns.Conns;
+
+import static io.quest.frontend.GTk.Icon;
+import static io.quest.frontend.GTk.menu;
+import static io.quest.frontend.GTk.menuItem;
+import static io.quest.frontend.GTk.flowPanel;
+import static io.quest.frontend.GTk.gap;
+import static io.quest.frontend.GTk.label;
 
 public class QuestPanel extends Editor implements EventProducer<QuestPanel.EventType>, Closeable {
 
@@ -77,11 +84,11 @@ public class QuestPanel extends Editor implements EventProducer<QuestPanel.Event
             }
         });
 
-        JPanel questsPanel = GTk.flowPanel(GTk.horizontalSpace(24), questLabel = GTk.label(GTk.Icon.COMMAND_QUEST, "uest", null), GTk.horizontalSpace(6), questEntryNames, GTk.horizontalSpace(12), connLabel = GTk.label(GTk.Icon.NO_ICON, null, e -> eventConsumer.onSourceEvent(QuestPanel.this, EventType.CONNECTION_STATUS_CLICKED, null)));
+        JPanel questsPanel = flowPanel(gap(24), questLabel = label(Icon.QUEST, "uest", null), gap(6), questEntryNames, gap(12), connLabel = label(Icon.NO_ICON, null, e -> eventConsumer.onSourceEvent(QuestPanel.this, EventType.CONNECTION_STATUS_CLICKED, null)));
         questLabel.setForeground(Color.WHITE);
         fontSizeLabel = new JLabel("");
         fontSizeLabel.setFont(GTk.MENU_FONT);
-        fontSizeSlider = new JSlider(JSlider.HORIZONTAL, GTk.MIN_FONT_SIZE, GTk.MAX_FONT_SIZE, GTk.DEFAULT_FONT_SIZE);
+        fontSizeSlider = new JSlider(JSlider.HORIZONTAL, GTk.EDITOR_MIN_FONT_SIZE, GTk.EDITOR_MAX_FONT_SIZE, GTk.EDITOR_DEFAULT_FONT_SIZE);
         fontSizeSlider.addChangeListener(e -> {
             JSlider x = (JSlider) e.getSource();
             setFontSize(x.getValue());
@@ -93,7 +100,7 @@ public class QuestPanel extends Editor implements EventProducer<QuestPanel.Event
                 case REPLACE -> onReplace();
             }
         });
-        setFontSize(GTk.DEFAULT_FONT_SIZE);
+        setFontSize(GTk.EDITOR_DEFAULT_FONT_SIZE);
         JPanel topPanel = new JPanel(new BorderLayout(0, 0));
         topPanel.setPreferredSize(new Dimension(0, COMPONENT_HEIGHT + 2));
         topPanel.setBackground(Color.BLACK);
@@ -108,7 +115,7 @@ public class QuestPanel extends Editor implements EventProducer<QuestPanel.Event
     public void setFontSize(int newFontSize) {
         super.setFontSize(newFontSize);
         fontSizeLabel.setText(String.format("Font size [%d,%d]: %d",
-                GTk.MIN_FONT_SIZE, GTk.MAX_FONT_SIZE, textPane.getFont().getSize()));
+                GTk.EDITOR_MIN_FONT_SIZE, GTk.EDITOR_MAX_FONT_SIZE, textPane.getFont().getSize()));
         fontSizeSlider.setValue(newFontSize);
     }
 
@@ -259,7 +266,7 @@ public class QuestPanel extends Editor implements EventProducer<QuestPanel.Event
     }
 
     private void onBackupQuests(ActionEvent event) {
-        JFileChooser choose = new JFileChooser(store.getRootPath());
+        JFileChooser choose = new JFileChooser(Store.ROOT_PATH);
         choose.setDialogTitle("Backing up quests");
         choose.setDialogType(JFileChooser.SAVE_DIALOG);
         choose.setFileSelectionMode(JFileChooser.FILES_ONLY);
@@ -281,7 +288,7 @@ public class QuestPanel extends Editor implements EventProducer<QuestPanel.Event
     }
 
     private void onLoadQuestsFromBackup(ActionEvent event) {
-        JFileChooser choose = new JFileChooser(store.getRootPath());
+        JFileChooser choose = new JFileChooser(Store.ROOT_PATH);
         choose.setDialogTitle("Loading quests from backup");
         choose.setDialogType(JFileChooser.OPEN_DIALOG);
         choose.setFileSelectionMode(JFileChooser.FILES_ONLY);
@@ -290,7 +297,7 @@ public class QuestPanel extends Editor implements EventProducer<QuestPanel.Event
             @Override
             public boolean accept(File f) {
                 String name = f.getName();
-                return name.endsWith(".json") && !name.equals(ConnsManager.STORE_FILE_NAME);
+                return name.endsWith(".json") && !name.equals(Conns.STORE_FILE_NAME);
             }
 
             @Override
@@ -369,17 +376,17 @@ public class QuestPanel extends Editor implements EventProducer<QuestPanel.Event
     }
 
     private JMenu createQuestsMenu() {
-        final JMenu questsMenu = GTk.jmenu("uest", GTk.Icon.COMMAND_QUEST); // the Q comes from an icon
-        questsMenu.add(GTk.configureMenuItem(new JMenuItem(), GTk.Icon.COMMAND_ADD, "New", GTk.NO_KEY_EVENT, this::onCreateQuest));
-        questsMenu.add(GTk.configureMenuItem(new JMenuItem(), GTk.Icon.COMMAND_EDIT, "Rename", GTk.NO_KEY_EVENT, this::onRenameQuest));
-        questsMenu.add(GTk.configureMenuItem(new JMenuItem(), GTk.Icon.COMMAND_REMOVE, "Delete", GTk.NO_KEY_EVENT, this::onDeleteQuest));
+        final JMenu questsMenu = menu(Icon.QUEST, "uest");
+        questsMenu.add(menuItem(Icon.COMMAND_ADD, "New", GTk.NO_KEY_EVENT, this::onCreateQuest));
+        questsMenu.add(menuItem(Icon.COMMAND_EDIT, "Rename", GTk.NO_KEY_EVENT, this::onRenameQuest));
+        questsMenu.add(menuItem(Icon.COMMAND_REMOVE, "Delete", GTk.NO_KEY_EVENT, this::onDeleteQuest));
         questsMenu.addSeparator();
-        questsMenu.add(GTk.configureMenuItem(new JMenuItem(), GTk.Icon.COMMAND_CLEAR, "Clear", GTk.NO_KEY_EVENT, this::onClearQuest));
-        questsMenu.add(GTk.configureMenuItem(new JMenuItem(), GTk.Icon.COMMAND_RELOAD, "Reload", "Recovers quest from last save", GTk.NO_KEY_EVENT, this::onReloadQuest));
-        questsMenu.add(GTk.configureMenuItem(new JMenuItem(), GTk.Icon.COMMAND_SAVE, "Save", GTk.NO_KEY_EVENT, this::onSaveQuest));
+        questsMenu.add(menuItem(Icon.COMMAND_CLEAR, "Clear", GTk.NO_KEY_EVENT, this::onClearQuest));
+        questsMenu.add(menuItem(Icon.COMMAND_RELOAD, "Reload", "Recovers quest from last save", GTk.NO_KEY_EVENT, this::onReloadQuest));
+        questsMenu.add(menuItem(Icon.COMMAND_SAVE, "Save", GTk.NO_KEY_EVENT, this::onSaveQuest));
         questsMenu.addSeparator();
-        questsMenu.add(GTk.configureMenuItem(new JMenuItem(), GTk.Icon.COMMAND_STORE_LOAD, "Read from notebook", GTk.NO_KEY_EVENT, this::onLoadQuestsFromBackup));
-        questsMenu.add(GTk.configureMenuItem(new JMenuItem(), GTk.Icon.COMMAND_STORE_BACKUP, "Write to new notebook", GTk.NO_KEY_EVENT, this::onBackupQuests));
+        questsMenu.add(menuItem(Icon.COMMAND_STORE_LOAD, "Read from notebook", GTk.NO_KEY_EVENT, this::onLoadQuestsFromBackup));
+        questsMenu.add(menuItem(Icon.COMMAND_STORE_BACKUP, "Write to new notebook", GTk.NO_KEY_EVENT, this::onBackupQuests));
         questsMenu.addSeparator();
         questsMenu.add(fontSizeLabel);
         questsMenu.add(fontSizeSlider);

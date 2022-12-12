@@ -90,7 +90,7 @@ public class Editor extends JPanel {
     }
 
     public void setFontSize(int newFontSize) {
-        Font newFont = GTk.updateEditorFontSize(newFontSize);
+        Font newFont = GTk.newEditorFontSize(newFontSize);
         FontMetrics metrics = textPane.getFontMetrics(newFont);
         int h = metrics.getHeight() / 2;
         int leftMargin = metrics.stringWidth(MARGIN_TOKEN);
@@ -275,7 +275,7 @@ public class Editor extends JPanel {
     private void cmdFontUp(ActionEvent event) {
         // cmd-F, font size up
         int newFontSize = textPane.getFont().getSize() + 1;
-        if (newFontSize <= GTk.MAX_FONT_SIZE) {
+        if (newFontSize <= GTk.EDITOR_MAX_FONT_SIZE) {
             setFontSize(newFontSize);
         }
     }
@@ -283,7 +283,7 @@ public class Editor extends JPanel {
     private void cmdFontDown(ActionEvent event) {
         // cmd-shift-F, jump to the beginning of the document
         int newFontSize = textPane.getFont().getSize() - 1;
-        if (newFontSize >= GTk.MIN_FONT_SIZE) {
+        if (newFontSize >= GTk.EDITOR_MIN_FONT_SIZE) {
             setFontSize(newFontSize);
         }
     }
@@ -560,7 +560,7 @@ public class Editor extends JPanel {
             int strWidth = metrics.stringWidth(lineStr);
             int marginWidth = metrics.stringWidth(MARGIN_TOKEN);
             int x = marginWidth - strWidth - 10;
-            int y = (int) (metrics.getHeight() * 0.27) + line * metrics.getHeight();
+            int y = metrics.getHeight() / 3 + line * metrics.getHeight();
             g.drawString(lineStr, x, y);
         }
     }

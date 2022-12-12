@@ -41,11 +41,11 @@ import static io.quest.frontend.GTk.*;
 import static io.quest.frontend.GTk.Icon;
 
 
-public class ConnsManager extends JDialog implements EventProducer<ConnsManager.EventType>, Closeable {
+public class Conns extends JDialog implements EventProducer<Conns.EventType>, Closeable {
 
     public static final String STORE_FILE_NAME = "connections.json";
-    private static final Log LOG = LogFactory.getLog(ConnsManager.class);
-    private final EventConsumer<ConnsManager, Object> eventConsumer;
+    private static final Log LOG = LogFactory.getLog(Conns.class);
+    private final EventConsumer<Conns, Object> eventConsumer;
     private final Store<Conn> store;
     private final JButton assignButton;
     private final JButton testButton;
@@ -57,7 +57,7 @@ public class ConnsManager extends JDialog implements EventProducer<ConnsManager.
     private final ConnsTableModel tableModel;
     private final ConnsChecker connsValidityChecker;
 
-    public ConnsManager(Frame owner, EventConsumer<ConnsManager, Object> eventConsumer) {
+    public Conns(Frame owner, EventConsumer<Conns, Object> eventConsumer) {
         super(owner, "Connections", false); // does not block use of the main app
         this.eventConsumer = eventConsumer;
         store = new Store<>(STORE_FILE_NAME, Conn.class) {
@@ -118,7 +118,7 @@ public class ConnsManager extends JDialog implements EventProducer<ConnsManager.
             @Override
             public void windowClosing(WindowEvent we) {
                 eventConsumer.onSourceEvent(
-                        ConnsManager.this, EventType.HIDE_REQUEST, null);
+                        Conns.this, EventType.HIDE_REQUEST, null);
             }
         });
     }

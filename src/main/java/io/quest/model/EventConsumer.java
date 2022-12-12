@@ -33,7 +33,7 @@ public interface EventConsumer<EventProducerType extends EventProducer<?>, Event
 
     /**
      * Callback.
-     * 
+     *
      * @param source    the source of the event, implements of {@link EventProducer}
      * @param eventType enum declared by the source (kind of event being consumed)
      * @param eventData carries the event data

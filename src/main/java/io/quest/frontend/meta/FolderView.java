@@ -14,34 +14,36 @@
  * Copyright (c) 2019 - 2022, Miguel Arregui a.k.a. marregui
  */
 
-package io.quest.frontend.editor.meta;
+package io.quest.frontend.meta;
 
 import io.quest.frontend.GTk;
 import io.questdb.std.Files;
+import io.questdb.std.Misc;
 
 import javax.swing.*;
 import javax.swing.tree.*;
 import java.awt.*;
+import java.io.Closeable;
 import java.io.File;
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.function.Consumer;
 
-class FolderView extends JPanel {
+class FolderView extends JPanel implements Closeable {
     private static final Set<String> IGNORE_FOLDERS = new HashSet<>(Arrays.asList("questdb", "conf", "public"));
 
     private final JTree treeView;
     private final JFileChooser chooser;
     private final Consumer<File> onRootChange;
     private final Set<FileType> visibleFileTypes = new HashSet<>();
+    private final FolderChangeObserver folderChangeObserver;
     private File root; // setRoot changes it
 
     FolderView(Consumer<File> onRootChange, Consumer<TreePath> onSelection) {
         super(new BorderLayout());
         this.onRootChange = onRootChange;
-
-        treeView = new JTree(new DefaultMutableTreeNode("UNDEFINED"));
+        treeView = new JTree(new DefaultMutableTreeNode(null));
         treeView.setBackground(Color.BLACK);
         treeView.setBorder(BorderFactory.createEmptyBorder());
         treeView.getSelectionModel().setSelectionMode(TreeSelectionModel.SINGLE_TREE_SELECTION);
@@ -54,8 +56,13 @@ class FolderView extends JPanel {
                 super.getTreeCellRendererComponent(tree, value, selected, expanded, leaf, row, hasFocus);
                 setOpaque(true);
                 setFont(GTk.MENU_FONT);
-                setBackground(Color.BLACK);
-                setForeground(GTk.EDITOR_FONT_COLOR);
+                if (leaf && selected) {
+                    setBackground(Color.YELLOW);
+                    setForeground(Color.BLACK);
+                } else {
+                    setBackground(Color.BLACK);
+                    setForeground(GTk.EDITOR_FONT_COLOR);
+                }
                 String text = value.toString();
                 if (leaf && !text.endsWith("" + Files.SEPARATOR)) {
                     setIcon(FileType.of(extractItemName(text)) != FileType.UNKNOWN ? fileIcon : unknownIcon);
@@ -77,19 +84,17 @@ class FolderView extends JPanel {
         chooser.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
         chooser.setAcceptAllFileFilterUsed(false);
         chooser.setMultiSelectionEnabled(false);
-
+        folderChangeObserver = new FolderChangeObserver((source, type, data) -> reloadModel());
         JPanel checkBoxPane = new JPanel(new GridLayout(4, 4, 0, 0));
         checkBoxPane.setBackground(Color.BLACK);
         for (FileType type : FileType.values()) {
             checkBoxPane.add(createVisibleFileTypeCheckBox(type));
         }
-
-        // button panel to be added to the south
         JPanel buttonPanel = new JPanel(new GridLayout(1, 3, 0, 0));
         buttonPanel.setBackground(Color.BLACK);
         buttonPanel.setBorder(BorderFactory.createLineBorder(Color.WHITE, 1, true));
         buttonPanel.add(GTk.button("Set", () -> {
-            String root = JOptionPane.showInputDialog(null, "Root:", null, JOptionPane.QUESTION_MESSAGE);
+            String root = JOptionPane.showInputDialog(FolderView.this, "Root:", null, JOptionPane.QUESTION_MESSAGE);
             if (root != null) {
                 File folder = new File(root);
                 if (folder.exists() && folder.isDirectory()) {
@@ -102,9 +107,6 @@ class FolderView extends JPanel {
                 setRoot(chooser.getSelectedFile());
             }
         }));
-        buttonPanel.add(GTk.button("Reload", this::reloadModel));
-
-        // compose panels
         add(checkBoxPane, BorderLayout.NORTH);
         add(scrollPane, BorderLayout.CENTER);
         add(buttonPanel, BorderLayout.SOUTH);
@@ -124,13 +126,40 @@ class FolderView extends JPanel {
 
     void setRoot(File root) {
         this.root = root;
+        folderChangeObserver.registerReplacing(root);
         reloadModel();
         onRootChange.accept(root);
     }
 
-    private void reloadModel() {
+    void reloadModel() {
         if (root != null) {
-            treeView.setModel(createModel(root));
+            TreePath selected = treeView.getSelectionPath();
+            TreeModel model = createModel(root);
+            treeView.setModel(model);
+            if (selected != null) {
+                Object[] nodes = selected.getPath();
+                DefaultMutableTreeNode top = (DefaultMutableTreeNode) model.getRoot();
+                TreePath expand = new TreePath(top);
+                for (int i = 1; i < nodes.length; i++) {
+                    treeView.expandPath(expand);
+                    String nodeName = nodes[i].toString();
+                    DefaultMutableTreeNode child = null;
+                    for (int j = 0; j < top.getChildCount(); j++) {
+                        DefaultMutableTreeNode tmp = (DefaultMutableTreeNode) top.getChildAt(j);
+                        String childName = tmp.toString();
+                        if (childName.equals(nodeName)) {
+                            top = tmp;
+                            child = top;
+                            break;
+                        }
+                    }
+                    if (child == null) {
+                        break;
+                    }
+                    expand = expand.pathByAddingChild(child);
+                }
+                treeView.setSelectionPath(expand);
+            }
         }
     }
 
@@ -185,5 +214,10 @@ class FolderView extends JPanel {
             visibleFileTypes.add(type);
         }
         return checkBox;
+    }
+
+    @Override
+    public void close() {
+        Misc.free(folderChangeObserver);
     }
 }

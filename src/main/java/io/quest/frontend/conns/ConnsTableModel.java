@@ -62,7 +62,6 @@ class ConnsTableModel extends AbstractTableModel implements Closeable {
     private static final int[] COL_WIDTHS = {
             200, 400, 100, 200, 200, 200, 200
     };
-    private static final long serialVersionUID = 1L;
     private final List<Conn> conns;
     private final Set<String> existingNames;
 
@@ -199,14 +198,11 @@ class ConnsTableModel extends AbstractTableModel implements Closeable {
         }
         Conn conn = conns.get(rowIdx);
         String attrName = COL_NAMES[colIdx];
-        switch (attrName) {
-            case NAME_COL:
-                return conn.getName();
-            case CONNECTED_COL:
-                return conn.isOpen() ? "Yes" : "No";
-            default:
-                return conn.getAttr(attrName);
-        }
+        return switch (attrName) {
+            case NAME_COL -> conn.getName();
+            case CONNECTED_COL -> conn.isOpen() ? "Yes" : "No";
+            default -> conn.getAttr(attrName);
+        };
     }
 
     @Override
