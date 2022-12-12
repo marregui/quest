@@ -276,8 +276,7 @@ public class Meta extends JDialog implements EventProducer<Meta.EventType>, Clos
                         txReader.getPartitionTimestamp(i),
                         txReader.getPartitionNameTxn(i),
                         txReader.getPartitionSize(i),
-                        txReader.getPartitionColumnVersion(i)
-                );
+                        txReader.getPartitionColumnVersion(i));
             }
             display.render();
         }
