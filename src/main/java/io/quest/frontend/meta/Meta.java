@@ -49,7 +49,8 @@ public class Meta extends JDialog implements EventProducer<Meta.EventType>, Clos
     private String partitionFolderName;
 
     public Meta(Frame owner, EventConsumer<Meta, Object> eventConsumer) {
-        super(owner, "Metadata Files", false);
+        super(owner, "Metadata Files");
+        setModalityType(ModalityType.MODELESS);
         setAlwaysOnTop(false);
         setDefaultCloseOperation(WindowConstants.HIDE_ON_CLOSE);
         Dimension dimension = GTk.frameDimension(0.78F, 0.66F);

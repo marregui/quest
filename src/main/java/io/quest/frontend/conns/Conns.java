@@ -54,7 +54,7 @@ public class Conns extends JDialog implements EventProducer<Conns.EventType>, Cl
     private final JButton removeButton;
     private final JButton reloadButton;
     private final JTable table;
-    private final ConnsTableModel tableModel;
+    private final ConnsModel tableModel;
     private final ConnsChecker connsValidityChecker;
 
     public Conns(Frame owner, EventConsumer<Conns, Object> eventConsumer) {
@@ -64,22 +64,22 @@ public class Conns extends JDialog implements EventProducer<Conns.EventType>, Cl
             @Override
             public Conn[] defaultStoreEntries() {
                 return new Conn[]{
-                        new Conn("QuestDB"),
-                        new Conn("Postgres",
-                                "localhost",
-                                "5432",
-                                "postgres",
-                                "postgres",
-                                "password")
+                    new Conn("QuestDB"),
+                    new Conn("Postgres",
+                        "localhost",
+                        "5432",
+                        "postgres",
+                        "postgres",
+                        "password")
                 };
             }
         };
-        table = ConnsTableModel.createTable(this::onTableModelUpdate, this::onListSelection);
-        tableModel = (ConnsTableModel) table.getModel();
+        table = ConnsModel.createTable(this::onTableModelUpdate, this::onListSelection);
+        tableModel = (ConnsModel) table.getModel();
         JScrollPane tableScrollPanel = new JScrollPane(
-                table,
-                JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED,
-                JScrollPane.HORIZONTAL_SCROLLBAR_AS_NEEDED);
+            table,
+            JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED,
+            JScrollPane.HORIZONTAL_SCROLLBAR_AS_NEEDED);
         tableScrollPanel.getViewport().setBackground(Color.BLACK);
         connsValidityChecker = new ConnsChecker(tableModel::getConns, this::onLostConnsEvent);
         reloadButton = button(Icon.COMMAND_RELOAD, "Reload last saved connections", this::onReload);
@@ -90,12 +90,12 @@ public class Conns extends JDialog implements EventProducer<Conns.EventType>, Cl
         connectButton = button(Icon.CONN_CONNECT, "Connect selected connection", this::onConnect);
         assignButton = button(Icon.CONN_ASSIGN, "Assign selected connection", this::onAssign);
         JPanel buttons = flowPanel(
-                BorderFactory.createLineBorder(Color.WHITE, 1, true),
-                Color.BLACK,
-                50,
-                0,
-                flowPanel(reloadButton, cloneButton, addButton, removeButton),
-                flowPanel(testButton, connectButton, assignButton));
+            BorderFactory.createLineBorder(Color.WHITE, 1, true),
+            Color.BLACK,
+            50,
+            0,
+            flowPanel(reloadButton, cloneButton, addButton, removeButton),
+            flowPanel(testButton, connectButton, assignButton));
 
         Container contentPane = getContentPane();
         contentPane.setLayout(new BorderLayout());
@@ -104,8 +104,8 @@ public class Conns extends JDialog implements EventProducer<Conns.EventType>, Cl
 
         Dimension frameDim = frameDimension();
         Dimension dimension = new Dimension(
-                (int) (frameDim.width * 0.8),
-                (int) (frameDim.height * 0.35));
+            (int) (frameDim.width * 0.8),
+            (int) (frameDim.height * 0.35));
         Dimension location = frameLocation(dimension);
         setPreferredSize(dimension);
         setSize(dimension);
@@ -118,7 +118,7 @@ public class Conns extends JDialog implements EventProducer<Conns.EventType>, Cl
             @Override
             public void windowClosing(WindowEvent we) {
                 eventConsumer.onSourceEvent(
-                        Conns.this, EventType.HIDE_REQUEST, null);
+                    Conns.this, EventType.HIDE_REQUEST, null);
             }
         });
     }
@@ -156,10 +156,10 @@ public class Conns extends JDialog implements EventProducer<Conns.EventType>, Cl
     public void onConnectEvent(Conn conn) {
         if (conn == null) {
             JOptionPane.showMessageDialog(
-                    this,
-                    "Connection not set",
-                    "Connection Failed",
-                    JOptionPane.ERROR_MESSAGE);
+                this,
+                "Connection not set",
+                "Connection Failed",
+                JOptionPane.ERROR_MESSAGE);
             return;
         }
         if (!tableModel.containsConn(conn)) {
@@ -188,9 +188,9 @@ public class Conns extends JDialog implements EventProducer<Conns.EventType>, Cl
         StringBuilder sb = new StringBuilder();
         for (Conn conn : lostConns) {
             String msg = String.format(
-                    "Lost connection with [%s] as '%s'",
-                    conn.getUri(),
-                    conn.getUsername());
+                "Lost connection with [%s] as '%s'",
+                conn.getUri(),
+                conn.getUsername());
             sb.append(msg).append("\n");
         }
         LOG.error().$("lost connection [conn=").$(sb.toString()).I$();
@@ -258,27 +258,27 @@ public class Conns extends JDialog implements EventProducer<Conns.EventType>, Cl
 
     private void onAddConnFromTemplate(Conn template) {
         String name = JOptionPane.showInputDialog(
-                this,
-                "Name",
-                "New Connection",
-                JOptionPane.INFORMATION_MESSAGE);
+            this,
+            "Name",
+            "New Connection",
+            JOptionPane.INFORMATION_MESSAGE);
         if (name == null || name.isEmpty()) {
             return;
         }
         if (name.contains(" ") || name.contains("\t")) {
             JOptionPane.showMessageDialog(
-                    this,
-                    "Name cannot contain whites",
-                    "Add Fail",
-                    JOptionPane.ERROR_MESSAGE);
+                this,
+                "Name cannot contain whites",
+                "Add Fail",
+                JOptionPane.ERROR_MESSAGE);
             return;
         }
         if (tableModel.containsName(name)) {
             JOptionPane.showMessageDialog(
-                    this,
-                    "Name already exists",
-                    "Add Fail",
-                    JOptionPane.ERROR_MESSAGE);
+                this,
+                "Name already exists",
+                "Add Fail",
+                JOptionPane.ERROR_MESSAGE);
             return;
         }
         Conn added = new Conn(name, template);
@@ -315,21 +315,21 @@ public class Conns extends JDialog implements EventProducer<Conns.EventType>, Cl
             if (conn != null) {
                 conn.testConnectivity();
                 JOptionPane.showMessageDialog(
-                        this,
-                        "Connection Successful");
+                    this,
+                    "Connection Successful");
             } else {
                 JOptionPane.showMessageDialog(
-                        this,
-                        "Connection not set",
-                        "Connection Failed",
-                        JOptionPane.ERROR_MESSAGE);
+                    this,
+                    "Connection not set",
+                    "Connection Failed",
+                    JOptionPane.ERROR_MESSAGE);
             }
         } catch (Exception e) {
             JOptionPane.showMessageDialog(
-                    this,
-                    e.getMessage(),
-                    "Connection Failed",
-                    JOptionPane.ERROR_MESSAGE);
+                this,
+                e.getMessage(),
+                "Connection Failed",
+                JOptionPane.ERROR_MESSAGE);
         }
     }
 

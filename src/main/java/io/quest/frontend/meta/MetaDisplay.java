@@ -16,6 +16,7 @@
 
 package io.quest.frontend.meta;
 
+import io.quest.frontend.GTk;
 import io.quest.frontend.editor.Editor;
 import io.questdb.cairo.ColumnType;
 import io.questdb.cairo.PartitionBy;
@@ -31,16 +32,16 @@ class MetaDisplay extends Editor {
             "yyyy-MM-ddTHH:mm:ss.SSSSSSZ"
     );
 
-    static {
-        // preload, which compiles the pattern and is costly, penalising startup time
-        TS_FORMATTER.format(0, null, "Z", new StringSink());
-    }
 
     private final StringSink sink = new StringSink();
 
     public MetaDisplay() {
         super(true, MetaHighlighter::of);
-        setFontSize(14);
+        setFontSize(GTk.META_EXPLORER_FONT_SIZE);
+
+        // preload, which compiles the pattern and is costly, penalising startup time
+        TS_FORMATTER.format(0, null, "Z", sink);
+        sink.clear();
     }
 
     public void clear() {

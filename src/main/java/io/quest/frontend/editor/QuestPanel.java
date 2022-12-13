@@ -43,8 +43,6 @@ import static io.quest.frontend.GTk.label;
 
 public class QuestPanel extends Editor implements EventProducer<QuestPanel.EventType>, Closeable {
 
-    private static final Color CONNECTED_COLOR = new Color(69, 191, 84); //  green
-    private static final Color NOT_CONNECTED_COLOR = GTk.MAIN_FONT_COLOR;
     private static final int COMPONENT_HEIGHT = 33;
     private static final String STORE_FILE_NAME = "default-notebook.json";
     private final EventConsumer<QuestPanel, SQLExecutionRequest> eventConsumer;
@@ -68,7 +66,7 @@ public class QuestPanel extends Editor implements EventProducer<QuestPanel.Event
         questEntryNames = new JComboBox<>();
         questEntryNames.setFont(GTk.TABLE_CELL_FONT);
         questEntryNames.setBackground(Color.BLACK);
-        questEntryNames.setForeground(CONNECTED_COLOR);
+        questEntryNames.setForeground(GTk.EDITOR_FONT_COLOR);
         questEntryNames.setEditable(false);
         questEntryNames.setPreferredSize(new Dimension(490, COMPONENT_HEIGHT));
         questEntryNames.addActionListener(this::onChangeQuest);
@@ -76,15 +74,29 @@ public class QuestPanel extends Editor implements EventProducer<QuestPanel.Event
         questEntryNames.setRenderer(new DefaultListCellRenderer() {
             @Override
             public Component getListCellRendererComponent(JList list, Object value, int index, boolean isSelected, boolean cellHasFocus) {
-                Component c = super.getListCellRendererComponent(list, value, index, isSelected, cellHasFocus);
-                c.setForeground(Color.YELLOW);
+                super.getListCellRendererComponent(list, value, index, isSelected, cellHasFocus);
+                if (isSelected) {
+                    setBackground(Color.YELLOW);
+                    setForeground(Color.BLACK);
+                } else {
+                    setBackground(Color.BLACK);
+                    setForeground(GTk.EDITOR_FONT_COLOR);
+                }
                 list.setSelectionBackground(Color.BLACK);
-                list.setSelectionForeground(CONNECTED_COLOR);
-                return c;
+                list.setSelectionForeground(GTk.EDITOR_FONT_COLOR);
+                return this;
             }
         });
-
-        JPanel questsPanel = flowPanel(gap(24), questLabel = label(Icon.QUEST, "uest", null), gap(6), questEntryNames, gap(12), connLabel = label(Icon.NO_ICON, null, e -> eventConsumer.onSourceEvent(QuestPanel.this, EventType.CONNECTION_STATUS_CLICKED, null)));
+        JPanel questsPanel = flowPanel(
+            gap(24),
+            questLabel = label(Icon.QUEST, "uest", null),
+            gap(6),
+            questEntryNames,
+            gap(12),
+            connLabel = label(Icon.NO_ICON, null, e -> eventConsumer.onSourceEvent(
+                QuestPanel.this,
+                EventType.CONNECTION_STATUS_CLICKED,
+                null)));
         questLabel.setForeground(Color.WHITE);
         fontSizeLabel = new JLabel("");
         fontSizeLabel.setFont(GTk.MENU_FONT);
@@ -107,15 +119,14 @@ public class QuestPanel extends Editor implements EventProducer<QuestPanel.Event
         topPanel.add(questsPanel, BorderLayout.WEST);
         topPanel.add(findPanel, BorderLayout.SOUTH);
         add(topPanel, BorderLayout.NORTH);
-
-        refreshConnLabel();
         loadStoreEntries(STORE_FILE_NAME);
+        refreshConnLabel();
     }
 
     public void setFontSize(int newFontSize) {
         super.setFontSize(newFontSize);
         fontSizeLabel.setText(String.format("Font size [%d,%d]: %d",
-                GTk.EDITOR_MIN_FONT_SIZE, GTk.EDITOR_MAX_FONT_SIZE, textPane.getFont().getSize()));
+            GTk.EDITOR_MIN_FONT_SIZE, GTk.EDITOR_MAX_FONT_SIZE, textPane.getFont().getSize()));
         fontSizeSlider.setValue(newFontSize);
     }
 
@@ -243,7 +254,12 @@ public class QuestPanel extends Editor implements EventProducer<QuestPanel.Event
     private void onDeleteQuest(ActionEvent event) {
         int idx = questEntryNames.getSelectedIndex();
         if (idx > 0) {
-            if (JOptionPane.YES_OPTION == JOptionPane.showConfirmDialog(this, String.format("Delete %s?", questEntryNames.getSelectedItem()), "Deleting quest", JOptionPane.YES_NO_OPTION)) {
+            if (JOptionPane.YES_OPTION == JOptionPane.showConfirmDialog(
+                this,
+                String.format("Delete %s?", questEntryNames.getSelectedItem()),
+                "Deleting quest",
+                JOptionPane.YES_NO_OPTION)
+            ) {
                 store.removeEntry(idx);
                 content = null;
                 questEntryNames.removeItemAt(idx);
@@ -277,12 +293,21 @@ public class QuestPanel extends Editor implements EventProducer<QuestPanel.Event
                 if (!selectedFile.exists()) {
                     store.saveToFile(selectedFile);
                 } else {
-                    if (JOptionPane.YES_OPTION == JOptionPane.showConfirmDialog(this, "Override file?", "Dilemma", JOptionPane.YES_NO_OPTION)) {
+                    if (JOptionPane.YES_OPTION == JOptionPane.showConfirmDialog(
+                        this,
+                        "Override file?",
+                        "Dilemma",
+                        JOptionPane.YES_NO_OPTION)
+                    ) {
                         store.saveToFile(selectedFile);
                     }
                 }
             } catch (Throwable t) {
-                JOptionPane.showMessageDialog(this, String.format("Could not save file '%s': %s", selectedFile.getAbsolutePath(), t.getMessage()), "Error", JOptionPane.ERROR_MESSAGE);
+                JOptionPane.showMessageDialog(
+                    this,
+                    String.format("Could not save file '%s': %s", selectedFile.getAbsolutePath(), t.getMessage()),
+                    "Error",
+                    JOptionPane.ERROR_MESSAGE);
             }
         }
     }
@@ -372,7 +397,7 @@ public class QuestPanel extends Editor implements EventProducer<QuestPanel.Event
         boolean isConnected = conn != null && conn.isOpen();
         String connKey = conn != null ? conn.getUniqueId() : "None set";
         connLabel.setText(String.format("on %s", connKey));
-        connLabel.setForeground(isConnected ? CONNECTED_COLOR : NOT_CONNECTED_COLOR);
+        connLabel.setForeground(isConnected ? GTk.EDITOR_FONT_COLOR : GTk.MAIN_FONT_COLOR);
     }
 
     private JMenu createQuestsMenu() {

@@ -108,6 +108,7 @@ public final class GTk {
     public static final int EDITOR_DEFAULT_FONT_SIZE = 15;
     public static final int EDITOR_MIN_FONT_SIZE = 11;
     public static final int EDITOR_MAX_FONT_SIZE = 21;
+    public static final int META_EXPLORER_FONT_SIZE = 14;
     public static final Font MENU_FONT = new Font(MAIN_FONT_NAME, Font.BOLD, 14);
     public static final int CMD_DOWN_MASK = Os.type == Os.WINDOWS || Os.isLinux() ? InputEvent.CTRL_DOWN_MASK : InputEvent.META_DOWN_MASK;
     public static final int CMD_SHIFT_DOWN_MASK = CMD_DOWN_MASK | InputEvent.SHIFT_DOWN_MASK;

@@ -39,7 +39,7 @@ import io.quest.frontend.PasswordCellRenderer;
 import io.quest.frontend.CellRenderer;
 
 
-class ConnsTableModel extends AbstractTableModel implements Closeable {
+class ConnsModel extends AbstractTableModel implements Closeable {
     private static final int NAME_COL_IDX = 0;
     private static final int HOST_COL_IDX = 1;
     private static final int PORT_COL_IDX = 2;
@@ -50,35 +50,35 @@ class ConnsTableModel extends AbstractTableModel implements Closeable {
     private static final String NAME_COL = "name";
     private static final String CONNECTED_COL = "connected";
     private static final String[] COL_NAMES = {
-            NAME_COL,
-            ConnAttrs.AttrName.host.name(),
-            ConnAttrs.AttrName.port.name(),
-            ConnAttrs.AttrName.database.name(),
-            ConnAttrs.AttrName.username.name(),
-            ConnAttrs.AttrName.password.name(),
-            CONNECTED_COL
+        NAME_COL,
+        ConnAttrs.AttrName.host.name(),
+        ConnAttrs.AttrName.port.name(),
+        ConnAttrs.AttrName.database.name(),
+        ConnAttrs.AttrName.username.name(),
+        ConnAttrs.AttrName.password.name(),
+        CONNECTED_COL
     };
     private static final int ROW_HEIGHT = 22;
     private static final int[] COL_WIDTHS = {
-            200, 400, 100, 200, 200, 200, 200
+        200, 400, 100, 200, 200, 200, 200
     };
     private final List<Conn> conns;
     private final Set<String> existingNames;
 
-    private ConnsTableModel() {
+    private ConnsModel() {
         conns = new ArrayList<>();
         existingNames = new TreeSet<>();
     }
 
     /**
-     * Factory method, creates a table that has a {@link ConnsTableModel} model.
+     * Factory method, creates a table that has a {@link ConnsModel} model.
      *
      * @param onTableModelEvent called each time a change to the data model occurs
      * @param selectionListener called each time a change to the selection occurs
      * @return a new table
      */
     static JTable createTable(TableModelListener onTableModelEvent, ListSelectionListener selectionListener) {
-        ConnsTableModel tableModel = new ConnsTableModel();
+        ConnsModel tableModel = new ConnsModel();
         tableModel.addTableModelListener(tableModel::onTableModelEvent);
         tableModel.addTableModelListener(onTableModelEvent);
         JTable table = new JTable(tableModel);

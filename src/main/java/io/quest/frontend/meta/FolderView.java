@@ -137,30 +137,34 @@ class FolderView extends JPanel implements Closeable {
             TreeModel model = createModel(root);
             treeView.setModel(model);
             if (selected != null) {
-                Object[] nodes = selected.getPath();
-                DefaultMutableTreeNode top = (DefaultMutableTreeNode) model.getRoot();
-                TreePath expand = new TreePath(top);
-                for (int i = 1; i < nodes.length; i++) {
-                    treeView.expandPath(expand);
-                    String nodeName = nodes[i].toString();
-                    DefaultMutableTreeNode child = null;
-                    for (int j = 0; j < top.getChildCount(); j++) {
-                        DefaultMutableTreeNode tmp = (DefaultMutableTreeNode) top.getChildAt(j);
-                        String childName = tmp.toString();
-                        if (childName.equals(nodeName)) {
-                            top = tmp;
-                            child = top;
-                            break;
-                        }
-                    }
-                    if (child == null) {
-                        break;
-                    }
-                    expand = expand.pathByAddingChild(child);
-                }
-                treeView.setSelectionPath(expand);
+                treeView.setSelectionPath(expandTree(model, selected));
             }
         }
+    }
+
+    private TreePath expandTree(TreeModel model, TreePath selected) {
+        DefaultMutableTreeNode top = (DefaultMutableTreeNode) model.getRoot();
+        TreePath expand = new TreePath(top);
+        Object[] nodes = selected.getPath();
+        for (int i = 1; i < nodes.length; i++) {
+            treeView.expandPath(expand);
+            String nodeName = nodes[i].toString();
+            DefaultMutableTreeNode child = null;
+            for (int j = 0; j < top.getChildCount(); j++) {
+                DefaultMutableTreeNode tmp = (DefaultMutableTreeNode) top.getChildAt(j);
+                String childName = tmp.toString();
+                if (childName.equals(nodeName)) {
+                    top = tmp;
+                    child = top;
+                    break;
+                }
+            }
+            if (child == null) {
+                break;
+            }
+            expand = expand.pathByAddingChild(child);
+        }
+        return expand;
     }
 
     private DefaultTreeModel createModel(File folder) {

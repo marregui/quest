@@ -50,27 +50,27 @@ public enum FileType {
             fileName = fileName.substring(0, p);
         }
 
-        if (fileName.endsWith(TableUtils.META_FILE_NAME)) {
+        if (fileName.startsWith(TableUtils.META_FILE_NAME)) {
             return FileType.META;
         }
 
-        if (fileName.endsWith(TableUtils.TXN_SCOREBOARD_FILE_NAME)) {
+        if (fileName.startsWith(TableUtils.TXN_SCOREBOARD_FILE_NAME)) {
             return FileType.SB;
         }
 
-        if (fileName.endsWith(TableUtils.TXN_FILE_NAME)) {
+        if (fileName.startsWith(TableUtils.TXN_FILE_NAME)) {
             return FileType.TXN;
         }
 
-        if (fileName.endsWith(TableUtils.COLUMN_VERSION_FILE_NAME)) {
+        if (fileName.startsWith(TableUtils.COLUMN_VERSION_FILE_NAME)) {
             return FileType.CV;
         }
 
-        if (fileName.endsWith("_tab_index.d")) {
+        if (fileName.startsWith("_tab_index.d")) {
             return FileType.TAB_INDEX;
         }
 
-        if (fileName.endsWith("_upgrade.d")) {
+        if (fileName.startsWith("_upgrade.d")) {
             return FileType.UPGRADE;
         }
 
