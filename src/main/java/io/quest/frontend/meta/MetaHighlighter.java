@@ -16,7 +16,7 @@
 
 package io.quest.frontend.meta;
 
-import io.quest.frontend.editor.QuestHighlighter;
+import io.quest.frontend.quests.QuestHighlighter;
 
 import javax.swing.*;
 import javax.swing.text.*;

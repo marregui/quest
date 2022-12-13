@@ -17,7 +17,7 @@
 package io.quest.frontend.meta;
 
 import io.quest.frontend.GTk;
-import io.quest.frontend.editor.Editor;
+import io.quest.frontend.quests.Editor;
 import io.questdb.cairo.ColumnType;
 import io.questdb.cairo.PartitionBy;
 import io.questdb.cairo.TableReaderMetadata;
@@ -29,7 +29,7 @@ import java.util.concurrent.TimeUnit;
 
 class MetaDisplay extends Editor {
     private static final DateFormat TS_FORMATTER = new TimestampFormatCompiler().compile(
-            "yyyy-MM-ddTHH:mm:ss.SSSSSSZ"
+        "yyyy-MM-ddTHH:mm:ss.SSSSSSZ"
     );
 
 
@@ -85,11 +85,11 @@ class MetaDisplay extends Editor {
 
     public void addMicrosLn(String name, long value) {
         sink.put(name).put(value).put(" micros (")
-                .put(TimeUnit.MICROSECONDS.toSeconds(value))
-                .put(" sec, or ")
-                .put(TimeUnit.MICROSECONDS.toMinutes(value))
-                .put(" min)")
-                .put(System.lineSeparator());
+            .put(TimeUnit.MICROSECONDS.toSeconds(value))
+            .put(" sec, or ")
+            .put(TimeUnit.MICROSECONDS.toMinutes(value))
+            .put(" min)")
+            .put(System.lineSeparator());
     }
 
     public void addTimestampLn(String name, long timestamp) {
@@ -105,37 +105,37 @@ class MetaDisplay extends Editor {
     }
 
     public void addPartitionLn(
-            int partitionIndex,
-            long partitionTimestamp,
-            long partitionNameTxn,
-            long partitionSize,
-            long partitionColumnVersion
+        int partitionIndex,
+        long partitionTimestamp,
+        long partitionNameTxn,
+        long partitionSize,
+        long partitionColumnVersion
     ) {
         sink.put(" - ").put(partitionIndex)
-                .put("/").put(partitionTimestamp).put(" (");
+            .put("/").put(partitionTimestamp).put(" (");
         TS_FORMATTER.format(partitionTimestamp, null, "Z", sink);
         sink.put(')')
-                .put(" size: ").put(partitionSize)
-                .put(", txn: ").put(partitionNameTxn)
-                .put(", cv: ").put(partitionColumnVersion)
-                .put(System.lineSeparator());
+            .put(" size: ").put(partitionSize)
+            .put(", txn: ").put(partitionNameTxn)
+            .put(", cv: ").put(partitionColumnVersion)
+            .put(System.lineSeparator());
     }
 
 
     public void addColumnLn(
-            int columnIndex,
-            CharSequence columnName,
-            int columnType,
-            boolean columnIsIndexed,
-            int columnIndexBlockCapacity,
-            boolean indented
+        int columnIndex,
+        CharSequence columnName,
+        int columnType,
+        boolean columnIsIndexed,
+        int columnIndexBlockCapacity,
+        boolean indented
     ) {
         if (indented) {
             sink.put(" - ");
         }
         sink.put(columnIndex)
-                .put(": ").put(columnName)
-                .put(" ").put(ColumnType.nameOf(columnType));
+            .put(": ").put(columnName)
+            .put(" ").put(ColumnType.nameOf(columnType));
         if (columnIsIndexed) {
             sink.put(" indexed (block capacity=").put(columnIndexBlockCapacity).put(')');
         }

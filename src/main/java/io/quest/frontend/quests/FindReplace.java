@@ -14,7 +14,7 @@
  * Copyright (c) 2019 - 2022, Miguel Arregui a.k.a. marregui
  */
 
-package io.quest.frontend.editor;
+package io.quest.frontend.quests;
 
 import io.quest.model.EventConsumer;
 import io.quest.model.EventProducer;
@@ -67,20 +67,20 @@ public class FindReplace extends JPanel implements EventProducer<FindReplace.Eve
         add(findMatchesLabel);
         add(GTk.gap(4));
         add(GTk.button(
-                "X",
-                "Close find/replace view",
-                75,
-                22,
-                FIND_FONT_COLOR,
-                this::onCloseFindReplaceView));
+            "X",
+            "Close find/replace view",
+            75,
+            22,
+            FIND_FONT_COLOR,
+            this::onCloseFindReplaceView));
         setVisible(false);
     }
 
     public void updateMatches(int matches) {
         findMatchesLabel.setText(String.format(
-                "%4d %s",
-                matches,
-                matches == 1 ? "match" : "matches"));
+            "%4d %s",
+            matches,
+            matches == 1 ? "match" : "matches"));
     }
 
     @Override
@@ -148,10 +148,10 @@ public class FindReplace extends JPanel implements EventProducer<FindReplace.Eve
         });
         // cmd-left, jump to the beginning of the line
         GTk.addCmdKeyAction(KeyEvent.VK_LEFT, field,
-                e -> field.setCaretPosition(0));
+            e -> field.setCaretPosition(0));
         // cmd-right, jump to the end of the line
         GTk.addCmdKeyAction(KeyEvent.VK_RIGHT, field,
-                e -> field.setCaretPosition(field.getText().length()));
+            e -> field.setCaretPosition(field.getText().length()));
         field.addKeyListener(new KeyAdapter() {
             @Override
             public void keyReleased(KeyEvent e) {
