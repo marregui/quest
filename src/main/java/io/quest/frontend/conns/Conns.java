@@ -171,6 +171,7 @@ public class Conns extends JDialog implements EventProducer<Conns.EventType>, Cl
                 eventConsumer.onSourceEvent(this, EventType.CONNECTION_ESTABLISHED, conn);
             } catch (Exception e) {
                 LOG.error().$("Connect [e=").$(e.getMessage()).I$();
+                eventConsumer.onSourceEvent(this, EventType.CONNECTION_FAILED, conn);
             }
         } else {
             try {
@@ -358,10 +359,11 @@ public class Conns extends JDialog implements EventProducer<Conns.EventType>, Cl
     }
 
     public enum EventType {
-        CONNECTION_SELECTED,     // A connection has been selected
-        CONNECTION_ESTABLISHED,  // A connection has been established.
-        CONNECTION_CLOSED,       // A connection has been closed.
-        CONNECTIONS_LOST,        // A set of connections, possibly only one, has been lost.
-        HIDE_REQUEST             // Request to hide the connection's manager.
+        CONNECTION_SELECTED,
+        CONNECTION_ESTABLISHED,
+        CONNECTION_CLOSED,
+        CONNECTION_FAILED,
+        CONNECTIONS_LOST,
+        HIDE_REQUEST
     }
 }

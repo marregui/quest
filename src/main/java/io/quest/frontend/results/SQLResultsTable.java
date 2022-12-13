@@ -39,7 +39,7 @@ import io.quest.frontend.GTk;
 import io.quest.backend.SQLExecutionResponse;
 import io.quest.model.Table;
 import io.quest.frontend.InfiniteSpinnerPanel;
-import io.quest.frontend.editor.Editor;
+import io.quest.frontend.quests.Editor;
 
 
 public class SQLResultsTable extends JPanel implements Closeable {
@@ -108,9 +108,9 @@ public class SQLResultsTable extends JPanel implements Closeable {
         southPanel.setBackground(Color.BLACK);
         questPanel = new Editor(true);
         tableScrollPanel = new JScrollPane(
-                table,
-                JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED,
-                JScrollPane.HORIZONTAL_SCROLLBAR_AS_NEEDED);
+            table,
+            JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED,
+            JScrollPane.HORIZONTAL_SCROLLBAR_AS_NEEDED);
         tableScrollPanel.getViewport().setBackground(Color.BLACK);
         infiniteSpinner = new InfiniteSpinnerPanel();
         infiniteSpinner.setSize(size);
@@ -126,11 +126,11 @@ public class SQLResultsTable extends JPanel implements Closeable {
     public void updateStats(String eventType, SQLExecutionResponse res) {
         if (res != null) {
             statsLabel.setText(String.format(
-                    "[%s]  Exec: %5d,  Fetch: %5d,  Total: %6d (ms)",
-                    eventType,
-                    res.getExecMillis(),
-                    res.getFetchMillis(),
-                    res.getTotalMillis()));
+                "[%s]  Exec: %5d,  Fetch: %5d,  Total: %6d (ms)",
+                eventType,
+                res.getExecMillis(),
+                res.getFetchMillis(),
+                res.getTotalMillis()));
         } else {
             statsLabel.setText("");
         }
@@ -181,6 +181,11 @@ public class SQLResultsTable extends JPanel implements Closeable {
         changeMode(Mode.MESSAGE);
     }
 
+    public void displayError(String error) {
+        questPanel.displayError(error);
+        changeMode(Mode.MESSAGE);
+    }
+
     public void showInfiniteSpinner() {
         infiniteSpinner.start();
         changeMode(Mode.INFINITE);
@@ -215,7 +220,7 @@ public class SQLResultsTable extends JPanel implements Closeable {
             start++;
         }
         rowRangeLabel.setText(String.format(
-                "Rows %d to %d of %-10d", start, end, tableSize));
+            "Rows %d to %d of %-10d", start, end, tableSize));
     }
 
     private void resetTableHeader() {
@@ -236,7 +241,7 @@ public class SQLResultsTable extends JPanel implements Closeable {
             col.setPreferredWidth(width);
         }
         table.setAutoResizeMode(tableWidth < getWidth() ?
-                JTable.AUTO_RESIZE_ALL_COLUMNS : JTable.AUTO_RESIZE_OFF);
+            JTable.AUTO_RESIZE_ALL_COLUMNS : JTable.AUTO_RESIZE_OFF);
         tableModel.fireTableDataChanged();
     }
 

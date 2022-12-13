@@ -35,7 +35,7 @@ import io.questdb.log.Log;
 import io.questdb.log.LogFactory;
 import io.questdb.std.Misc;
 
-import io.quest.frontend.editor.QuestPanel;
+import io.quest.frontend.quests.QuestPanel;
 import io.quest.frontend.conns.Conns;
 import io.quest.frontend.results.SQLResultsTable;
 
@@ -173,10 +173,10 @@ public final class Quest {
             }
         } else {
             if (JOptionPane.YES_OPTION == JOptionPane.showConfirmDialog(
-                    frame,
-                    "Shutdown QuestDB?",
-                    "Choice",
-                    JOptionPane.YES_NO_OPTION)
+                frame,
+                "Shutdown QuestDB?",
+                "Choice",
+                JOptionPane.YES_NO_OPTION)
             ) {
                 questDb.close();
                 questDb = null;
@@ -223,7 +223,8 @@ public final class Quest {
             case STARTED -> GTk.invokeLater(results::showInfiniteSpinner);
             case RESULTS_AVAILABLE, COMPLETED -> GTk.invokeLater(() -> results.onRowsAdded(res));
             case CANCELLED -> GTk.invokeLater(results::close);
-            case FAILURE -> GTk.invokeLater(results::close, () -> results.displayError(res.getError()));
+            case FAILURE ->
+                GTk.invokeLater(results::close, () -> results.displayError(res.getError()));
         }
     }
 
@@ -234,6 +235,7 @@ public final class Quest {
     }
 
     private void onConnsEvent(Conns.EventType event, Object data) {
+        System.out.printf("EVENT: %s%n", event);
         switch (event) {
             case CONNECTION_SELECTED -> {
                 commands.setConnection((Conn) data);
@@ -260,6 +262,8 @@ public final class Quest {
                     }
                 }
             }
+            case CONNECTION_FAILED ->
+                results.displayError(String.format("Server is down: %s%n", data));
             case HIDE_REQUEST -> onToggleConnsWidget(null);
         }
     }
