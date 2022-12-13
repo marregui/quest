@@ -28,29 +28,20 @@ public class CellRenderer extends DefaultTableCellRenderer {
     private static final Border EMPTY_BORDER = BorderFactory.createEmptyBorder();
 
     @Override
-    public Component getTableCellRendererComponent(
-            JTable table,
-            Object value,
-            boolean isSelected,
-            boolean hasFocus,
-            int rowIdx,
-            int colIdx
-    ) {
+    public Component getTableCellRendererComponent(JTable table, Object value, boolean isSelected, boolean hasFocus, int rowIdx, int colIdx) {
         super.getTableCellRendererComponent(table, value, isSelected, hasFocus, rowIdx, colIdx);
         setFont(GTk.TABLE_CELL_FONT);
-        setBackground(Color.BLACK);
         setBorder(EMPTY_BORDER);
         if (rowIdx > -1 && rowIdx < table.getModel().getRowCount()) {
             if (isSelected) {
-                setForeground(GTk.EDITOR_FONT_COLOR);
+                setBackground(Color.YELLOW);
+                setForeground(Color.BLACK);
             } else {
-                setForeground(GTk.MAIN_FONT_COLOR);
+                setBackground(Color.BLACK);
+                setForeground(rowIdx % 2 == 0 ? GTk.EDITOR_FONT_COLOR : GTk.MAIN_FONT_COLOR);
             }
             return this;
         }
-        throw new IndexOutOfBoundsException(String.format(
-                "row %d does not exist, there are [0..%d] rows",
-                rowIdx,
-                table.getModel().getRowCount() - 1));
+        throw new IndexOutOfBoundsException(String.format("row %d does not exist, there are [0..%d] rows", rowIdx, table.getModel().getRowCount() - 1));
     }
 }

@@ -203,7 +203,7 @@ public class QuestPanel extends Editor implements EventProducer<QuestPanel.Event
             undoManagers.add(new UndoManager() {
                 @Override
                 public void undoableEditHappened(UndoableEditEvent e) {
-                    if (!Highlighter.EVENT_TYPE.equals(e.getEdit().getPresentationName())) {
+                    if (!QuestHighlighter.EVENT_TYPE.equals(e.getEdit().getPresentationName())) {
                         super.undoableEditHappened(e);
                     }
                 }
@@ -243,7 +243,7 @@ public class QuestPanel extends Editor implements EventProducer<QuestPanel.Event
         undoManagers.add(new UndoManager() {
             @Override
             public void undoableEditHappened(UndoableEditEvent e) {
-                if (!Highlighter.EVENT_TYPE.equals(e.getEdit().getPresentationName())) {
+                if (!QuestHighlighter.EVENT_TYPE.equals(e.getEdit().getPresentationName())) {
                     super.undoableEditHappened(e);
                 }
             }

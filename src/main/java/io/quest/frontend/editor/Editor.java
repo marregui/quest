@@ -33,19 +33,19 @@ public class Editor extends JPanel {
     static final Color LINENO_COLOR = Color.LIGHT_GRAY.darker().darker();
     private static final String MARGIN_TOKEN = ":99999:";
     protected final JTextPane textPane;
-    private final Highlighter highlighter;
+    private final QuestHighlighter highlighter;
     private final AtomicReference<UndoManager> undoManager; // set by CommandBoard
     private final StringBuilder sb;
 
     public Editor() {
-        this(false, Highlighter::of);
+        this(false, QuestHighlighter::of);
     }
 
     public Editor(boolean isErrorPanel) {
-        this(isErrorPanel, Highlighter::of);
+        this(isErrorPanel, QuestHighlighter::of);
     }
 
-    public Editor(boolean isErrorPanel, Function<JTextPane, Highlighter> highlighterFactory) {
+    public Editor(boolean isErrorPanel, Function<JTextPane, QuestHighlighter> highlighterFactory) {
         sb = new StringBuilder();
         undoManager = new AtomicReference<>();
         textPane = new JTextPane() {
