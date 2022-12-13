@@ -38,14 +38,14 @@ public class Editor extends JPanel {
     private final StringBuilder sb;
 
     public Editor() {
-        this(false, QuestHighlighter::of);
+        this(false, true, QuestHighlighter::of);
     }
 
-    public Editor(boolean isErrorPanel) {
-        this(isErrorPanel, QuestHighlighter::of);
+    public Editor(boolean isErrorPanel, boolean hasLineNumbers) {
+        this(isErrorPanel, hasLineNumbers, QuestHighlighter::of);
     }
 
-    public Editor(boolean isErrorPanel, Function<JTextPane, QuestHighlighter> highlighterFactory) {
+    public Editor(boolean isErrorPanel, boolean hasLineNumbers, Function<JTextPane, QuestHighlighter> highlighterFactory) {
         sb = new StringBuilder();
         undoManager = new AtomicReference<>();
         textPane = new JTextPane() {
@@ -65,18 +65,20 @@ public class Editor extends JPanel {
         textPane.setBackground(Color.BLACK);
         textPane.setCaretColor(Color.CYAN);
         textPane.setCaretPosition(0);
-        textPane.setEditorKit(new StyledEditorKit() {
-            @Override
-            public ViewFactory getViewFactory() {
-                final ViewFactory defaultViewFactory = super.getViewFactory();
-                return elem -> {
-                    if (elem.getName().equals(AbstractDocument.ParagraphElementName)) {
-                        return new ParagraphView(elem);
-                    }
-                    return defaultViewFactory.create(elem);
-                };
-            }
-        });
+        if (hasLineNumbers) {
+            textPane.setEditorKit(new StyledEditorKit() {
+                @Override
+                public ViewFactory getViewFactory() {
+                    final ViewFactory defaultViewFactory = super.getViewFactory();
+                    return elem -> {
+                        if (elem.getName().equals(AbstractDocument.ParagraphElementName)) {
+                            return new ParagraphView(elem);
+                        }
+                        return defaultViewFactory.create(elem);
+                    };
+                }
+            });
+        }
         textPane.setEditable(!isErrorPanel);
         setupKeyboardActions(isErrorPanel);
         highlighter = highlighterFactory.apply(textPane); // produces "style change" events

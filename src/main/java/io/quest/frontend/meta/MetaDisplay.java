@@ -36,7 +36,7 @@ class MetaDisplay extends Editor {
     private final StringSink sink = new StringSink();
 
     public MetaDisplay() {
-        super(true, MetaHighlighter::of);
+        super(true, true, MetaHighlighter::of);
         setFontSize(GTk.META_EXPLORER_FONT_SIZE);
 
         // preload, which compiles the pattern and is costly, penalising startup time

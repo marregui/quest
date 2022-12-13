@@ -106,7 +106,7 @@ public class SQLResultsTable extends JPanel implements Closeable {
         nextButton.setHorizontalTextPosition(SwingConstants.LEFT);
         JPanel southPanel = GTk.flowPanel(statsLabel, rowRangeLabel, prevButton, nextButton);
         southPanel.setBackground(Color.BLACK);
-        questPanel = new Editor(true);
+        questPanel = new Editor(true, false);
         tableScrollPanel = new JScrollPane(
             table,
             JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED,
