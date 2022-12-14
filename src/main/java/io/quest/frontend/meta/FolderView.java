@@ -44,7 +44,7 @@ class FolderView extends JPanel implements Closeable {
         super(new BorderLayout());
         this.onRootChange = onRootChange;
         treeView = new JTree(new DefaultMutableTreeNode(null));
-        treeView.setBackground(Color.BLACK);
+        treeView.setBackground(GTk.QUEST_APP_BACKGROUND_COLOR);
         treeView.setBorder(BorderFactory.createEmptyBorder());
         treeView.getSelectionModel().setSelectionMode(TreeSelectionModel.SINGLE_TREE_SELECTION);
         final ImageIcon fileIcon = GTk.Icon.META_FILE.icon();
@@ -57,10 +57,10 @@ class FolderView extends JPanel implements Closeable {
                 setOpaque(true);
                 setFont(GTk.MENU_FONT);
                 if (leaf && selected) {
-                    setBackground(Color.YELLOW);
-                    setForeground(Color.BLACK);
+                    setBackground(GTk.SELECT_FONT_COLOR);
+                    setForeground(GTk.QUEST_APP_BACKGROUND_COLOR);
                 } else {
-                    setBackground(Color.BLACK);
+                    setBackground(GTk.QUEST_APP_BACKGROUND_COLOR);
                     setForeground(GTk.EDITOR_FONT_COLOR);
                 }
                 String text = value.toString();
@@ -77,7 +77,7 @@ class FolderView extends JPanel implements Closeable {
         treeView.addTreeSelectionListener(e -> onSelection.accept(e.getPath()));
         JScrollPane scrollPane = new JScrollPane();
         scrollPane.getViewport().add(treeView);
-        scrollPane.getViewport().setBackground(Color.BLACK);
+        scrollPane.getViewport().setBackground(GTk.QUEST_APP_BACKGROUND_COLOR);
         chooser = new JFileChooser();
         chooser.setCurrentDirectory(new File("."));
         chooser.setDialogTitle("Select a folder");
@@ -86,12 +86,12 @@ class FolderView extends JPanel implements Closeable {
         chooser.setMultiSelectionEnabled(false);
         folderChangeObserver = new FolderChangeObserver((source, type, data) -> reloadModel());
         JPanel checkBoxPane = new JPanel(new GridLayout(4, 4, 0, 0));
-        checkBoxPane.setBackground(Color.BLACK);
+        checkBoxPane.setBackground(GTk.QUEST_APP_BACKGROUND_COLOR);
         for (FileType type : FileType.values()) {
             checkBoxPane.add(createVisibleFileTypeCheckBox(type));
         }
         JPanel buttonPanel = new JPanel(new GridLayout(1, 3, 0, 0));
-        buttonPanel.setBackground(Color.BLACK);
+        buttonPanel.setBackground(GTk.QUEST_APP_BACKGROUND_COLOR);
         buttonPanel.setBorder(BorderFactory.createLineBorder(Color.WHITE, 1, true));
         buttonPanel.add(GTk.button("Set", () -> {
             String root = JOptionPane.showInputDialog(FolderView.this, "Root:", null, JOptionPane.QUESTION_MESSAGE);
@@ -204,8 +204,8 @@ class FolderView extends JPanel implements Closeable {
     private JCheckBox createVisibleFileTypeCheckBox(FileType type) {
         JCheckBox checkBox = new JCheckBox(type.name(), type.isDefaultChecked());
         checkBox.setFont(GTk.MENU_FONT);
-        checkBox.setBackground(Color.BLACK);
-        checkBox.setForeground(GTk.MAIN_FONT_COLOR);
+        checkBox.setBackground(GTk.QUEST_APP_BACKGROUND_COLOR);
+        checkBox.setForeground(GTk.QUEST_APP_COLOR);
         checkBox.addActionListener(e -> {
             if (checkBox.isSelected()) {
                 visibleFileTypes.add(type);

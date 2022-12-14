@@ -18,8 +18,8 @@ package io.quest.model;
 
 import java.util.Properties;
 
-import io.quest.Quest;
 import io.quest.backend.SQLExecutor;
+import io.quest.frontend.GTk;
 
 
 public class ConnAttrs extends StoreEntry {
@@ -64,11 +64,11 @@ public class ConnAttrs extends StoreEntry {
     @Override
     public final String getUniqueId() {
         return String.format("%s %s@%s:%s/%s",
-                getName(),
-                getAttr(AttrName.username),
-                getAttr(AttrName.host),
-                getAttr(AttrName.port),
-                getAttr(AttrName.database));
+            getName(),
+            getAttr(AttrName.username),
+            getAttr(AttrName.host),
+            getAttr(AttrName.port),
+            getAttr(AttrName.database));
     }
 
     public String getUri() {
@@ -85,7 +85,7 @@ public class ConnAttrs extends StoreEntry {
         // This allows a database administrator to see what applications are
         // connected to the server and what resources they are using through
         // views like pgstatactivity.
-        props.put("ApplicationName", Quest.NAME);
+        props.put("ApplicationName", GTk.QUEST_APP_NAME);
 
         // Connect using SSL. The server must have been compiled with SSL
         // support. This property does not need a value associated with it.

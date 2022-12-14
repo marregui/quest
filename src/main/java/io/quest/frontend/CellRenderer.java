@@ -16,7 +16,6 @@
 
 package io.quest.frontend;
 
-import java.awt.Color;
 import java.awt.Component;
 
 import javax.swing.*;
@@ -34,11 +33,11 @@ public class CellRenderer extends DefaultTableCellRenderer {
         setBorder(EMPTY_BORDER);
         if (rowIdx > -1 && rowIdx < table.getModel().getRowCount()) {
             if (isSelected) {
-                setBackground(Color.YELLOW);
-                setForeground(Color.BLACK);
+                setBackground(GTk.SELECT_FONT_COLOR);
+                setForeground(GTk.QUEST_APP_BACKGROUND_COLOR);
             } else {
-                setBackground(Color.BLACK);
-                setForeground(rowIdx % 2 == 0 ? GTk.EDITOR_FONT_COLOR : GTk.MAIN_FONT_COLOR);
+                setBackground(GTk.QUEST_APP_BACKGROUND_COLOR);
+                setForeground(rowIdx % 2 == 0 ? GTk.EDITOR_FONT_COLOR : GTk.QUEST_APP_COLOR);
             }
             return this;
         }

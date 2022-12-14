@@ -65,7 +65,7 @@ public class QuestPanel extends Editor implements EventProducer<QuestPanel.Event
         undoManagers = new ArrayList<>(5);
         questEntryNames = new JComboBox<>();
         questEntryNames.setFont(GTk.TABLE_CELL_FONT);
-        questEntryNames.setBackground(Color.BLACK);
+        questEntryNames.setBackground(GTk.QUEST_APP_BACKGROUND_COLOR);
         questEntryNames.setForeground(GTk.EDITOR_FONT_COLOR);
         questEntryNames.setEditable(false);
         questEntryNames.setPreferredSize(new Dimension(490, COMPONENT_HEIGHT));
@@ -76,13 +76,13 @@ public class QuestPanel extends Editor implements EventProducer<QuestPanel.Event
             public Component getListCellRendererComponent(JList list, Object value, int index, boolean isSelected, boolean cellHasFocus) {
                 super.getListCellRendererComponent(list, value, index, isSelected, cellHasFocus);
                 if (isSelected) {
-                    setBackground(Color.YELLOW);
-                    setForeground(Color.BLACK);
+                    setBackground(GTk.SELECT_FONT_COLOR);
+                    setForeground(GTk.QUEST_APP_BACKGROUND_COLOR);
                 } else {
-                    setBackground(Color.BLACK);
+                    setBackground(GTk.QUEST_APP_BACKGROUND_COLOR);
                     setForeground(GTk.EDITOR_FONT_COLOR);
                 }
-                list.setSelectionBackground(Color.BLACK);
+                list.setSelectionBackground(GTk.QUEST_APP_BACKGROUND_COLOR);
                 list.setSelectionForeground(GTk.EDITOR_FONT_COLOR);
                 return this;
             }
@@ -115,7 +115,7 @@ public class QuestPanel extends Editor implements EventProducer<QuestPanel.Event
         setFontSize(GTk.EDITOR_DEFAULT_FONT_SIZE);
         JPanel topPanel = new JPanel(new BorderLayout(0, 0));
         topPanel.setPreferredSize(new Dimension(0, COMPONENT_HEIGHT + 2));
-        topPanel.setBackground(Color.BLACK);
+        topPanel.setBackground(GTk.QUEST_APP_BACKGROUND_COLOR);
         topPanel.add(questsPanel, BorderLayout.WEST);
         topPanel.add(findPanel, BorderLayout.SOUTH);
         add(topPanel, BorderLayout.NORTH);
@@ -123,11 +123,11 @@ public class QuestPanel extends Editor implements EventProducer<QuestPanel.Event
         refreshConnLabel();
     }
 
-    public void setFontSize(int newFontSize) {
-        super.setFontSize(newFontSize);
+    public void setFontSize(int size) {
+        super.setFontSize(size);
         fontSizeLabel.setText(String.format("Font size [%d,%d]: %d",
             GTk.EDITOR_MIN_FONT_SIZE, GTk.EDITOR_MAX_FONT_SIZE, textPane.getFont().getSize()));
-        fontSizeSlider.setValue(newFontSize);
+        fontSizeSlider.setValue(size);
     }
 
     public Conn getConnection() {
@@ -397,7 +397,7 @@ public class QuestPanel extends Editor implements EventProducer<QuestPanel.Event
         boolean isConnected = conn != null && conn.isOpen();
         String connKey = conn != null ? conn.getUniqueId() : "None set";
         connLabel.setText(String.format("on %s", connKey));
-        connLabel.setForeground(isConnected ? GTk.EDITOR_FONT_COLOR : GTk.MAIN_FONT_COLOR);
+        connLabel.setForeground(isConnected ? GTk.EDITOR_FONT_COLOR : GTk.QUEST_APP_COLOR);
     }
 
     private JMenu createQuestsMenu() {
@@ -434,6 +434,7 @@ public class QuestPanel extends Editor implements EventProducer<QuestPanel.Event
             setAttr(ATTR_NAME, GTk.BANNER);
         }
 
+        @SuppressWarnings("unused")
         public Content(StoreEntry other) {
             super(other);
         }

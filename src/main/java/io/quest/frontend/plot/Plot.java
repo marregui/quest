@@ -39,7 +39,7 @@ public class Plot extends JPanel implements MouseListener, MouseMotionListener {
     private static final int INSET_LEFT = 80;
     private static final int INSET_RIGHT = 10;
     private static final Insets PLOT_INSETS = new Insets(
-            INSET_TOP, INSET_LEFT, INSET_BOTTOM, INSET_RIGHT
+        INSET_TOP, INSET_LEFT, INSET_BOTTOM, INSET_RIGHT
     );
     private static final double X_AXIS_EXTRA_VISIBILITY_DELTA = 0.01F;
     private static final double Y_AXIS_EXTRA_VISIBILITY_DELTA = 0.04F;
@@ -138,19 +138,19 @@ public class Plot extends JPanel implements MouseListener, MouseMotionListener {
 
         // Restore original range
         this.plotMenu.add(menuItem(
-                new JMenuItem(),
-                GTk.Icon.PLOT_RESTORE_RANGES,
-                "Restore original X-Y Range",
-                GTk.NO_KEY_EVENT,
-                this::restoreOriginalRanges
+            new JMenuItem(),
+            GTk.Icon.PLOT_RESTORE_RANGES,
+            "Restore original X-Y Range",
+            GTk.NO_KEY_EVENT,
+            this::restoreOriginalRanges
         ));
         // Change ranges
         this.plotMenu.add(menuItem(
-                new JMenuItem(),
-                GTk.Icon.PLOT_CHANGE_RANGES,
-                "Change X-Y Range",
-                GTk.NO_KEY_EVENT,
-                this::changeRangesDialog
+            new JMenuItem(),
+            GTk.Icon.PLOT_CHANGE_RANGES,
+            "Change X-Y Range",
+            GTk.NO_KEY_EVENT,
+            this::changeRangesDialog
         ));
 
         this.hasBaseLine = true;
@@ -306,8 +306,8 @@ public class Plot extends JPanel implements MouseListener, MouseMotionListener {
         this.plotMenu.setText(this.dataSet.id);
         this.yDataBandNameMenuItem.setText(String.format("Band name: %s", this.dataSet.id));
         this.yDataRangeMenuItem.setText(String.format(
-                "Data range Y: [%s, %s]",
-                AxisLabels.formatForYAxis(this.dataSet.minY), AxisLabels.formatForYAxis(this.dataSet.maxY)));
+            "Data range Y: [%s, %s]",
+            AxisLabels.formatForYAxis(this.dataSet.minY), AxisLabels.formatForYAxis(this.dataSet.maxY)));
 
         // Plot ranges
         resetPlotRanges();
@@ -336,12 +336,12 @@ public class Plot extends JPanel implements MouseListener, MouseMotionListener {
     public void paint(Graphics g) {
         Graphics2D g2 = (Graphics2D) g;
         g2.setRenderingHint(
-                RenderingHints.KEY_TEXT_ANTIALIASING,
-                RenderingHints.VALUE_TEXT_ANTIALIAS_ON
+            RenderingHints.KEY_TEXT_ANTIALIASING,
+            RenderingHints.VALUE_TEXT_ANTIALIAS_ON
         );
         g2.setRenderingHint(
-                RenderingHints.KEY_RENDERING,
-                RenderingHints.VALUE_RENDER_SPEED
+            RenderingHints.KEY_RENDERING,
+            RenderingHints.VALUE_RENDER_SPEED
         );
         super.paintComponent(g2);
         drawCanvasXYAxisAndTicks(g2);
@@ -449,18 +449,18 @@ public class Plot extends JPanel implements MouseListener, MouseMotionListener {
         g2.drawString(this.xAxisLabel, this.plotWidth - xAxisUnitsWidth, INSET_BOTTOM * 3 / 4);
         if (null != this.dataSet) {
             g2.drawString(
-                    String.format(
-                            "Zoom Range x:[%s, %s], y:[%s, %s]",
-                            AxisLabels.formatForXAxis(this.range.min.x),
-                            AxisLabels.formatForXAxis(this.range.max.x),
-                            AxisLabels.formatForYAxis(this.range.min.y),
-                            AxisLabels.formatForYAxis(this.range.max.y)),
-                    0, Math.round(INSET_BOTTOM * 3 / 4));
+                String.format(
+                    "Zoom Range x:[%s, %s], y:[%s, %s]",
+                    AxisLabels.formatForXAxis(this.range.min.x),
+                    AxisLabels.formatForXAxis(this.range.max.x),
+                    AxisLabels.formatForYAxis(this.range.min.y),
+                    AxisLabels.formatForYAxis(this.range.max.y)),
+                0, Math.round(INSET_BOTTOM * 3 / 4));
         }
         // Draw Zero line
         int yPositionOfZero = yTickLabels != null ? yTickLabels.getYPositionOfZeroLabel() : -1;
         if (-1 != yPositionOfZero) {
-            g2.setColor(Color.BLACK);
+            g2.setColor(GTk.QUEST_APP_BACKGROUND_COLOR);
             g2.drawLine(0, yPositionOfZero, this.plotWidth, yPositionOfZero);
         }
     }
@@ -548,12 +548,12 @@ public class Plot extends JPanel implements MouseListener, MouseMotionListener {
 
     private BasicStroke createDashedStroke(BasicStroke srcStroke) {
         return new BasicStroke(
-                srcStroke.getLineWidth(),
-                srcStroke.getEndCap(),
-                srcStroke.getLineJoin(),
-                srcStroke.getMiterLimit(),
-                DASHED_LINE,
-                0
+            srcStroke.getLineWidth(),
+            srcStroke.getEndCap(),
+            srcStroke.getLineJoin(),
+            srcStroke.getMiterLimit(),
+            DASHED_LINE,
+            0
         );
     }
 

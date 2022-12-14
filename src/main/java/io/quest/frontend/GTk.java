@@ -47,64 +47,67 @@ public final class GTk {
 
     // https://patorjk.com/software/taag/#p=display&h=0&f=Ivrit&t=quest
     public static final String BANNER = "\n" +
-            ".                              _   \n" +
-            "   __ _   _   _    ___   ___  | |_ \n" +
-            "  / _` | | | | |  / _ \\ / __| | __|\n" +
-            " | (_| | | |_| | |  __/ \\__ \\ | |_ \n" +
-            "  \\__, |  \\__,_|  \\___| |___/  \\__|\n" +
-            "     |_|\n" +
-            "  Copyright (c) 2019 - " + Calendar.getInstance().get(Calendar.YEAR) + "\n";
+        ".                              _   \n" +
+        "   __ _   _   _    ___   ___  | |_ \n" +
+        "  / _` | | | | |  / _ \\ / __| | __|\n" +
+        " | (_| | | |_| | |  __/ \\__ \\ | |_ \n" +
+        "  \\__, |  \\__,_|  \\___| |___/  \\__|\n" +
+        "     |_|\n" +
+        "  Copyright (c) 2019 - " + Calendar.getInstance().get(Calendar.YEAR) + "\n";
 
     public static final String KEYBOARD_SHORTCUTS = """
 
-            Mac users: ctrl -> command, alt -> option
-            \s
-            ctrl^.            run QuestDB in the background
-            ctrl^m            open metadata files explorer
-            ctrl^t            open connection assigner/editor
-            ctrl^o            open assigned connection
-            ctrl^h            open documentation in a browser tab
+        Mac users: ctrl -> command, alt -> option
+        \s
+        ctrl^.            run QuestDB in the background
+        ctrl^m            open metadata files explorer
+        ctrl^t            open connection assigner/editor
+        ctrl^o            open assigned connection
+        ctrl^h            open documentation in a browser tab
 
-            ctrl^d            copy line under caret & paste it under current line
-            ctrl^x            remove line under caret (upward direction)
-            ctrl^c            copy selection to clipboard
-            ctrl^v            paste the content of the clipboard
-            ctrl^z            undo last edit
-            ctrl^y            redo last undo
-            ctrl^1            select all
-            ctrl^f            find text or regular expression
-            ctrl^r            replace text or regular expression
-            ctrl^/            toggle line comment
-            ctrl^'            wrap selection in 'selection'
+        ctrl^d            copy line under caret & paste it under current line
+        ctrl^x            remove line under caret (upward direction)
+        ctrl^c            copy selection to clipboard
+        ctrl^v            paste the content of the clipboard
+        ctrl^z            undo last edit
+        ctrl^y            redo last undo
+        ctrl^1            select all
+        ctrl^f            find text or regular expression
+        ctrl^r            replace text or regular expression
+        ctrl^/            toggle line comment
+        ctrl^'            wrap selection in 'selection'
 
-            ctrl^l            execute line under caret
-            ctrl^enter        execute selection, or full content of editor
-            ctrl^w            abort current execution
-            ctrl^p            prev page in results table
-            ctrl^n            next page in results table
+        ctrl^l            execute line under caret
+        ctrl^enter        execute selection, or full content of editor
+        ctrl^w            abort current execution
+        ctrl^p            prev page in results table
+        ctrl^n            next page in results table
 
-            ctrl^up           go to top
-            ctrl^down         go to bottom
-            ctrl^left         go to beginning of line
-            ctrl^right        go to end of line
+        ctrl^up           go to top
+        ctrl^down         go to bottom
+        ctrl^left         go to beginning of line
+        ctrl^right        go to end of line
 
-            ctrl+shift^up     select from current caret position to top
-            ctrl+shift^down   select from current caret position to bottom
-            ctrl+shift^left   select from current caret to beginning of line
-            ctrl+shift^right  select from current caret to end of line
+        ctrl+shift^up     select from current caret position to top
+        ctrl+shift^down   select from current caret position to bottom
+        ctrl+shift^left   select from current caret to beginning of line
+        ctrl+shift^right  select from current caret to end of line
 
-            alt^up            select current word
-            alt^left          go to beginning of line
-            alt^down          go to end of line
-            alt+shift^left    select from current caret position go to beginning of word
-            alt+shift^right   select from current caret position go to end of word
+        alt^up            select current word
+        alt^left          go to beginning of line
+        alt^down          go to end of line
+        alt+shift^left    select from current caret position go to beginning of word
+        alt+shift^right   select from current caret position go to end of word
 
-            ctrl+^s          increase font size
-            ctrl+shift^s     decrease font size
-            """;
+        ctrl+^s          increase font size
+        ctrl+shift^s     decrease font size
+        """;
+    public static final String QUEST_APP_NAME = "quest";
     public static final String MAIN_FONT_NAME = "Arial"; // excluding commands' TextPane, which is Monospaced
-    public static final Color MAIN_FONT_COLOR = new Color(200, 50, 90);
+    public static final Color QUEST_APP_COLOR = new Color(200, 50, 90);
+    public static final Color QUEST_APP_BACKGROUND_COLOR = Color.BLACK;
     public static final Color EDITOR_FONT_COLOR = new Color(95, 235, 150);
+    public static final Color SELECT_FONT_COLOR = new Color(250, 255, 116);
     public static final int EDITOR_DEFAULT_FONT_SIZE = 15;
     public static final int EDITOR_MIN_FONT_SIZE = 11;
     public static final int EDITOR_MAX_FONT_SIZE = 21;
@@ -117,7 +120,7 @@ public final class GTk {
     public static final int NO_KEY_EVENT = -1;
     public static final Font TABLE_HEADER_FONT = new Font(MAIN_FONT_NAME, Font.BOLD, EDITOR_DEFAULT_FONT_SIZE);
     private static final Font TABLE_HEADER_UNDERLINE_FONT = TABLE_HEADER_FONT.deriveFont(Map.of(
-            TextAttribute.UNDERLINE, TextAttribute.UNDERLINE_ON));
+        TextAttribute.UNDERLINE, TextAttribute.UNDERLINE_ON));
     public static final Font TABLE_CELL_FONT = new Font(MAIN_FONT_NAME, Font.PLAIN, EDITOR_DEFAULT_FONT_SIZE);
     private static final String EDITOR_FONT_NAME = "Monospaced";
     public static final Font EDITOR_DEFAULT_FONT = new Font(EDITOR_FONT_NAME, Font.BOLD, EDITOR_DEFAULT_FONT_SIZE);
@@ -132,6 +135,15 @@ public final class GTk {
         System.setProperty("swing.aatext", "true");
     }
 
+    static {
+        final String lookAndFeel = UIManager.getCrossPlatformLookAndFeelClassName();
+        try {
+            UIManager.setLookAndFeel(lookAndFeel);
+        } catch (Exception e) {
+            LOG.infoW().$("CrossPlatformLookAndFeel unavailable [name=").$(lookAndFeel).I$();
+        }
+    }
+
     private GTk() {
         throw new IllegalStateException("not meant to be instantiated");
     }
@@ -143,32 +155,32 @@ public final class GTk {
     public static void addCmdKeyAction(int keyEvent, JComponent component, ActionListener action) {
         Action cmd = action(action);
         component.getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW).put(
-                KeyStroke.getKeyStroke(keyEvent, CMD_DOWN_MASK),
-                cmd);
+            KeyStroke.getKeyStroke(keyEvent, CMD_DOWN_MASK),
+            cmd);
         component.getActionMap().put(cmd, cmd);
     }
 
     public static void addCmdShiftKeyAction(int keyEvent, JComponent component, ActionListener action) {
         Action cmd = action(action);
         component.getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW).put(
-                KeyStroke.getKeyStroke(keyEvent, CMD_SHIFT_DOWN_MASK),
-                cmd);
+            KeyStroke.getKeyStroke(keyEvent, CMD_SHIFT_DOWN_MASK),
+            cmd);
         component.getActionMap().put(cmd, cmd);
     }
 
     public static void addAltKeyAction(int keyEvent, JComponent component, ActionListener action) {
         Action cmd = action(action);
         component.getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW).put(
-                KeyStroke.getKeyStroke(keyEvent, ALT_DOWN_MASK),
-                cmd);
+            KeyStroke.getKeyStroke(keyEvent, ALT_DOWN_MASK),
+            cmd);
         component.getActionMap().put(cmd, cmd);
     }
 
     public static void addAltShiftKeyAction(int keyEvent, JComponent component, ActionListener action) {
         Action cmd = action(action);
         component.getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW).put(
-                KeyStroke.getKeyStroke(keyEvent, ALT_SHIFT_DOWN_MASK),
-                cmd);
+            KeyStroke.getKeyStroke(keyEvent, ALT_SHIFT_DOWN_MASK),
+            cmd);
         component.getActionMap().put(cmd, cmd);
     }
 
@@ -257,23 +269,23 @@ public final class GTk {
 
     public static void setClipboardContent(final String str) {
         TK.getSystemClipboard().setContents(
-                new Transferable() {
-                    @Override
-                    public DataFlavor[] getTransferDataFlavors() {
-                        return SUPPORTED_COPY_PASTE_FLAVOR;
-                    }
+            new Transferable() {
+                @Override
+                public DataFlavor[] getTransferDataFlavors() {
+                    return SUPPORTED_COPY_PASTE_FLAVOR;
+                }
 
-                    @Override
-                    public boolean isDataFlavorSupported(DataFlavor flavor) {
-                        return DataFlavor.stringFlavor.equals(flavor);
-                    }
+                @Override
+                public boolean isDataFlavorSupported(DataFlavor flavor) {
+                    return DataFlavor.stringFlavor.equals(flavor);
+                }
 
-                    @Override
-                    public Object getTransferData(DataFlavor flavor) {
-                        return isDataFlavorSupported(flavor) ? str : "";
-                    }
-                },
-                null
+                @Override
+                public Object getTransferData(DataFlavor flavor) {
+                    return isDataFlavorSupported(flavor) ? str : "";
+                }
+            },
+            null
         );
     }
 
@@ -327,12 +339,12 @@ public final class GTk {
     }
 
     public static JButton button(
-            String text,
-            String tooltip,
-            int width,
-            int height,
-            Color foregroundColor,
-            ActionListener listener
+        String text,
+        String tooltip,
+        int width,
+        int height,
+        Color foregroundColor,
+        ActionListener listener
     ) {
         JButton button = button(text, GTk.Icon.NO_ICON, tooltip, listener);
         button.setPreferredSize(new Dimension(width, height));
@@ -341,14 +353,14 @@ public final class GTk {
     }
 
     private static JButton button(
-            String text,
-            Icon icon,
-            String tooltip,
-            ActionListener listener
+        String text,
+        Icon icon,
+        String tooltip,
+        ActionListener listener
     ) {
         JButton button = new JButton(Objects.requireNonNull(text));
         button.setFont(GTk.MENU_FONT);
-        button.setBackground(Color.BLACK);
+        button.setBackground(GTk.QUEST_APP_BACKGROUND_COLOR);
         button.setForeground(Color.WHITE);
         if (icon != Icon.NO_ICON) {
             button.setIcon(icon.icon());
@@ -362,7 +374,7 @@ public final class GTk {
     }
 
     public static JPanel flowPanel(JComponent... components) {
-        return flowPanel(null, Color.BLACK, 0, 0, components);
+        return flowPanel(null, GTk.QUEST_APP_BACKGROUND_COLOR, 0, 0, components);
     }
 
     public static JPanel flowPanel(Border border, Color backgroundColor, int hgap, int vgap, JComponent... components) {
@@ -381,7 +393,7 @@ public final class GTk {
 
     public static JPanel gap(int hgap) {
         JPanel panel = new JPanel(new FlowLayout(FlowLayout.CENTER, hgap, 0));
-        panel.setBackground(Color.BLACK);
+        panel.setBackground(GTk.QUEST_APP_BACKGROUND_COLOR);
         return panel;
     }
 
@@ -399,42 +411,41 @@ public final class GTk {
     }
 
     public static JMenuItem menuItem(
-            GTk.Icon icon,
-            String title,
-            int keyEvent,
-            ActionListener listener
+        GTk.Icon icon,
+        String title,
+        int keyEvent,
+        ActionListener listener
     ) {
         return menuItem(new JMenuItem(), icon, title, null, keyEvent, listener);
     }
 
     public static JMenuItem menuItem(
-            GTk.Icon icon,
-            String title,
-            String tooltip,
-            int keyEvent,
-            ActionListener listener
+        GTk.Icon icon,
+        String title,
+        String tooltip,
+        int keyEvent,
+        ActionListener listener
     ) {
         return menuItem(new JMenuItem(), icon, title, tooltip, keyEvent, listener);
     }
 
     public static JMenuItem menuItem(
-            JMenuItem item,
-            GTk.Icon icon,
-            String title,
-            int keyEvent,
-            ActionListener listener
+        JMenuItem item,
+        GTk.Icon icon,
+        String title,
+        int keyEvent,
+        ActionListener listener
     ) {
         return menuItem(item, icon, title, null, keyEvent, listener);
     }
 
-
     private static JMenuItem menuItem(
-            JMenuItem item,
-            GTk.Icon icon,
-            String title,
-            String tooltip,
-            int keyEvent,
-            ActionListener listener
+        JMenuItem item,
+        GTk.Icon icon,
+        String title,
+        String tooltip,
+        int keyEvent,
+        ActionListener listener
     ) {
         if (icon != GTk.Icon.NO_ICON) {
             item.setIcon(icon.icon());
@@ -454,7 +465,7 @@ public final class GTk {
 
     public static JLabel label(String text, Color foregroundColor) {
         JLabel label = label(Icon.NO_ICON, text, null);
-        label.setBackground(Color.BLACK);
+        label.setBackground(GTk.QUEST_APP_BACKGROUND_COLOR);
         label.setForeground(foregroundColor);
         return label;
     }
@@ -462,7 +473,7 @@ public final class GTk {
     public static JLabel label(GTk.Icon icon, String text, Consumer<MouseEvent> consumer) {
         JLabel label = new JLabel();
         label.setFont(GTk.TABLE_HEADER_FONT);
-        label.setBackground(Color.BLACK);
+        label.setBackground(GTk.QUEST_APP_BACKGROUND_COLOR);
         if (icon != GTk.Icon.NO_ICON) {
             label.setIcon(icon.icon());
         }
@@ -487,19 +498,19 @@ public final class GTk {
         try {
             if (os.contains("mac")) {
                 rt.exec(String.format(
-                        "open %s",
-                        DOCUMENTATION_URL
+                    "open %s",
+                    DOCUMENTATION_URL
                 ));
             } else if (os.contains("win")) {
                 rt.exec(String.format(
-                        "rundll32 url.dll,FileProtocolHandler %s",
-                        DOCUMENTATION_URL
+                    "rundll32 url.dll,FileProtocolHandler %s",
+                    DOCUMENTATION_URL
                 ));
             } else if (os.contains("nix") || os.contains("nux")) {
                 String[] browsers = {
-                        "google-chrome", "firefox", "mozilla",
-                        "epiphany", "konqueror", "netscape",
-                        "opera", "links", "lynx"
+                    "google-chrome", "firefox", "mozilla",
+                    "epiphany", "konqueror", "netscape",
+                    "opera", "links", "lynx"
                 };
                 StringBuilder cmd = new StringBuilder();
                 for (int i = 0; i < browsers.length; i++) {
@@ -507,24 +518,24 @@ public final class GTk {
                         cmd.append(" || ");
                     }
                     cmd.append(browsers[i])
-                            .append("\"")
-                            .append(DOCUMENTATION_URL)
-                            .append("\"");
+                        .append("\"")
+                        .append(DOCUMENTATION_URL)
+                        .append("\"");
                 }
                 // If the first didn't work, try the next
                 rt.exec(new String[]{"sh", "-c", cmd.toString()});
             }
         } catch (IOException err) {
             JOptionPane.showMessageDialog(
-                    null,
-                    String.format(
-                            "Failed to open browser [%s:%s]: %s",
-                            os,
-                            DOCUMENTATION_URL,
-                            err.getMessage()
-                    ),
-                    "Helpless",
-                    JOptionPane.INFORMATION_MESSAGE
+                null,
+                String.format(
+                    "Failed to open browser [%s:%s]: %s",
+                    os,
+                    DOCUMENTATION_URL,
+                    err.getMessage()
+                ),
+                "Helpless",
+                JOptionPane.INFORMATION_MESSAGE
             );
         }
     }
@@ -617,8 +628,8 @@ public final class GTk {
                 }
             } catch (Throwable err) {
                 LOG.error().$("Icon not available [resource=").$(resource)
-                        .$(", e=").$(err.getMessage())
-                        .I$();
+                    .$(", e=").$(err.getMessage())
+                    .I$();
             }
             return icon;
         }

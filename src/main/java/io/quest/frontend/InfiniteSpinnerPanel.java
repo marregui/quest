@@ -47,7 +47,7 @@ public class InfiniteSpinnerPanel extends JPanel implements NoopMouseListener, C
     private static final int BAR_WIDTH = BAR_HEIGHT * 10;
     private static final int BAR_SHIFT = BAR_HEIGHT * 4;
     private static final double ANGLE_STEP = 2.0 * Math.PI / BAR_COUNT;
-    private static final Color BACKGROUND_COLOR = Color.BLACK;
+    private static final Color BACKGROUND_COLOR = GTk.QUEST_APP_BACKGROUND_COLOR;
     private static final long REFRESH_MILLIS = 80L;
 
     private final AtomicReference<Thread> animation;

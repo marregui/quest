@@ -38,9 +38,9 @@ public class QuestHighlighter extends DocumentFilter {
         GTk.EDITOR_FONT_COLOR.getGreen(),
         GTk.EDITOR_FONT_COLOR.getBlue()); // terminal green
     protected static final AttributeSet HIGHLIGHT_KEYWORD = styleForegroundColor(
-        GTk.MAIN_FONT_COLOR.getRed(),
-        GTk.MAIN_FONT_COLOR.getGreen(),
-        GTk.MAIN_FONT_COLOR.getBlue()); // red
+        GTk.QUEST_APP_COLOR.getRed(),
+        GTk.QUEST_APP_COLOR.getGreen(),
+        GTk.QUEST_APP_COLOR.getBlue()); // red
     private static final String NON_KEYWORDS = "|;|,|\\.|\\(|\\)";
     private static final Pattern KEYWORDS_PATTERN = Pattern.compile(
         // src/main/python/keywords.py
@@ -67,9 +67,9 @@ public class QuestHighlighter extends DocumentFilter {
     private static final String ERROR_HEADER = "==========  ERROR  ==========\n";
     private static final Pattern ERROR_HEADER_PATTERN = Pattern.compile(ERROR_HEADER);
     private static final AttributeSet HIGHLIGHT_FIND_MATCH = styleForegroundColor(
-        Color.YELLOW.getRed(),
-        Color.YELLOW.getGreen(),
-        Color.YELLOW.getBlue());
+        GTk.SELECT_FONT_COLOR.getRed(),
+        GTk.SELECT_FONT_COLOR.getGreen(),
+        GTk.SELECT_FONT_COLOR.getBlue());
     private static final AttributeSet HIGHLIGHT_ERROR = styleForegroundColor(255, 55, 5); // bright red
     protected final StyledDocument styledDocument;
     private final StringBuilder errorBuilder;
@@ -227,7 +227,7 @@ public class QuestHighlighter extends DocumentFilter {
             matchCount++;
         }
         matcher.reset();
-        matcher.replaceAll(replaceWith);
+        String ignore = matcher.replaceAll(replaceWith);
         return matchCount;
     }
 }

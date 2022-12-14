@@ -120,8 +120,7 @@ public class StoreEntry implements UniqueId<String>, Comparable<StoreEntry> {
         if (this == o) {
             return true;
         }
-        if (o instanceof StoreEntry) {
-            StoreEntry that = (StoreEntry) o;
+        if (o instanceof StoreEntry that) {
             return name.equals(that.name) && attrs.equals(that.attrs);
         }
         return false;

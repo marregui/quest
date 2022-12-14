@@ -41,10 +41,9 @@ public class Row implements UniqueId<Long> {
         if (this == o) {
             return true;
         }
-        if (!(o instanceof Row)) {
+        if (!(o instanceof Row that)) {
             return false;
         }
-        Row that = (Row) o;
         return uniqueId == that.uniqueId;
     }
 
@@ -53,13 +52,11 @@ public class Row implements UniqueId<Long> {
         String str = toString.get();
         if (str == null) {
             StringBuilder sb = new StringBuilder();
-            if (null != values) {
-                for (Object o : values) {
-                    sb.append(null != o ? o : "null").append(", ");
-                }
-                if (values.length > 0) {
-                    sb.setLength(sb.length() - 2);
-                }
+            for (Object o : values) {
+                sb.append(null != o ? o : "null").append(", ");
+            }
+            if (values.length > 0) {
+                sb.setLength(sb.length() - 2);
             }
             str = sb.toString();
             if (!toString.compareAndSet(null, str)) {

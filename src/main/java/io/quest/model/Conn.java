@@ -74,6 +74,7 @@ public class Conn extends ConnAttrs implements Closeable {
      *
      * @param other original store item
      */
+    @SuppressWarnings("unused")
     public Conn(StoreEntry other) {
         super(other);
         isOpen = new AtomicBoolean();
@@ -178,9 +179,9 @@ public class Conn extends ConnAttrs implements Closeable {
             testConn = DriverManager.getConnection(getUri(), loginProperties());
             if (!testConn.isValid(IS_VALID_TIMEOUT_SECS)) {
                 throw new SQLException(String.format(
-                        "connection with %s is not valid (tried for %d secs)",
-                        this,
-                        IS_VALID_TIMEOUT_SECS
+                    "connection with %s is not valid (tried for %d secs)",
+                    this,
+                    IS_VALID_TIMEOUT_SECS
                 ));
             }
         } finally {

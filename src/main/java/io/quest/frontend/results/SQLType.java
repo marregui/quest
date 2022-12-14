@@ -95,7 +95,7 @@ final class SQLType {
             case Types.TINYINT, Types.SMALLINT, Types.INTEGER, Types.BIGINT -> OLIVE_COLOR;
             case Types.REAL, Types.DOUBLE -> Color.GREEN;
             case Types.TIMESTAMP, Types.TIMESTAMP_WITH_TIMEZONE -> CYAN_DULL_COLOR;
-            case Types.VARCHAR -> GTk.MAIN_FONT_COLOR;
+            case Types.VARCHAR -> GTk.QUEST_APP_COLOR;
             default -> Color.MAGENTA;
         };
     }

@@ -25,8 +25,10 @@ package io.quest.model;
  * <li>data: an instance of some class that carries the event data.</li>
  * </ul>
  */
+@SuppressWarnings("unused")
 public interface EventProducer<EventType extends Enum<?>> {
 
+    @SuppressWarnings("unchecked")
     static <EventType extends Enum<?>> EventType eventType(Enum<?> event) {
         return (EventType) EventType.valueOf(event.getClass(), event.name());
     }

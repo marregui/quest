@@ -71,7 +71,7 @@ public class SQLResultsTable extends JPanel implements Closeable {
         table.setColumnSelectionAllowed(true);
         table.setCellSelectionEnabled(true);
         table.setRowHeight(TABLE_ROW_HEIGHT);
-        table.setGridColor(GTk.MAIN_FONT_COLOR.darker().darker().darker());
+        table.setGridColor(GTk.QUEST_APP_COLOR.darker().darker().darker());
         table.setFont(GTk.TABLE_CELL_FONT);
         table.setDefaultRenderer(String.class, new SQLCellRenderer(results::get));
         table.setSelectionMode(ListSelectionModel.MULTIPLE_INTERVAL_SELECTION);
@@ -80,44 +80,44 @@ public class SQLResultsTable extends JPanel implements Closeable {
         JTableHeader header = table.getTableHeader();
         header.setReorderingAllowed(false);
         header.setFont(GTk.TABLE_HEADER_FONT);
-        header.setForeground(Color.BLACK);
+        header.setForeground(GTk.QUEST_APP_BACKGROUND_COLOR);
         statsLabel = new JLabel();
         statsLabel.setFont(GTk.MENU_FONT);
-        statsLabel.setBackground(Color.BLACK);
+        statsLabel.setBackground(GTk.QUEST_APP_BACKGROUND_COLOR);
         statsLabel.setForeground(Color.WHITE);
         statsLabel.setPreferredSize(STATUS_LABEL_SIZE);
         statsLabel.setHorizontalAlignment(JLabel.RIGHT);
         rowRangeLabel = new JLabel();
         rowRangeLabel.setFont(GTk.MENU_FONT);
-        rowRangeLabel.setBackground(Color.BLACK);
+        rowRangeLabel.setBackground(GTk.QUEST_APP_BACKGROUND_COLOR);
         rowRangeLabel.setForeground(Color.WHITE);
         rowRangeLabel.setPreferredSize(NAVIGATION_LABEL_SIZE);
         rowRangeLabel.setHorizontalAlignment(JLabel.RIGHT);
         prevButton = GTk.button(GTk.Icon.RESULTS_PREV, "Go to previous page", this::onPrevButton);
         prevButton.setFont(GTk.MENU_FONT);
-        prevButton.setBackground(Color.BLACK);
+        prevButton.setBackground(GTk.QUEST_APP_BACKGROUND_COLOR);
         prevButton.setForeground(Color.WHITE);
         prevButton.setPreferredSize(NAVIGATION_BUTTON_SIZE);
         nextButton = GTk.button(GTk.Icon.RESULTS_NEXT, "Go to next page", this::onNextButton);
         nextButton.setFont(GTk.MENU_FONT);
-        nextButton.setBackground(Color.BLACK);
+        nextButton.setBackground(GTk.QUEST_APP_BACKGROUND_COLOR);
         nextButton.setForeground(Color.WHITE);
         nextButton.setPreferredSize(NAVIGATION_BUTTON_SIZE);
         nextButton.setHorizontalTextPosition(SwingConstants.LEFT);
         JPanel southPanel = GTk.flowPanel(statsLabel, rowRangeLabel, prevButton, nextButton);
-        southPanel.setBackground(Color.BLACK);
+        southPanel.setBackground(GTk.QUEST_APP_BACKGROUND_COLOR);
         questPanel = new Editor(true, false);
         tableScrollPanel = new JScrollPane(
             table,
             JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED,
             JScrollPane.HORIZONTAL_SCROLLBAR_AS_NEEDED);
-        tableScrollPanel.getViewport().setBackground(Color.BLACK);
+        tableScrollPanel.getViewport().setBackground(GTk.QUEST_APP_BACKGROUND_COLOR);
         infiniteSpinner = new InfiniteSpinnerPanel();
         infiniteSpinner.setSize(size);
         changeMode(Mode.TABLE);
         setLayout(new BorderLayout());
         setPreferredSize(size);
-        setBackground(Color.BLACK);
+        setBackground(GTk.QUEST_APP_BACKGROUND_COLOR);
         add(currentModePanel, BorderLayout.CENTER);
         add(southPanel, BorderLayout.SOUTH);
         updateRowNavigationComponents();
@@ -191,11 +191,6 @@ public class SQLResultsTable extends JPanel implements Closeable {
         changeMode(Mode.INFINITE);
     }
 
-    public void hideInfiniteSpinner() {
-        infiniteSpinner.close();
-        changeMode(Mode.MESSAGE);
-    }
-
     public void onPrevButton(ActionEvent event) {
         if (prevButton.isEnabled() && tableModel.canDecrPage()) {
             tableModel.decrPage();
@@ -227,7 +222,7 @@ public class SQLResultsTable extends JPanel implements Closeable {
         tableModel.refreshTableStructure();
         JTableHeader header = table.getTableHeader();
         header.setForeground(Color.WHITE);
-        header.setBackground(Color.BLACK);
+        header.setBackground(GTk.QUEST_APP_BACKGROUND_COLOR);
         header.setPreferredSize(new Dimension(0, TABLE_HEADER_HEIGHT));
         Table t = results.get();
         TableColumnModel tcm = table.getColumnModel();

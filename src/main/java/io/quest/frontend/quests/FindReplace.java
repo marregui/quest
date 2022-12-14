@@ -50,13 +50,13 @@ public class FindReplace extends JPanel implements EventProducer<FindReplace.Eve
         };
         setupSearchTextField(findText, this::fireFindEvent);
         findTextIsRegex = new JCheckBox("regex?", false);
-        findTextIsRegex.setBackground(Color.BLACK);
+        findTextIsRegex.setBackground(GTk.QUEST_APP_BACKGROUND_COLOR);
         findTextIsRegex.setForeground(Color.WHITE);
         replaceWithText = new JTextField(20);
         setupSearchTextField(replaceWithText, this::fireReplaceEvent);
         findMatchesLabel = GTk.label("  0 matches", FIND_FONT_COLOR);
         setLayout(new FlowLayout(FlowLayout.RIGHT, 5, 4));
-        setBackground(Color.BLACK);
+        setBackground(GTk.QUEST_APP_BACKGROUND_COLOR);
         setBorder(BorderFactory.createDashedBorder(Color.LIGHT_GRAY.darker()));
         add(GTk.label("Find", FIND_FONT_COLOR));
         add(findText);
@@ -110,7 +110,7 @@ public class FindReplace extends JPanel implements EventProducer<FindReplace.Eve
 
     private void setupSearchTextField(JTextField field, ActionListener listener) {
         field.setFont(GTk.TABLE_HEADER_FONT);
-        field.setBackground(Color.BLACK);
+        field.setBackground(GTk.QUEST_APP_BACKGROUND_COLOR);
         field.setForeground(FIND_FONT_COLOR);
         field.setCaretColor(Color.CYAN);
         field.setCaretPosition(0);

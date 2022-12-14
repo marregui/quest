@@ -28,6 +28,7 @@ import javax.swing.*;
 import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.TableModelEvent;
 
+import io.quest.frontend.GTk;
 import io.quest.model.EventConsumer;
 import io.quest.model.EventProducer;
 import io.quest.model.Conn;
@@ -80,7 +81,7 @@ public class Conns extends JDialog implements EventProducer<Conns.EventType>, Cl
             table,
             JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED,
             JScrollPane.HORIZONTAL_SCROLLBAR_AS_NEEDED);
-        tableScrollPanel.getViewport().setBackground(Color.BLACK);
+        tableScrollPanel.getViewport().setBackground(GTk.QUEST_APP_BACKGROUND_COLOR);
         connsValidityChecker = new ConnsChecker(tableModel::getConns, this::onLostConnsEvent);
         reloadButton = button(Icon.COMMAND_RELOAD, "Reload last saved connections", this::onReload);
         cloneButton = button(Icon.CONN_CLONE, "Clone selected connection", this::onCloneConn);
@@ -91,7 +92,7 @@ public class Conns extends JDialog implements EventProducer<Conns.EventType>, Cl
         assignButton = button(Icon.CONN_ASSIGN, "Assign selected connection", this::onAssign);
         JPanel buttons = flowPanel(
             BorderFactory.createLineBorder(Color.WHITE, 1, true),
-            Color.BLACK,
+            GTk.QUEST_APP_BACKGROUND_COLOR,
             50,
             0,
             flowPanel(reloadButton, cloneButton, addButton, removeButton),

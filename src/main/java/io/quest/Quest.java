@@ -44,7 +44,6 @@ import static io.quest.frontend.GTk.Icon;
 
 
 public final class Quest {
-    public static final String NAME = "quest";
     private static final Log LOG = LogFactory.getLog(Quest.class);
 
     private final JFrame frame;
@@ -52,15 +51,15 @@ public final class Quest {
     private final Conns conns;
     private final SQLResultsTable results;
     private final SQLExecutor executor;
-    private final JMenuItem toggleConnsWidget;
-    private final JMenuItem toggleQuestDB;
-    private final JMenuItem toggleMetaExaminerWidget;
-    private final JMenuItem toggleConn;
     private final Meta meta;
+    private final JMenuItem toggleConns;
+    private final JMenuItem toggleQuestDB;
+    private final JMenuItem toggleMeta;
+    private final JMenuItem toggleAssignedConn;
     private ServerMain questDb;
 
     private Quest() {
-        frame = GTk.frame(String.format("%s [store: %s]", NAME, Store.ROOT_PATH));
+        frame = GTk.frame(String.format("%s [store: %s]", GTk.QUEST_APP_NAME, Store.ROOT_PATH));
         frame.setIconImage(Icon.QUEST.icon().getImage());
         int dividerHeight = (int) (frame.getHeight() * 0.6);
         executor = new SQLExecutor();
@@ -73,10 +72,10 @@ public final class Quest {
         splitPane.setDividerLocation(dividerHeight);
         splitPane.setDividerSize(5);
         frame.add(splitPane, BorderLayout.CENTER);
-        toggleConnsWidget = new JMenuItem();
-        toggleConn = new JMenuItem();
+        toggleConns = new JMenuItem();
+        toggleAssignedConn = new JMenuItem();
         toggleQuestDB = new JMenuItem();
-        toggleMetaExaminerWidget = new JMenuItem();
+        toggleMeta = new JMenuItem();
         frame.setJMenuBar(createMenuBar());
         Runtime.getRuntime().addShutdownHook(new Thread(this::close, "shutdown-hook"));
         LOG.info().$(GTk.BANNER).$();
@@ -86,19 +85,13 @@ public final class Quest {
     }
 
     public static void main(String[] args) {
-        final String lookAndFeel = UIManager.getCrossPlatformLookAndFeelClassName();
-        try {
-            UIManager.setLookAndFeel(lookAndFeel);
-        } catch (Exception e) {
-            LOG.infoW().$("CrossPlatformLookAndFeel unavailable [name=").$(lookAndFeel).I$();
-        }
         GTk.invokeLater(Quest::new);
     }
 
     private JMenuBar createMenuBar() {
         JMenu connsMenu = GTk.menu(Icon.CONNS, "Connections");
-        connsMenu.add(menuItem(toggleConnsWidget, Icon.CONN_SHOW, "Connections", KeyEvent.VK_T, this::onToggleConnsWidget));
-        connsMenu.add(menuItem(toggleConn, Icon.CONN_CONNECT, "Connect", KeyEvent.VK_O, this::onToggleConn));
+        connsMenu.add(menuItem(toggleConns, Icon.CONN_SHOW, "Connections", KeyEvent.VK_T, this::onToggleConns));
+        connsMenu.add(menuItem(toggleAssignedConn, Icon.CONN_CONNECT, "Connect", KeyEvent.VK_O, this::onToggleAssignedConn));
 
         JMenu commandsMenu = GTk.menu(Icon.COMMANDS, "Commands");
         commandsMenu.add(GTk.menuItem(Icon.COMMAND_EXEC_LINE, "L.Exec", KeyEvent.VK_L, commands::onExecLine));
@@ -113,11 +106,11 @@ public final class Quest {
         resultsMenu.add(GTk.menuItem(Icon.RESULTS_NEXT, "NEXT", KeyEvent.VK_N, results::onNextButton));
 
         JMenu menu = GTk.menu(Icon.MENU);
-        menu.add(commands.getQuestsMenu()); // Quests Menu
+        menu.add(commands.getQuestsMenu());
         menu.addSeparator();
         menu.add(menuItem(toggleQuestDB, Icon.ROCKET, "Run QuestDB", KeyEvent.VK_PERIOD, this::onToggleQuestDB));
         menu.addSeparator();
-        menu.add(menuItem(toggleMetaExaminerWidget, Icon.META, "Meta Explorer", KeyEvent.VK_M, this::onToggleMetaWidget));
+        menu.add(menuItem(toggleMeta, Icon.META, "Meta Explorer", KeyEvent.VK_M, this::onToggleMeta));
         menu.addSeparator();
         menu.add(connsMenu);
         menu.add(commandsMenu);
@@ -131,30 +124,30 @@ public final class Quest {
         return menuBar;
     }
 
-    private void onToggleConn(ActionEvent event) {
+    private void onToggleAssignedConn(ActionEvent event) {
         Conn conn = commands.getConnection();
         conns.onConnectEvent(conn);
-        toggleConn.setText(conn != null && conn.isOpen() ? "Connect" : "Disconnect");
+        toggleAssignedConn.setText(conn != null && conn.isOpen() ? "Connect" : "Disconnect");
     }
 
-    private void onToggleConnsWidget(ActionEvent event) {
+    private void onToggleConns(ActionEvent event) {
         onToggleWidget(conns, wasVisible -> {
-            toggleConnsWidget.setText(wasVisible ? "Connections" : "Hide Connections");
-            toggleConnsWidget.setIcon((wasVisible ? Icon.CONN_SHOW : Icon.CONN_HIDE).icon());
+            toggleConns.setText(wasVisible ? "Connections" : "Hide Connections");
+            toggleConns.setIcon((wasVisible ? Icon.CONN_SHOW : Icon.CONN_HIDE).icon());
         });
     }
 
-    private void onToggleMetaWidget(ActionEvent event) {
-        onToggleWidget(meta, wasVisible -> toggleMetaExaminerWidget.setText(wasVisible ? "Meta Explorer" : "Close Meta Explorer"));
+    private void onToggleMeta(ActionEvent event) {
+        onToggleWidget(meta, wasVisible -> toggleMeta.setText(wasVisible ? "Meta Explorer" : "Close Meta Explorer"));
     }
 
-    private void onToggleWidget(JDialog dialog, Consumer<Boolean> consumer) {
-        boolean wasVisible = dialog.isVisible();
+    private void onToggleWidget(JDialog widget, Consumer<Boolean> consumer) {
+        boolean wasVisible = widget.isVisible();
         if (!wasVisible) {
-            Dimension location = GTk.frameLocation(dialog.getSize());
-            dialog.setLocation(location.width, location.height);
+            Dimension location = GTk.frameLocation(widget.getSize());
+            widget.setLocation(location.width, location.height);
         }
-        dialog.setVisible(!wasVisible);
+        widget.setVisible(!wasVisible);
         consumer.accept(wasVisible);
     }
 
@@ -166,7 +159,7 @@ public final class Quest {
                 toggleQuestDB.setText("Shutdown QuestDB");
                 Conn conn = commands.getConnection();
                 if (conn == null || !conn.isValid()) {
-                    onToggleConn(null);
+                    onToggleAssignedConn(null);
                 }
             } finally {
                 results.displayMessage("QuestDB is UP");
@@ -182,38 +175,38 @@ public final class Quest {
                 questDb = null;
                 toggleQuestDB.setText("Run QuestDB");
                 results.displayMessage("QuestDB is DOWN");
-                onToggleConn(null);
+                onToggleAssignedConn(null);
             }
         }
     }
 
-    private void dispatchEvent(EventProducer source, Enum<?> event, Object data) {
+    private void dispatchEvent(EventProducer<?> source, Enum<?> event, Object data) {
         if (source instanceof QuestPanel) {
-            onCommandBoardEvent(EventProducer.eventType(event), (SQLExecutionRequest) data);
+            onCommandEvent(EventProducer.eventType(event), (SQLExecutionRequest) data);
         } else if (source instanceof SQLExecutor) {
             onSQLExecutorEvent(EventProducer.eventType(event), (SQLExecutionResponse) data);
         } else if (source instanceof Conns) {
             onConnsEvent(EventProducer.eventType(event), data);
         } else if (source instanceof Meta) {
-            onMetaExaminerEvent(EventProducer.eventType(event));
+            onMetaEvent(EventProducer.eventType(event));
         }
     }
 
-    private void onCommandBoardEvent(QuestPanel.EventType event, SQLExecutionRequest req) {
+    private void onCommandEvent(QuestPanel.EventType event, SQLExecutionRequest req) {
         switch (event) {
             case COMMAND_AVAILABLE -> {
                 Conn conn = commands.getConnection();
                 if (conn == null || !conn.isValid()) {
-                    onToggleConn(null);
+                    onToggleAssignedConn(null);
                 }
                 results.close();
                 executor.submit(req, this::dispatchEvent);
             }
             case COMMAND_CANCEL -> {
                 executor.cancelExistingRequest(req);
-                onToggleConn(null);
+                onToggleAssignedConn(null);
             }
-            case CONNECTION_STATUS_CLICKED -> onToggleConnsWidget(null);
+            case CONNECTION_STATUS_CLICKED -> onToggleConns(null);
         }
     }
 
@@ -228,19 +221,18 @@ public final class Quest {
         }
     }
 
-    private void onMetaExaminerEvent(Meta.EventType event) {
+    private void onMetaEvent(Meta.EventType event) {
         if (event == Meta.EventType.HIDE_REQUEST) {
-            onToggleMetaWidget(null);
+            onToggleMeta(null);
         }
     }
 
     private void onConnsEvent(Conns.EventType event, Object data) {
-        System.out.printf("EVENT: %s%n", event);
         switch (event) {
             case CONNECTION_SELECTED -> {
                 commands.setConnection((Conn) data);
                 if (conns.isVisible()) {
-                    onToggleConnsWidget(null);
+                    onToggleConns(null);
                 }
             }
             case CONNECTION_ESTABLISHED, CONNECTION_CLOSED -> {
@@ -248,7 +240,7 @@ public final class Quest {
                 Conn current = commands.getConnection();
                 if (current != null && current.equals(conn)) {
                     commands.setConnection(conn);
-                    toggleConn.setText(conn.isOpen() ? "Disconnect" : "Connect");
+                    toggleAssignedConn.setText(conn.isOpen() ? "Disconnect" : "Connect");
                 }
             }
             case CONNECTIONS_LOST -> {
@@ -264,7 +256,7 @@ public final class Quest {
             }
             case CONNECTION_FAILED ->
                 results.displayError(String.format("Server is down: %s%n", data));
-            case HIDE_REQUEST -> onToggleConnsWidget(null);
+            case HIDE_REQUEST -> onToggleConns(null);
         }
     }
 
