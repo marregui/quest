@@ -62,24 +62,14 @@ public class SQLExecutionResponse extends SQLExecutionRequest {
         return error;
     }
 
-    /**
-     * @return total time elapsed since the start of the execution up until the
-     *         moment the response is emitted (milliseconds)
-     */
     public long getTotalMillis() {
         return totalMillis;
     }
 
-    /**
-     * @return total time it took to execute the SQL statement (milliseconds)
-     */
     public long getExecMillis() {
         return execMillis;
     }
 
-    /**
-     * @return total time it took to fetch the results of executing the SQL statement (milliseconds)
-     */
     public long getFetchMillis() {
         return fetchMillis;
     }

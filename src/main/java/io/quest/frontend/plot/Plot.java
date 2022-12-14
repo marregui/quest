@@ -28,7 +28,6 @@ import static io.quest.frontend.GTk.menuItem;
 
 public class Plot extends JPanel implements MouseListener, MouseMotionListener {
 
-    private static final long serialVersionUID = 1L;
     private static final Color BORDER_COLOR = new Color(153, 153, 153);
     private static final Color UNITS_COLOR = new Color(105, 105, 105);
     private static final float[] DASHED_LINE = new float[]{1, 8};

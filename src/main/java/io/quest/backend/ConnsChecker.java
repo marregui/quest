@@ -36,16 +36,18 @@ import io.questdb.log.LogFactory;
 
 
 /**
- * A connection is not valid when it was open and then it became unresponsive perhaps
- * due to a server side failure, or network latency.
+ * A connection is not valid when it was previously open and then it became
+ * unresponsive perhaps due to a server side failure, or network latency.
  * <p>
- * Connections are provided by a supplier. A predefined number of threads are in charge
- * of periodically checking the validity of the supplied database connections.
- * <b>Only</b> connections that are <b>open</b> participate in the validity check.
+ * Connections are provided by a supplier. A predefined number of threads are
+ * in charge of periodically checking the validity of the supplied database
+ * connections. <b>Only</b> connections that are <b>open</b> participate in
+ * the validity check.
  * Checks are done concurrently, as any may block for up to 10 secs.
- * When connections are detected to be invalid they are closed and collected into a set
- * which is given back as a callback to a consumer.
- * Supplier and consumer references are provided to the constructor of this class.
+ * When connections are detected to be invalid they are closed and collected
+ * into a set which is given back as a callback to a consumer.
+ * Supplier and consumer references are provided to the constructor of this
+ * class.
  *
  * @see Conn#isValid()
  */
@@ -59,23 +61,13 @@ public class ConnsChecker implements Closeable {
     private final AtomicBoolean isChecking;
     private ScheduledExecutorService scheduler;
 
-    /**
-     * Constructor.
-     *
-     * @param connsSupplier     provides a list of connections to be periodically checked.
-     *                          Only open connections participate in the validity check.
-     * @param lostConnsConsumer in the presence of invalid connections will get at least
-     *                          one callback carrying a set containing lost connections.
-     */
+
     public ConnsChecker(Supplier<List<Conn>> connsSupplier, Consumer<Set<Conn>> lostConnsConsumer) {
         this.connsSupplier = connsSupplier;
         this.lostConnsConsumer = lostConnsConsumer;
         this.isChecking = new AtomicBoolean();
     }
 
-    /**
-     * @return true if the checker was started, and has its terminated state is false
-     */
     public synchronized boolean isRunning() {
         return scheduler != null && !scheduler.isTerminated();
     }
@@ -91,33 +83,33 @@ public class ConnsChecker implements Closeable {
     private void dbConnsValidityCheck() {
         if (isChecking.compareAndSet(false, true)) {
             try {
-                List<ScheduledFuture<Conn>> invalidConns = connsSupplier.get().stream().filter(Conn::isOpen).map(conn -> scheduler.schedule(
-                        // might block for up DBConnection.VALID_CHECK_TIMEOUT_SECS
-                        () -> !conn.isValid() ? conn : null, 0, // start immediately
-                        TimeUnit.SECONDS)).toList();
-                while (invalidConns.size() > 0) {
-                    Set<Conn> invalidSet = new HashSet<>();
-                    for (Iterator<ScheduledFuture<Conn>> it = invalidConns.iterator(); it.hasNext(); ) {
+                List<ScheduledFuture<Conn>> notValid = connsSupplier.get()
+                    .stream()
+                    .filter(Conn::isOpen).map(conn -> scheduler.schedule(
+                        () -> !conn.isValid() ? conn : null, 0, TimeUnit.SECONDS
+                    )).toList();
+                while (notValid.size() > 0) {
+                    Set<Conn> notValidSet = new HashSet<>();
+                    for (Iterator<ScheduledFuture<Conn>> it = notValid.iterator(); it.hasNext(); ) {
                         ScheduledFuture<Conn> invalidConnFuture = it.next();
                         if (invalidConnFuture.isDone()) {
+                            Conn conn = null;
                             try {
-                                Conn conn = invalidConnFuture.get();
-                                if (conn != null) {
-                                    invalidSet.add(conn);
-                                }
+                                conn = invalidConnFuture.get();
                             } catch (Exception unexpected) {
                                 LOG.error().$("Unexpected error [e=").$(unexpected.getMessage()).I$();
                             } finally {
+                                if (conn != null) {
+                                    notValidSet.add(conn);
+                                }
                                 it.remove();
                             }
                         } else if (invalidConnFuture.isCancelled()) {
                             it.remove();
                         }
                     }
-                    if (!invalidSet.isEmpty()) {
-                        // notify the consumer as invalid connections are found
-                        // rather than wait for all connections to be checked
-                        lostConnsConsumer.accept(invalidSet);
+                    if (!notValidSet.isEmpty()) {
+                        lostConnsConsumer.accept(notValidSet);
                     }
                 }
             } finally {

@@ -182,13 +182,13 @@ public final class Quest {
 
     private void dispatchEvent(EventProducer<?> source, Enum<?> event, Object data) {
         if (source instanceof QuestPanel) {
-            onCommandEvent(EventProducer.eventType(event), (SQLExecutionRequest) data);
+            GTk.invokeLater(() -> onCommandEvent(EventProducer.eventType(event), (SQLExecutionRequest) data));
         } else if (source instanceof SQLExecutor) {
-            onSQLExecutorEvent(EventProducer.eventType(event), (SQLExecutionResponse) data);
+            GTk.invokeLater(() -> onSQLExecutorEvent(EventProducer.eventType(event), (SQLExecutionResponse) data));
         } else if (source instanceof Conns) {
-            onConnsEvent(EventProducer.eventType(event), data);
+            GTk.invokeLater(() -> onConnsEvent(EventProducer.eventType(event), data));
         } else if (source instanceof Meta) {
-            onMetaEvent(EventProducer.eventType(event));
+            GTk.invokeLater(() -> onMetaEvent(EventProducer.eventType(event)));
         }
     }
 
@@ -211,13 +211,15 @@ public final class Quest {
     }
 
     private void onSQLExecutorEvent(SQLExecutor.EventType event, SQLExecutionResponse res) {
-        GTk.invokeLater(() -> results.updateStats(event.name(), res));
+        results.updateStats(event.name(), res);
         switch (event) {
-            case STARTED -> GTk.invokeLater(results::showInfiniteSpinner);
-            case RESULTS_AVAILABLE, COMPLETED -> GTk.invokeLater(() -> results.onRowsAdded(res));
-            case CANCELLED -> GTk.invokeLater(results::close);
-            case FAILURE ->
-                GTk.invokeLater(results::close, () -> results.displayError(res.getError()));
+            case STARTED -> results.showInfiniteSpinner();
+            case RESULTS_AVAILABLE, COMPLETED -> results.onRowsAdded(res);
+            case CANCELLED -> results.close();
+            case FAILURE -> {
+                results.close();
+                results.displayError(res.getError());
+            }
         }
     }
 

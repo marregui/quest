@@ -60,10 +60,10 @@ public class SQLExecutor implements EventProducer<SQLExecutor.EventType>, Closea
             runningQueries.clear();
             final String name = getClass().getSimpleName();
             executor = Executors.newFixedThreadPool(NUMBER_OF_THREADS, runnable -> {
-                Thread thread = THREAD_FACTORY.newThread(runnable);
-                thread.setDaemon(true);
-                thread.setName(name);
-                return thread;
+                Thread t = THREAD_FACTORY.newThread(runnable);
+                t.setDaemon(true);
+                t.setName(name);
+                return t;
             });
             LOG.info().$(name).$("is running").$();
         }
@@ -98,8 +98,8 @@ public class SQLExecutor implements EventProducer<SQLExecutor.EventType>, Closea
         String sourceId = req.getSourceId();
         runningQueries.put(sourceId, executor.submit(() -> executeRequest(req, eventConsumer)));
         LOG.info().$("Execution submitted [reqId=").$(req.getUniqueId())
-                .$(", srcId=").$(sourceId)
-                .I$();
+            .$(", srcId=").$(sourceId)
+            .I$();
     }
 
     public synchronized void cancelExistingRequest(SQLExecutionRequest req) {
@@ -111,8 +111,8 @@ public class SQLExecutor implements EventProducer<SQLExecutor.EventType>, Closea
         if (exec != null && !exec.isDone() && !exec.isCancelled()) {
             exec.cancel(true);
             LOG.info().$("Cancelling [reqId=").$(req.getUniqueId())
-                    .$(", srcId=").$(sourceId)
-                    .I$();
+                .$(", srcId=").$(sourceId)
+                .I$();
         }
     }
 
@@ -126,30 +126,30 @@ public class SQLExecutor implements EventProducer<SQLExecutor.EventType>, Closea
         if (!conn.isValid()) {
             runningQueries.remove(sourceId);
             LOG.info().$("Failed [reqId=").$(req.getUniqueId())
-                    .$(", srcId=").$(sourceId)
-                    .$(", conn=").$(conn)
-                    .I$();
+                .$(", srcId=").$(sourceId)
+                .$(", conn=").$(conn)
+                .I$();
             eventListener.onSourceEvent(
-                    SQLExecutor.this,
-                    EventType.FAILURE,
-                    new SQLExecutionResponse(
-                            req,
-                            table,
-                            elapsedMillis(startNanos),
-                            new RuntimeException(String.format("Connection [%s] is not valid", conn))
-                    ));
+                SQLExecutor.this,
+                EventType.FAILURE,
+                new SQLExecutionResponse(
+                    req,
+                    table,
+                    elapsedMillis(startNanos),
+                    new RuntimeException(String.format("Connection [%s] is not valid", conn))
+                ));
             return;
         }
 
         LOG.info().$("Executing [reqId=").$(req.getUniqueId())
-                .$(", srcId=").$(sourceId)
-                .$(", connId=").$(conn.getUniqueId())
-                .$(", query=").$(query)
-                .I$();
+            .$(", srcId=").$(sourceId)
+            .$(", connId=").$(conn.getUniqueId())
+            .$(", query=").$(query)
+            .I$();
         eventListener.onSourceEvent(
-                SQLExecutor.this,
-                EventType.STARTED,
-                new SQLExecutionResponse(req, table, elapsedMillis(startNanos), 0L, 0L));
+            SQLExecutor.this,
+            EventType.STARTED,
+            new SQLExecutionResponse(req, table, elapsedMillis(startNanos), 0L, 0L));
 
         final long fetchStartNanos;
         final long execMillis;
@@ -172,22 +172,22 @@ public class SQLExecutor implements EventProducer<SQLExecutor.EventType>, Closea
                         final long totalMs = millis(fetchChkNanos - startNanos);
                         final long fetchMs = millis(fetchChkNanos - fetchStartNanos);
                         eventListener.onSourceEvent(
-                                SQLExecutor.this,
-                                EventType.RESULTS_AVAILABLE,
-                                new SQLExecutionResponse(req, table, totalMs, execMillis, fetchMs));
+                            SQLExecutor.this,
+                            EventType.RESULTS_AVAILABLE,
+                            new SQLExecutionResponse(req, table, totalMs, execMillis, fetchMs));
                     }
                 }
             }
         } catch (SQLException fail) {
             runningQueries.remove(sourceId);
             LOG.error().$("Failed [reqId=").$(req.getUniqueId())
-                    .$(", srcId=").$(sourceId)
-                    .$(", e=").$(fail.getMessage())
-                    .I$();
+                .$(", srcId=").$(sourceId)
+                .$(", e=").$(fail.getMessage())
+                .I$();
             eventListener.onSourceEvent(
-                    SQLExecutor.this,
-                    EventType.FAILURE,
-                    new SQLExecutionResponse(req, table, elapsedMillis(startNanos), fail));
+                SQLExecutor.this,
+                EventType.FAILURE,
+                new SQLExecutionResponse(req, table, elapsedMillis(startNanos), fail));
             return;
         }
         runningQueries.remove(sourceId);
@@ -196,16 +196,16 @@ public class SQLExecutor implements EventProducer<SQLExecutor.EventType>, Closea
         final long totalMs = millis(endNanos - startNanos);
         final long fetchMs = millis(endNanos - fetchStartNanos);
         LOG.info().$("Event [name=").$(eventType.name())
-                .$(", reqId=").$(req.getUniqueId())
-                .$(", tableSize=").$(table.size())
-                .$(", totalMs=").$(totalMs)
-                .$(", execMs=").$(execMillis)
-                .$(", fetchMs=").$(fetchMs)
-                .I$();
+            .$(", reqId=").$(req.getUniqueId())
+            .$(", tableSize=").$(table.size())
+            .$(", totalMs=").$(totalMs)
+            .$(", execMs=").$(execMillis)
+            .$(", fetchMs=").$(fetchMs)
+            .I$();
         eventListener.onSourceEvent(
-                SQLExecutor.this,
-                eventType,
-                new SQLExecutionResponse(req, table, totalMs, execMillis, fetchMs));
+            SQLExecutor.this,
+            eventType,
+            new SQLExecutionResponse(req, table, totalMs, execMillis, fetchMs));
     }
 
     public enum EventType {

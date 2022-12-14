@@ -30,6 +30,8 @@ import io.quest.frontend.GTk;
 
 import static io.quest.frontend.GTk.addCmdKeyAction;
 import static io.quest.frontend.GTk.addCmdShiftKeyAction;
+import static io.quest.frontend.GTk.addAltKeyAction;
+import static io.quest.frontend.GTk.addAltShiftKeyAction;
 
 public class Editor extends JPanel {
     static final Color LINENO_COLOR = Color.LIGHT_GRAY.darker().darker();
@@ -333,7 +335,7 @@ public class Editor extends JPanel {
         }
     }
 
-    private void cmdShiftLeftJumpToBeginningOfLine(ActionEvent event) {
+    private void cmdShiftLeft(ActionEvent event) {
         try {
             int caretPos = textPane.getCaretPosition();
             int start = Utilities.getRowStart(textPane, caretPos);
@@ -347,7 +349,7 @@ public class Editor extends JPanel {
         }
     }
 
-    private void cmdShiftRightJumpToEndOfLine(ActionEvent event) {
+    private void cmdShiftRight(ActionEvent event) {
         // cmd-shift-right, jump to the end of the line
         try {
             int caretPos = textPane.getCaretPosition();
@@ -432,8 +434,7 @@ public class Editor extends JPanel {
         }
     }
 
-    private void cmdSlashToggleComment(ActionEvent event) {
-        // cmd-fwd-slash, toggle comment on line or selection
+    private void cmdForwardSlashToggleComment(ActionEvent event) {
         try {
             int start = Utilities.getRowStart(textPane, textPane.getSelectionStart());
             int end = Utilities.getRowEnd(textPane, textPane.getSelectionEnd());
@@ -468,7 +469,6 @@ public class Editor extends JPanel {
     }
 
     private void cmdQuoteToggleQuote(ActionEvent event) {
-        // cmd-quote, toggle quote
         try {
             Document doc = textPane.getDocument();
             int docLen = doc.getLength();
@@ -499,7 +499,6 @@ public class Editor extends JPanel {
     }
 
     private void cmdASelectAll(ActionEvent event) {
-        // cmd-a, select all
         textPane.selectAll();
     }
 
@@ -512,8 +511,8 @@ public class Editor extends JPanel {
         addCmdKeyAction(KeyEvent.VK_RIGHT, textPane, this::cmdRight);
         addCmdShiftKeyAction(KeyEvent.VK_UP, textPane, this::cmdShiftUp);
         addCmdShiftKeyAction(KeyEvent.VK_DOWN, textPane, this::cmdShiftDown);
-        addCmdShiftKeyAction(KeyEvent.VK_LEFT, textPane, this::cmdShiftLeftJumpToBeginningOfLine);
-        addCmdShiftKeyAction(KeyEvent.VK_RIGHT, textPane, this::cmdShiftRightJumpToEndOfLine);
+        addCmdShiftKeyAction(KeyEvent.VK_LEFT, textPane, this::cmdShiftLeft);
+        addCmdShiftKeyAction(KeyEvent.VK_RIGHT, textPane, this::cmdShiftRight);
         addCmdKeyAction(KeyEvent.VK_A, textPane, this::cmdASelectAll);
         addCmdKeyAction(KeyEvent.VK_C, textPane, this::cmdCCopyToClipboard);
         if (!isErrorPanel) {
@@ -522,15 +521,14 @@ public class Editor extends JPanel {
             addCmdKeyAction(KeyEvent.VK_D, textPane, this::cmdDDupLine);
             addCmdKeyAction(KeyEvent.VK_Z, textPane, this::cmdZUndo);
             addCmdKeyAction(KeyEvent.VK_Y, textPane, this::cmdYRedo);
-            addCmdKeyAction(KeyEvent.VK_SLASH, textPane, this::cmdSlashToggleComment);
+            addCmdKeyAction(KeyEvent.VK_SLASH, textPane, this::cmdForwardSlashToggleComment);
             addCmdKeyAction(KeyEvent.VK_QUOTE, textPane, this::cmdQuoteToggleQuote);
         }
-        // alt/alt+shift
-        GTk.addAltKeyAction(KeyEvent.VK_UP, textPane, this::altUp);
-        GTk.addAltKeyAction(KeyEvent.VK_LEFT, textPane, this::altLeft);
-        GTk.addAltKeyAction(KeyEvent.VK_RIGHT, textPane, this::altRight);
-        GTk.addAltShiftKeyAction(KeyEvent.VK_LEFT, textPane, this::altShiftLeft);
-        GTk.addAltShiftKeyAction(KeyEvent.VK_RIGHT, textPane, this::altShiftRight);
+        addAltKeyAction(KeyEvent.VK_UP, textPane, this::altUp);
+        addAltKeyAction(KeyEvent.VK_LEFT, textPane, this::altLeft);
+        addAltKeyAction(KeyEvent.VK_RIGHT, textPane, this::altRight);
+        addAltShiftKeyAction(KeyEvent.VK_LEFT, textPane, this::altShiftLeft);
+        addAltShiftKeyAction(KeyEvent.VK_RIGHT, textPane, this::altShiftRight);
     }
 
     private class ParagraphView extends javax.swing.text.ParagraphView {

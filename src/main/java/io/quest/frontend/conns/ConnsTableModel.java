@@ -39,7 +39,7 @@ import io.quest.frontend.PasswordCellRenderer;
 import io.quest.frontend.CellRenderer;
 
 
-class ConnsModel extends AbstractTableModel implements Closeable {
+class ConnsTableModel extends AbstractTableModel implements Closeable {
     private static final int NAME_COL_IDX = 0;
     private static final int HOST_COL_IDX = 1;
     private static final int PORT_COL_IDX = 2;
@@ -65,20 +65,13 @@ class ConnsModel extends AbstractTableModel implements Closeable {
     private final List<Conn> conns;
     private final Set<String> existingNames;
 
-    private ConnsModel() {
+    private ConnsTableModel() {
         conns = new ArrayList<>();
         existingNames = new TreeSet<>();
     }
 
-    /**
-     * Factory method, creates a table that has a {@link ConnsModel} model.
-     *
-     * @param onTableModelEvent called each time a change to the data model occurs
-     * @param selectionListener called each time a change to the selection occurs
-     * @return a new table
-     */
     static JTable createTable(TableModelListener onTableModelEvent, ListSelectionListener selectionListener) {
-        ConnsModel tableModel = new ConnsModel();
+        ConnsTableModel tableModel = new ConnsTableModel();
         tableModel.addTableModelListener(tableModel::onTableModelEvent);
         tableModel.addTableModelListener(onTableModelEvent);
         JTable table = new JTable(tableModel);

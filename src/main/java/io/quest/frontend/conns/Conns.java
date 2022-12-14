@@ -55,7 +55,7 @@ public class Conns extends JDialog implements EventProducer<Conns.EventType>, Cl
     private final JButton removeButton;
     private final JButton reloadButton;
     private final JTable table;
-    private final ConnsModel tableModel;
+    private final ConnsTableModel tableModel;
     private final ConnsChecker connsValidityChecker;
 
     public Conns(Frame owner, EventConsumer<Conns, Object> eventConsumer) {
@@ -75,8 +75,8 @@ public class Conns extends JDialog implements EventProducer<Conns.EventType>, Cl
                 };
             }
         };
-        table = ConnsModel.createTable(this::onTableModelUpdate, this::onListSelection);
-        tableModel = (ConnsModel) table.getModel();
+        table = ConnsTableModel.createTable(this::onTableModelUpdate, this::onListSelection);
+        tableModel = (ConnsTableModel) table.getModel();
         JScrollPane tableScrollPanel = new JScrollPane(
             table,
             JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED,
@@ -97,12 +97,10 @@ public class Conns extends JDialog implements EventProducer<Conns.EventType>, Cl
             0,
             flowPanel(reloadButton, cloneButton, addButton, removeButton),
             flowPanel(testButton, connectButton, assignButton));
-
         Container contentPane = getContentPane();
         contentPane.setLayout(new BorderLayout());
         contentPane.add(tableScrollPanel, BorderLayout.CENTER);
         contentPane.add(buttons, BorderLayout.SOUTH);
-
         Dimension frameDim = frameDimension();
         Dimension dimension = new Dimension(
             (int) (frameDim.width * 0.8),
@@ -113,7 +111,7 @@ public class Conns extends JDialog implements EventProducer<Conns.EventType>, Cl
         setLocation(location.width, location.height);
         setVisible(false);
         setAlwaysOnTop(true);
-        setModal(false);
+        setModalityType(ModalityType.APPLICATION_MODAL);
         setDefaultCloseOperation(WindowConstants.HIDE_ON_CLOSE);
         addWindowListener(new WindowAdapter() {
             @Override
@@ -190,12 +188,15 @@ public class Conns extends JDialog implements EventProducer<Conns.EventType>, Cl
         StringBuilder sb = new StringBuilder();
         for (Conn conn : lostConns) {
             String msg = String.format(
-                "Lost connection with [%s] as '%s'",
+                "[%s as '%s']",
                 conn.getUri(),
                 conn.getUsername());
-            sb.append(msg).append("\n");
+            sb.append(conn.getUri()).append(" as '").append(conn.getUsername()).append("', ");
         }
-        LOG.error().$("lost connection [conn=").$(sb.toString()).I$();
+        if (sb.length() > 2) {
+            sb.setLength(sb.length() - 2);
+        }
+        LOG.error().$("lost connection [conns=").$(sb.toString()).I$();
         invokeLater(() -> {
             toggleComponents();
             eventConsumer.onSourceEvent(this, EventType.CONNECTIONS_LOST, lostConns);
