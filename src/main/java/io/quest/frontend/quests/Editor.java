@@ -34,7 +34,6 @@ import static io.quest.frontend.GTk.addAltKeyAction;
 import static io.quest.frontend.GTk.addAltShiftKeyAction;
 
 public class Editor extends JPanel {
-    static final Color LINENO_COLOR = Color.LIGHT_GRAY.darker().darker();
     private static final String MARGIN_TOKEN = ":99999:";
     protected final JTextPane textPane;
     private final QuestHighlighter highlighter;
@@ -554,7 +553,7 @@ public class Editor extends JPanel {
             super.paintChild(g, alloc, index);
             Font font = textPane.getFont();
             g.setFont(font);
-            g.setColor(LINENO_COLOR);
+            g.setColor(GTk.EDITOR_LINENO_COLOR);
             int n = getLineNumber(getDocument().getDefaultRootElement(), getElement());
             String lineno = String.valueOf(n);
             FontMetrics fm = g.getFontMetrics(font);

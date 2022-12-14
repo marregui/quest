@@ -107,6 +107,7 @@ public final class GTk {
     public static final Color QUEST_APP_COLOR = new Color(200, 50, 90);
     public static final Color QUEST_APP_BACKGROUND_COLOR = Color.BLACK;
     public static final Color EDITOR_FONT_COLOR = new Color(95, 235, 150);
+    public static final Color EDITOR_LINENO_COLOR = Color.LIGHT_GRAY.darker().darker();
     public static final Color SELECT_FONT_COLOR = new Color(250, 255, 116);
     public static final int EDITOR_DEFAULT_FONT_SIZE = 15;
     public static final int EDITOR_MIN_FONT_SIZE = 11;

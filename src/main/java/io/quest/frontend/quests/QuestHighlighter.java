@@ -33,6 +33,10 @@ import java.util.regex.PatternSyntaxException;
 public class QuestHighlighter extends DocumentFilter {
     public static final String EVENT_TYPE = "style change";
     protected static final int PATTERN_FLAGS = Pattern.CASE_INSENSITIVE | Pattern.UNICODE_CASE;
+    protected static final AttributeSet HIGHLIGHT_COMMENT = styleForegroundColor(
+        GTk.EDITOR_LINENO_COLOR.getRed(),
+        GTk.EDITOR_LINENO_COLOR.getGreen(),
+        GTk.EDITOR_LINENO_COLOR.getBlue()); // gray
     protected static final AttributeSet HIGHLIGHT_NORMAL = styleForegroundColor(
         GTk.EDITOR_FONT_COLOR.getRed(),
         GTk.EDITOR_FONT_COLOR.getGreen(),
@@ -42,6 +46,7 @@ public class QuestHighlighter extends DocumentFilter {
         GTk.QUEST_APP_COLOR.getGreen(),
         GTk.QUEST_APP_COLOR.getBlue()); // red
     private static final String NON_KEYWORDS = "|;|,|\\.|\\(|\\)";
+    private static final Pattern COMMENT_PATTERN = Pattern.compile("--[^\n]*\n", PATTERN_FLAGS);
     private static final Pattern KEYWORDS_PATTERN = Pattern.compile(
         // src/main/python/keywords.py
         "\\bindex\\b|\\bday\\b|\\bdouble\\b|\\bas\\b|\\blt\\b|\\block\\b|"
@@ -183,6 +188,7 @@ public class QuestHighlighter extends DocumentFilter {
 
     protected void handleTextChanged(String txt) {
         applyStyle(KEYWORDS_PATTERN.matcher(txt), HIGHLIGHT_KEYWORD, false);
+        applyStyle(COMMENT_PATTERN.matcher(txt), HIGHLIGHT_COMMENT, true);
     }
 
     protected int applyStyle(Matcher matcher, AttributeSet style, boolean replace) {
