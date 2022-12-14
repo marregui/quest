@@ -251,18 +251,22 @@ public class Editor extends JPanel {
     private void cmdXCutToClipboard(ActionEvent event) {
         // cmd-x, remove selection or whole line under caret and copy to clipboard
         try {
-            int start = textPane.getSelectionStart();
-            int end = textPane.getSelectionEnd();
             Document doc = textPane.getDocument();
-            int len = end - start;
+            int start = textPane.getSelectionStart();
+            int len = textPane.getSelectionEnd() - start;
             if (len > 0) {
+                // there is selection
                 GTk.setClipboardContent(doc.getText(start, len));
+                doc.remove(start, len);
+                return;
             }
-            if (start > 0) {
-                doc.remove(start - 1, len + 1);
-            } else {
-                doc.remove(start, len + 1);
-            }
+
+            // no selection
+            int caretPos = textPane.getCaretPosition();
+            start = Utilities.getRowStart(textPane, caretPos);
+            len = Utilities.getRowEnd(textPane, caretPos) - start;
+            GTk.setClipboardContent(doc.getText(start, len));
+            doc.remove(start - 1, len + 1);
         } catch (Exception fail) {
             // do nothing
         }
@@ -299,7 +303,6 @@ public class Editor extends JPanel {
         // cmd-left, jump to the beginning of the line
         try {
             int caretPos = textPane.getCaretPosition();
-
             textPane.setCaretPosition(Utilities.getRowStart(textPane, caretPos));
         } catch (BadLocationException ignore) {
             // do nothing
