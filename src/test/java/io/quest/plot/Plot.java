@@ -38,9 +38,7 @@ public class Plot extends JPanel {
     private double minX, minY, maxX, maxY, rangeX, rangeY;
     private Rectangle2D.Double clip;
     private GeneralPath path;
-
     private Axes yTickLabels;
-    private int plotHeight, plotWidth;
 
     public Plot() {
         setOpaque(true);
@@ -69,27 +67,9 @@ public class Plot extends JPanel {
         frame.setVisible(true);
     }
 
-    private static Axes initLabels(Graphics2D g2, double minValue, double range, double tickInterval, int[] tickPositions, int significantFigures) {
-        double startValue = startValue(minValue, tickInterval);
-        int tickNo = tickNo(range, startValue, tickInterval);
-        String[] labels = new String[tickNo];
-        int[] labelWidths = new int[tickNo];
-        int[] labelHeights = new int[tickNo];
-        int tickLength = 10;
-        FontMetrics fm = g2.getFontMetrics();
-        for (int i = 0; i < tickNo; i++) {
-            String label = Axes.formatToSignificantFigures(startValue + i * tickInterval + minValue, significantFigures);
-            Rectangle2D bounds = fm.getStringBounds(label, g2);
-            labels[i] = label;
-            labelWidths[i] = (int) bounds.getWidth();
-            labelHeights[i] = (int) bounds.getHeight();
-        }
-        return new Axes(labels, labelWidths, labelHeights, tickPositions, tickLength, significantFigures);
-    }
-
     private static int[] getTickPositions(double min, double range, double scale, double tickInterval, boolean invert) {
-        double start = startValue(min, tickInterval);
-        int tickNo = tickNo(range, start, tickInterval);
+        double start = Axes.startValue(min, tickInterval);
+        int tickNo = Axes.tickNo(range, start, tickInterval);
         if (tickNo > 0) {
             int sign = invert ? -1 : 1;
             int[] tickPositions = new int[tickNo];
@@ -103,14 +83,6 @@ public class Plot extends JPanel {
 
     private static BasicStroke createDashedStroke(BasicStroke srcStroke) {
         return new BasicStroke(srcStroke.getLineWidth(), srcStroke.getEndCap(), srcStroke.getLineJoin(), srcStroke.getMiterLimit(), DASHED_LINE, 0);
-    }
-
-    private static double startValue(double minValue, double interval) {
-        return Math.ceil(minValue / interval) * interval - minValue;
-    }
-
-    private static int tickNo(double range, double start, double interval) {
-        return (int) (Math.abs(range - start) / interval + 1);
     }
 
     public void setDataSet(Column xValues, Column yValues) {
@@ -143,8 +115,8 @@ public class Plot extends JPanel {
 
         int height = getHeight();
         int width = getWidth();
-        plotWidth = width - (PLOT_INSETS.left + PLOT_INSETS.right);
-        plotHeight = height - (PLOT_INSETS.top + PLOT_INSETS.bottom);
+        int plotWidth = width - (PLOT_INSETS.left + PLOT_INSETS.right);
+        int plotHeight = height - (PLOT_INSETS.top + PLOT_INSETS.bottom);
 
         // Fill background and draw border around plot area.
         g2.setColor(GTk.QUEST_APP_BACKGROUND_COLOR);
@@ -161,8 +133,40 @@ public class Plot extends JPanel {
             g2.translate(PLOT_INSETS.left, height - PLOT_INSETS.bottom);
 
             // Draw ticks and tick labels
-            drawTicksX(g2, scaleX);
-            drawTicksY(g2, scaleY);
+            double xRangeTickInterval = rangeX / X_RANGE_NUMBER_OF_TICKS;
+            int[] xTickPositions = getTickPositions(minX, rangeX, scaleX, xRangeTickInterval, false);
+            if (null != xTickPositions) {
+                Axes xTickLabels = Axes.initXLabels(g2, minX, rangeX, xRangeTickInterval, xTickPositions);
+                int tickLength = xTickLabels.getTickLength();
+                int labelVerticalPosition = tickLength + xTickLabels.getLabelHeight(0);
+                BasicStroke stroke = (BasicStroke) g2.getStroke();
+                BasicStroke dashedStroke = createDashedStroke(stroke);
+                for (int i = 0; i < xTickLabels.getSize(); i++) {
+                    int pos = xTickLabels.getTickPosition(i);
+                    g2.drawLine(pos, 0, pos, tickLength);
+                    g2.drawString(xTickLabels.getLabel(i), pos - xTickLabels.getLabelWidth(i) / 2, labelVerticalPosition);
+                    g2.setStroke(dashedStroke);
+                    g2.drawLine(pos, 0, pos, -plotHeight);
+                    g2.setStroke(stroke);
+                }
+            }
+
+            double yRangeTickInterval = rangeY / Y_RANGE_NUMBER_OF_TICKS;
+            int[] yTickPositions = getTickPositions(minY, rangeY, scaleY, yRangeTickInterval, true);
+            if (null != yTickPositions) {
+                yTickLabels = Axes.initYLabels(g2, minY, rangeY, yRangeTickInterval, yTickPositions);
+                int tickLength = yTickLabels.getTickLength();
+                BasicStroke stroke = (BasicStroke) g2.getStroke();
+                BasicStroke dashedStroke = createDashedStroke(stroke);
+                for (int i = 0; i < yTickLabels.getSize(); i++) {
+                    int pos = yTickLabels.getTickPosition(i);
+                    g2.drawLine(0, pos, -tickLength, pos);
+                    g2.drawString(yTickLabels.getLabel(i), -(yTickLabels.getLabelWidth(i) + tickLength + 2), pos + yTickLabels.getLabelHeight(i) / 2 - 2);
+                    g2.setStroke(dashedStroke);
+                    g2.drawLine(0, pos, plotWidth, pos);
+                    g2.setStroke(stroke);
+                }
+            }
             g2.drawString(String.format("Ranges x:[%s, %s], y:[%s, %s]", Axes.formatX(minX), Axes.formatX(maxX), Axes.formatY(minY), Axes.formatY(maxY)), 0, Math.round(INSET_BOTTOM * 3 / 4.0F));
 
             // Draw Zero line
@@ -189,45 +193,6 @@ public class Plot extends JPanel {
                 g2.fill(new Ellipse2D.Double(xValues.get(i) - xTick, yValues.get(i) - yTick, xPointWidth, yPointWidth));
             }
             g2.draw(path);
-        }
-    }
-
-    private void drawTicksX(Graphics2D g2, double scaleX) {
-        double xRangeTickInterval = rangeX / X_RANGE_NUMBER_OF_TICKS;
-        int[] xTickPositions = getTickPositions(minX, rangeX, scaleX, xRangeTickInterval, false);
-        if (null != xTickPositions) {
-            Axes xTickLabels = initLabels(g2, minX, rangeX, xRangeTickInterval, xTickPositions, Axes.X_AXIS_SIGNIFICANT_FIGURES);
-            int tickLength = xTickLabels.getTickLength();
-            int labelVerticalPosition = tickLength + xTickLabels.getLabelHeight(0);
-            BasicStroke stroke = (BasicStroke) g2.getStroke();
-            BasicStroke dashedStroke = createDashedStroke(stroke);
-            for (int i = 0; i < xTickLabels.getSize(); i++) {
-                int pos = xTickLabels.getTickPosition(i);
-                g2.drawLine(pos, 0, pos, tickLength);
-                g2.drawString(xTickLabels.getLabel(i), pos - xTickLabels.getLabelWidth(i) / 2, labelVerticalPosition);
-                g2.setStroke(dashedStroke);
-                g2.drawLine(pos, 0, pos, -plotHeight);
-                g2.setStroke(stroke);
-            }
-        }
-    }
-
-    private void drawTicksY(Graphics2D g2, double scaleY) {
-        double yRangeTickInterval = rangeY / Y_RANGE_NUMBER_OF_TICKS;
-        int[] yTickPositions = getTickPositions(minY, rangeY, scaleY, yRangeTickInterval, true);
-        if (null != yTickPositions) {
-            yTickLabels = initLabels(g2, minY, rangeY, yRangeTickInterval, yTickPositions, Axes.Y_AXIS_SIGNIFICANT_FIGURES);
-            int tickLength = yTickLabels.getTickLength();
-            BasicStroke stroke = (BasicStroke) g2.getStroke();
-            BasicStroke dashedStroke = createDashedStroke(stroke);
-            for (int i = 0; i < yTickLabels.getSize(); i++) {
-                int pos = yTickLabels.getTickPosition(i);
-                g2.drawLine(0, pos, -tickLength, pos);
-                g2.drawString(yTickLabels.getLabel(i), -(yTickLabels.getLabelWidth(i) + tickLength + 2), pos + yTickLabels.getLabelHeight(i) / 2 - 2);
-                g2.setStroke(dashedStroke);
-                g2.drawLine(0, pos, plotWidth, pos);
-                g2.setStroke(stroke);
-            }
         }
     }
 }

@@ -17,51 +17,90 @@
 package io.quest.plot;
 
 
+import java.awt.*;
+import java.awt.geom.Rectangle2D;
+
 public class Axes {
-    public static final int X_AXIS_SIGNIFICANT_FIGURES = 1;
+    public static final int X_AXIS_SIGNIFICANT_FIGURES = 3;
     public static final int Y_AXIS_SIGNIFICANT_FIGURES = 3;
-    private final String labelFloatFormattingTpt;
+    private static final String X_TPT = String.format("%%.%df", X_AXIS_SIGNIFICANT_FIGURES);
+    private static final String Y_TPT = String.format("%%.%df", Y_AXIS_SIGNIFICANT_FIGURES);
+    private final String labelZero;
     private final String[] labels;
     private final int[] labelWidths;
     private final int[] labelHeights;
     private final int[] tickPositions;
     private final int tickLength;
 
-    public Axes(String[] labels, int[] labelWidths, int[] labelHeights, int[] tickPositions, int tickLength, int significantDecimals) {
+
+    private Axes(String[] labels, int[] labelWidths, int[] labelHeights, int[] tickPositions, int tickLength, String labelZero) {
         this.labels = labels;
         this.labelWidths = labelWidths;
         this.labelHeights = labelHeights;
         this.tickPositions = tickPositions;
         this.tickLength = tickLength;
-        labelFloatFormattingTpt = getSignificantFiguresTpt(significantDecimals);
+        this.labelZero = labelZero;
+
+    }
+
+    public static Axes initXLabels(Graphics2D g2, double min, double range, double tickInterval, int[] tickPositions) {
+        return initLabels(g2, min, range, tickInterval, tickPositions, X_TPT);
+    }
+
+    public static Axes initYLabels(Graphics2D g2, double min, double range, double tickInterval, int[] tickPositions) {
+        return initLabels(g2, min, range, tickInterval, tickPositions, Y_TPT);
+    }
+
+    private static Axes initLabels(Graphics2D g2, double min, double range, double tickInterval, int[] tickPositions, String labelTpt) {
+        double startValue = startValue(min, tickInterval);
+        int tickNo = tickNo(range, startValue, tickInterval);
+        String[] labels = new String[tickNo];
+        int[] labelWidths = new int[tickNo];
+        int[] labelHeights = new int[tickNo];
+        int tickLength = 10;
+        FontMetrics fm = g2.getFontMetrics();
+        for (int i = 0; i < tickNo; i++) {
+            String label = String.format(labelTpt, (startValue + i * tickInterval + min));
+            Rectangle2D bounds = fm.getStringBounds(label, g2);
+            labels[i] = label;
+            labelWidths[i] = (int) bounds.getWidth();
+            labelHeights[i] = (int) bounds.getHeight();
+        }
+
+        return new Axes(labels, labelWidths, labelHeights, tickPositions, tickLength, String.format(labelTpt, 0.0));
+    }
+
+    public static double startValue(double minValue, double interval) {
+        return Math.ceil(minValue / interval) * interval - minValue;
+    }
+
+    public static int tickNo(double range, double start, double interval) {
+        return (int) (Math.abs(range - start) / interval + 1);
     }
 
     public static String formatToSignificantFigures(double value, int significantFigures) {
-        return String.format(getSignificantFiguresTpt(significantFigures), value);
+        return String.format(significantFiguresTpt(significantFigures), value);
     }
 
     public static String formatX(double value) {
-        return String.format(getSignificantFiguresTpt(X_AXIS_SIGNIFICANT_FIGURES), value);
+        return String.format(X_TPT, value);
     }
 
     public static String formatY(double value) {
-        return String.format(getSignificantFiguresTpt(Y_AXIS_SIGNIFICANT_FIGURES), value);
+        return String.format(Y_TPT, value);
     }
 
-    private static String getSignificantFiguresTpt(int significantFigures) {
+    private static String significantFiguresTpt(int significantFigures) {
         return String.format("%%.%df", significantFigures);
     }
 
     public int getYPositionOfZeroLabel() {
-        int position = -1;
-        String zero = String.format(labelFloatFormattingTpt, 0.0F);
         for (int i = 0; i < labels.length; i++) {
-            if (zero.equals(labels[i])) {
-                position = tickPositions[i];
-                break;
+            if (labelZero.equals(labels[i])) {
+                return tickPositions[i];
             }
         }
-        return position;
+        return -1;
     }
 
     public int getSize() {
