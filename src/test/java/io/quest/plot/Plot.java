@@ -20,779 +20,214 @@ import io.quest.GTk;
 
 import javax.swing.*;
 import java.awt.*;
-import java.awt.event.*;
 import java.awt.geom.*;
-import java.util.Stack;
 
-import static io.quest.GTk.menuItem;
 
-public class Plot extends JPanel implements MouseListener, MouseMotionListener {
-
+public class Plot extends JPanel {
     private static final Color BORDER_COLOR = new Color(153, 153, 153);
-    private static final Color UNITS_COLOR = new Color(105, 105, 105);
     private static final float[] DASHED_LINE = new float[]{1, 8};
     private static final int X_RANGE_NUMBER_OF_TICKS = 15;
     private static final int Y_RANGE_NUMBER_OF_TICKS = 10;
-    private static final int INSET_TOP = 10;
-    private static final int INSET_BOTTOM = 50;
+    private static final int INSET_TOP = 20;
+    private static final int INSET_BOTTOM = 80;
     private static final int INSET_LEFT = 80;
-    private static final int INSET_RIGHT = 10;
-    private static final Insets PLOT_INSETS = new Insets(
-            INSET_TOP, INSET_LEFT, INSET_BOTTOM, INSET_RIGHT
-    );
-    private static final double X_AXIS_EXTRA_VISIBILITY_DELTA = 0.01F;
-    private static final double Y_AXIS_EXTRA_VISIBILITY_DELTA = 0.04F;
+    private static final int INSET_RIGHT = 20;
+    private static final Insets PLOT_INSETS = new Insets(INSET_TOP, INSET_LEFT, INSET_BOTTOM, INSET_RIGHT);
+    private final double POINT_SIZE_FACTOR = (1.0 + Math.sqrt(5.0)) / 2;
+    public Column xValues, yValues;
+    private double minX, minY, maxX, maxY, rangeX, rangeY;
+    private Rectangle2D.Double clip;
+    private GeneralPath path;
 
-    private DataSet dataSet;
-    private String xAxisLabel;
-    private AxisLabels xTickLabels, yTickLabels;
-    private Range range;
-    private Point2D.Double selectionAreaStartPoint, selectionAreaEndPoint;
-    private boolean selectionAreaFirstPointIsInsidePlotArea, selectionOriginatesInOtherPlot;
-    private Stack<Range> zoomStack;
-    private int clickedMouseButton, plotHeight, plotWidth;
-    private double xRange, yRange, xScale, yScale, pointSizeFactor;
-    private AffineTransform pointTransformForZoom;
-    private boolean hasTickLines, isVisibible, hasErrorBars, hasBaseLine, showNonValidPoints;
-    private JCheckBoxMenuItem isVisibibleMenuItem, hasErrorBarsMenuItem, hasBaseLineMenuItem, hasTickLinesMenuItem, showNonValidPointsMenuItem;
-    private JMenu plotMenu;
-    private JPopupMenu plotPopupMenu;
-    private JMenuItem yDataBandNameMenuItem, yDataRangeMenuItem;
-    private RangeSlider horizontalRangeSlider, verticalRangeSlider;
+    private Axes yTickLabels;
+    private int plotHeight, plotWidth;
 
-
-    public Plot(String xAxisLabel) {
-        this.xAxisLabel = xAxisLabel;
-        pointSizeFactor = 1.8F;
-        range = new Range();
-        selectionAreaStartPoint = new Point2D.Double(0, 0);
-        selectionAreaEndPoint = new Point2D.Double(0, 0);
-        zoomStack = new Stack<>();
-        clickedMouseButton = MouseEvent.BUTTON1;
-        selectionOriginatesInOtherPlot = false;
-        createPlotMenu();
-        addMouseListener(this);
-        addMouseMotionListener(this);
+    public Plot() {
+        setOpaque(true);
     }
 
-    private static double getAxisExtraVisibilityDelta(double min, double max, double factor) {
-        return Math.abs(max - min) * factor;
-    }
+    public static void main(String[] args) {
+        Plot plot = new Plot();
 
-    public static void main(String[] args) throws Exception {
-        Plot plot = new Plot("Time");
-        plot.setXAxisUnits("micro");
-        plot.setBackground(Color.WHITE);
-        plot.setOpaque(true);
-
-        Points xValues = new Points();
-        Points yValues = new Points();
-
+        Column xValues = new Column();
+        Column yValues = new Column();
         double angle = Math.PI;
-        double step = Math.PI / 120;
-        for (int i = 0; i < 4000; i++) {
-            xValues.addPoint(angle);
-            yValues.addPoint(Math.sin(angle));
+        double step = Math.PI / 90; // degrees to radians
+        int n = (int) ((1.0 + Math.sqrt(5.0)) * 314);
+        for (int i = 0; i < n; i++) {
+            xValues.append(angle);
+            yValues.append(Math.sin(angle));
             angle += step;
         }
-        xValues.done();
-        yValues.done();
-
-
-        DataSet dataSet = new DataSet("example", xValues, yValues);
-        plot.setDataSet(dataSet);
+        plot.setDataSet(xValues, yValues);
 
         JFrame frame = GTk.frame("Plot");
         Dimension size = GTk.frameDimension(7.0F, 7.0F);
-        frame.add(new RangedPlot(plot), BorderLayout.CENTER);
+        frame.add(plot, BorderLayout.CENTER);
         Dimension location = GTk.frameLocation(size);
         frame.setLocation(location.width, location.height);
         frame.setVisible(true);
     }
 
-    public void setHorizontalRageSlider(RangeSlider horizontalRangeSlider) {
-        this.horizontalRangeSlider = horizontalRangeSlider;
-    }
-
-    public void setVerticalRageSlider(RangeSlider verticalRangeSlider) {
-        this.verticalRangeSlider = verticalRangeSlider;
-    }
-
-    public JPopupMenu getPlotPopupMenu() {
-        return this.plotPopupMenu;
-    }
-
-    private void createPlotMenu() {
-        this.plotMenu = new JMenu();
-
-        // Create plot menu
-        // Band name
-        this.yDataBandNameMenuItem = new JMenuItem();
-        this.plotMenu.add(this.yDataBandNameMenuItem);
-        this.plotMenu.addSeparator();
-
-        // Max, Min Y axis values
-        this.yDataRangeMenuItem = new JMenuItem();
-        this.plotMenu.add(this.yDataRangeMenuItem);
-
-        // Restore original range
-        this.plotMenu.add(menuItem(
-                new JMenuItem(),
-                GTk.Icon.PLOT_RESTORE_RANGES,
-                "Restore original X-Y Range",
-                GTk.NO_KEY_EVENT,
-                this::restoreOriginalRanges
-        ));
-        // Change ranges
-        this.plotMenu.add(menuItem(
-                new JMenuItem(),
-                GTk.Icon.PLOT_CHANGE_RANGES,
-                "Change X-Y Range",
-                GTk.NO_KEY_EVENT,
-                this::changeRangesDialog
-        ));
-
-        this.hasBaseLine = true;
-        this.hasTickLines = true;
-        this.hasErrorBars = false;
-        this.isVisibible = true;
-        this.showNonValidPoints = true;
-        this.hasBaseLineMenuItem = new JCheckBoxMenuItem("Show base line", this.hasBaseLine);
-        this.hasTickLinesMenuItem = new JCheckBoxMenuItem("Show tick lines", this.hasTickLines);
-        this.hasErrorBarsMenuItem = new JCheckBoxMenuItem("Show error bars", this.hasErrorBars);
-        this.showNonValidPointsMenuItem = new JCheckBoxMenuItem("Show non valid points", this.showNonValidPoints);
-        this.isVisibibleMenuItem = new JCheckBoxMenuItem("Show plot", this.isVisibible);
-
-        // Plot visibility
-        this.isVisibibleMenuItem.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                toggleVisibilityMenuItem();
-            }
-        });
-        this.plotMenu.add(this.isVisibibleMenuItem);
-
-        // Base line visibility
-        this.hasBaseLineMenuItem.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                toggleBaseLineMenuItem();
-            }
-        });
-        this.plotMenu.add(this.hasBaseLineMenuItem);
-
-        // Tick lines visibility
-        this.hasTickLinesMenuItem.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                toggleTickLinesMenuItem();
-            }
-        });
-        this.plotMenu.add(this.hasTickLinesMenuItem);
-
-        // Error bars visibility
-        this.hasErrorBarsMenuItem.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                toggleErrorBarsMenuItem();
-            }
-        });
-        this.plotMenu.add(this.hasErrorBarsMenuItem);
-
-        // Non valid points visibility
-        this.showNonValidPointsMenuItem.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                toggleShowNonValidPointsMenuItem();
-            }
-        });
-        this.plotMenu.add(this.showNonValidPointsMenuItem);
-
-        this.plotPopupMenu = this.plotMenu.getPopupMenu();
-    }
-
-    private void changeRangesDialog(ActionEvent ignore) {
-        String bandName = this.dataSet.id;
-        double minx = this.range.min.x;
-        double maxx = this.range.max.x;
-        double miny = this.range.min.y;
-        double maxy = this.range.max.y;
-        RangeDialog.askForNewRanges(bandName, minx, maxx, miny, maxy, rangeValues -> {
-            if (null != rangeValues) {
-                double minx1 = rangeValues.min.x;
-                double maxx1 = rangeValues.max.x;
-                double miny1 = rangeValues.min.y;
-                double maxy1 = rangeValues.max.y;
-                changeXYRanges(minx1, maxx1, miny1, maxy1);
-                adjustHorizontalRangeSlider(minx1, maxx1, false);
-            }
-        });
-    }
-
-    public void restoreOriginalRanges(ActionEvent ignore) {
-        resetPlotRanges();
-        repaint();
-        if (null != this.horizontalRangeSlider) {
-            this.horizontalRangeSlider.reset();
+    private static Axes initLabels(Graphics2D g2, double minValue, double range, double tickInterval, int[] tickPositions, int significantFigures) {
+        double startValue = startValue(minValue, tickInterval);
+        int tickNo = tickNo(range, startValue, tickInterval);
+        String[] labels = new String[tickNo];
+        int[] labelWidths = new int[tickNo];
+        int[] labelHeights = new int[tickNo];
+        int tickLength = 10;
+        FontMetrics fm = g2.getFontMetrics();
+        for (int i = 0; i < tickNo; i++) {
+            String label = Axes.formatToSignificantFigures(startValue + i * tickInterval + minValue, significantFigures);
+            Rectangle2D bounds = fm.getStringBounds(label, g2);
+            labels[i] = label;
+            labelWidths[i] = (int) bounds.getWidth();
+            labelHeights[i] = (int) bounds.getHeight();
         }
+        return new Axes(labels, labelWidths, labelHeights, tickPositions, tickLength, significantFigures);
     }
 
-    public void toggleVisibilityMenuItem(boolean value) {
-        this.isVisibible = value;
-        this.isVisibibleMenuItem.setSelected(value);
-    }
-
-    private void toggleVisibilityMenuItem() {
-        toggleVisibilityMenuItem(!this.isVisibible);
-    }
-
-    public void toggleErrorBarsMenuItem(boolean value) {
-        this.hasErrorBars = value;
-        this.hasErrorBarsMenuItem.setSelected(value);
-        repaint();
-    }
-
-    private void toggleErrorBarsMenuItem() {
-        toggleErrorBarsMenuItem(!this.hasErrorBars);
-    }
-
-    public void toggleShowNonValidPointsMenuItem(boolean value) {
-        this.showNonValidPoints = value;
-        this.showNonValidPointsMenuItem.setSelected(value);
-        repaint();
-    }
-
-    private void toggleShowNonValidPointsMenuItem() {
-        toggleShowNonValidPointsMenuItem(!this.showNonValidPoints);
-    }
-
-    public void toggleTickLinesMenuItem(boolean value) {
-        this.hasTickLines = value;
-        this.hasTickLinesMenuItem.setSelected(value);
-        repaint();
-    }
-
-    private void toggleTickLinesMenuItem() {
-        toggleTickLinesMenuItem(!this.hasTickLines);
-    }
-
-    public void toggleBaseLineMenuItem(boolean value) {
-        this.hasBaseLine = value;
-        this.hasBaseLineMenuItem.setSelected(value);
-        repaint();
-    }
-
-    private void toggleBaseLineMenuItem() {
-        toggleBaseLineMenuItem(!this.hasBaseLine);
-    }
-
-    @Override
-    public boolean isVisible() {
-        return this.isVisibible;
-    }
-
-    public void setXAxisUnits(String xAxisUnits) {
-        this.xAxisLabel = xAxisUnits;
-        repaint();
-    }
-
-    public DataSet getDataSet() {
-        return this.dataSet;
-    }
-
-    public void setDataSet(DataSet dataSet) {
-        this.dataSet = dataSet;
-        this.plotMenu.setText(this.dataSet.id);
-        this.yDataBandNameMenuItem.setText(String.format("Band name: %s", this.dataSet.id));
-        this.yDataRangeMenuItem.setText(String.format(
-                "Data range Y: [%s, %s]",
-                AxisLabels.formatForYAxis(this.dataSet.minY), AxisLabels.formatForYAxis(this.dataSet.maxY)));
-
-        // Plot ranges
-        resetPlotRanges();
-    }
-
-    private double getXAxisExtraVisibilityDelta() {
-        return (null != this.dataSet) ? getAxisExtraVisibilityDelta(this.dataSet.minX, this.dataSet.maxX, X_AXIS_EXTRA_VISIBILITY_DELTA) : 0.0F;
-    }
-
-    private double getYAxisExtraVisibilityDelta() {
-        return (null != this.dataSet) ? getAxisExtraVisibilityDelta(this.dataSet.minY, this.dataSet.maxY, Y_AXIS_EXTRA_VISIBILITY_DELTA) : 0.0F;
-    }
-
-    private void resetPlotRanges() {
-        if (null != this.dataSet) {
-            double xdelta = getXAxisExtraVisibilityDelta();
-            double ydelta = getYAxisExtraVisibilityDelta();
-            this.range.min.x = this.dataSet.minX - xdelta;
-            this.range.max.x = this.dataSet.maxX + xdelta;
-            this.range.min.y = this.dataSet.minY - ydelta;
-            this.range.max.y = this.dataSet.maxY + ydelta;
+    private static int[] getTickPositions(double min, double range, double scale, double tickInterval, boolean invert) {
+        double start = startValue(min, tickInterval);
+        int tickNo = tickNo(range, start, tickInterval);
+        if (tickNo > 0) {
+            int sign = invert ? -1 : 1;
+            int[] tickPositions = new int[tickNo];
+            for (int i = 0; i < tickNo; i++) {
+                tickPositions[i] = sign * (int) ((start + i * tickInterval) * scale);
+            }
+            return tickPositions;
         }
+        return null;
+    }
+
+    private static BasicStroke createDashedStroke(BasicStroke srcStroke) {
+        return new BasicStroke(srcStroke.getLineWidth(), srcStroke.getEndCap(), srcStroke.getLineJoin(), srcStroke.getMiterLimit(), DASHED_LINE, 0);
+    }
+
+    private static double startValue(double minValue, double interval) {
+        return Math.ceil(minValue / interval) * interval - minValue;
+    }
+
+    private static int tickNo(double range, double start, double interval) {
+        return (int) (Math.abs(range - start) / interval + 1);
+    }
+
+    public void setDataSet(Column xValues, Column yValues) {
+        this.xValues = xValues;
+        this.yValues = yValues;
+        double deltaX = xValues.delta(0.005F);
+        double deltaY = yValues.delta(0.07F);
+        minX = xValues.min() - deltaX;
+        maxX = xValues.max() + deltaX;
+        minY = yValues.min() - deltaY;
+        maxY = yValues.max() + deltaY;
+        rangeX = maxX - minX;
+        rangeY = maxY - minY;
+        clip = new Rectangle2D.Double(minX, minY, rangeX, rangeY);
+        int n = yValues.getSize();
+        path = new GeneralPath(GeneralPath.WIND_NON_ZERO, n);
+        path.moveTo(xValues.get(0), yValues.get(0));
+        for (int i = 1; i < n; i++) {
+            path.lineTo(xValues.get(i), yValues.get(i));
+        }
+        repaint();
     }
 
     @Override
     public void paint(Graphics g) {
         Graphics2D g2 = (Graphics2D) g;
-        g2.setRenderingHint(
-                RenderingHints.KEY_TEXT_ANTIALIASING,
-                RenderingHints.VALUE_TEXT_ANTIALIAS_ON
-        );
-        g2.setRenderingHint(
-                RenderingHints.KEY_RENDERING,
-                RenderingHints.VALUE_RENDER_SPEED
-        );
+        g2.setRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING, RenderingHints.VALUE_TEXT_ANTIALIAS_ON);
+        g2.setRenderingHint(RenderingHints.KEY_RENDERING, RenderingHints.VALUE_RENDER_SPEED);
         super.paintComponent(g2);
-        drawCanvasXYAxisAndTicks(g2);
-        drawCurve(g2);
-        drawZoomRectangle(g2);
-    }
 
-    private void drawZoomRectangle(Graphics2D g2) {
-
-        if (false == this.selectionAreaStartPoint.equals(this.selectionAreaEndPoint)) {
-            g2.setColor(Color.GREEN);
-            double startx = this.selectionAreaStartPoint.x;
-            double endx = this.selectionAreaEndPoint.x;
-            double y = this.selectionOriginatesInOtherPlot ? this.range.min.y + (this.yRange / 2.0F) : this.selectionAreaEndPoint.y;
-            double len = 2.0F / this.yScale;
-            g2.draw(new Line2D.Double(startx, y - len, startx, y + len));
-            g2.draw(new Line2D.Double(startx, y, endx, y));
-            g2.draw(new Line2D.Double(endx, y - len, endx, y + len));
-        }
-    }
-
-    private void drawCurve(Graphics2D g2) {
-        if (null != dataSet) {
-            Points x = dataSet.xValues;
-            Points y = dataSet.yValues;
-            double xTick = pointSizeFactor / this.xScale;
-            double yTick = pointSizeFactor / this.yScale;
-            double xPointWidth = xTick * 2.0F;
-            double yPointWidth = yTick * 2.0F;
-            g2.setColor(dataSet.getColor());
-
-            GeneralPath path = new GeneralPath(GeneralPath.WIND_NON_ZERO, dataSet.getSize());
-            boolean fistPointFound = false;
-            for (int i = 0; i < dataSet.getSize(); i++) {
-                if (hasBaseLine) {
-                    if (false == fistPointFound) {
-                        path.moveTo(x.get(i), y.get(i));
-                        fistPointFound = true;
-                    } else {
-                        path.lineTo(x.get(i), y.get(i));
-                    }
-                }
-                // The point
-                g2.fill(new Ellipse2D.Double(x.get(i) - xTick, y.get(i) - yTick, xPointWidth, yPointWidth));
-            }
-            // Plot the graph
-            if (hasBaseLine) {
-                g2.draw(path);
-            }
-        }
-    }
-
-    private void drawCanvasXYAxisAndTicks(Graphics2D g2) {
-        Dimension windowDimension = getSize();
-        this.plotWidth = windowDimension.width - (PLOT_INSETS.left + PLOT_INSETS.right);
-        this.plotHeight = windowDimension.height - (PLOT_INSETS.top + PLOT_INSETS.bottom);
-        if (this.range.isUndefined()) {
-            // When there is no data we don't know the plot range
-            this.range.setMin(0.0F, 0.0F);
-            this.range.setMax(this.plotWidth, this.plotHeight);
-        }
-        this.xRange = this.range.max.x - this.range.min.x;
-        this.yRange = this.range.max.y - this.range.min.y;
-        this.xScale = this.plotWidth / this.xRange;
-        this.yScale = this.plotHeight / this.yRange;
+        int height = getHeight();
+        int width = getWidth();
+        plotWidth = width - (PLOT_INSETS.left + PLOT_INSETS.right);
+        plotHeight = height - (PLOT_INSETS.top + PLOT_INSETS.bottom);
 
         // Fill background and draw border around plot area.
-        g2.setColor(Color.WHITE);
-        g2.fillRect(0, 0, windowDimension.width, windowDimension.height);
+        g2.setColor(GTk.QUEST_APP_BACKGROUND_COLOR);
+        g2.fillRect(0, 0, width, height);
         g2.setColor(BORDER_COLOR);
-        g2.drawRect(PLOT_INSETS.left, PLOT_INSETS.top, this.plotWidth, plotHeight);
+        g2.drawRect(PLOT_INSETS.left, PLOT_INSETS.top, plotWidth, plotHeight);
 
-        // Shift coordinate centre to bottom-left corner of the internal rectangle.
-        g2.translate(PLOT_INSETS.left, windowDimension.height - PLOT_INSETS.bottom);
+        // draw curve
+        if (null != yValues) {
+            double scaleX = plotWidth / rangeX;
+            double scaleY = plotHeight / rangeY;
 
-        // Draw ticks and tick labels
-        drawTicksX(g2);
-        drawTicksY(g2);
-        drawAxisLabelsAndUnits(g2);
+            // Shift coordinate centre to bottom-left corner of the internal rectangle.
+            g2.translate(PLOT_INSETS.left, height - PLOT_INSETS.bottom);
 
-        // Scale the coordinate system to match plot coordinates
-        this.pointTransformForZoom = g2.getTransform();
-        this.pointTransformForZoom.scale(this.xScale, -1.0F * this.yScale);
-        this.pointTransformForZoom.translate(-1.0F * this.range.min.x, -1.0F * this.range.min.y);
-        try {
-            this.pointTransformForZoom = this.pointTransformForZoom.createInverse();
-        } catch (NoninvertibleTransformException ex) {
-            System.err.println(ex.getMessage());
-        }
-        g2.scale(xScale, -yScale);
-        g2.translate(-1.0F * this.range.min.x, -1.0F * this.range.min.y);
+            // Draw ticks and tick labels
+            drawTicksX(g2, scaleX);
+            drawTicksY(g2, scaleY);
+            g2.drawString(String.format("Ranges x:[%s, %s], y:[%s, %s]", Axes.formatX(minX), Axes.formatX(maxX), Axes.formatY(minY), Axes.formatY(maxY)), 0, Math.round(INSET_BOTTOM * 3 / 4.0F));
 
-        // Draw only within plotting area
-        g2.setClip(new Rectangle2D.Double(this.range.min.x, this.range.min.y, this.xRange, this.yRange));
+            // Draw Zero line
+            int yPositionOfZero = yTickLabels.getYPositionOfZeroLabel();
+            g2.drawLine(0, yPositionOfZero, plotWidth, yPositionOfZero);
 
-        // Set stroke for curve and zoom
-        g2.setStroke(new BasicStroke((float) Math.abs(1.0F / (100.0F * Math.max(this.xScale, this.yScale)))));
-    }
+            // Scale the coordinate system to match plot coordinates
+            g2.scale(scaleX, -scaleY);
+            g2.translate(-1.0F * minX, -1.0F * minY);
 
-    private void drawAxisLabelsAndUnits(Graphics2D g2) {
-        FontMetrics fontMetrics = g2.getFontMetrics();
-        char[] xAxisUnitsChars = this.xAxisLabel.toCharArray();
-        int xAxisUnitsWidth = fontMetrics.charsWidth(xAxisUnitsChars, 0, xAxisUnitsChars.length);
-        g2.setColor(UNITS_COLOR);
-        g2.drawString(this.xAxisLabel, this.plotWidth - xAxisUnitsWidth, INSET_BOTTOM * 3 / 4);
-        if (null != this.dataSet) {
-            g2.drawString(
-                    String.format(
-                            "Zoom Range x:[%s, %s], y:[%s, %s]",
-                            AxisLabels.formatForXAxis(this.range.min.x),
-                            AxisLabels.formatForXAxis(this.range.max.x),
-                            AxisLabels.formatForYAxis(this.range.min.y),
-                            AxisLabels.formatForYAxis(this.range.max.y)),
-                    0, Math.round(INSET_BOTTOM * 3 / 4));
-        }
-        // Draw Zero line
-        int yPositionOfZero = yTickLabels != null ? yTickLabels.getYPositionOfZeroLabel() : -1;
-        if (-1 != yPositionOfZero) {
-            g2.setColor(GTk.QUEST_APP_BACKGROUND_COLOR);
-            g2.drawLine(0, yPositionOfZero, this.plotWidth, yPositionOfZero);
+            // Draw only within plotting area
+            g2.setClip(clip);
+
+            // Set stroke for curve
+            g2.setStroke(new BasicStroke((float) Math.abs(1.0F / (100.0F * Math.max(scaleX, scaleY)))));
+            double xTick = POINT_SIZE_FACTOR / scaleX;
+            double yTick = POINT_SIZE_FACTOR / scaleY;
+            double xPointWidth = xTick * 2.0F;
+            double yPointWidth = yTick * 2.0F;
+            g2.setColor(GTk.QUEST_APP_COLOR);
+            int n = yValues.getSize();
+            g2.fill(new Ellipse2D.Double(xValues.get(0) - xTick, yValues.get(0) - yTick, xPointWidth, yPointWidth));
+            for (int i = 1; i < n; i++) {
+                g2.fill(new Ellipse2D.Double(xValues.get(i) - xTick, yValues.get(i) - yTick, xPointWidth, yPointWidth));
+            }
+            g2.draw(path);
         }
     }
 
-    private void drawTicksX(Graphics2D g2) {
-        double xRangeTickInterval = this.xRange / X_RANGE_NUMBER_OF_TICKS;
-        int[] xTickPositions = getTickPositions(this.range.min.x, this.xRange, this.xScale, xRangeTickInterval, false);
+    private void drawTicksX(Graphics2D g2, double scaleX) {
+        double xRangeTickInterval = rangeX / X_RANGE_NUMBER_OF_TICKS;
+        int[] xTickPositions = getTickPositions(minX, rangeX, scaleX, xRangeTickInterval, false);
         if (null != xTickPositions) {
-            this.xTickLabels = initLabels(g2, this.range.min.x, this.xRange, this.xScale, xRangeTickInterval, xTickPositions, AxisLabels.X_AXIS_SIGNIFICANT_FIGURES);
-            int tickLength = this.xTickLabels.getTickLength();
-            int labelVerticalPosition = tickLength + this.xTickLabels.getLabelHeight(0);
+            Axes xTickLabels = initLabels(g2, minX, rangeX, xRangeTickInterval, xTickPositions, Axes.X_AXIS_SIGNIFICANT_FIGURES);
+            int tickLength = xTickLabels.getTickLength();
+            int labelVerticalPosition = tickLength + xTickLabels.getLabelHeight(0);
             BasicStroke stroke = (BasicStroke) g2.getStroke();
             BasicStroke dashedStroke = createDashedStroke(stroke);
-            for (int i = 0; i < this.xTickLabels.getSize(); i++) {
-                int pos = this.xTickLabels.getTickPosition(i);
+            for (int i = 0; i < xTickLabels.getSize(); i++) {
+                int pos = xTickLabels.getTickPosition(i);
                 g2.drawLine(pos, 0, pos, tickLength);
-                g2.drawString(this.xTickLabels.getLabel(i), pos - this.xTickLabels.getLabelWidth(i) / 2, labelVerticalPosition);
+                g2.drawString(xTickLabels.getLabel(i), pos - xTickLabels.getLabelWidth(i) / 2, labelVerticalPosition);
                 g2.setStroke(dashedStroke);
-                if (this.hasTickLines) {
-                    g2.drawLine(pos, 0, pos, -this.plotHeight);
-                }
+                g2.drawLine(pos, 0, pos, -plotHeight);
                 g2.setStroke(stroke);
             }
         }
     }
 
-    private void drawTicksY(Graphics2D g2) {
-        double yRangeTickInterval = this.yRange / Y_RANGE_NUMBER_OF_TICKS;
-        int[] yTickPositions = getTickPositions(this.range.min.y, this.yRange, this.yScale, yRangeTickInterval, true);
+    private void drawTicksY(Graphics2D g2, double scaleY) {
+        double yRangeTickInterval = rangeY / Y_RANGE_NUMBER_OF_TICKS;
+        int[] yTickPositions = getTickPositions(minY, rangeY, scaleY, yRangeTickInterval, true);
         if (null != yTickPositions) {
-            this.yTickLabels = initLabels(g2, this.range.min.y, this.yRange, this.yScale, yRangeTickInterval, yTickPositions, AxisLabels.Y_AXIS_SIGNIFICANT_FIGURES);
-            int tickLength = this.yTickLabels.getTickLength();
+            yTickLabels = initLabels(g2, minY, rangeY, yRangeTickInterval, yTickPositions, Axes.Y_AXIS_SIGNIFICANT_FIGURES);
+            int tickLength = yTickLabels.getTickLength();
             BasicStroke stroke = (BasicStroke) g2.getStroke();
             BasicStroke dashedStroke = createDashedStroke(stroke);
-            for (int i = 0; i < this.yTickLabels.getSize(); i++) {
-                int pos = this.yTickLabels.getTickPosition(i);
+            for (int i = 0; i < yTickLabels.getSize(); i++) {
+                int pos = yTickLabels.getTickPosition(i);
                 g2.drawLine(0, pos, -tickLength, pos);
-                g2.drawString(this.yTickLabels.getLabel(i), -(this.yTickLabels.getLabelWidth(i) + tickLength + 2), pos + this.yTickLabels.getLabelHeight(i) / 2 - 2);
+                g2.drawString(yTickLabels.getLabel(i), -(yTickLabels.getLabelWidth(i) + tickLength + 2), pos + yTickLabels.getLabelHeight(i) / 2 - 2);
                 g2.setStroke(dashedStroke);
-                if (this.hasTickLines) {
-                    g2.drawLine(0, pos, this.plotWidth, pos);
-                }
+                g2.drawLine(0, pos, plotWidth, pos);
                 g2.setStroke(stroke);
             }
         }
-    }
-
-    private AxisLabels initLabels(Graphics2D g2,
-                                  double minValue,
-                                  double range,
-                                  double scale,
-                                  double tickInterval,
-                                  int[] tickPositions,
-                                  int significantFigures) {
-        double startValue = calculateStartValue(minValue, tickInterval);
-        int tickNo = calculateTickNo(range, startValue, tickInterval);
-        String[] labels = new String[tickNo];
-        int[] labelWidths = new int[tickNo];
-        int[] labelHeights = new int[tickNo];
-        int tickLength = 10;
-        FontMetrics fontMetrics = g2.getFontMetrics();
-        for (int i = 0; i < tickNo; i++) {
-            String label = AxisLabels.formatToSignificantFigures(startValue + i * tickInterval + minValue, significantFigures);
-            Rectangle2D bounds = fontMetrics.getStringBounds(label, g2);
-            labels[i] = label;
-            labelWidths[i] = (int) bounds.getWidth();
-            labelHeights[i] = (int) bounds.getHeight();
-        }
-        return new AxisLabels(labels, labelWidths, labelHeights, tickPositions, tickLength, significantFigures);
-    }
-
-    private int[] getTickPositions(double minPoint, double range, double scale, double tickInterval, boolean invert) {
-        double start = calculateStartValue(minPoint, tickInterval);
-        int tickNo = calculateTickNo(range, start, tickInterval);
-        int[] tickPositions = null;
-        if (tickNo > 0) {
-            int inversionFactor = invert ? -1 : 1;
-            tickPositions = new int[tickNo];
-            for (int i = 0; i < tickNo; i++) {
-                tickPositions[i] = inversionFactor * (int) ((start + i * tickInterval) * scale);
-            }
-        }
-        return tickPositions;
-    }
-
-    private BasicStroke createDashedStroke(BasicStroke srcStroke) {
-        return new BasicStroke(
-                srcStroke.getLineWidth(),
-                srcStroke.getEndCap(),
-                srcStroke.getLineJoin(),
-                srcStroke.getMiterLimit(),
-                DASHED_LINE,
-                0
-        );
-    }
-
-    private double calculateStartValue(double minValue, double interval) {
-        return (double) (Math.ceil(minValue / interval) * interval - minValue);
-    }
-
-    private int calculateTickNo(double range, double start, double interval) {
-        return (int) (Math.abs(range - start) / interval + 1);
-    }
-
-    private void startMarkingSelectionArea(Point2D cursorPosition) {
-        Point2D startPoint = this.pointTransformForZoom.transform(cursorPosition, null);
-        this.selectionAreaStartPoint.setLocation(startPoint);
-        this.selectionAreaEndPoint.setLocation(startPoint);
-    }
-
-    private void keepMarkingSelectionArea(Point2D cursorPosition) {
-        Point2D.Double endPoint = (Point2D.Double) this.pointTransformForZoom.transform(cursorPosition, null);
-        this.selectionAreaEndPoint = this.range.getInside((Point2D.Double) endPoint);
-        repaint();
-    }
-
-    private boolean isInside(int x, int y) {
-        return x >= INSET_LEFT && x <= INSET_LEFT + this.plotWidth && y >= INSET_TOP && y <= INSET_TOP + this.plotHeight;
-    }
-
-    @Override
-    public void mousePressed(MouseEvent e) {
-        this.selectionAreaFirstPointIsInsidePlotArea = isInside(e.getX(), e.getY());
-        if (this.selectionAreaFirstPointIsInsidePlotArea) {
-            mousePressedAction(e, false);
-        }
-    }
-
-    protected void mousePressedAction(MouseEvent e, boolean eventOriginatesInOtherPlot) {
-        this.clickedMouseButton = e.getButton();
-        this.selectionOriginatesInOtherPlot = eventOriginatesInOtherPlot;
-        if (this.clickedMouseButton == MouseEvent.BUTTON1) {
-            startMarkingSelectionArea(e.getPoint());
-        }
-    }
-
-    @Override
-    public void mouseDragged(MouseEvent e) {
-        if (this.selectionAreaFirstPointIsInsidePlotArea) {
-            mouseDraggedAction(e, false);
-        }
-    }
-
-    protected void mouseDraggedAction(MouseEvent e, boolean eventOriginatesInOtherPlot) {
-        this.selectionOriginatesInOtherPlot = eventOriginatesInOtherPlot;
-        if (this.clickedMouseButton == MouseEvent.BUTTON1) {
-            keepMarkingSelectionArea(e.getPoint());
-        }
-    }
-
-    @Override
-    public void mouseReleased(MouseEvent e) {
-        if (this.selectionAreaFirstPointIsInsidePlotArea) {
-            mouseReleasedAction(e, false);
-        }
-    }
-
-    protected void mouseReleasedAction(MouseEvent e, boolean eventOriginatesInOtherPlot) {
-        this.selectionOriginatesInOtherPlot = eventOriginatesInOtherPlot;
-        if (this.clickedMouseButton == MouseEvent.BUTTON1) {
-            this.selectionAreaEndPoint = this.selectionAreaStartPoint;
-            repaint();
-        }
-    }
-
-    private void zoomIn() {
-        this.zoomStack.push((Range) this.range.clone());
-        this.range.min.x = Math.min(this.selectionAreaStartPoint.x, this.selectionAreaEndPoint.x);
-        this.range.max.x = Math.max(this.selectionAreaStartPoint.x, this.selectionAreaEndPoint.x);
-        adjustYRangeToLocalMinMax();
-        adjustHorizontalRangeSlider();
-    }
-
-    public void changeXYRanges(double minx, double maxx, double miny, double maxy) {
-        this.zoomStack.push((Range) this.range.clone());
-        this.range.min.x = minx;
-        this.range.max.x = maxx;
-        this.range.min.y = miny;
-        this.range.max.y = maxy;
-        repaint();
-    }
-
-    public void transformXRange(int minValue, int maxValue, int sliderMin, int sliderMax, boolean comesFromAnotherPlot) {
-        double dataScale = (this.dataSet.maxX - this.dataSet.minX) / (sliderMax - sliderMin);
-        double min = this.dataSet.minX + (minValue * dataScale);
-        double max = this.dataSet.minX + (maxValue * dataScale);
-        changeXRange(min, max);
-        if (comesFromAnotherPlot) {
-            if (null != this.horizontalRangeSlider) {
-                this.horizontalRangeSlider.setLowValue(minValue);
-                this.horizontalRangeSlider.setHighValue(maxValue);
-            }
-        }
-    }
-
-    public void transformMinXRange(int value, int sliderMin, int sliderMax, boolean comesFromAnotherPlot) {
-        double dataScale = (this.dataSet.maxX - this.dataSet.minX) / (sliderMax - sliderMin);
-        double min = this.dataSet.minX + (value * dataScale);
-        changeXRange(min, this.range.max.x);
-        if (comesFromAnotherPlot) {
-            if (null != this.horizontalRangeSlider) {
-                this.horizontalRangeSlider.setLowValue(value);
-            }
-        }
-    }
-
-    public void transformMaxXRange(int value, int sliderMin, int sliderMax, boolean comesFromAnotherPlot) {
-        double dataScale = (this.dataSet.maxX - this.dataSet.minX) / (sliderMax - sliderMin);
-        double max = this.dataSet.minX + (value * dataScale);
-        changeXRange(this.range.min.x, max);
-        if (comesFromAnotherPlot) {
-            if (null != this.horizontalRangeSlider) {
-                this.horizontalRangeSlider.setHighValue(value);
-            }
-        }
-    }
-
-    public void transformYRange(int minValue, int maxValue, int sliderMin, int sliderMax) {
-        double dataScale = (this.dataSet.maxY - this.dataSet.minY) / (sliderMax - sliderMin);
-        double min = this.dataSet.minY + (minValue * dataScale);
-        double max = this.dataSet.minY + (maxValue * dataScale);
-        System.out.println("--> min, max: " + min + ", " + max);
-        changeYRange(min, max);
-    }
-
-    public void transformMinYRange(int value, int sliderMin, int sliderMax) {
-        double dataScale = (this.dataSet.maxY - this.dataSet.minY) / (sliderMax - sliderMin);
-        double min = this.dataSet.minY + (value * dataScale);
-        System.out.println("--> min: " + min);
-        changeYRange(min, this.range.max.y);
-    }
-
-    public void transformMaxYRange(int value, int sliderMin, int sliderMax) {
-        double dataScale = (this.dataSet.maxY - this.dataSet.minY) / (sliderMax - sliderMin);
-        double max = this.dataSet.minY + (value * dataScale);
-        System.out.println("--> max: " + max);
-        changeYRange(this.range.min.y, max);
-    }
-
-    public void adjustHorizontalRangeSlider(double minx, double maxx) {
-        adjustHorizontalRangeSlider(minx, maxx, true);
-    }
-
-    private void adjustHorizontalRangeSlider(double minx, double maxx, boolean affectPlot) {
-        if (null != this.horizontalRangeSlider) {
-            int sliderMin = this.horizontalRangeSlider.getMin();
-            int sliderMax = this.horizontalRangeSlider.getMax();
-            double sliderScale = (sliderMax - sliderMin) / (this.dataSet.maxX - this.dataSet.minX);
-            double fmin = sliderMin + ((minx - this.dataSet.minX) * sliderScale);
-            double fmax = sliderMin + ((maxx - this.dataSet.minX) * sliderScale);
-            this.horizontalRangeSlider.setLowValue((int) Math.round(fmin));
-            this.horizontalRangeSlider.setHighValue((int) Math.round(fmax));
-            if (affectPlot) {
-                changeXRange(minx, maxx);
-            }
-        }
-    }
-
-    private void adjustHorizontalRangeSlider() {
-        adjustHorizontalRangeSlider(this.range.min.x, this.range.max.x, false);
-    }
-
-    private void adjustYRangeToLocalMinMax() {
-        if (null != this.dataSet) {
-            double min = -1.0F, max = -1.0F, deltaY = -1.0F;
-            System.out.println("this.verticalRangeSlider.isfullyStretched? " + this.verticalRangeSlider.isFullyStretched());
-            System.out.println("min: " + verticalRangeSlider.getMin() + ", max: " + verticalRangeSlider.getMax() + ", minVal:" + verticalRangeSlider.getLowValue() + ", max val: " + verticalRangeSlider.getHighValue());
-
-            boolean needsToAdjustToLocalMinMax = (null == this.verticalRangeSlider || (null != this.verticalRangeSlider && this.verticalRangeSlider.isFullyStretched()));
-            if (needsToAdjustToLocalMinMax) {
-                System.out.println("needsToAdjustToLocalMinMax");
-                final double[] minMaxY = this.dataSet.getLocalMinMaxInYAxis(this.range.min.x, this.range.max.x);
-                min = minMaxY[0];
-                max = minMaxY[1];
-            } else if (null == this.verticalRangeSlider) {
-                System.out.println(">> adjusting to what the slider in the Y axis has to say");
-                final int sliderMax = this.verticalRangeSlider.getMax();
-                final int sliderMin = this.verticalRangeSlider.getMin();
-                final int sliderMaxValue = sliderMax - this.verticalRangeSlider.getMin();
-                final int sliderMinValue = sliderMax - this.verticalRangeSlider.getMax();
-                final double dataScale = (this.dataSet.maxY - this.dataSet.minY) / (sliderMax - sliderMin);
-                System.out.println("slider min, max: " + sliderMin + ", " + sliderMax);
-                System.out.println("slider minValue, maxValue: " + sliderMinValue + ", " + sliderMaxValue);
-                min = this.dataSet.minY + (sliderMinValue * dataScale);
-                max = this.dataSet.minY + (sliderMaxValue * dataScale);
-            }
-            deltaY = getAxisExtraVisibilityDelta(min, max, Y_AXIS_EXTRA_VISIBILITY_DELTA);
-            this.range.min.y = min - deltaY;
-            this.range.max.y = max + deltaY;
-        }
-    }
-
-    private void changeXRange(double minx, double maxx) {
-        this.range.min.x = minx;
-        this.range.max.x = maxx;
-        adjustYRangeToLocalMinMax();
-        repaint();
-    }
-
-    public void changeYRange(double miny, double maxy) {
-        this.range.min.y = miny;
-        this.range.max.y = maxy;
-        repaint();
-    }
-
-    private void zoomOut() {
-        if (false == this.zoomStack.isEmpty()) {
-            this.range = zoomStack.pop();
-            adjustHorizontalRangeSlider();
-        } else if (null != this.horizontalRangeSlider) {
-            restoreOriginalRanges(null);
-        }
-    }
-
-    @Override
-    public void mouseMoved(MouseEvent e) {
-        // Nothing needed to be done
-    }
-
-    @Override
-    public void mouseClicked(MouseEvent e) {
-        if (e.getButton() == MouseEvent.BUTTON3) {
-            this.plotPopupMenu.show(e.getComponent(), e.getX(), e.getY());
-        }
-    }
-
-    @Override
-    public void mouseEntered(MouseEvent e) {
-        // Nothing needed to be done
-    }
-
-    @Override
-    public void mouseExited(MouseEvent e) {
-        // Nothing needed to be done
     }
 }

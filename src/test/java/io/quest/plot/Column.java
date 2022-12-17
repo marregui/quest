@@ -16,27 +16,27 @@
 
 package io.quest.plot;
 
-import java.util.Arrays;
-
-public class Points {
-    private static final int SCALE = 100;
+public class Column {
+    private static final int SCALE = 5000;
 
     private double[] points;
     private int offset;
     private int size;
     private double min, max;
 
-    public Points() {
+    public Column() {
         points = new double[SCALE];
         offset = 0;
         size = SCALE;
+        min = Double.MAX_VALUE;
+        max = Double.MIN_VALUE;
     }
 
     public int getSize() {
         return offset;
     }
 
-    public void addPoint(double value) {
+    public void append(double value) {
         if (offset >= size) {
             double[] tmpPoints = new double[size + SCALE];
             System.arraycopy(points, 0, tmpPoints, 0, size);
@@ -44,35 +44,8 @@ public class Points {
             size += SCALE;
         }
         points[offset++] = value;
-    }
-
-    public void done() {
-        min = Double.MAX_VALUE;
-        max = Double.MIN_VALUE;
-        for (int i = 0; i < offset; i++) {
-            min = Math.min(min, points[i]);
-            max = Math.max(max, points[i]);
-        }
-    }
-
-    @Override
-    public boolean equals(Object o) {
-        if (o instanceof Points that) {
-            if (that.getSize() == getSize()) {
-                for (int i = 0; i < getSize(); i++) {
-                    if (that.get(i) != get(i)) {
-                        return false;
-                    }
-                }
-                return true;
-            }
-        }
-        return false;
-    }
-
-    @Override
-    public int hashCode() {
-        return Arrays.hashCode(points);
+        min = Math.min(min, value);
+        max = Math.max(max, value);
     }
 
     public double get(int i) {
@@ -85,5 +58,9 @@ public class Points {
 
     public double max() {
         return max;
+    }
+
+    public double delta(double factor) {
+        return Math.abs(max - min) * factor;
     }
 }

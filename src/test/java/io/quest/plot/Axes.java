@@ -17,7 +17,7 @@
 package io.quest.plot;
 
 
-public class AxisLabels {
+public class Axes {
     public static final int X_AXIS_SIGNIFICANT_FIGURES = 1;
     public static final int Y_AXIS_SIGNIFICANT_FIGURES = 3;
     private final String labelFloatFormattingTpt;
@@ -27,7 +27,7 @@ public class AxisLabels {
     private final int[] tickPositions;
     private final int tickLength;
 
-    public AxisLabels(String[] labels, int[] labelWidths, int[] labelHeights, int[] tickPositions, int tickLength, int significantDecimals) {
+    public Axes(String[] labels, int[] labelWidths, int[] labelHeights, int[] tickPositions, int tickLength, int significantDecimals) {
         this.labels = labels;
         this.labelWidths = labelWidths;
         this.labelHeights = labelHeights;
@@ -40,11 +40,11 @@ public class AxisLabels {
         return String.format(getSignificantFiguresTpt(significantFigures), value);
     }
 
-    public static String formatForXAxis(double value) {
+    public static String formatX(double value) {
         return String.format(getSignificantFiguresTpt(X_AXIS_SIGNIFICANT_FIGURES), value);
     }
 
-    public static String formatForYAxis(double value) {
+    public static String formatY(double value) {
         return String.format(getSignificantFiguresTpt(Y_AXIS_SIGNIFICANT_FIGURES), value);
     }
 
