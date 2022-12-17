@@ -14,6 +14,6 @@
  * Copyright (c) 2019 - 2022, Miguel Arregui a.k.a. marregui
  */
 
-package io.quest.frontend.plot;
+package io.quest.plot;
 
-public enum Axis {X, Y;}
+public enum Axis {X, Y}

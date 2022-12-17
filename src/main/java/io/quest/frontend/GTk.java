@@ -46,14 +46,7 @@ import javax.swing.border.Border;
 public final class GTk {
 
     // https://patorjk.com/software/taag/#p=display&h=0&f=Ivrit&t=quest
-    public static final String BANNER = "\n" +
-        ".                              _   \n" +
-        "   __ _   _   _    ___   ___  | |_ \n" +
-        "  / _` | | | | |  / _ \\ / __| | __|\n" +
-        " | (_| | | |_| | |  __/ \\__ \\ | |_ \n" +
-        "  \\__, |  \\__,_|  \\___| |___/  \\__|\n" +
-        "     |_|\n" +
-        "  Copyright (c) 2019 - " + Calendar.getInstance().get(Calendar.YEAR) + "\n";
+    public static final String BANNER = "\n" + ".                              _   \n" + "   __ _   _   _    ___   ___  | |_ \n" + "  / _` | | | | |  / _ \\ / __| | __|\n" + " | (_| | | |_| | |  __/ \\__ \\ | |_ \n" + "  \\__, |  \\__,_|  \\___| |___/  \\__|\n" + "     |_|\n" + "  Copyright (c) 2019 - " + Calendar.getInstance().get(Calendar.YEAR) + "\n";
 
     public static final String KEYBOARD_SHORTCUTS = """
 
@@ -114,14 +107,13 @@ public final class GTk {
     public static final int EDITOR_MAX_FONT_SIZE = 21;
     public static final int META_EXPLORER_FONT_SIZE = 14;
     public static final Font MENU_FONT = new Font(MAIN_FONT_NAME, Font.BOLD, 14);
-    public static final int CMD_DOWN_MASK = Os.type == Os.WINDOWS || Os.isLinux() ? InputEvent.CTRL_DOWN_MASK : InputEvent.META_DOWN_MASK;
+    public static final int CMD_DOWN_MASK = isMac() ? InputEvent.META_DOWN_MASK : InputEvent.CTRL_DOWN_MASK;
     public static final int CMD_SHIFT_DOWN_MASK = CMD_DOWN_MASK | InputEvent.SHIFT_DOWN_MASK;
     public static final int ALT_DOWN_MASK = InputEvent.ALT_DOWN_MASK;
     public static final int ALT_SHIFT_DOWN_MASK = ALT_DOWN_MASK | InputEvent.SHIFT_DOWN_MASK;
     public static final int NO_KEY_EVENT = -1;
     public static final Font TABLE_HEADER_FONT = new Font(MAIN_FONT_NAME, Font.BOLD, EDITOR_DEFAULT_FONT_SIZE);
-    private static final Font TABLE_HEADER_UNDERLINE_FONT = TABLE_HEADER_FONT.deriveFont(Map.of(
-        TextAttribute.UNDERLINE, TextAttribute.UNDERLINE_ON));
+    private static final Font TABLE_HEADER_UNDERLINE_FONT = TABLE_HEADER_FONT.deriveFont(Map.of(TextAttribute.UNDERLINE, TextAttribute.UNDERLINE_ON));
     public static final Font TABLE_CELL_FONT = new Font(MAIN_FONT_NAME, Font.PLAIN, EDITOR_DEFAULT_FONT_SIZE);
     private static final String EDITOR_FONT_NAME = "Monospaced";
     public static final Font EDITOR_DEFAULT_FONT = new Font(EDITOR_FONT_NAME, Font.BOLD, EDITOR_DEFAULT_FONT_SIZE);
@@ -155,33 +147,25 @@ public final class GTk {
 
     public static void addCmdKeyAction(int keyEvent, JComponent component, ActionListener action) {
         Action cmd = action(action);
-        component.getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW).put(
-            KeyStroke.getKeyStroke(keyEvent, CMD_DOWN_MASK),
-            cmd);
+        component.getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW).put(KeyStroke.getKeyStroke(keyEvent, CMD_DOWN_MASK), cmd);
         component.getActionMap().put(cmd, cmd);
     }
 
     public static void addCmdShiftKeyAction(int keyEvent, JComponent component, ActionListener action) {
         Action cmd = action(action);
-        component.getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW).put(
-            KeyStroke.getKeyStroke(keyEvent, CMD_SHIFT_DOWN_MASK),
-            cmd);
+        component.getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW).put(KeyStroke.getKeyStroke(keyEvent, CMD_SHIFT_DOWN_MASK), cmd);
         component.getActionMap().put(cmd, cmd);
     }
 
     public static void addAltKeyAction(int keyEvent, JComponent component, ActionListener action) {
         Action cmd = action(action);
-        component.getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW).put(
-            KeyStroke.getKeyStroke(keyEvent, ALT_DOWN_MASK),
-            cmd);
+        component.getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW).put(KeyStroke.getKeyStroke(keyEvent, ALT_DOWN_MASK), cmd);
         component.getActionMap().put(cmd, cmd);
     }
 
     public static void addAltShiftKeyAction(int keyEvent, JComponent component, ActionListener action) {
         Action cmd = action(action);
-        component.getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW).put(
-            KeyStroke.getKeyStroke(keyEvent, ALT_SHIFT_DOWN_MASK),
-            cmd);
+        component.getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW).put(KeyStroke.getKeyStroke(keyEvent, ALT_SHIFT_DOWN_MASK), cmd);
         component.getActionMap().put(cmd, cmd);
     }
 
@@ -269,25 +253,22 @@ public final class GTk {
     }
 
     public static void setClipboardContent(final String str) {
-        TK.getSystemClipboard().setContents(
-            new Transferable() {
-                @Override
-                public DataFlavor[] getTransferDataFlavors() {
-                    return SUPPORTED_COPY_PASTE_FLAVOR;
-                }
+        TK.getSystemClipboard().setContents(new Transferable() {
+            @Override
+            public DataFlavor[] getTransferDataFlavors() {
+                return SUPPORTED_COPY_PASTE_FLAVOR;
+            }
 
-                @Override
-                public boolean isDataFlavorSupported(DataFlavor flavor) {
-                    return DataFlavor.stringFlavor.equals(flavor);
-                }
+            @Override
+            public boolean isDataFlavorSupported(DataFlavor flavor) {
+                return DataFlavor.stringFlavor.equals(flavor);
+            }
 
-                @Override
-                public Object getTransferData(DataFlavor flavor) {
-                    return isDataFlavorSupported(flavor) ? str : "";
-                }
-            },
-            null
-        );
+            @Override
+            public Object getTransferData(DataFlavor flavor) {
+                return isDataFlavorSupported(flavor) ? str : "";
+            }
+        }, null);
     }
 
     public static Dimension frameDimension() {
@@ -339,26 +320,14 @@ public final class GTk {
         return button(text, Icon.NO_ICON, null, e -> runnable.run());
     }
 
-    public static JButton button(
-        String text,
-        String tooltip,
-        int width,
-        int height,
-        Color foregroundColor,
-        ActionListener listener
-    ) {
+    public static JButton button(String text, String tooltip, int width, int height, Color foregroundColor, ActionListener listener) {
         JButton button = button(text, GTk.Icon.NO_ICON, tooltip, listener);
         button.setPreferredSize(new Dimension(width, height));
         button.setForeground(foregroundColor);
         return button;
     }
 
-    private static JButton button(
-        String text,
-        Icon icon,
-        String tooltip,
-        ActionListener listener
-    ) {
+    private static JButton button(String text, Icon icon, String tooltip, ActionListener listener) {
         JButton button = new JButton(Objects.requireNonNull(text));
         button.setFont(GTk.MENU_FONT);
         button.setBackground(GTk.QUEST_APP_BACKGROUND_COLOR);
@@ -411,43 +380,19 @@ public final class GTk {
         return connsMenu;
     }
 
-    public static JMenuItem menuItem(
-        GTk.Icon icon,
-        String title,
-        int keyEvent,
-        ActionListener listener
-    ) {
+    public static JMenuItem menuItem(GTk.Icon icon, String title, int keyEvent, ActionListener listener) {
         return menuItem(new JMenuItem(), icon, title, null, keyEvent, listener);
     }
 
-    public static JMenuItem menuItem(
-        GTk.Icon icon,
-        String title,
-        String tooltip,
-        int keyEvent,
-        ActionListener listener
-    ) {
+    public static JMenuItem menuItem(GTk.Icon icon, String title, String tooltip, int keyEvent, ActionListener listener) {
         return menuItem(new JMenuItem(), icon, title, tooltip, keyEvent, listener);
     }
 
-    public static JMenuItem menuItem(
-        JMenuItem item,
-        GTk.Icon icon,
-        String title,
-        int keyEvent,
-        ActionListener listener
-    ) {
+    public static JMenuItem menuItem(JMenuItem item, GTk.Icon icon, String title, int keyEvent, ActionListener listener) {
         return menuItem(item, icon, title, null, keyEvent, listener);
     }
 
-    private static JMenuItem menuItem(
-        JMenuItem item,
-        GTk.Icon icon,
-        String title,
-        String tooltip,
-        int keyEvent,
-        ActionListener listener
-    ) {
+    private static JMenuItem menuItem(JMenuItem item, GTk.Icon icon, String title, String tooltip, int keyEvent, ActionListener listener) {
         if (icon != GTk.Icon.NO_ICON) {
             item.setIcon(icon.icon());
         }
@@ -493,51 +438,32 @@ public final class GTk {
         return label;
     }
 
+    public static boolean isMac() {
+        return System.getProperty("os.name").toLowerCase().contains("mac");
+    }
+
     public static void openQuestDBDocs(ActionEvent ignore) {
         Runtime rt = Runtime.getRuntime();
         String os = System.getProperty("os.name").toLowerCase();
         try {
             if (os.contains("mac")) {
-                rt.exec(String.format(
-                    "open %s",
-                    DOCUMENTATION_URL
-                ));
+                rt.exec(String.format("open %s", DOCUMENTATION_URL));
             } else if (os.contains("win")) {
-                rt.exec(String.format(
-                    "rundll32 url.dll,FileProtocolHandler %s",
-                    DOCUMENTATION_URL
-                ));
+                rt.exec(String.format("rundll32 url.dll,FileProtocolHandler %s", DOCUMENTATION_URL));
             } else if (os.contains("nix") || os.contains("nux")) {
-                String[] browsers = {
-                    "google-chrome", "firefox", "mozilla",
-                    "epiphany", "konqueror", "netscape",
-                    "opera", "links", "lynx"
-                };
+                String[] browsers = {"google-chrome", "firefox", "mozilla", "epiphany", "konqueror", "netscape", "opera", "links", "lynx"};
                 StringBuilder cmd = new StringBuilder();
                 for (int i = 0; i < browsers.length; i++) {
                     if (i != 0) {
                         cmd.append(" || ");
                     }
-                    cmd.append(browsers[i])
-                        .append("\"")
-                        .append(DOCUMENTATION_URL)
-                        .append("\"");
+                    cmd.append(browsers[i]).append("\"").append(DOCUMENTATION_URL).append("\"");
                 }
                 // If the first didn't work, try the next
                 rt.exec(new String[]{"sh", "-c", cmd.toString()});
             }
         } catch (IOException err) {
-            JOptionPane.showMessageDialog(
-                null,
-                String.format(
-                    "Failed to open browser [%s:%s]: %s",
-                    os,
-                    DOCUMENTATION_URL,
-                    err.getMessage()
-                ),
-                "Helpless",
-                JOptionPane.INFORMATION_MESSAGE
-            );
+            JOptionPane.showMessageDialog(null, String.format("Failed to open browser [%s:%s]: %s", os, DOCUMENTATION_URL, err.getMessage()), "Helpless", JOptionPane.INFORMATION_MESSAGE);
         }
     }
 
@@ -557,45 +483,7 @@ public final class GTk {
     public enum Icon {
         // https://p.yusukekamiyamane.com/
         // 16x16 icons
-        NO_ICON(null, null),
-        APPLICATION("Application.png"),
-        HELP("Help.png"),
-        CONNS("Conns.png"),
-        CONN_ADD("ConnAdd.png", "Add"),
-        CONN_ASSIGN("ConnAssign.png", "ASSIGN"),
-        CONN_CLONE("ConnClone.png", "Clone"),
-        CONN_CONNECT("ConnConnect.png", "Connect"),
-        CONN_DISCONNECT("ConnDisconnect.png"),
-        CONN_REMOVE("ConnRemove.png", "Remove"),
-        CONN_SHOW("ConnShow.png"),
-        CONN_HIDE("ConnHide.png"),
-        CONN_TEST("ConnTest.png", "Test"),
-        COMMANDS("Commands.png"),
-        COMMAND_ADD("CommandAdd.png"),
-        COMMAND_REMOVE("CommandRemove.png"),
-        COMMAND_EDIT("CommandEdit.png"),
-        COMMAND_CLEAR("CommandClear.png"),
-        COMMAND_SAVE("CommandSave.png"),
-        COMMAND_RELOAD("CommandReload.png", "Reload"),
-        COMMAND_STORE_BACKUP("CommandStoreBackup.png"),
-        COMMAND_STORE_LOAD("CommandStoreLoad.png"),
-        COMMAND_FIND("CommandFind.png"),
-        COMMAND_REPLACE("CommandReplace.png"),
-        COMMAND_EXEC("CommandExec.png"),
-        COMMAND_EXEC_ABORT("CommandExecAbort.png"),
-        COMMAND_EXEC_LINE("CommandExecLine.png"),
-        QUEST("QuestDB.png"),
-        MENU("Menu.png"),
-        META("Meta.png"),
-        META_FILE("MetaFile.png"),
-        META_UNKNOWN("MetaUnknown.png"),
-        META_FOLDER("MetaFolder.png"),
-        PLOT_CHANGE_RANGES("PlotChangeRanges.png"),
-        PLOT_RESTORE_RANGES("PlotRestoreRanges.png"),
-        RESULTS("Results.png"),
-        RESULTS_NEXT("ResultsNext.png", "Next"),
-        RESULTS_PREV("ResultsPrev.png", "Prev"),
-        ROCKET("Rocket.png");
+        NO_ICON(null, null), APPLICATION("Application.png"), HELP("Help.png"), CONNS("Conns.png"), CONN_ADD("ConnAdd.png", "Add"), CONN_ASSIGN("ConnAssign.png", "ASSIGN"), CONN_CLONE("ConnClone.png", "Clone"), CONN_CONNECT("ConnConnect.png", "Connect"), CONN_DISCONNECT("ConnDisconnect.png"), CONN_REMOVE("ConnRemove.png", "Remove"), CONN_SHOW("ConnShow.png"), CONN_HIDE("ConnHide.png"), CONN_TEST("ConnTest.png", "Test"), COMMANDS("Commands.png"), COMMAND_ADD("CommandAdd.png"), COMMAND_REMOVE("CommandRemove.png"), COMMAND_EDIT("CommandEdit.png"), COMMAND_CLEAR("CommandClear.png"), COMMAND_SAVE("CommandSave.png"), COMMAND_RELOAD("CommandReload.png", "Reload"), COMMAND_STORE_BACKUP("CommandStoreBackup.png"), COMMAND_STORE_LOAD("CommandStoreLoad.png"), COMMAND_FIND("CommandFind.png"), COMMAND_REPLACE("CommandReplace.png"), COMMAND_EXEC("CommandExec.png"), COMMAND_EXEC_ABORT("CommandExecAbort.png"), COMMAND_EXEC_LINE("CommandExecLine.png"), QUEST("QuestDB.png"), MENU("Menu.png"), META("Meta.png"), META_FILE("MetaFile.png"), META_UNKNOWN("MetaUnknown.png"), META_FOLDER("MetaFolder.png"), PLOT_CHANGE_RANGES("PlotChangeRanges.png"), PLOT_RESTORE_RANGES("PlotRestoreRanges.png"), RESULTS("Results.png"), RESULTS_NEXT("ResultsNext.png", "Next"), RESULTS_PREV("ResultsPrev.png", "Prev"), ROCKET("Rocket.png");
 
         private static final Map<String, ImageIcon> ICON_MAP = new HashMap<>();
 
@@ -628,9 +516,7 @@ public final class GTk {
                     ICON_MAP.put(iconName, icon = new ImageIcon(TK.getImage(url)));
                 }
             } catch (Throwable err) {
-                LOG.error().$("Icon not available [resource=").$(resource)
-                    .$(", e=").$(err.getMessage())
-                    .I$();
+                LOG.error().$("Icon not available [resource=").$(resource).$(", e=").$(err.getMessage()).I$();
             }
             return icon;
         }

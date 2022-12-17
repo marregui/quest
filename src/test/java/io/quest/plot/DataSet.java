@@ -14,14 +14,13 @@
  * Copyright (c) 2019 - 2022, Miguel Arregui a.k.a. marregui
  */
 
-package io.quest.frontend.plot;
+package io.quest.plot;
 
 import java.awt.*;
 
 public class DataSet {
-    private static final int DEFAULT_HASH_CODE = 0;
     public static final Color DEFAULT_COLOR = new Color(0x006699);
-
+    private static final int DEFAULT_HASH_CODE = 0;
     public final String id;
     public final double minX, maxX, minY, maxY;
     public final Points xValues, yValues;
@@ -55,7 +54,7 @@ public class DataSet {
                 }
             }
         }
-        if (false == valuesFound) {
+        if (!valuesFound) {
             miny = yValues.min();
             maxy = yValues.max();
         }
@@ -68,14 +67,13 @@ public class DataSet {
 
     @Override
     public boolean equals(Object o) {
-        if (null != o) {
-            DataSet that = (DataSet) o;
+        if (o instanceof DataSet that) {
             return null != id && null != that.id && id.equals(that.id) &&
-                    yValues.equals(that.yValues) &&
-                    minY == that.minY &&
-                    maxY == that.maxY &&
-                    Math.abs(minX - that.minX) < 0.0001 &&
-                    Math.abs(maxX - that.maxX) < 0.0001;
+                yValues.equals(that.yValues) &&
+                minY == that.minY &&
+                maxY == that.maxY &&
+                Math.abs(minX - that.minX) < 0.0001 &&
+                Math.abs(maxX - that.maxX) < 0.0001;
         }
         return false;
     }
@@ -99,19 +97,19 @@ public class DataSet {
     @Override
     public String toString() {
         return new StringBuilder()
-                .append("point count: ")
-                .append(yValues.getSize())
-                .append(", X <")
-                .append(minX)
-                .append(", ")
-                .append(maxX)
-                .append(">, Y <")
-                .append(minY)
-                .append(", ")
-                .append(maxY)
-                .append(", \"")
-                .append(id)
-                .append("\">")
-                .toString();
+            .append("point count: ")
+            .append(yValues.getSize())
+            .append(", X <")
+            .append(minX)
+            .append(", ")
+            .append(maxX)
+            .append(">, Y <")
+            .append(minY)
+            .append(", ")
+            .append(maxY)
+            .append(", \"")
+            .append(id)
+            .append("\">")
+            .toString();
     }
 }

@@ -14,7 +14,7 @@
  * Copyright (c) 2019 - 2022, Miguel Arregui a.k.a. marregui
  */
 
-package io.quest.frontend.plot;
+package io.quest.plot;
 
 import javax.swing.*;
 import javax.swing.text.AttributeSet;
@@ -85,14 +85,6 @@ public class ValuePanel extends JPanel {
         add(buttonsPanel, BorderLayout.EAST);
     }
 
-    @Override
-    public void setEnabled(boolean isEnabled) {
-        super.setEnabled(isEnabled);
-        text.setEnabled(isEnabled);
-        upButton.setEnabled(isEnabled);
-        downButton.setEnabled(isEnabled);
-    }
-
     private static int significantFigures(Axis axis) {
         int significantFigures = -1;
         switch (axis) {
@@ -114,6 +106,14 @@ public class ValuePanel extends JPanel {
         }
         sb.append("1");
         return Float.valueOf(sb.toString());
+    }
+
+    @Override
+    public void setEnabled(boolean isEnabled) {
+        super.setEnabled(isEnabled);
+        text.setEnabled(isEnabled);
+        upButton.setEnabled(isEnabled);
+        downButton.setEnabled(isEnabled);
     }
 
     public double getValue() {

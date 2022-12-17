@@ -37,7 +37,7 @@ public class Editor extends JPanel {
     private static final String MARGIN_TOKEN = ":99999:";
     protected final JTextPane textPane;
     private final QuestHighlighter highlighter;
-    private final AtomicReference<UndoManager> undoManager; // set by CommandBoard
+    private final AtomicReference<UndoManager> undoManager;
     private final StringBuilder sb;
 
     public Editor() {
@@ -214,17 +214,6 @@ public class Editor extends JPanel {
             highlighter.handleTextChanged();
         } catch (BadLocationException ignore) {
             // do nothing
-        }
-    }
-
-    private void cmdCCopyToClipboard(ActionEvent event) {
-        // cmd-c, copy to clipboard, selection or current line
-        String selected = textPane.getSelectedText();
-        if (selected == null) {
-            selected = getCurrentLine();
-        }
-        if (!selected.isEmpty()) {
-            GTk.setClipboardContent(selected);
         }
     }
 
@@ -477,9 +466,7 @@ public class Editor extends JPanel {
             int start = textPane.getSelectionStart();
             int end = textPane.getSelectionEnd();
             int len = end - start;
-            if (len == 0 && (start == 0 || end == docLen)) {
-                doc.insertString(textPane.getCaretPosition(), "''", null);
-            } else if (start > 0 && len <= docLen) {
+            if (len != 0 && start > 0 && len <= docLen) {
                 String targetText = doc.getText(start, len);
                 String window = doc.getText(start - 1, len + 2);
                 char first = window.charAt(0);
@@ -494,19 +481,15 @@ public class Editor extends JPanel {
                 }
                 doc.remove(start, len);
                 doc.insertString(textPane.getCaretPosition(), finalText, null);
+                highlighter.handleTextChanged();
             }
         } catch (Exception fail) {
             // do nothing
         }
     }
 
-    private void cmdASelectAll(ActionEvent event) {
-        textPane.selectAll();
-    }
 
     private void setupKeyboardActions(boolean isErrorPanel) {
-        addCmdKeyAction(KeyEvent.VK_S, textPane, this::cmdSFontUp);
-        addCmdShiftKeyAction(KeyEvent.VK_S, textPane, this::cmdShiftSFontDown);
         addCmdKeyAction(KeyEvent.VK_UP, textPane, this::cmdUp);
         addCmdKeyAction(KeyEvent.VK_DOWN, textPane, this::cmdDown);
         addCmdKeyAction(KeyEvent.VK_LEFT, textPane, this::cmdLeft);
@@ -515,8 +498,13 @@ public class Editor extends JPanel {
         addCmdShiftKeyAction(KeyEvent.VK_DOWN, textPane, this::cmdShiftDown);
         addCmdShiftKeyAction(KeyEvent.VK_LEFT, textPane, this::cmdShiftLeft);
         addCmdShiftKeyAction(KeyEvent.VK_RIGHT, textPane, this::cmdShiftRight);
-        addCmdKeyAction(KeyEvent.VK_A, textPane, this::cmdASelectAll);
-        addCmdKeyAction(KeyEvent.VK_C, textPane, this::cmdCCopyToClipboard);
+        addAltKeyAction(KeyEvent.VK_UP, textPane, this::altUp);
+        addAltKeyAction(KeyEvent.VK_LEFT, textPane, this::altLeft);
+        addAltKeyAction(KeyEvent.VK_RIGHT, textPane, this::altRight);
+        addAltShiftKeyAction(KeyEvent.VK_LEFT, textPane, this::altShiftLeft);
+        addAltShiftKeyAction(KeyEvent.VK_RIGHT, textPane, this::altShiftRight);
+        addCmdKeyAction(KeyEvent.VK_S, textPane, this::cmdSFontUp);
+        addCmdShiftKeyAction(KeyEvent.VK_S, textPane, this::cmdShiftSFontDown);
         if (!isErrorPanel) {
             addCmdKeyAction(KeyEvent.VK_X, textPane, this::cmdXCutToClipboard);
             addCmdKeyAction(KeyEvent.VK_V, textPane, this::cmdVPasteFromClipboard);
@@ -526,11 +514,6 @@ public class Editor extends JPanel {
             addCmdKeyAction(KeyEvent.VK_SLASH, textPane, this::cmdForwardSlashToggleComment);
             addCmdKeyAction(KeyEvent.VK_QUOTE, textPane, this::cmdQuoteToggleQuote);
         }
-        addAltKeyAction(KeyEvent.VK_UP, textPane, this::altUp);
-        addAltKeyAction(KeyEvent.VK_LEFT, textPane, this::altLeft);
-        addAltKeyAction(KeyEvent.VK_RIGHT, textPane, this::altRight);
-        addAltShiftKeyAction(KeyEvent.VK_LEFT, textPane, this::altShiftLeft);
-        addAltShiftKeyAction(KeyEvent.VK_RIGHT, textPane, this::altShiftRight);
     }
 
     private class ParagraphView extends javax.swing.text.ParagraphView {

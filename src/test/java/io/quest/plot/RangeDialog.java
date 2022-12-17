@@ -14,7 +14,7 @@
  * Copyright (c) 2019 - 2022, Miguel Arregui a.k.a. marregui
  */
 
-package io.quest.frontend.plot;
+package io.quest.plot;
 
 import io.quest.frontend.GTk;
 
@@ -25,26 +25,9 @@ import java.awt.event.ActionEvent;
 public class RangeDialog extends JDialog {
 
     private static final RangeDialog DIALOG = new RangeDialog();
-
-    public static void askForNewRanges(
-            String columnName,
-            double minx,
-            double maxx,
-            double miny,
-            double maxy,
-            RangeValuesObserver callback
-    ) {
-        DIALOG.setRange(columnName, minx, maxx, miny, maxy, callback).setVisible(true);
-    }
-
-    @FunctionalInterface
-    public interface RangeValuesObserver {
-        void rangeValuesChanged(Range range);
-    }
-
-
     private final AxisRangePanel xRange, yRange;
     private RangeValuesObserver callback;
+
 
     private RangeDialog() {
         xRange = new AxisRangePanel(Range.UNDEFINED, Range.UNDEFINED, Axis.X);
@@ -65,16 +48,27 @@ public class RangeDialog extends JDialog {
         add(GTk.flowPanel(closeButton, applyButton), BorderLayout.SOUTH);
     }
 
+    public static void askForNewRanges(
+        String columnName,
+        double minx,
+        double maxx,
+        double miny,
+        double maxy,
+        RangeValuesObserver callback
+    ) {
+        DIALOG.setRange(columnName, minx, maxx, miny, maxy, callback).setVisible(true);
+    }
+
     private void applyButtonAction(ActionEvent ignore) {
         if (callback != null) {
             try {
                 callback.rangeValuesChanged(new Range(xRange.getMin(), xRange.getMax(), yRange.getMin(), yRange.getMax()));
             } catch (Throwable t) {
                 JOptionPane.showMessageDialog(
-                        RangeDialog.this,
-                        "Make sure the values are valid",
-                        "Problem",
-                        JOptionPane.ERROR_MESSAGE);
+                    RangeDialog.this,
+                    "Make sure the values are valid",
+                    "Problem",
+                    JOptionPane.ERROR_MESSAGE);
             }
         }
     }
@@ -87,5 +81,10 @@ public class RangeDialog extends JDialog {
         yRange.setMax(maxy);
         this.callback = callback;
         return this;
+    }
+
+    @FunctionalInterface
+    public interface RangeValuesObserver {
+        void rangeValuesChanged(Range range);
     }
 }

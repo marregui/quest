@@ -14,7 +14,7 @@
  * Copyright (c) 2019 - 2022, Miguel Arregui a.k.a. marregui
  */
 
-package io.quest.frontend.plot;
+package io.quest.plot;
 
 import javax.swing.*;
 import java.awt.*;
@@ -24,28 +24,11 @@ import java.awt.event.MouseMotionListener;
 
 
 abstract class RangeSlider extends JComponent implements MouseListener, MouseMotionListener {
-    public static RangeSlider horizontalRangeSlider(int min, int max, RangeChangedObserver callback) {
-        return new HorizontalRangeSlider(min, max, callback);
-    }
-
-    public static RangeSlider verticalRangeSlider(int min, int max, RangeChangedObserver callback) {
-        return new VerticalRangeSlider(min, max, callback);
-    }
-
-    @FunctionalInterface
-    public interface RangeChangedObserver {
-        void rangeChanged(int min, int max, SliderSide sliderSide);
-    }
-
-    public enum SliderSide {NONE, TOP_OR_LEFT, BOTTOM_OR_RIGHT, THUMB;}
-
     static final Color CENTER_AREA_COLOR = new Color(240, 240, 250);
     static final Color ALT_CENTER_AREA_COLOR = new Color(225, 225, 255);
     static final int ARROW_SZ = 16;
     static final int ARROW_WIDTH = 8;
     static final int ARROW_HEIGHT = 4;
-
-
     protected final BoundedRangeModel model;
     protected final RangeChangedObserver callback;
     protected SliderSide pick;
@@ -60,6 +43,14 @@ abstract class RangeSlider extends JComponent implements MouseListener, MouseMot
         setForeground(Color.LIGHT_GRAY);
         addMouseListener(this);
         addMouseMotionListener(this);
+    }
+
+    public static RangeSlider horizontalRangeSlider(int min, int max, RangeChangedObserver callback) {
+        return new HorizontalRangeSlider(min, max, callback);
+    }
+
+    public static RangeSlider verticalRangeSlider(int min, int max, RangeChangedObserver callback) {
+        return new VerticalRangeSlider(min, max, callback);
     }
 
     public boolean isFullyStretched() {
@@ -93,14 +84,14 @@ abstract class RangeSlider extends JComponent implements MouseListener, MouseMot
         return model.getValue();
     }
 
-    public int getHighValue() {
-        return model.getValue() + model.getExtent();
-    }
-
     public void setLowValue(int lowValue) {
         int e = (model.getValue() - lowValue) + model.getExtent();
         model.setRangeProperties(lowValue, e, model.getMinimum(), model.getMaximum(), false);
         model.setValue(lowValue);
+    }
+
+    public int getHighValue() {
+        return model.getValue() + model.getExtent();
     }
 
     public void setHighValue(int highValue) {
@@ -244,4 +235,11 @@ abstract class RangeSlider extends JComponent implements MouseListener, MouseMot
 
     @Override
     public void mouseExited(MouseEvent e) { /* no-op */ }
+
+    public enum SliderSide {NONE, TOP_OR_LEFT, BOTTOM_OR_RIGHT, THUMB;}
+
+    @FunctionalInterface
+    public interface RangeChangedObserver {
+        void rangeChanged(int min, int max, SliderSide sliderSide);
+    }
 }

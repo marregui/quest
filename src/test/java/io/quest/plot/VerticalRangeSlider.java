@@ -14,21 +14,21 @@
  * Copyright (c) 2019 - 2022, Miguel Arregui a.k.a. marregui
  */
 
-package io.quest.frontend.plot;
+package io.quest.plot;
 
 
 import java.awt.*;
 import java.awt.event.MouseEvent;
 
 
-public class HorizontalRangeSlider extends RangeSlider {
-    public HorizontalRangeSlider(int minimum, int maximum, RangeChangedObserver callback) {
+public class VerticalRangeSlider extends RangeSlider {
+    public VerticalRangeSlider(int minimum, int maximum, RangeChangedObserver callback) {
         super(minimum, maximum, callback);
     }
 
     @Override
     protected int getRelevantCoordinate(MouseEvent e) {
-        return e.getX();
+        return e.getY();
     }
 
     @Override
@@ -36,21 +36,21 @@ public class HorizontalRangeSlider extends RangeSlider {
         // Draw arrow and thumb backgrounds
         g2.setStroke(new BasicStroke(1));
         g2.setColor(getForeground());
-        g2.fillRect(min - ARROW_SZ, 0, ARROW_SZ - 1, height);
-        paint3DRectLighting(g2, min - ARROW_SZ, 0, ARROW_SZ - 1, height);
+        g2.fillRect(0, min - ARROW_SZ, width, ARROW_SZ - 1);
+        paint3DRectLighting(g2, 0, min - ARROW_SZ, width, ARROW_SZ - 1);
 
         g2.setColor(isFullyStretched() ? CENTER_AREA_COLOR : ALT_CENTER_AREA_COLOR);
-        g2.fillRect(min, 0, max - min - 1, height);
-        paint3DRectLighting(g2, min, 0, max - min - 1, height);
+        g2.fillRect(0, min, width, max - min - 1);
+        paint3DRectLighting(g2, 0, min, width, max - min - 1);
 
         g2.setColor(getForeground());
-        g2.fillRect(max, 0, ARROW_SZ - 1, height);
-        paint3DRectLighting(g2, max, 0, ARROW_SZ - 1, height);
+        g2.fillRect(0, max, width, ARROW_SZ - 1);
+        paint3DRectLighting(g2, 0, max, width, ARROW_SZ - 1);
 
         // Draw arrows
         g2.setColor(Color.black);
-        paintArrow(g2, min - ARROW_SZ + (ARROW_SZ - ARROW_HEIGHT) / 2.0, (height - ARROW_WIDTH) / 2.0, ARROW_HEIGHT, ARROW_WIDTH, true);
-        paintArrow(g2, max + (ARROW_SZ - ARROW_HEIGHT) / 2.0, (height - ARROW_WIDTH) / 2.0, ARROW_HEIGHT, ARROW_WIDTH, false);
+        paintArrow(g2, (width - ARROW_WIDTH) / 2.0, min - ARROW_SZ + (ARROW_SZ - ARROW_HEIGHT) / 2.0, ARROW_WIDTH, ARROW_HEIGHT, true);
+        paintArrow(g2, (width - ARROW_WIDTH) / 2.0, max + (ARROW_SZ - ARROW_HEIGHT) / 2.0, ARROW_WIDTH, ARROW_HEIGHT, false);
     }
 
     @Override
@@ -58,17 +58,17 @@ public class HorizontalRangeSlider extends RangeSlider {
         int intX = (int) (x + 0.5);
         int intY = (int) (y + 0.5);
 
-        if (h % 2 == 0) {
-            h = h - 1;
+        if (w % 2 == 0) {
+            w = w - 1;
         }
 
         if (topDown) {
-            for (int i = 0; i < (h / 2 + 1); i++) {
-                g2.drawLine(intX + i, intY + i, intX + i, intY + h - i - 1);
+            for (int i = 0; i < (w / 2 + 1); i++) {
+                g2.drawLine(intX + i, intY + i, intX + w - i - 1, intY + i);
             }
         } else {
-            for (int i = 0; i < (h / 2 + 1); i++) {
-                g2.drawLine(intX + i, intY + h / 2 - i, intX + i, intY + h - h / 2 + i - 1);
+            for (int i = 0; i < (w / 2 + 1); i++) {
+                g2.drawLine(intX + w / 2 - i, intY + i, intX + w - w / 2 + i - 1, intY + i);
             }
         }
     }
@@ -77,7 +77,7 @@ public class HorizontalRangeSlider extends RangeSlider {
     protected int toLocal(int xOrY) {
         Dimension sz = getSize();
         int min = model.getMinimum();
-        double scale = (sz.width - (2 * ARROW_SZ)) / (double) (model.getMaximum() - min);
+        double scale = (sz.height - (2 * ARROW_SZ)) / (double) (model.getMaximum() - min);
         return (int) (((xOrY - ARROW_SZ) / scale) + min + 0.5);
     }
 
@@ -85,7 +85,7 @@ public class HorizontalRangeSlider extends RangeSlider {
     protected int toScreen(int xOrY) {
         Dimension sz = getSize();
         int min = model.getMinimum();
-        double scale = (sz.width - (2 * ARROW_SZ)) / (double) (model.getMaximum() - min);
+        double scale = (sz.height - (2 * ARROW_SZ)) / (double) (model.getMaximum() - min);
         return (int) (ARROW_SZ + ((xOrY - min) * scale) + 0.5);
     }
 }

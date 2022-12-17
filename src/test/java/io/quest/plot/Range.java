@@ -14,12 +14,12 @@
  * Copyright (c) 2019 - 2022, Miguel Arregui a.k.a. marregui
  */
 
-package io.quest.frontend.plot;
+package io.quest.plot;
 
 import java.awt.geom.Point2D;
 
 public class Range implements Cloneable {
-    
+
     static final double UNDEFINED = Double.MIN_VALUE;
     Point2D.Double min;
     Point2D.Double max;

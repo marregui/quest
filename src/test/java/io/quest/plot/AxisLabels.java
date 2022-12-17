@@ -14,36 +14,18 @@
  * Copyright (c) 2019 - 2022, Miguel Arregui a.k.a. marregui
  */
 
-package io.quest.frontend.plot;
+package io.quest.plot;
 
 
 public class AxisLabels {
     public static final int X_AXIS_SIGNIFICANT_FIGURES = 1;
     public static final int Y_AXIS_SIGNIFICANT_FIGURES = 3;
-
-    public static final String formatToSignificantFigures(double value, int significantFigures) {
-        return String.format(getSignificantFiguresTpt(significantFigures), value);
-    }
-
-    public static final String formatForXAxis(double value) {
-        return String.format(getSignificantFiguresTpt(X_AXIS_SIGNIFICANT_FIGURES), value);
-    }
-
-    public static final String formatForYAxis(double value) {
-        return String.format(getSignificantFiguresTpt(Y_AXIS_SIGNIFICANT_FIGURES), value);
-    }
-
-    private static final String getSignificantFiguresTpt(int significantFigures) {
-        return String.format("%%.%df", significantFigures);
-    }
-
     private final String labelFloatFormattingTpt;
     private final String[] labels;
     private final int[] labelWidths;
     private final int[] labelHeights;
     private final int[] tickPositions;
     private final int tickLength;
-
 
     public AxisLabels(String[] labels, int[] labelWidths, int[] labelHeights, int[] tickPositions, int tickLength, int significantDecimals) {
         this.labels = labels;
@@ -52,6 +34,22 @@ public class AxisLabels {
         this.tickPositions = tickPositions;
         this.tickLength = tickLength;
         labelFloatFormattingTpt = getSignificantFiguresTpt(significantDecimals);
+    }
+
+    public static String formatToSignificantFigures(double value, int significantFigures) {
+        return String.format(getSignificantFiguresTpt(significantFigures), value);
+    }
+
+    public static String formatForXAxis(double value) {
+        return String.format(getSignificantFiguresTpt(X_AXIS_SIGNIFICANT_FIGURES), value);
+    }
+
+    public static String formatForYAxis(double value) {
+        return String.format(getSignificantFiguresTpt(Y_AXIS_SIGNIFICANT_FIGURES), value);
+    }
+
+    private static String getSignificantFiguresTpt(int significantFigures) {
+        return String.format("%%.%df", significantFigures);
     }
 
     public int getYPositionOfZeroLabel() {

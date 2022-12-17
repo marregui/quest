@@ -14,7 +14,7 @@
  * Copyright (c) 2019 - 2022, Miguel Arregui a.k.a. marregui
  */
 
-package io.quest.frontend.plot;
+package io.quest.plot;
 
 import java.util.Arrays;
 
@@ -47,8 +47,8 @@ public class Points {
     }
 
     public void done() {
-        min = Float.MAX_VALUE;
-        max = Float.MIN_VALUE;
+        min = Double.MAX_VALUE;
+        max = Double.MIN_VALUE;
         for (int i = 0; i < offset; i++) {
             min = Math.min(min, points[i]);
             max = Math.max(max, points[i]);
@@ -57,8 +57,7 @@ public class Points {
 
     @Override
     public boolean equals(Object o) {
-        if (o instanceof Points) {
-            Points that = (Points) o;
+        if (o instanceof Points that) {
             if (that.getSize() == getSize()) {
                 for (int i = 0; i < getSize(); i++) {
                     if (that.get(i) != get(i)) {

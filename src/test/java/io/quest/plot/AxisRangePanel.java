@@ -14,7 +14,7 @@
  * Copyright (c) 2019 - 2022, Miguel Arregui a.k.a. marregui
  */
 
-package io.quest.frontend.plot;
+package io.quest.plot;
 
 import javax.swing.*;
 import java.awt.*;
@@ -22,16 +22,10 @@ import java.util.List;
 import java.util.concurrent.CopyOnWriteArrayList;
 
 public class AxisRangePanel extends JPanel {
-    @FunctionalInterface
-    public interface RangeHasBeenChanged {
-        void newRangeValues(double min, double max, Axis axis);
-    }
-
     private final Axis axis;
     private final ValuePanel minValue, maxValue;
     private final JButton applyButton;
     private final List<RangeHasBeenChanged> rangeChangeObservers;
-
     public AxisRangePanel(double min, double max, Axis axis) {
         this.axis = axis;
         rangeChangeObservers = new CopyOnWriteArrayList<>();
@@ -58,20 +52,20 @@ public class AxisRangePanel extends JPanel {
         applyButton.setEnabled(isEnabled);
     }
 
-    public void setMin(double min) {
-        minValue.setValue(min);
-    }
-
     public double getMin() {
         return minValue.getValue();
     }
 
-    public void setMax(double max) {
-        maxValue.setValue(max);
+    public void setMin(double min) {
+        minValue.setValue(min);
     }
 
     public double getMax() {
         return maxValue.getValue();
+    }
+
+    public void setMax(double max) {
+        maxValue.setValue(max);
     }
 
     public void addRangeChangeObserver(RangeHasBeenChanged observer) {
@@ -83,14 +77,19 @@ public class AxisRangePanel extends JPanel {
         double max = getMax();
         if (min >= max) {
             JOptionPane.showMessageDialog(
-                    this,
-                    "Max value must be greater than Min value",
-                    "Range problem",
-                    JOptionPane.ERROR_MESSAGE);
+                this,
+                "Max value must be greater than Min value",
+                "Range problem",
+                JOptionPane.ERROR_MESSAGE);
         } else {
             for (RangeHasBeenChanged observer : rangeChangeObservers) {
                 observer.newRangeValues(min, max, axis);
             }
         }
+    }
+
+    @FunctionalInterface
+    public interface RangeHasBeenChanged {
+        void newRangeValues(double min, double max, Axis axis);
     }
 }
