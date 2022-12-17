@@ -16,7 +16,7 @@
 
 package io.quest.plot;
 
-import io.quest.frontend.GTk;
+import io.quest.GTk;
 
 import javax.swing.*;
 import java.awt.*;
@@ -49,12 +49,12 @@ public class RangeDialog extends JDialog {
     }
 
     public static void askForNewRanges(
-        String columnName,
-        double minx,
-        double maxx,
-        double miny,
-        double maxy,
-        RangeValuesObserver callback
+            String columnName,
+            double minx,
+            double maxx,
+            double miny,
+            double maxy,
+            RangeValuesObserver callback
     ) {
         DIALOG.setRange(columnName, minx, maxx, miny, maxy, callback).setVisible(true);
     }
@@ -65,10 +65,10 @@ public class RangeDialog extends JDialog {
                 callback.rangeValuesChanged(new Range(xRange.getMin(), xRange.getMax(), yRange.getMin(), yRange.getMax()));
             } catch (Throwable t) {
                 JOptionPane.showMessageDialog(
-                    RangeDialog.this,
-                    "Make sure the values are valid",
-                    "Problem",
-                    JOptionPane.ERROR_MESSAGE);
+                        RangeDialog.this,
+                        "Make sure the values are valid",
+                        "Problem",
+                        JOptionPane.ERROR_MESSAGE);
             }
         }
     }

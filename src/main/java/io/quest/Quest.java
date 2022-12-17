@@ -24,30 +24,30 @@ import java.util.function.Consumer;
 
 import javax.swing.*;
 
-import io.quest.backend.SQLExecutor;
-import io.quest.backend.SQLExecutionRequest;
-import io.quest.backend.SQLExecutionResponse;
-import io.quest.frontend.meta.Meta;
-import io.quest.model.*;
-import io.quest.frontend.GTk;
+import io.quest.conns.Conn;
+import io.quest.executor.SQLExecutor;
+import io.quest.executor.SQLExecutionRequest;
+import io.quest.executor.SQLExecutionResponse;
+import io.quest.meta.Meta;
+import io.quest.store.Store;
 import io.questdb.ServerMain;
 import io.questdb.log.Log;
 import io.questdb.log.LogFactory;
 import io.questdb.std.Misc;
 
-import io.quest.frontend.quests.QuestPanel;
-import io.quest.frontend.conns.Conns;
-import io.quest.frontend.results.SQLResultsTable;
+import io.quest.quests.QuestsPanel;
+import io.quest.conns.Conns;
+import io.quest.results.SQLResultsTable;
 
-import static io.quest.frontend.GTk.menuItem;
-import static io.quest.frontend.GTk.Icon;
+import static io.quest.GTk.menuItem;
+import static io.quest.GTk.Icon;
 
 
 public final class Quest {
     private static final Log LOG = LogFactory.getLog(Quest.class);
 
     private final JFrame frame;
-    private final QuestPanel commands;
+    private final QuestsPanel commands;
     private final Conns conns;
     private final SQLResultsTable results;
     private final SQLExecutor executor;
@@ -65,7 +65,7 @@ public final class Quest {
         executor = new SQLExecutor();
         meta = new Meta(frame, this::dispatchEvent);
         conns = new Conns(frame, this::dispatchEvent);
-        commands = new QuestPanel(this::dispatchEvent);
+        commands = new QuestsPanel(this::dispatchEvent);
         commands.setPreferredSize(new Dimension(0, dividerHeight));
         results = new SQLResultsTable(frame.getWidth(), dividerHeight);
         JSplitPane splitPane = new JSplitPane(JSplitPane.VERTICAL_SPLIT, true, commands, results);
@@ -166,10 +166,10 @@ public final class Quest {
             }
         } else {
             if (JOptionPane.YES_OPTION == JOptionPane.showConfirmDialog(
-                frame,
-                "Shutdown QuestDB?",
-                "Choice",
-                JOptionPane.YES_NO_OPTION)
+                    frame,
+                    "Shutdown QuestDB?",
+                    "Choice",
+                    JOptionPane.YES_NO_OPTION)
             ) {
                 questDb.close();
                 questDb = null;
@@ -181,7 +181,7 @@ public final class Quest {
     }
 
     private void dispatchEvent(EventProducer<?> source, Enum<?> event, Object data) {
-        if (source instanceof QuestPanel) {
+        if (source instanceof QuestsPanel) {
             GTk.invokeLater(() -> onCommandEvent(EventProducer.eventType(event), (SQLExecutionRequest) data));
         } else if (source instanceof SQLExecutor) {
             GTk.invokeLater(() -> onSQLExecutorEvent(EventProducer.eventType(event), (SQLExecutionResponse) data));
@@ -192,7 +192,7 @@ public final class Quest {
         }
     }
 
-    private void onCommandEvent(QuestPanel.EventType event, SQLExecutionRequest req) {
+    private void onCommandEvent(QuestsPanel.EventType event, SQLExecutionRequest req) {
         switch (event) {
             case COMMAND_AVAILABLE -> {
                 Conn conn = commands.getConnection();
@@ -257,7 +257,7 @@ public final class Quest {
                 }
             }
             case CONNECTION_FAILED ->
-                results.displayError(String.format("Server is down: %s%n", data));
+                    results.displayError(String.format("Server is down: %s%n", data));
             case HIDE_REQUEST -> onToggleConns(null);
         }
     }

@@ -21,13 +21,13 @@ import static org.hamcrest.Matchers.is;
 
 import java.io.File;
 
-import io.quest.model.ConnAttrs;
-import io.quest.model.Store;
-import io.quest.model.StoreEntry;
+import io.quest.conns.ConnAttrs;
+import io.quest.store.Store;
+import io.quest.store.StoreEntry;
 import org.hamcrest.Matchers;
 import org.junit.jupiter.api.Test;
 
-import static io.quest.frontend.quests.QuestPanel.Content;
+import static io.quest.quests.QuestsPanel.Content;
 
 public class StoreTest {
 

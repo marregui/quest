@@ -28,8 +28,8 @@ import java.sql.ResultSetMetaData;
 import java.sql.SQLException;
 import java.sql.Types;
 
-import io.quest.model.Row;
-import io.quest.model.Table;
+import io.quest.executor.Row;
+import io.quest.executor.Table;
 import org.hamcrest.Matchers;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;

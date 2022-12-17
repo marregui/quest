@@ -16,7 +16,7 @@
 
 package io.quest;
 
-import io.quest.model.Conn;
+import io.quest.conns.Conn;
 
 import java.sql.Connection;
 import java.sql.PreparedStatement;
