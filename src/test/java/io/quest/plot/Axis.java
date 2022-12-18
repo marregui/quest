@@ -61,40 +61,29 @@ public class Axis {
             String tpt
     ) {
         double interval = range / numTicks;
-        double start = startValue(min, interval);
-        int tickNo = tickNo(range, start, interval);
+        double start = Math.ceil(min / interval) * interval - min;
+        int tickNo = (int) (Math.abs(range - start) / interval + 1);
         if (tickNo > 0) {
-            int sign = invert ? -1 : 1;
             int[] tickPos = new int[tickNo];
-            double offset = 0;
-            for (int i = 0; i < tickNo; i++) {
-                tickPos[i] = sign * (int) ((start + offset) * scale);
-                offset += interval;
-            }
-
             String[] labels = new String[tickNo];
             int[] labelWidths = new int[tickNo];
             int[] labelHeights = new int[tickNo];
-
+            int sign = invert ? -1 : 1;
+            double offset = 0;
             FontMetrics fm = g2.getFontMetrics();
             for (int i = 0; i < tickNo; i++) {
-                String label = String.format(tpt, (start + i * interval + min));
-                Rectangle2D bounds = fm.getStringBounds(label, g2);
+                double pos = start + offset;
+                tickPos[i] = sign * (int) (pos * scale);
+                String label = String.format(tpt, (pos + min));
                 labels[i] = label;
+                Rectangle2D bounds = fm.getStringBounds(label, g2);
                 labelWidths[i] = (int) bounds.getWidth();
                 labelHeights[i] = (int) bounds.getHeight();
+                offset += interval;
             }
             return new Axis(labels, labelWidths, labelHeights, tickPos, String.format(tpt, 0.0));
         }
         return null;
-    }
-
-    public static double startValue(double minValue, double interval) {
-        return Math.ceil(minValue / interval) * interval - minValue;
-    }
-
-    public static int tickNo(double range, double start, double interval) {
-        return (int) (Math.abs(range - start) / interval + 1);
     }
 
     public static String formatX(double value) {
