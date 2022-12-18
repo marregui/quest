@@ -87,12 +87,16 @@ public class Axis {
         return null;
     }
 
-    public static String formatX(double value) {
+    public static String fmtX(double value) {
         return String.format(X_TPT, value);
     }
 
-    public static String formatY(double value) {
+    public static String fmtY(double value) {
         return String.format(Y_TPT, value);
+    }
+
+    public boolean isZero(int i) {
+        return labelZero.equals(labels[i]);
     }
 
     public int getYPositionOfZeroLabel() {
