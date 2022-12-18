@@ -35,6 +35,7 @@ public class Plot extends JPanel {
     public Column xValues, yValues;
     private double minX, minY, maxX, maxY, rangeX, rangeY;
     private Rectangle2D.Double clip;
+    private BasicStroke dashedStroke;
     private GeneralPath path;
 
     public Plot() {
@@ -64,10 +65,6 @@ public class Plot extends JPanel {
         frame.setVisible(true);
     }
 
-    private static BasicStroke createDashedStroke(BasicStroke srcStroke) {
-        return new BasicStroke(srcStroke.getLineWidth(), srcStroke.getEndCap(), srcStroke.getLineJoin(), srcStroke.getMiterLimit(), DASHED_LINE, 0);
-    }
-
     public void setDataSet(Column xValues, Column yValues) {
         this.xValues = xValues;
         this.yValues = yValues;
@@ -80,7 +77,7 @@ public class Plot extends JPanel {
         rangeX = maxX - minX;
         rangeY = maxY - minY;
         clip = new Rectangle2D.Double(minX, minY, rangeX, rangeY);
-        int n = yValues.getSize();
+        int n = yValues.size();
         path = new GeneralPath(GeneralPath.WIND_NON_ZERO, n);
         path.moveTo(xValues.get(0), yValues.get(0));
         for (int i = 1; i < n; i++) {
@@ -98,8 +95,8 @@ public class Plot extends JPanel {
 
         int height = getHeight();
         int width = getWidth();
-        int plotWidth = width - (PLOT_INSETS.left + PLOT_INSETS.right);
         int plotHeight = height - (PLOT_INSETS.top + PLOT_INSETS.bottom);
+        int plotWidth = width - (PLOT_INSETS.left + PLOT_INSETS.right);
 
         // Fill background and draw border around plot area.
         g2.setColor(GTk.QUEST_APP_BACKGROUND_COLOR);
@@ -116,38 +113,34 @@ public class Plot extends JPanel {
             g2.translate(PLOT_INSETS.left, height - PLOT_INSETS.bottom);
 
             // Draw ticks and tick labels
-            Axis xTickLabels = Axis.forX(g2, minX, rangeX, scaleX);
-            if (null != xTickLabels) {
-                int labelVerticalPosition = Axis.TICK_LENGTH + xTickLabels.getHeight(0);
-                BasicStroke stroke = (BasicStroke) g2.getStroke();
-                BasicStroke dashedStroke = createDashedStroke(stroke);
-                for (int i = 0; i < xTickLabels.getSize(); i++) {
-                    int pos = xTickLabels.getPosition(i);
-                    g2.drawLine(pos, 0, pos, Axis.TICK_LENGTH);
-                    g2.drawString(xTickLabels.getLabel(i), pos - xTickLabels.getWidth(i) / 2, labelVerticalPosition);
-                    g2.setStroke(dashedStroke);
-                    g2.drawLine(pos, 0, pos, -plotHeight);
-                    g2.setStroke(stroke);
-                }
+            Axis x = Axis.forX(g2, minX, rangeX, scaleX);
+            int verticalPos = Axis.TICK_LENGTH + x.getHeight(0);
+            BasicStroke stroke = (BasicStroke) g2.getStroke();
+            if (dashedStroke == null) {
+                dashedStroke = new BasicStroke(stroke.getLineWidth(), stroke.getEndCap(), stroke.getLineJoin(), stroke.getMiterLimit(), DASHED_LINE, 0);
+            }
+            for (int i = 0, n = x.size(); i < n; i++) {
+                int pos = x.position(i);
+                g2.drawLine(pos, 0, pos, Axis.TICK_LENGTH);
+                g2.drawString(x.label(i), pos - x.width(i) / 2, verticalPos);
+                g2.setStroke(dashedStroke);
+                g2.drawLine(pos, 0, pos, -plotHeight);
+                g2.setStroke(stroke);
             }
 
-            Axis yTickLabels = Axis.forY(g2, minY, rangeY, scaleY);
-            if (null != yTickLabels) {
-                BasicStroke stroke = (BasicStroke) g2.getStroke();
-                BasicStroke dashedStroke = createDashedStroke(stroke);
-                for (int i = 0; i < yTickLabels.getSize(); i++) {
-                    int pos = yTickLabels.getPosition(i);
-                    g2.drawLine(0, pos, -Axis.TICK_LENGTH, pos);
-                    g2.drawString(yTickLabels.getLabel(i), -(yTickLabels.getWidth(i) + Axis.TICK_LENGTH + 2), pos + yTickLabels.getHeight(i) / 2 - 2);
-                    g2.setStroke(dashedStroke);
-                    g2.drawLine(0, pos, plotWidth, pos);
-                    g2.setStroke(stroke);
-                }
+            Axis y = Axis.forY(g2, minY, rangeY, scaleY);
+            for (int i = 0, n = y.size(); i < n; i++) {
+                int pos = y.position(i);
+                g2.drawLine(0, pos, -Axis.TICK_LENGTH, pos);
+                g2.drawString(y.label(i), -(y.width(i) + Axis.TICK_LENGTH + 2), pos + y.getHeight(i) / 2 - 2);
+                g2.setStroke(dashedStroke);
+                g2.drawLine(0, pos, plotWidth, pos);
+                g2.setStroke(stroke);
             }
             g2.drawString(String.format("Ranges x:[%s, %s], y:[%s, %s]", Axis.formatX(minX), Axis.formatX(maxX), Axis.formatY(minY), Axis.formatY(maxY)), 0, Math.round(INSET_BOTTOM * 3 / 4.0F));
 
             // Draw Zero line
-            int yPositionOfZero = yTickLabels.getYPositionOfZeroLabel();
+            int yPositionOfZero = y.getYPositionOfZeroLabel();
             g2.drawLine(0, yPositionOfZero, plotWidth, yPositionOfZero);
 
             // Scale the coordinate system to match plot coordinates
@@ -164,7 +157,7 @@ public class Plot extends JPanel {
             double xPointWidth = xTick * 2.0F;
             double yPointWidth = yTick * 2.0F;
             g2.setColor(GTk.QUEST_APP_COLOR);
-            int n = yValues.getSize();
+            int n = yValues.size();
             g2.fill(new Ellipse2D.Double(xValues.get(0) - xTick, yValues.get(0) - yTick, xPointWidth, yPointWidth));
             for (int i = 1; i < n; i++) {
                 g2.fill(new Ellipse2D.Double(xValues.get(i) - xTick, yValues.get(i) - yTick, xPointWidth, yPointWidth));

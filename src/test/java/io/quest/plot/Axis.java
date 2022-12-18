@@ -104,15 +104,15 @@ public class Axis {
         return -1;
     }
 
-    public int getSize() {
+    public int size() {
         return labels.length;
     }
 
-    public String getLabel(int n) {
+    public String label(int n) {
         return labels[n];
     }
 
-    public int getWidth(int n) {
+    public int width(int n) {
         return labelWidths[n];
     }
 
@@ -120,7 +120,7 @@ public class Axis {
         return labelHeights[n];
     }
 
-    public int getPosition(int n) {
+    public int position(int n) {
         return labelPositions[n];
     }
 }

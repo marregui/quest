@@ -32,7 +32,7 @@ public class Column {
         max = Double.MIN_VALUE;
     }
 
-    public int getSize() {
+    public int size() {
         return offset;
     }
 
