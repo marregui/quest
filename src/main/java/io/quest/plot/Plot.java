@@ -11,7 +11,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  *
- * Copyright (c) 2019 - 2022, Miguel Arregui a.k.a. marregui
+ * Copyright (c) 2019 - 2023, Miguel Arregui a.k.a. marregui
  */
 
 package io.quest.plot;
@@ -40,14 +40,13 @@ public class Plot extends JPanel {
         setOpaque(true);
     }
 
-    public void setDataSet(String title, Column xValues, Column yValues) {
+    public synchronized void setDataSet(String title, Column xValues, Column yValues) {
         if (xValues.size() != yValues.size()) {
             throw new IllegalArgumentException("sizes must match and be greated than zero");
         }
         this.title = title;
         this.xValues = xValues;
         this.yValues = yValues;
-        repaint();
     }
 
     @Override
@@ -70,13 +69,22 @@ public class Plot extends JPanel {
 
         // draw curve
         if (null != yValues) {
-
-            double deltaX = xValues.delta(0.005F);
-            double deltaY = yValues.delta(0.07F);
-            double minX = xValues.min() - deltaX;
-            double maxX = xValues.max() + deltaX;
-            double minY = yValues.min() - deltaY;
-            double maxY = yValues.max() + deltaY;
+            double minX;
+            double maxX;
+            double minY;
+            double maxY;
+            synchronized (this) {
+                minX = xValues.min();
+                maxX = xValues.max();
+                minY = yValues.min();
+                maxY = yValues.max();
+            }
+            double deltaX = Math.abs(maxX - minX) * 0.005F;
+            double deltaY = Math.abs(maxY - minY) * 0.07F;
+            minX -= deltaX;
+            maxX += deltaX;
+            minY -= deltaY;
+            maxY += deltaY;
             double rangeX = maxX - minX;
             double rangeY = maxY - minY;
 
@@ -144,18 +152,21 @@ public class Plot extends JPanel {
             double xPointWidth = xTick * 2.0F;
             double yPointWidth = yTick * 2.0F;
             g2.setColor(GTk.SELECT_FONT_COLOR);
-            int n = yValues.size();
-            double px = xValues.get(0);
-            double py = yValues.get(0);
-            GeneralPath path = new GeneralPath(GeneralPath.WIND_NON_ZERO, n);
-            path.moveTo(px, py);
-            g2.fill(new Ellipse2D.Double(px - xTick, py - yTick, xPointWidth, yPointWidth));
-            for (int i = 1; i < n; i++) {
-                px = xValues.get(i);
-                g2.setColor(GTk.SELECT_FONT_COLOR);
-                py = yValues.get(i);
-                path.lineTo(px, py);
-                g2.fill(new Ellipse2D.Double(px - xTick, py - yTick, xPointWidth, yPointWidth));
+            GeneralPath path = new GeneralPath(GeneralPath.WIND_NON_ZERO, 200);
+            synchronized (this) {
+                int n = yValues.size();
+                if (n > 0) {
+                    double px = xValues.get(0);
+                    double py = yValues.get(0);
+                    path.moveTo(px, py);
+                    g2.fill(new Ellipse2D.Double(px - xTick, py - yTick, xPointWidth, yPointWidth));
+                    for (int i = 1; i < n; i++) {
+                        px = xValues.get(i);
+                        py = yValues.get(i);
+                        path.lineTo(px, py);
+                        g2.fill(new Ellipse2D.Double(px - xTick, py - yTick, xPointWidth, yPointWidth));
+                    }
+                }
             }
             g2.setColor(GTk.QUEST_APP_COLOR);
             g2.draw(path);

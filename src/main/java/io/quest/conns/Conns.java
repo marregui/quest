@@ -11,7 +11,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  *
- * Copyright (c) 2019 - 2022, Miguel Arregui a.k.a. marregui
+ * Copyright (c) 2019 - 2023, Miguel Arregui a.k.a. marregui
  */
 
 package io.quest.conns;
@@ -185,10 +185,6 @@ public class Conns extends JDialog implements EventProducer<Conns.EventType>, Cl
     private void onLostConnsEvent(Set<Conn> lostConns) {
         StringBuilder sb = new StringBuilder();
         for (Conn conn : lostConns) {
-            String msg = String.format(
-                    "[%s as '%s']",
-                    conn.getUri(),
-                    conn.getUsername());
             sb.append(conn.getUri()).append(" as '").append(conn.getUsername()).append("', ");
         }
         if (sb.length() > 2) {

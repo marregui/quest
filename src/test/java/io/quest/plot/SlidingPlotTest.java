@@ -11,7 +11,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  *
- * Copyright (c) 2019 - 2022, Miguel Arregui a.k.a. marregui
+ * Copyright (c) 2019 - 2023, Miguel Arregui a.k.a. marregui
  */
 
 package io.quest.plot;
@@ -28,7 +28,8 @@ public class SlidingPlotTest extends JPanel {
     public static void main(String[] args) {
         Plot plot = new Plot();
 
-        int windowSize = 728;
+        int windowSize = 444;
+        int refreshRateMillis = 500;
         Column xValues = new SlidingColumnImpl(plot, windowSize);
         Column yValues = new SlidingColumnImpl(plot, windowSize);
         plot.setDataSet("Sin(∂) in stepts of π/4", xValues, yValues);
@@ -43,14 +44,18 @@ public class SlidingPlotTest extends JPanel {
                         angle += step;
                     }
                 }
+                long ticks = 0;
                 while (!Thread.currentThread().isInterrupted()) {
                     synchronized (plot) {
                         xValues.append(angle);
                         yValues.append(Math.sin(angle));
                     }
                     angle += step;
-                    GTk.invokeLater(plot::repaint);
-                    TimeUnit.MILLISECONDS.sleep(10L);
+                    if ((ticks + 1) % refreshRateMillis == 0) {
+                        GTk.invokeLater(plot::repaint);
+                    }
+                    TimeUnit.MILLISECONDS.sleep(1L);
+                    ticks++;
                 }
             } catch (InterruptedException ie) {
                 Thread.currentThread().interrupt();

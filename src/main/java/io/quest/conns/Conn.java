@@ -11,7 +11,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  *
- * Copyright (c) 2019 - 2022, Miguel Arregui a.k.a. marregui
+ * Copyright (c) 2019 - 2023, Miguel Arregui a.k.a. marregui
  */
 
 package io.quest.conns;

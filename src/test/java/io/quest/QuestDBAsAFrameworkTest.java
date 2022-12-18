@@ -11,7 +11,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  *
- * Copyright (c) 2019 - 2022, Miguel Arregui a.k.a. marregui
+ * Copyright (c) 2019 - 2023, Miguel Arregui a.k.a. marregui
  */
 
 package io.quest;
@@ -35,6 +35,7 @@ public class QuestDBAsAFrameworkTest {
 
     private static final String PG_CONNECTION_URI = "jdbc:postgresql://127.0.0.1:8812/qdb";
     private static final Properties PG_CONNECTION_PROPERTIES = new Properties();
+    private static Path root;
 
     static {
         PG_CONNECTION_PROPERTIES.setProperty("user", "admin");
@@ -42,9 +43,6 @@ public class QuestDBAsAFrameworkTest {
         PG_CONNECTION_PROPERTIES.setProperty("sslmode", "disable");
         PG_CONNECTION_PROPERTIES.setProperty("binaryTransfer", "true");
     }
-
-
-    private static Path root;
 
     @BeforeAll
     public static void beforeAll() throws IOException {

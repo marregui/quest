@@ -11,7 +11,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  *
- * Copyright (c) 2019 - 2022, Miguel Arregui a.k.a. marregui
+ * Copyright (c) 2019 - 2023, Miguel Arregui a.k.a. marregui
  */
 
 package io.quest.plot;
@@ -22,9 +22,8 @@ public class SlidingColumnImpl implements Column {
 
     private final double[] points;
     private final Object lock;
-    private int writePtr;
+    private int writePtr = -1;
     private int readPtr;
-    private long appends;
 
     public SlidingColumnImpl(Object lock, int size) {
         this.lock = Objects.requireNonNull(lock);
@@ -34,49 +33,55 @@ public class SlidingColumnImpl implements Column {
     @Override
     public int size() {
         synchronized (lock) {
-            return appends < points.length ? (int) appends : points.length;
+            return writePtr == -1 ? 0 : readPtr < writePtr ? writePtr - readPtr : points.length;
         }
     }
 
     @Override
     public void append(double value) {
         synchronized (lock) {
-            points[writePtr] = value;
             writePtr = (writePtr + 1) % points.length;
-            if (readPtr > writePtr) {
-                readPtr = writePtr;
+            points[writePtr] = value;
+            if (readPtr == writePtr) {
+                readPtr = (writePtr + 1) % points.length;
             }
-            appends++;
         }
     }
 
     @Override
     public double get(int i) {
         synchronized (lock) {
-            return points[(readPtr + i) % points.length];
+            double value = points[readPtr];
+            readPtr = (readPtr + 1) % points.length;
+            return value;
         }
     }
 
     @Override
     public double min() {
+        double min = Double.MAX_VALUE;
         synchronized (lock) {
-            double min = Double.MAX_VALUE;
-            for (int i = readPtr, n = size(); i < n; i++) {
-                min = Math.min(min, points[i]);
+            for (int i = 0, n = size(); i < n; i++) {
+                double p = points[(readPtr + i) % points.length];
+                if (p < min) {
+                    min = p;
+                }
             }
-            return min;
         }
-
+        return min;
     }
 
     @Override
     public double max() {
+        double max = Double.MIN_VALUE;
         synchronized (lock) {
-            double max = Double.MIN_VALUE;
-            for (int i = readPtr, n = size(); i < n; i++) {
-                max = Math.max(max, points[i]);
+            for (int i = readPtr, n = readPtr + size(); i < n; i++) {
+                double p = points[(readPtr + i) % points.length];
+                if (p > max) {
+                    max = p;
+                }
             }
-            return max;
         }
+        return max;
     }
 }
