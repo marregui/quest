@@ -26,8 +26,6 @@ import java.awt.geom.*;
 public class Plot extends JPanel {
     private static final Color BORDER_COLOR = new Color(153, 153, 153);
     private static final float[] DASHED_LINE = new float[]{1, 8};
-    private static final int X_RANGE_NUMBER_OF_TICKS = 15;
-    private static final int Y_RANGE_NUMBER_OF_TICKS = 10;
     private static final int INSET_TOP = 20;
     private static final int INSET_BOTTOM = 80;
     private static final int INSET_LEFT = 80;
@@ -38,7 +36,6 @@ public class Plot extends JPanel {
     private double minX, minY, maxX, maxY, rangeX, rangeY;
     private Rectangle2D.Double clip;
     private GeneralPath path;
-    private Axes yTickLabels;
 
     public Plot() {
         setOpaque(true);
@@ -65,20 +62,6 @@ public class Plot extends JPanel {
         Dimension location = GTk.frameLocation(size);
         frame.setLocation(location.width, location.height);
         frame.setVisible(true);
-    }
-
-    private static int[] getTickPositions(double min, double range, double scale, double tickInterval, boolean invert) {
-        double start = Axes.startValue(min, tickInterval);
-        int tickNo = Axes.tickNo(range, start, tickInterval);
-        if (tickNo > 0) {
-            int sign = invert ? -1 : 1;
-            int[] tickPositions = new int[tickNo];
-            for (int i = 0; i < tickNo; i++) {
-                tickPositions[i] = sign * (int) ((start + i * tickInterval) * scale);
-            }
-            return tickPositions;
-        }
-        return null;
     }
 
     private static BasicStroke createDashedStroke(BasicStroke srcStroke) {
@@ -133,10 +116,8 @@ public class Plot extends JPanel {
             g2.translate(PLOT_INSETS.left, height - PLOT_INSETS.bottom);
 
             // Draw ticks and tick labels
-            double xRangeTickInterval = rangeX / X_RANGE_NUMBER_OF_TICKS;
-            int[] xTickPositions = getTickPositions(minX, rangeX, scaleX, xRangeTickInterval, false);
-            if (null != xTickPositions) {
-                Axes xTickLabels = Axes.initXLabels(g2, minX, rangeX, xRangeTickInterval, xTickPositions);
+            Axis xTickLabels = Axis.forX(g2, minX, rangeX, scaleX);
+            if (null != xTickLabels) {
                 int tickLength = xTickLabels.getTickLength();
                 int labelVerticalPosition = tickLength + xTickLabels.getLabelHeight(0);
                 BasicStroke stroke = (BasicStroke) g2.getStroke();
@@ -151,10 +132,8 @@ public class Plot extends JPanel {
                 }
             }
 
-            double yRangeTickInterval = rangeY / Y_RANGE_NUMBER_OF_TICKS;
-            int[] yTickPositions = getTickPositions(minY, rangeY, scaleY, yRangeTickInterval, true);
-            if (null != yTickPositions) {
-                yTickLabels = Axes.initYLabels(g2, minY, rangeY, yRangeTickInterval, yTickPositions);
+            Axis yTickLabels = Axis.forY(g2, minY, rangeY, scaleY);
+            if (null != yTickLabels) {
                 int tickLength = yTickLabels.getTickLength();
                 BasicStroke stroke = (BasicStroke) g2.getStroke();
                 BasicStroke dashedStroke = createDashedStroke(stroke);
@@ -167,7 +146,7 @@ public class Plot extends JPanel {
                     g2.setStroke(stroke);
                 }
             }
-            g2.drawString(String.format("Ranges x:[%s, %s], y:[%s, %s]", Axes.formatX(minX), Axes.formatX(maxX), Axes.formatY(minY), Axes.formatY(maxY)), 0, Math.round(INSET_BOTTOM * 3 / 4.0F));
+            g2.drawString(String.format("Ranges x:[%s, %s], y:[%s, %s]", Axis.formatX(minX), Axis.formatX(maxX), Axis.formatY(minY), Axis.formatY(maxY)), 0, Math.round(INSET_BOTTOM * 3 / 4.0F));
 
             // Draw Zero line
             int yPositionOfZero = yTickLabels.getYPositionOfZeroLabel();
