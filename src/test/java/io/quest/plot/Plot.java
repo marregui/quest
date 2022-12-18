@@ -45,8 +45,8 @@ public class Plot extends JPanel {
     public static void main(String[] args) {
         Plot plot = new Plot();
 
-        Column xValues = new Column();
-        Column yValues = new Column();
+        Column xValues = new ColumnImpl();
+        Column yValues = new ColumnImpl();
         double angle = Math.PI;
         double step = Math.PI / 90; // degrees to radians
         int n = (int) ((1.0 + Math.sqrt(5.0)) * 314);
@@ -66,6 +66,9 @@ public class Plot extends JPanel {
     }
 
     public void setDataSet(Column xValues, Column yValues) {
+        if (xValues.size() != yValues.size() || yValues.size() == 0) {
+            throw new IllegalArgumentException("sizes must match and be greated than zero");
+        }
         this.xValues = xValues;
         this.yValues = yValues;
         double deltaX = xValues.delta(0.005F);
