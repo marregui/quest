@@ -24,7 +24,6 @@ import java.awt.geom.*;
 
 
 public class Plot extends JPanel {
-    private static final Color BORDER_COLOR = new Color(153, 153, 153);
     private static final float[] DASHED_LINE = new float[]{1, 8};
     private static final int INSET_TOP = 20;
     private static final int INSET_BOTTOM = 80;
@@ -32,8 +31,6 @@ public class Plot extends JPanel {
     private static final int INSET_RIGHT = 20;
     private static final Insets PLOT_INSETS = new Insets(INSET_TOP, INSET_LEFT, INSET_BOTTOM, INSET_RIGHT);
     public Column xValues, yValues;
-    private double minX, minY, maxX, maxY, rangeX, rangeY;
-    private Rectangle2D.Double clip;
     private BasicStroke dashedStroke;
     private GeneralPath path;
     private String title;
@@ -43,21 +40,12 @@ public class Plot extends JPanel {
     }
 
     public void setDataSet(String title, Column xValues, Column yValues) {
-        if (xValues.size() != yValues.size() || yValues.size() == 0) {
+        if (xValues.size() != yValues.size()) {
             throw new IllegalArgumentException("sizes must match and be greated than zero");
         }
         this.title = title;
         this.xValues = xValues;
         this.yValues = yValues;
-        double deltaX = xValues.delta(0.005F);
-        double deltaY = yValues.delta(0.07F);
-        minX = xValues.min() - deltaX;
-        maxX = xValues.max() + deltaX;
-        minY = yValues.min() - deltaY;
-        maxY = yValues.max() + deltaY;
-        rangeX = maxX - minX;
-        rangeY = maxY - minY;
-        clip = new Rectangle2D.Double(minX, minY, rangeX, rangeY);
         int n = yValues.size();
         path = new GeneralPath(GeneralPath.WIND_NON_ZERO, n);
         path.moveTo(xValues.get(0), yValues.get(0));
@@ -82,11 +70,21 @@ public class Plot extends JPanel {
         // Fill background and draw border around plot area.
         g2.setColor(GTk.QUEST_APP_BACKGROUND_COLOR);
         g2.fillRect(0, 0, width, height);
-        g2.setColor(BORDER_COLOR);
+        g2.setColor(GTk.PLOT_BORDER_COLOR);
         g2.drawRect(PLOT_INSETS.left, PLOT_INSETS.top, plotWidth, plotHeight);
 
         // draw curve
         if (null != yValues) {
+
+            double deltaX = xValues.delta(0.005F);
+            double deltaY = yValues.delta(0.07F);
+            double minX = xValues.min() - deltaX;
+            double maxX = xValues.max() + deltaX;
+            double minY = yValues.min() - deltaY;
+            double maxY = yValues.max() + deltaY;
+            double rangeX = maxX - minX;
+            double rangeY = maxY - minY;
+
             // Shift coordinate centre to bottom-left corner of the internal rectangle.
             g2.translate(PLOT_INSETS.left, height - PLOT_INSETS.bottom);
 
@@ -94,6 +92,9 @@ public class Plot extends JPanel {
             double scaleY = plotHeight / rangeY;
             Axis x = Axis.forX(g2, minX, rangeX, scaleX);
             Axis y = Axis.forY(g2, minY, rangeY, scaleY);
+            if (x == null || y == null) {
+                return;
+            }
 
             // Draw Zero line
             int yPositionOfZero = y.getYPositionOfZeroLabel();
@@ -107,7 +108,7 @@ public class Plot extends JPanel {
             }
             for (int i = 0, n = x.size(); i < n; i++) {
                 int pos = x.position(i);
-                g2.setColor(BORDER_COLOR);
+                g2.setColor(GTk.PLOT_BORDER_COLOR);
                 g2.drawLine(pos, 0, pos, Axis.TICK_LENGTH);
                 g2.drawString(x.label(i), pos - x.width(i) / 2, verticalPos);
                 g2.setColor(GTk.EDITOR_LINENO_COLOR);
@@ -117,7 +118,7 @@ public class Plot extends JPanel {
             }
             for (int i = 0, n = y.size(); i < n; i++) {
                 int pos = y.position(i);
-                g2.setColor(BORDER_COLOR);
+                g2.setColor(GTk.PLOT_BORDER_COLOR);
                 g2.drawLine(0, pos, -Axis.TICK_LENGTH, pos);
                 g2.drawString(y.label(i), -(y.width(i) + Axis.TICK_LENGTH + 2), pos + y.getHeight(i) / 2 - 2);
                 if (i == 0 || i == n - 1 || y.isZero(i)) {
@@ -138,7 +139,7 @@ public class Plot extends JPanel {
             g2.translate(-1.0F * minX, -1.0F * minY);
 
             // Draw only within plotting area
-            g2.setClip(clip);
+            g2.setClip(new Rectangle2D.Double(minX, minY, rangeX, rangeY));
 
             // Set stroke for curve
             g2.setStroke(new BasicStroke((float) Math.abs(1.0F / (100.0F * Math.max(scaleX, scaleY)))));

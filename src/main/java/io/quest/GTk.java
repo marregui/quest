@@ -46,13 +46,13 @@ public final class GTk {
 
     // https://patorjk.com/software/taag/#p=display&h=0&f=Ivrit&t=quest
     public static final String BANNER = """ 
-                                          _ 
-              __ _   _   _    ___   ___  | |_ 
-             / _` | | | | |  / _ \\ / __| | __| 
-            | (_| | | |_| | |  __/ \\__ \\ | |_ 
-             \\__, |  \\__,_|  \\___| |___/  \\__| 
+                                          _
+              __ _   _   _    ___   ___  | |_
+             / _` | | | | |  / _ \\ / __| | __|
+            | (_| | | |_| | |  __/ \\__ \\ | |_
+             \\__, |  \\__,_|  \\___| |___/  \\__|
                 |_|
-            Copyright (c) 2019 - """ + Calendar.getInstance().get(Calendar.YEAR);
+            Copyright (c) 2019 -\s""" + Calendar.getInstance().get(Calendar.YEAR);
     public static final String KEYBOARD_SHORTCUTS = """
 
             Mac users: ctrl -> command, alt -> option
@@ -106,6 +106,7 @@ public final class GTk {
     public static final Color QUEST_APP_BACKGROUND_COLOR = Color.BLACK;
     public static final Color EDITOR_FONT_COLOR = new Color(95, 235, 150);
     public static final Color EDITOR_LINENO_COLOR = Color.LIGHT_GRAY.darker().darker();
+    public static final Color PLOT_BORDER_COLOR = new Color(153, 153, 153);
     public static final Color SELECT_FONT_COLOR = new Color(250, 255, 116);
     public static final int EDITOR_DEFAULT_FONT_SIZE = 15;
     public static final int EDITOR_MIN_FONT_SIZE = 11;
@@ -488,7 +489,7 @@ public final class GTk {
     public enum Icon {
         // https://p.yusukekamiyamane.com/
         // 16x16 icons
-        NO_ICON(null, null), APPLICATION("Application.png"), HELP("Help.png"), CONNS("Conns.png"), CONN_ADD("ConnAdd.png", "Add"), CONN_ASSIGN("ConnAssign.png", "ASSIGN"), CONN_CLONE("ConnClone.png", "Clone"), CONN_CONNECT("ConnConnect.png", "Connect"), CONN_DISCONNECT("ConnDisconnect.png"), CONN_REMOVE("ConnRemove.png", "Remove"), CONN_SHOW("ConnShow.png"), CONN_HIDE("ConnHide.png"), CONN_TEST("ConnTest.png", "Test"), COMMANDS("Commands.png"), COMMAND_ADD("CommandAdd.png"), COMMAND_REMOVE("CommandRemove.png"), COMMAND_EDIT("CommandEdit.png"), COMMAND_CLEAR("CommandClear.png"), COMMAND_SAVE("CommandSave.png"), COMMAND_RELOAD("CommandReload.png", "Reload"), COMMAND_STORE_BACKUP("CommandStoreBackup.png"), COMMAND_STORE_LOAD("CommandStoreLoad.png"), COMMAND_FIND("CommandFind.png"), COMMAND_REPLACE("CommandReplace.png"), COMMAND_EXEC("CommandExec.png"), COMMAND_EXEC_ABORT("CommandExecAbort.png"), COMMAND_EXEC_LINE("CommandExecLine.png"), QUEST("QuestDB.png"), MENU("Menu.png"), META("Meta.png"), META_FILE("MetaFile.png"), META_UNKNOWN("MetaUnknown.png"), META_FOLDER("MetaFolder.png"), PLOT_CHANGE_RANGES("PlotChangeRanges.png"), PLOT_RESTORE_RANGES("PlotRestoreRanges.png"), RESULTS("Results.png"), RESULTS_NEXT("ResultsNext.png", "Next"), RESULTS_PREV("ResultsPrev.png", "Prev"), ROCKET("Rocket.png");
+        NO_ICON(null, null), HELP("Help.png"), CONNS("Conns.png"), CONN_ADD("ConnAdd.png", "Add"), CONN_ASSIGN("ConnAssign.png", "ASSIGN"), CONN_CLONE("ConnClone.png", "Clone"), CONN_CONNECT("ConnConnect.png", "Connect"), CONN_DISCONNECT("ConnDisconnect.png"), CONN_REMOVE("ConnRemove.png", "Remove"), CONN_SHOW("ConnShow.png"), CONN_HIDE("ConnHide.png"), CONN_TEST("ConnTest.png", "Test"), COMMANDS("Commands.png"), COMMAND_ADD("CommandAdd.png"), COMMAND_REMOVE("CommandRemove.png"), COMMAND_EDIT("CommandEdit.png"), COMMAND_CLEAR("CommandClear.png"), COMMAND_SAVE("CommandSave.png"), COMMAND_RELOAD("CommandReload.png", "Reload"), COMMAND_STORE_BACKUP("CommandStoreBackup.png"), COMMAND_STORE_LOAD("CommandStoreLoad.png"), COMMAND_FIND("CommandFind.png"), COMMAND_REPLACE("CommandReplace.png"), COMMAND_EXEC("CommandExec.png"), COMMAND_EXEC_ABORT("CommandExecAbort.png"), COMMAND_EXEC_LINE("CommandExecLine.png"), QUEST("QuestDB.png"), MENU("Menu.png"), META("Meta.png"), META_FILE("MetaFile.png"), META_UNKNOWN("MetaUnknown.png"), META_FOLDER("MetaFolder.png"), RESULTS("Results.png"), RESULTS_NEXT("ResultsNext.png", "Next"), RESULTS_PREV("ResultsPrev.png", "Prev"), ROCKET("Rocket.png");
 
         private static final Map<String, ImageIcon> ICON_MAP = new HashMap<>();
 
