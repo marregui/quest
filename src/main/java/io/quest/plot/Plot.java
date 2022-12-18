@@ -34,7 +34,6 @@ public class Plot extends JPanel {
     private static final Insets PLOT_INSETS = new Insets(INSET_TOP, INSET_LEFT, INSET_BOTTOM, INSET_RIGHT);
     public Column xValues, yValues;
     private BasicStroke dashedStroke;
-    private GeneralPath path;
     private String title;
 
     public Plot() {
@@ -48,12 +47,6 @@ public class Plot extends JPanel {
         this.title = title;
         this.xValues = xValues;
         this.yValues = yValues;
-        int n = yValues.size();
-        path = new GeneralPath(GeneralPath.WIND_NON_ZERO, n);
-        path.moveTo(xValues.get(0), yValues.get(0));
-        for (int i = 1; i < n; i++) {
-            path.lineTo(xValues.get(i), yValues.get(i));
-        }
         repaint();
     }
 
@@ -152,9 +145,17 @@ public class Plot extends JPanel {
             double yPointWidth = yTick * 2.0F;
             g2.setColor(GTk.SELECT_FONT_COLOR);
             int n = yValues.size();
-            g2.fill(new Ellipse2D.Double(xValues.get(0) - xTick, yValues.get(0) - yTick, xPointWidth, yPointWidth));
+            double px = xValues.get(0);
+            double py = yValues.get(0);
+            GeneralPath path = new GeneralPath(GeneralPath.WIND_NON_ZERO, n);
+            path.moveTo(px, py);
+            g2.fill(new Ellipse2D.Double(px - xTick, py - yTick, xPointWidth, yPointWidth));
             for (int i = 1; i < n; i++) {
-                g2.fill(new Ellipse2D.Double(xValues.get(i) - xTick, yValues.get(i) - yTick, xPointWidth, yPointWidth));
+                px = xValues.get(i);
+                g2.setColor(GTk.SELECT_FONT_COLOR);
+                py = yValues.get(i);
+                path.lineTo(px, py);
+                g2.fill(new Ellipse2D.Double(px - xTick, py - yTick, xPointWidth, yPointWidth));
             }
             g2.setColor(GTk.QUEST_APP_COLOR);
             g2.draw(path);

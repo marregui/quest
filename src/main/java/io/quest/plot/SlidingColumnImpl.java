@@ -16,42 +16,50 @@
 
 package io.quest.plot;
 
+import java.util.Objects;
+
 public class SlidingColumnImpl implements Column {
 
     private final double[] points;
+    private final Object lock;
     private int writePtr;
     private int readPtr;
+    private long appends;
 
-    public SlidingColumnImpl(int size) {
+    public SlidingColumnImpl(Object lock, int size) {
+        this.lock = Objects.requireNonNull(lock);
         points = new double[size];
     }
 
     @Override
     public int size() {
-        return points.length;
+        synchronized (lock) {
+            return appends < points.length ? (int) appends : points.length;
+        }
     }
 
     @Override
     public void append(double value) {
-        synchronized (points) {
+        synchronized (lock) {
             points[writePtr] = value;
             writePtr = (writePtr + 1) % points.length;
+            if (readPtr > writePtr) {
+                readPtr = writePtr;
+            }
+            appends++;
         }
     }
 
     @Override
     public double get(int i) {
-        synchronized (points) {
-            if (readPtr > writePtr) {
-                readPtr = (writePtr + 1) % points.length;
-            }
-            return points[readPtr + i];
+        synchronized (lock) {
+            return points[(readPtr + i) % points.length];
         }
     }
 
     @Override
     public double min() {
-        synchronized (points) {
+        synchronized (lock) {
             double min = Double.MAX_VALUE;
             for (int i = readPtr, n = size(); i < n; i++) {
                 min = Math.min(min, points[i]);
@@ -63,7 +71,7 @@ public class SlidingColumnImpl implements Column {
 
     @Override
     public double max() {
-        synchronized (points) {
+        synchronized (lock) {
             double max = Double.MIN_VALUE;
             for (int i = readPtr, n = size(); i < n; i++) {
                 max = Math.max(max, points[i]);

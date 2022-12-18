@@ -29,21 +29,25 @@ public class SlidingPlotTest extends JPanel {
         Plot plot = new Plot();
 
         int windowSize = 728;
-        Column xValues = new SlidingColumnImpl(windowSize);
-        Column yValues = new SlidingColumnImpl(windowSize);
+        Column xValues = new SlidingColumnImpl(plot, windowSize);
+        Column yValues = new SlidingColumnImpl(plot, windowSize);
         plot.setDataSet("Sin(∂) in stepts of π/4", xValues, yValues);
         Thread thread = new Thread(() -> {
             try {
                 final double step = Math.PI / 90; // degrees to radians
                 double angle = Math.PI;
-                for (int i = 0; i < windowSize; i++) {
-                    xValues.append(angle);
-                    yValues.append(Math.sin(angle));
-                    angle += step;
+                synchronized (plot) {
+                    for (int i = 0; i < windowSize; i++) {
+                        xValues.append(angle);
+                        yValues.append(Math.sin(angle));
+                        angle += step;
+                    }
                 }
                 while (!Thread.currentThread().isInterrupted()) {
-                    xValues.append(angle);
-                    yValues.append(Math.sin(angle));
+                    synchronized (plot) {
+                        xValues.append(angle);
+                        yValues.append(Math.sin(angle));
+                    }
                     angle += step;
                     GTk.invokeLater(plot::repaint);
                     TimeUnit.MILLISECONDS.sleep(10L);
@@ -63,5 +67,4 @@ public class SlidingPlotTest extends JPanel {
         frame.setLocation(location.width, location.height);
         frame.setVisible(true);
     }
-
 }

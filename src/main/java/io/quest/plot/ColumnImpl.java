@@ -16,6 +16,7 @@
 
 package io.quest.plot;
 
+
 public class ColumnImpl implements Column {
     private static final int SCALE = 5000;
 
