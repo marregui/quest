@@ -21,25 +21,26 @@ import java.awt.*;
 import java.awt.geom.Rectangle2D;
 
 public class Axis {
+    public static final int TICK_LENGTH = 10;
     private static final int X_RANGE_NUMBER_OF_TICKS = 15;
     private static final int Y_RANGE_NUMBER_OF_TICKS = 10;
     private static final int X_AXIS_SIGNIFICANT_FIGURES = 3;
     private static final int Y_AXIS_SIGNIFICANT_FIGURES = 3;
-    private static final int TICK_LENGTH = 10;
     private static final String X_TPT = String.format("%%.%df", X_AXIS_SIGNIFICANT_FIGURES);
     private static final String Y_TPT = String.format("%%.%df", Y_AXIS_SIGNIFICANT_FIGURES);
+
     private final String labelZero;
     private final String[] labels;
     private final int[] labelWidths;
     private final int[] labelHeights;
-    private final int[] tickPositions;
+    private final int[] labelPositions;
 
 
-    private Axis(String[] labels, int[] labelWidths, int[] labelHeights, int[] tickPositions, String labelZero) {
+    private Axis(String[] labels, int[] labelWidths, int[] labelHeights, int[] labelPositions, String labelZero) {
         this.labels = labels;
         this.labelWidths = labelWidths;
         this.labelHeights = labelHeights;
-        this.tickPositions = tickPositions;
+        this.labelPositions = labelPositions;
         this.labelZero = labelZero;
     }
 
@@ -97,7 +98,7 @@ public class Axis {
     public int getYPositionOfZeroLabel() {
         for (int i = 0; i < labels.length; i++) {
             if (labelZero.equals(labels[i])) {
-                return tickPositions[i];
+                return labelPositions[i];
             }
         }
         return -1;
@@ -111,19 +112,15 @@ public class Axis {
         return labels[n];
     }
 
-    public int getLabelWidth(int n) {
+    public int getWidth(int n) {
         return labelWidths[n];
     }
 
-    public int getLabelHeight(int n) {
+    public int getHeight(int n) {
         return labelHeights[n];
     }
 
-    public int getTickPosition(int n) {
-        return tickPositions[n];
-    }
-
-    public int getTickLength() {
-        return TICK_LENGTH;
+    public int getPosition(int n) {
+        return labelPositions[n];
     }
 }

@@ -118,14 +118,13 @@ public class Plot extends JPanel {
             // Draw ticks and tick labels
             Axis xTickLabels = Axis.forX(g2, minX, rangeX, scaleX);
             if (null != xTickLabels) {
-                int tickLength = xTickLabels.getTickLength();
-                int labelVerticalPosition = tickLength + xTickLabels.getLabelHeight(0);
+                int labelVerticalPosition = Axis.TICK_LENGTH + xTickLabels.getHeight(0);
                 BasicStroke stroke = (BasicStroke) g2.getStroke();
                 BasicStroke dashedStroke = createDashedStroke(stroke);
                 for (int i = 0; i < xTickLabels.getSize(); i++) {
-                    int pos = xTickLabels.getTickPosition(i);
-                    g2.drawLine(pos, 0, pos, tickLength);
-                    g2.drawString(xTickLabels.getLabel(i), pos - xTickLabels.getLabelWidth(i) / 2, labelVerticalPosition);
+                    int pos = xTickLabels.getPosition(i);
+                    g2.drawLine(pos, 0, pos, Axis.TICK_LENGTH);
+                    g2.drawString(xTickLabels.getLabel(i), pos - xTickLabels.getWidth(i) / 2, labelVerticalPosition);
                     g2.setStroke(dashedStroke);
                     g2.drawLine(pos, 0, pos, -plotHeight);
                     g2.setStroke(stroke);
@@ -134,13 +133,12 @@ public class Plot extends JPanel {
 
             Axis yTickLabels = Axis.forY(g2, minY, rangeY, scaleY);
             if (null != yTickLabels) {
-                int tickLength = yTickLabels.getTickLength();
                 BasicStroke stroke = (BasicStroke) g2.getStroke();
                 BasicStroke dashedStroke = createDashedStroke(stroke);
                 for (int i = 0; i < yTickLabels.getSize(); i++) {
-                    int pos = yTickLabels.getTickPosition(i);
-                    g2.drawLine(0, pos, -tickLength, pos);
-                    g2.drawString(yTickLabels.getLabel(i), -(yTickLabels.getLabelWidth(i) + tickLength + 2), pos + yTickLabels.getLabelHeight(i) / 2 - 2);
+                    int pos = yTickLabels.getPosition(i);
+                    g2.drawLine(0, pos, -Axis.TICK_LENGTH, pos);
+                    g2.drawString(yTickLabels.getLabel(i), -(yTickLabels.getWidth(i) + Axis.TICK_LENGTH + 2), pos + yTickLabels.getHeight(i) / 2 - 2);
                     g2.setStroke(dashedStroke);
                     g2.drawLine(0, pos, plotWidth, pos);
                     g2.setStroke(stroke);
