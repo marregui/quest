@@ -23,13 +23,13 @@ import java.awt.*;
 import java.util.concurrent.TimeUnit;
 
 
-public class SlidingPlotTest extends JPanel {
+public class SlidingPlotDemo extends JPanel {
 
     public static void main(String[] args) {
         Plot plot = new Plot();
 
-        int windowSize = 444;
-        int refreshRateMillis = 500;
+        int windowSize = 220;
+        int refreshRateMillis = 150;
         Column xValues = new SlidingColumnImpl(plot, windowSize);
         Column yValues = new SlidingColumnImpl(plot, windowSize);
         plot.setDataSet("Sin(∂) in stepts of π/4", xValues, yValues);

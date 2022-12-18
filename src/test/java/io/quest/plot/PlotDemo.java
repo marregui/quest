@@ -22,7 +22,7 @@ import javax.swing.*;
 import java.awt.*;
 
 
-public class PlotTest extends JPanel {
+public class PlotDemo extends JPanel {
 
     public static void main(String[] args) {
         Plot plot = new Plot();
