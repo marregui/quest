@@ -41,14 +41,14 @@ public class Editor extends JPanel {
     private final StringBuilder sb;
 
     public Editor() {
-        this(false, true, EditorHighlighter::of);
+        this(true, true, EditorHighlighter::of);
     }
 
-    public Editor(boolean isErrorPanel, boolean hasLineNumbers) {
-        this(isErrorPanel, hasLineNumbers, EditorHighlighter::of);
+    public Editor(boolean isEditable, boolean hasLineNumbers) {
+        this(isEditable, hasLineNumbers, EditorHighlighter::of);
     }
 
-    public Editor(boolean isErrorPanel, boolean hasLineNumbers, Function<JTextPane, EditorHighlighter> highlighterFactory) {
+    public Editor(boolean isEditable, boolean hasLineNumbers, Function<JTextPane, EditorHighlighter> highlighterFactory) {
         sb = new StringBuilder();
         undoManager = new AtomicReference<>();
         textPane = new JTextPane() {
@@ -75,8 +75,8 @@ public class Editor extends JPanel {
                 }
             });
         }
-        textPane.setEditable(!isErrorPanel);
-        setupKeyboardActions(isErrorPanel);
+        textPane.setEditable(isEditable);
+        setupKeyboardActions(isEditable);
         highlighter = highlighterFactory.apply(textPane); // produces "style change" events
         JScrollPane scrollPane = new JScrollPane(textPane);
         scrollPane.getViewport().setBackground(GTk.QUEST_APP_BACKGROUND_COLOR);
@@ -86,6 +86,15 @@ public class Editor extends JPanel {
         scrollPane.getHorizontalScrollBar().setBlockIncrement(15);
         setLayout(new BorderLayout());
         add(scrollPane, BorderLayout.CENTER);
+    }
+
+    private static int getLineNumber(Element root, Element target) {
+        for (int i = 0, n = root.getElementCount(); i < n; i++) {
+            if (root.getElement(i) == target) {
+                return i + 1;
+            }
+        }
+        return 1;
     }
 
     public void setFontSize(int size) {
@@ -236,6 +245,32 @@ public class Editor extends JPanel {
         }
     }
 
+    private void cmdASelectAll(ActionEvent event) {
+        textPane.selectAll();
+    }
+
+    private void cmdCCopyToClipboard(ActionEvent event) {
+        // cmd-c, copy selection or whole line under caret to clipboard
+        try {
+            Document doc = textPane.getDocument();
+            int start = textPane.getSelectionStart();
+            int len = textPane.getSelectionEnd() - start;
+            if (len > 0) {
+                // there is selection
+                GTk.setClipboardContent(doc.getText(start, len));
+                return;
+            }
+
+            // no selection
+            int caretPos = textPane.getCaretPosition();
+            start = Utilities.getRowStart(textPane, caretPos);
+            len = Utilities.getRowEnd(textPane, caretPos) - start;
+            GTk.setClipboardContent(doc.getText(start, len));
+        } catch (Exception fail) {
+            // do nothing
+        }
+    }
+
     private void cmdXCutToClipboard(ActionEvent event) {
         // cmd-x, remove selection or whole line under caret and copy to clipboard
         try {
@@ -259,7 +294,6 @@ public class Editor extends JPanel {
             // do nothing
         }
     }
-
 
     private void cmdUp(ActionEvent event) {
         // cmd-up, jump to the beginning of the document
@@ -488,8 +522,7 @@ public class Editor extends JPanel {
         }
     }
 
-
-    private void setupKeyboardActions(boolean isErrorPanel) {
+    private void setupKeyboardActions(boolean isEditable) {
         addCmdKeyAction(KeyEvent.VK_UP, textPane, this::cmdUp);
         addCmdKeyAction(KeyEvent.VK_DOWN, textPane, this::cmdDown);
         addCmdKeyAction(KeyEvent.VK_LEFT, textPane, this::cmdLeft);
@@ -505,7 +538,9 @@ public class Editor extends JPanel {
         addAltShiftKeyAction(KeyEvent.VK_RIGHT, textPane, this::altShiftRight);
         addCmdKeyAction(KeyEvent.VK_S, textPane, this::cmdSFontUp);
         addCmdShiftKeyAction(KeyEvent.VK_S, textPane, this::cmdShiftSFontDown);
-        if (!isErrorPanel) {
+        if (isEditable) {
+            addCmdKeyAction(KeyEvent.VK_A, textPane, this::cmdASelectAll);
+            addCmdKeyAction(KeyEvent.VK_C, textPane, this::cmdCCopyToClipboard);
             addCmdKeyAction(KeyEvent.VK_X, textPane, this::cmdXCutToClipboard);
             addCmdKeyAction(KeyEvent.VK_V, textPane, this::cmdVPasteFromClipboard);
             addCmdKeyAction(KeyEvent.VK_D, textPane, this::cmdDDupLine);
@@ -522,15 +557,6 @@ public class Editor extends JPanel {
             super(element);
         }
 
-        private static int getLineNumber(Element root, Element target) {
-            for (int i = 0, n = root.getElementCount(); i < n; i++) {
-                if (root.getElement(i) == target) {
-                    return i + 1;
-                }
-            }
-            return 1;
-        }
-
         @Override
         public void paintChild(Graphics g, Rectangle alloc, int index) {
             super.paintChild(g, alloc, index);
@@ -538,11 +564,11 @@ public class Editor extends JPanel {
             g.setFont(font);
             g.setColor(GTk.EDITOR_LINENO_COLOR);
             int n = getLineNumber(getDocument().getDefaultRootElement(), getElement());
-            String lineno = String.valueOf(n);
+            String lineNo = String.valueOf(n);
             FontMetrics fm = g.getFontMetrics(font);
-            int x = fm.stringWidth(MARGIN_TOKEN) - fm.stringWidth(lineno) - 10;
+            int x = fm.stringWidth(MARGIN_TOKEN) - fm.stringWidth(lineNo) - 10;
             int y = fm.getHeight() / 3 + n * fm.getHeight();
-            g.drawString(lineno, x, y);
+            g.drawString(lineNo, x, y);
         }
     }
 }

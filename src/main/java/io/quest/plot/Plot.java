@@ -32,7 +32,7 @@ public class Plot extends JPanel {
     private static final int INSET_LEFT = 80;
     private static final int INSET_RIGHT = 20;
     private static final Insets PLOT_INSETS = new Insets(INSET_TOP, INSET_LEFT, INSET_BOTTOM, INSET_RIGHT);
-    public Column xValues, yValues;
+    public Column[] columns;
     private BasicStroke dashedStroke;
     private String title;
 
@@ -40,13 +40,17 @@ public class Plot extends JPanel {
         setOpaque(true);
     }
 
-    public synchronized void setDataSet(String title, Column xValues, Column yValues) {
-        if (xValues.size() != yValues.size()) {
-            throw new IllegalArgumentException("sizes must match and be greated than zero");
+    public synchronized void setDataSet(String title, Column... columns) {
+        if (columns == null || columns.length != 2) {
+            throw new IllegalArgumentException("two columns are required");
+        }
+        for (int i = 1; i < columns.length; i++) {
+            if (columns[0].size() != columns[i].size()) {
+                throw new IllegalArgumentException("sizes must match and be greater than zero, at index " + i);
+            }
         }
         this.title = title;
-        this.xValues = xValues;
-        this.yValues = yValues;
+        this.columns = columns;
     }
 
     @Override
@@ -68,16 +72,19 @@ public class Plot extends JPanel {
         g2.drawRect(PLOT_INSETS.left, PLOT_INSETS.top, plotWidth, plotHeight);
 
         // draw curve
-        if (null != yValues) {
+        if (null != columns) {
+            // Shift coordinate centre to bottom-left corner of the internal rectangle.
+            g2.translate(PLOT_INSETS.left, height - PLOT_INSETS.bottom);
+
             double minX;
             double maxX;
             double minY;
             double maxY;
             synchronized (this) {
-                minX = xValues.min();
-                maxX = xValues.max();
-                minY = yValues.min();
-                maxY = yValues.max();
+                minX = columns[0].min();
+                maxX = columns[0].max();
+                minY = columns[1].min();
+                maxY = columns[1].max();
             }
             double deltaX = Math.abs(maxX - minX) * 0.005F;
             double deltaY = Math.abs(maxY - minY) * 0.07F;
@@ -87,12 +94,13 @@ public class Plot extends JPanel {
             maxY += deltaY;
             double rangeX = maxX - minX;
             double rangeY = maxY - minY;
-
-            // Shift coordinate centre to bottom-left corner of the internal rectangle.
-            g2.translate(PLOT_INSETS.left, height - PLOT_INSETS.bottom);
-
             double scaleX = plotWidth / rangeX;
             double scaleY = plotHeight / rangeY;
+            double pointSizeFactor = 1.2;
+            double xTick = pointSizeFactor / scaleX;
+            double yTick = pointSizeFactor / scaleY;
+            double xPointWidth = xTick * 2.0F;
+            double yPointWidth = yTick * 2.0F;
             Axis x = Axis.forX(g2, minX, rangeX, scaleX);
             Axis y = Axis.forY(g2, minY, rangeY, scaleY);
             if (x == null || y == null) {
@@ -146,30 +154,28 @@ public class Plot extends JPanel {
 
             // Set stroke for curve
             g2.setStroke(new BasicStroke((float) Math.abs(1.0F / (100.0F * Math.max(scaleX, scaleY)))));
-            double pointSizeFactor = 1.2;
-            double xTick = pointSizeFactor / scaleX;
-            double yTick = pointSizeFactor / scaleY;
-            double xPointWidth = xTick * 2.0F;
-            double yPointWidth = yTick * 2.0F;
-            g2.setColor(GTk.SELECT_FONT_COLOR);
-            GeneralPath path = new GeneralPath(GeneralPath.WIND_NON_ZERO, 200);
+            g2.setColor(columns[1].color());
+
+            GeneralPath path = null;
             synchronized (this) {
-                int n = yValues.size();
+                int n = columns[1].size();
                 if (n > 0) {
-                    double px = xValues.get(0);
-                    double py = yValues.get(0);
+                    path = new GeneralPath(GeneralPath.WIND_NON_ZERO, n);
+                    double px = columns[0].get(0);
+                    double py = columns[1].get(0);
                     path.moveTo(px, py);
                     g2.fill(new Ellipse2D.Double(px - xTick, py - yTick, xPointWidth, yPointWidth));
                     for (int i = 1; i < n; i++) {
-                        px = xValues.get(i);
-                        py = yValues.get(i);
+                        px = columns[0].get(i);
+                        py = columns[1].get(i);
                         path.lineTo(px, py);
                         g2.fill(new Ellipse2D.Double(px - xTick, py - yTick, xPointWidth, yPointWidth));
                     }
                 }
             }
-            g2.setColor(GTk.QUEST_APP_COLOR);
-            g2.draw(path);
+            if (path != null) {
+                g2.draw(path);
+            }
         }
     }
 }

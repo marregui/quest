@@ -17,20 +17,40 @@
 package io.quest.plot;
 
 
+import java.awt.*;
+
 public class ColumnImpl implements Column {
     private static final int SCALE = 5000;
 
+    private final String name;
+    private final Color color;
     private double[] points;
     private int offset;
     private int size;
     private double min, max;
 
-    public ColumnImpl() {
+    public ColumnImpl(String name) {
+        this(name, Color.WHITE);
+    }
+
+    public ColumnImpl(String name, Color color) {
+        this.name = name;
+        this.color = color;
         points = new double[SCALE];
         offset = 0;
         size = SCALE;
         min = Double.MAX_VALUE;
         max = Double.MIN_VALUE;
+    }
+
+    @Override
+    public String name() {
+        return name;
+    }
+
+    @Override
+    public Color color() {
+        return color;
     }
 
     @Override

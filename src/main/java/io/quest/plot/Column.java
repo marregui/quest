@@ -16,6 +16,10 @@
 
 package io.quest.plot;
 
+import io.quest.GTk;
+
+import java.awt.*;
+
 public interface Column {
 
     void append(double value);
@@ -27,4 +31,10 @@ public interface Column {
     double max();
 
     int size();
+
+    String name();
+
+    default Color color() {
+        return GTk.QUEST_APP_COLOR;
+    }
 }

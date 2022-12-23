@@ -27,17 +27,19 @@ public class PlotDemo extends JPanel {
     public static void main(String[] args) {
         Plot plot = new Plot();
 
-        Column xValues = new ColumnImpl();
-        Column yValues = new ColumnImpl();
+        Column xValues = new ColumnImpl("x");
+        Column yValues = new ColumnImpl("y", Color.BLUE);
         double angle = Math.PI;
         double step = Math.PI / 90; // degrees to radians
         int n = (int) ((1.0 + Math.sqrt(5.0)) * 314);
         for (int i = 0; i < n; i++) {
             xValues.append(angle);
-            yValues.append(Math.sin(angle));
+            double sin = Math.sin(angle);
+            double cos = Math.cos(angle);
+            yValues.append(sin * sin + cos * cos);
             angle += step;
         }
-        plot.setDataSet("Sin(∂) in stepts of π/4", xValues, yValues);
+        plot.setDataSet("Sin(∂), Tan(∂) in steps of π/4", xValues, yValues);
 
         JFrame frame = GTk.frame("Plot");
         Dimension size = GTk.frameDimension(7.0F, 7.0F);

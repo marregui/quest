@@ -20,14 +20,21 @@ import java.util.Objects;
 
 public class SlidingColumnImpl implements Column {
 
+    private final String name;
     private final double[] points;
     private final Object lock;
     private int writePtr = -1;
     private int readPtr;
 
-    public SlidingColumnImpl(Object lock, int size) {
+    public SlidingColumnImpl(String name, Object lock, int size) {
+        this.name = name;
         this.lock = Objects.requireNonNull(lock);
         points = new double[size];
+    }
+
+    @Override
+    public String name() {
+        return name;
     }
 
     @Override

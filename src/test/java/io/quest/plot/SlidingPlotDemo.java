@@ -17,10 +17,10 @@
 package io.quest.plot;
 
 import io.quest.GTk;
+import io.questdb.std.Os;
 
 import javax.swing.*;
 import java.awt.*;
-import java.util.concurrent.TimeUnit;
 
 
 public class SlidingPlotDemo extends JPanel {
@@ -28,37 +28,33 @@ public class SlidingPlotDemo extends JPanel {
     public static void main(String[] args) {
         Plot plot = new Plot();
 
-        int windowSize = 220;
-        int refreshRateMillis = 150;
-        Column xValues = new SlidingColumnImpl(plot, windowSize);
-        Column yValues = new SlidingColumnImpl(plot, windowSize);
+        int windowSize = 360;
+        int refreshRateMillis = 135;
+        Column xValues = new SlidingColumnImpl("a", plot, windowSize);
+        Column yValues = new SlidingColumnImpl("sin", plot, windowSize);
         plot.setDataSet("Sin(∂) in stepts of π/4", xValues, yValues);
         Thread thread = new Thread(() -> {
-            try {
-                final double step = Math.PI / 90; // degrees to radians
-                double angle = Math.PI;
-                synchronized (plot) {
-                    for (int i = 0; i < windowSize; i++) {
-                        xValues.append(angle);
-                        yValues.append(Math.sin(angle));
-                        angle += step;
-                    }
-                }
-                long ticks = 0;
-                while (!Thread.currentThread().isInterrupted()) {
-                    synchronized (plot) {
-                        xValues.append(angle);
-                        yValues.append(Math.sin(angle));
-                    }
+            final double step = Math.PI / 90; // degrees to radians
+            double angle = Math.PI;
+            synchronized (plot) {
+                for (int i = 0; i < windowSize; i++) {
+                    xValues.append(angle);
+                    yValues.append(Math.sin(angle));
                     angle += step;
-                    if ((ticks + 1) % refreshRateMillis == 0) {
-                        GTk.invokeLater(plot::repaint);
-                    }
-                    TimeUnit.MILLISECONDS.sleep(1L);
-                    ticks++;
                 }
-            } catch (InterruptedException ie) {
-                Thread.currentThread().interrupt();
+            }
+            long ticks = 0;
+            while (!Thread.currentThread().isInterrupted()) {
+                synchronized (plot) {
+                    xValues.append(angle);
+                    yValues.append(Math.sin(angle));
+                }
+                angle += step;
+                if ((ticks + 1) % refreshRateMillis == 0) {
+                    GTk.invokeLater(plot::repaint);
+                }
+                ticks++;
+                Os.sleep(1L);
             }
         });
         thread.setDaemon(true);

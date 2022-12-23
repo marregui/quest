@@ -153,25 +153,25 @@ public final class GTk {
 
     public static void addCmdKeyAction(int keyEvent, JComponent component, ActionListener action) {
         Action cmd = action(action);
-        component.getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW).put(KeyStroke.getKeyStroke(keyEvent, CMD_DOWN_MASK), cmd);
+        component.getInputMap(JComponent.WHEN_FOCUSED).put(KeyStroke.getKeyStroke(keyEvent, CMD_DOWN_MASK), cmd);
         component.getActionMap().put(cmd, cmd);
     }
 
     public static void addCmdShiftKeyAction(int keyEvent, JComponent component, ActionListener action) {
         Action cmd = action(action);
-        component.getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW).put(KeyStroke.getKeyStroke(keyEvent, CMD_SHIFT_DOWN_MASK), cmd);
+        component.getInputMap(JComponent.WHEN_FOCUSED).put(KeyStroke.getKeyStroke(keyEvent, CMD_SHIFT_DOWN_MASK), cmd);
         component.getActionMap().put(cmd, cmd);
     }
 
     public static void addAltKeyAction(int keyEvent, JComponent component, ActionListener action) {
         Action cmd = action(action);
-        component.getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW).put(KeyStroke.getKeyStroke(keyEvent, ALT_DOWN_MASK), cmd);
+        component.getInputMap(JComponent.WHEN_FOCUSED).put(KeyStroke.getKeyStroke(keyEvent, ALT_DOWN_MASK), cmd);
         component.getActionMap().put(cmd, cmd);
     }
 
     public static void addAltShiftKeyAction(int keyEvent, JComponent component, ActionListener action) {
         Action cmd = action(action);
-        component.getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW).put(KeyStroke.getKeyStroke(keyEvent, ALT_SHIFT_DOWN_MASK), cmd);
+        component.getInputMap(JComponent.WHEN_FOCUSED).put(KeyStroke.getKeyStroke(keyEvent, ALT_SHIFT_DOWN_MASK), cmd);
         component.getActionMap().put(cmd, cmd);
     }
 
