@@ -162,8 +162,8 @@ public class SQLExecutor implements EventProducer<SQLExecutor.EventType>, Closea
             if (returnsResults) {
                 for (ResultSet rs = stmt.getResultSet(); rs.next(); ) {
                     final long fetchChkNanos = System.nanoTime();
-                    if (!table.hasColMetadata()) {
-                        table.setColMetadata(rs);
+                    if (!table.hasColumnMetadata()) {
+                        table.setColumnMetadata(rs);
                     }
                     table.addRow(rowIdx++, rs);
                     if (0 == (rowIdx + 1) % batchSize) {

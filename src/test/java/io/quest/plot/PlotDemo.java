@@ -25,21 +25,18 @@ import java.awt.*;
 public class PlotDemo extends JPanel {
 
     public static void main(String[] args) {
-        Plot plot = new Plot();
+        PlotCanvas plot = new PlotCanvas();
 
-        Column xValues = new ColumnImpl("x");
-        Column yValues = new ColumnImpl("y", Color.BLUE);
-        double angle = Math.PI;
-        double step = Math.PI / 90; // degrees to radians
-        int n = (int) ((1.0 + Math.sqrt(5.0)) * 314);
-        for (int i = 0; i < n; i++) {
-            xValues.append(angle);
-            double sin = Math.sin(angle);
-            double cos = Math.cos(angle);
-            yValues.append(sin * sin + cos * cos);
+        Column xValues = new BasicColumn("x");
+        Column yValues = new BasicColumn("y", Color.YELLOW);
+        double angle = 0.0;
+        double step = Math.PI / 180.0;
+        for (int i = 0; i <= 360; i++) {
+            xValues.append(Math.cos(angle));
+            yValues.append(Math.sin(angle));
             angle += step;
         }
-        plot.setDataSet("Sin(∂), Tan(∂) in steps of π/4", xValues, yValues);
+        plot.setDataSet("Circle in steps of π/4", xValues, yValues);
 
         JFrame frame = GTk.frame("Plot");
         Dimension size = GTk.frameDimension(7.0F, 7.0F);
@@ -48,5 +45,4 @@ public class PlotDemo extends JPanel {
         frame.setLocation(location.width, location.height);
         frame.setVisible(true);
     }
-
 }

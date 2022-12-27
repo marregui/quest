@@ -29,6 +29,10 @@ import io.quest.executor.SQLExecutor;
 import io.quest.executor.SQLExecutionRequest;
 import io.quest.executor.SQLExecutionResponse;
 import io.quest.meta.Meta;
+import io.quest.plot.Plot;
+import io.quest.plot.TableColumn;
+import io.quest.results.SQLPagedTableModel;
+import io.quest.results.SQLType;
 import io.quest.store.Store;
 import io.questdb.ServerMain;
 import io.questdb.log.Log;
@@ -52,7 +56,9 @@ public final class Quest {
     private final SQLResultsTable results;
     private final SQLExecutor executor;
     private final Meta meta;
+    private final Plot plot;
     private final JMenuItem toggleConns;
+    private final JMenuItem togglePlot;
     private final JMenuItem toggleQuestDB;
     private final JMenuItem toggleMeta;
     private final JMenuItem toggleAssignedConn;
@@ -63,7 +69,8 @@ public final class Quest {
         frame.setIconImage(Icon.QUEST.icon().getImage());
         int dividerHeight = (int) (frame.getHeight() * 0.6);
         executor = new SQLExecutor();
-        meta = new Meta(frame, this::dispatchEvent);
+        meta = new Meta(frame, "Metadata Files", this::dispatchEvent);
+        plot = new Plot(frame, "Plot", this::dispatchEvent);
         conns = new Conns(frame, this::dispatchEvent);
         commands = new QuestsPanel(this::dispatchEvent);
         commands.setPreferredSize(new Dimension(0, dividerHeight));
@@ -76,6 +83,7 @@ public final class Quest {
         toggleAssignedConn = new JMenuItem();
         toggleQuestDB = new JMenuItem();
         toggleMeta = new JMenuItem();
+        togglePlot = new JMenuItem();
         frame.setJMenuBar(createMenuBar());
         Runtime.getRuntime().addShutdownHook(new Thread(this::close, "shutdown-hook"));
         LOG.info().$(GTk.BANNER).$();
@@ -86,6 +94,16 @@ public final class Quest {
 
     public static void main(String[] args) {
         GTk.invokeLater(Quest::new);
+    }
+
+    private static void onToggleDialog(JDialog widget, Consumer<Boolean> consumer) {
+        boolean wasVisible = widget.isVisible();
+        if (!wasVisible) {
+            Dimension location = GTk.frameLocation(widget.getSize());
+            widget.setLocation(location.width, location.height);
+        }
+        widget.setVisible(!wasVisible);
+        consumer.accept(wasVisible);
     }
 
     private JMenuBar createMenuBar() {
@@ -112,6 +130,8 @@ public final class Quest {
         menu.addSeparator();
         menu.add(menuItem(toggleMeta, Icon.META, "Meta Explorer", KeyEvent.VK_M, this::onToggleMeta));
         menu.addSeparator();
+        menu.add(menuItem(togglePlot, Icon.PLOT, "Plot", KeyEvent.VK_P, this::onTogglePlot));
+        menu.addSeparator();
         menu.add(connsMenu);
         menu.add(commandsMenu);
         menu.add(resultsMenu);
@@ -131,24 +151,45 @@ public final class Quest {
     }
 
     private void onToggleConns(ActionEvent event) {
-        onToggleWidget(conns, wasVisible -> {
+        onToggleDialog(conns, wasVisible -> {
             toggleConns.setText(wasVisible ? "Connections" : "Hide Connections");
             toggleConns.setIcon((wasVisible ? Icon.CONN_SHOW : Icon.CONN_HIDE).icon());
         });
     }
 
     private void onToggleMeta(ActionEvent event) {
-        onToggleWidget(meta, wasVisible -> toggleMeta.setText(wasVisible ? "Meta Explorer" : "Close Meta Explorer"));
+        onToggleDialog(meta, wasVisible -> toggleMeta.setText(wasVisible ? "Meta Explorer" : "Close Meta Explorer"));
     }
 
-    private void onToggleWidget(JDialog widget, Consumer<Boolean> consumer) {
-        boolean wasVisible = widget.isVisible();
-        if (!wasVisible) {
-            Dimension location = GTk.frameLocation(widget.getSize());
-            widget.setLocation(location.width, location.height);
+    private void onTogglePlot(ActionEvent event) {
+        if (plot.isVisible()) {
+            plot.setVisible(false);
+            togglePlot.setText("Plot");
+        } else {
+            SQLPagedTableModel table = results.getTable();
+            if (table == null) {
+                GTk.showErrorDialog(frame, "No results to plot");
+                return;
+            }
+            if (table.getColumnCount() != 3) { // #, x, y
+                GTk.showErrorDialog(frame, "Select only two columns");
+                return;
+            }
+            if (!SQLType.isNumeric(table.getColumnType(1))) {
+                GTk.showErrorDialog(frame, "Column X is not numeric");
+                return;
+            }
+            if (!SQLType.isNumeric(table.getColumnType(2))) {
+                GTk.showErrorDialog(frame, "Column Y is not numeric");
+                return;
+            }
+            plot.setDataSet(
+                    new TableColumn("x", table, 1, Color.WHITE),
+                    new TableColumn("y", table, 2, GTk.SELECT_FONT_COLOR)
+            );
+            plot.setVisible(true);
+            togglePlot.setText("Close Plot");
         }
-        widget.setVisible(!wasVisible);
-        consumer.accept(wasVisible);
     }
 
     private void onToggleQuestDB(ActionEvent event) {
@@ -189,6 +230,8 @@ public final class Quest {
             GTk.invokeLater(() -> onConnsEvent(EventProducer.eventType(event), data));
         } else if (source instanceof Meta) {
             GTk.invokeLater(() -> onMetaEvent(EventProducer.eventType(event)));
+        } else if (source instanceof Plot) {
+            GTk.invokeLater(() -> onPlotEvent(EventProducer.eventType(event)));
         }
     }
 
@@ -226,6 +269,12 @@ public final class Quest {
     private void onMetaEvent(Meta.EventType event) {
         if (event == Meta.EventType.HIDE_REQUEST) {
             onToggleMeta(null);
+        }
+    }
+
+    private void onPlotEvent(Plot.EventType event) {
+        if (event == Plot.EventType.HIDE_REQUEST) {
+            onTogglePlot(null);
         }
     }
 

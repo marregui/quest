@@ -18,7 +18,7 @@ package io.quest.plot;
 
 import java.util.Objects;
 
-public class SlidingColumnImpl implements Column {
+public class SlidingColumn implements Column {
 
     private final String name;
     private final double[] points;
@@ -26,7 +26,7 @@ public class SlidingColumnImpl implements Column {
     private int writePtr = -1;
     private int readPtr;
 
-    public SlidingColumnImpl(String name, Object lock, int size) {
+    public SlidingColumn(String name, Object lock, int size) {
         this.name = name;
         this.lock = Objects.requireNonNull(lock);
         points = new double[size];

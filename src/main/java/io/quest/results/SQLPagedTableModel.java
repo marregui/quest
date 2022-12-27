@@ -16,6 +16,7 @@
 
 package io.quest.results;
 
+import java.sql.Types;
 import java.util.Objects;
 import java.util.function.Supplier;
 
@@ -31,7 +32,7 @@ import io.quest.executor.Table;
  * table is built by a {@link SQLExecutor} and thus it will be null until the
  * SQL query execution is started.
  */
-class SQLPagedTableModel extends AbstractTableModel {
+public class SQLPagedTableModel extends AbstractTableModel {
     private static final int PAGE_SIZE = 1000; // number of rows
 
     private final Supplier<Table> tableSupplier;
@@ -66,7 +67,7 @@ class SQLPagedTableModel extends AbstractTableModel {
         }
     }
 
-    protected void refreshTableStructure() {
+    void refreshTableStructure() {
         super.fireTableStructureChanged();
     }
 
@@ -131,7 +132,7 @@ class SQLPagedTableModel extends AbstractTableModel {
     @Override
     public int getColumnCount() {
         Table table = tableSupplier.get();
-        return table != null ? table.getColCount() : 0;
+        return table != null ? table.getColumnCount() : 0;
     }
 
     @Override
@@ -140,11 +141,19 @@ class SQLPagedTableModel extends AbstractTableModel {
         if (table == null) {
             return "";
         }
-        String type = SQLType.resolveName(table.getColType(colIdx));
+        String type = SQLType.resolveName(table.getColumnType(colIdx));
         if (!type.isEmpty()) {
             type = " [" + type + "]";
         }
-        return String.format("%s%s", table.getColName(colIdx), type);
+        return String.format("%s%s", table.getColumnName(colIdx), type);
+    }
+
+    public int getColumnType(int colIdx) {
+        Table table = tableSupplier.get();
+        if (table == null) {
+            return Types.VARCHAR;
+        }
+        return table.getColumnType(colIdx);
     }
 
     @Override

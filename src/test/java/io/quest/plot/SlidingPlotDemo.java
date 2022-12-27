@@ -26,12 +26,12 @@ import java.awt.*;
 public class SlidingPlotDemo extends JPanel {
 
     public static void main(String[] args) {
-        Plot plot = new Plot();
+        PlotCanvas plot = new PlotCanvas();
 
         int windowSize = 360;
         int refreshRateMillis = 135;
-        Column xValues = new SlidingColumnImpl("a", plot, windowSize);
-        Column yValues = new SlidingColumnImpl("sin", plot, windowSize);
+        Column xValues = new SlidingColumn("a", plot, windowSize);
+        Column yValues = new SlidingColumn("sin", plot, windowSize);
         plot.setDataSet("Sin(∂) in stepts of π/4", xValues, yValues);
         Thread thread = new Thread(() -> {
             final double step = Math.PI / 90; // degrees to radians

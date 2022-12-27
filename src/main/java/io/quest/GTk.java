@@ -20,14 +20,7 @@ import io.quest.executor.Table;
 import io.questdb.log.Log;
 import io.questdb.log.LogFactory;
 
-import java.awt.BorderLayout;
-import java.awt.Color;
-import java.awt.Dimension;
-import java.awt.EventQueue;
-import java.awt.FlowLayout;
-import java.awt.Font;
-import java.awt.Toolkit;
-import java.awt.Window;
+import java.awt.*;
 import java.awt.datatransfer.DataFlavor;
 import java.awt.datatransfer.Transferable;
 import java.awt.datatransfer.UnsupportedFlavorException;
@@ -228,6 +221,10 @@ public final class GTk {
         });
     }
 
+    public static void showErrorDialog(Component owner, String message) {
+        JOptionPane.showMessageDialog(owner, message, "Error", JOptionPane.ERROR_MESSAGE);
+    }
+
     public static void invokeLater(Runnable... tasks) {
         if (EventQueue.isDispatchThread()) {
             for (Runnable r : tasks) {
@@ -347,6 +344,23 @@ public final class GTk {
         button.addActionListener(Objects.requireNonNull(listener));
         button.setEnabled(true);
         return button;
+    }
+
+    public static void configureDialog(JDialog dialog, float widthScale, float heightScale, Runnable onClose) {
+        dialog.setModalityType(Dialog.ModalityType.MODELESS);
+        dialog.setAlwaysOnTop(false);
+        dialog.setDefaultCloseOperation(WindowConstants.HIDE_ON_CLOSE);
+        Dimension dimension = GTk.frameDimension(widthScale, heightScale);
+        dialog.setSize(dimension);
+        dialog.setPreferredSize(dimension);
+        Dimension location = GTk.frameLocation(dimension);
+        dialog.setLocation(location.width, location.height);
+        dialog.addWindowListener(new WindowAdapter() {
+            @Override
+            public void windowClosing(WindowEvent we) {
+                onClose.run();
+            }
+        });
     }
 
     public static JPanel flowPanel(JComponent... components) {
@@ -486,10 +500,40 @@ public final class GTk {
         }
     }
 
+    //@formatting:off
     public enum Icon {
         // https://p.yusukekamiyamane.com/
         // 16x16 icons
-        NO_ICON(null, null), HELP("Help.png"), CONNS("Conns.png"), CONN_ADD("ConnAdd.png", "Add"), CONN_ASSIGN("ConnAssign.png", "ASSIGN"), CONN_CLONE("ConnClone.png", "Clone"), CONN_CONNECT("ConnConnect.png", "Connect"), CONN_DISCONNECT("ConnDisconnect.png"), CONN_REMOVE("ConnRemove.png", "Remove"), CONN_SHOW("ConnShow.png"), CONN_HIDE("ConnHide.png"), CONN_TEST("ConnTest.png", "Test"), COMMANDS("Commands.png"), COMMAND_ADD("CommandAdd.png"), COMMAND_REMOVE("CommandRemove.png"), COMMAND_EDIT("CommandEdit.png"), COMMAND_CLEAR("CommandClear.png"), COMMAND_SAVE("CommandSave.png"), COMMAND_RELOAD("CommandReload.png", "Reload"), COMMAND_STORE_BACKUP("CommandStoreBackup.png"), COMMAND_STORE_LOAD("CommandStoreLoad.png"), COMMAND_FIND("CommandFind.png"), COMMAND_REPLACE("CommandReplace.png"), COMMAND_EXEC("CommandExec.png"), COMMAND_EXEC_ABORT("CommandExecAbort.png"), COMMAND_EXEC_LINE("CommandExecLine.png"), QUEST("QuestDB.png"), MENU("Menu.png"), META("Meta.png"), META_FILE("MetaFile.png"), META_UNKNOWN("MetaUnknown.png"), META_FOLDER("MetaFolder.png"), RESULTS("Results.png"), RESULTS_NEXT("ResultsNext.png", "Next"), RESULTS_PREV("ResultsPrev.png", "Prev"), ROCKET("Rocket.png");
+        NO_ICON(null, null),
+        HELP("Help.png"),
+        CONNS("Conns.png"),
+        CONN_ADD("ConnAdd.png", "Add"),
+        CONN_ASSIGN("ConnAssign.png", "ASSIGN"),
+        CONN_CLONE("ConnClone.png", "Clone"),
+        CONN_CONNECT("ConnConnect.png", "Connect"),
+        CONN_DISCONNECT("ConnDisconnect.png"),
+        CONN_REMOVE("ConnRemove.png", "Remove"),
+        CONN_SHOW("ConnShow.png"), CONN_HIDE("ConnHide.png"),
+        CONN_TEST("ConnTest.png", "Test"), COMMANDS("Commands.png"),
+        COMMAND_ADD("CommandAdd.png"), COMMAND_REMOVE("CommandRemove.png"),
+        COMMAND_EDIT("CommandEdit.png"), COMMAND_CLEAR("CommandClear.png"),
+        COMMAND_SAVE("CommandSave.png"),
+        COMMAND_RELOAD("CommandReload.png", "Reload"),
+        COMMAND_STORE_BACKUP("CommandStoreBackup.png"),
+        COMMAND_STORE_LOAD("CommandStoreLoad.png"),
+        COMMAND_FIND("CommandFind.png"),
+        COMMAND_REPLACE("CommandReplace.png"),
+        COMMAND_EXEC("CommandExec.png"), COMMAND_EXEC_ABORT("CommandExecAbort.png"),
+        COMMAND_EXEC_LINE("CommandExecLine.png"),
+        PLOT("Plot.png"),
+        QUEST("QuestDB.png"),
+        MENU("Menu.png"),
+        META("Meta.png"),
+        META_FILE("MetaFile.png"),
+        META_UNKNOWN("MetaUnknown.png"),
+        META_FOLDER("MetaFolder.png"), RESULTS("Results.png"),
+        RESULTS_NEXT("ResultsNext.png", "Next"), RESULTS_PREV("ResultsPrev.png", "Prev"),
+        ROCKET("Rocket.png");
 
         private static final Map<String, ImageIcon> ICON_MAP = new HashMap<>();
 
@@ -527,6 +571,7 @@ public final class GTk {
             return icon;
         }
     }
+    //@formatting:on
 
     private static class UnderlineLabelMouseListener implements NoopMouseListener {
         private final JLabel label;

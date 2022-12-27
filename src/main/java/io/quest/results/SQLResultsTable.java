@@ -123,6 +123,10 @@ public class SQLResultsTable extends JPanel implements Closeable {
         updateRowNavigationComponents();
     }
 
+    public SQLPagedTableModel getTable() {
+        return tableModel;
+    }
+
     public void updateStats(String eventType, SQLExecutionResponse res) {
         if (res != null) {
             statsLabel.setText(String.format(
@@ -145,7 +149,7 @@ public class SQLResultsTable extends JPanel implements Closeable {
         }
         updateRowNavigationComponents();
         infiniteSpinner.close();
-        if (table.isSingleRowSingleVarcharCol()) {
+        if (table.isSingleRowSingleVarcharColumn()) {
             questPanel.displayMessage((String) table.getValueAt(0, 0));
             changeMode(Mode.MESSAGE);
         } else {

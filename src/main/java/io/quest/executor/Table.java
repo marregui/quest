@@ -58,30 +58,30 @@ public class Table implements UniqueId<String>, Closeable {
         return uniqueId;
     }
 
-    public int getColCount() {
+    public int getColumnCount() {
         int[] types = colTypes;
         return types != null ? types.length : 0;
     }
 
-    public String getColName(int i) {
+    public String getColumnName(int i) {
         String[] names = colNames;
         return names != null && i >= 0 && i < names.length ? names[i] : null;
     }
 
-    public int getColType(int i) {
+    public int getColumnType(int i) {
         int[] types = colTypes;
         return types != null && i >= 0 && i < types.length ? types[i] : Integer.MAX_VALUE;
     }
 
-    public String[] getColNames() {
+    public String[] getColumnNames() {
         return colNames;
     }
 
-    public int[] getColTypes() {
+    public int[] getColumnTypes() {
         return colTypes; // java.sql.Types
     }
 
-    public boolean hasColMetadata() {
+    public boolean hasColumnMetadata() {
         return !colNameToIdx.isEmpty();
     }
 
@@ -95,7 +95,7 @@ public class Table implements UniqueId<String>, Closeable {
      * @param rs result-set in response to a SQL execution request
      * @throws SQLException could not access the result-set's metadata
      */
-    public void setColMetadata(ResultSet rs) throws SQLException {
+    public void setColumnMetadata(ResultSet rs) throws SQLException {
         ResultSetMetaData metaData = rs.getMetaData();
         int colCount = metaData.getColumnCount();
         if (colCount <= 0) {
@@ -127,7 +127,7 @@ public class Table implements UniqueId<String>, Closeable {
     /**
      * Table rows are added by this method.
      * <p>
-     * A call to {@link Table#setColMetadata(ResultSet)} needs to happen before
+     * A call to {@link Table#setColumnMetadata(ResultSet)} needs to happen before
      * rows can be added to the table through this method.
      *
      * @param rowIdx the key for the row, usually a monotonic-incremental number
@@ -168,8 +168,8 @@ public class Table implements UniqueId<String>, Closeable {
         }
     }
 
-    public boolean isSingleRowSingleVarcharCol() {
-        return size() == 1 && getColCount() == 1 && getColType(0) == Types.VARCHAR;
+    public boolean isSingleRowSingleVarcharColumn() {
+        return size() == 1 && getColumnCount() == 1 && getColumnType(0) == Types.VARCHAR;
     }
 
     public Row getRow(int rowIdx) {

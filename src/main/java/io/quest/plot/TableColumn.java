@@ -17,30 +17,31 @@
 package io.quest.plot;
 
 
+import io.quest.results.SQLPagedTableModel;
+
 import java.awt.*;
 
-public class ColumnImpl implements Column {
-    private static final int SCALE = 5000;
+public class TableColumn implements Column {
 
     private final String name;
+    private final SQLPagedTableModel table;
+    private final int colIndex;
     private final Color color;
-    private double[] points;
-    private int offset;
-    private int size;
-    private double min, max;
+    private final double min, max;
 
-    public ColumnImpl(String name) {
-        this(name, Color.WHITE);
-    }
-
-    public ColumnImpl(String name, Color color) {
+    public TableColumn(String name, SQLPagedTableModel table, int colIndex, Color color) {
         this.name = name;
+        this.table = table;
+        this.colIndex = colIndex;
         this.color = color;
-        points = new double[SCALE];
-        offset = 0;
-        size = SCALE;
-        min = Double.MAX_VALUE;
-        max = Double.MIN_VALUE;
+        double tMin = Double.MAX_VALUE;
+        double tMax = Double.MIN_VALUE;
+        for (int i = 0; i < table.getRowCount(); i++) {
+            tMin = Math.min(tMin, (double) table.getValueAt(i, colIndex));
+            tMax = Math.max(tMax, (double) table.getValueAt(i, colIndex));
+        }
+        this.min = tMin;
+        this.max = tMax;
     }
 
     @Override
@@ -55,25 +56,17 @@ public class ColumnImpl implements Column {
 
     @Override
     public int size() {
-        return offset;
+        return table.getRowCount();
     }
 
     @Override
     public void append(double value) {
-        if (offset >= size) {
-            double[] tmpPoints = new double[size + SCALE];
-            System.arraycopy(points, 0, tmpPoints, 0, size);
-            points = tmpPoints;
-            size += SCALE;
-        }
-        points[offset++] = value;
-        min = Math.min(min, value);
-        max = Math.max(max, value);
+        throw new UnsupportedOperationException();
     }
 
     @Override
     public double get(int i) {
-        return points[i];
+        return (double) table.getValueAt(i, colIndex);
     }
 
     @Override

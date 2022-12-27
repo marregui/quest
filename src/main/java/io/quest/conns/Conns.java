@@ -18,8 +18,6 @@ package io.quest.conns;
 
 import java.awt.*;
 import java.awt.event.ActionEvent;
-import java.awt.event.WindowAdapter;
-import java.awt.event.WindowEvent;
 import java.io.Closeable;
 import java.util.List;
 import java.util.Set;
@@ -58,6 +56,9 @@ public class Conns extends JDialog implements EventProducer<Conns.EventType>, Cl
 
     public Conns(Frame owner, EventConsumer<Conns, Object> eventConsumer) {
         super(owner, "Connections", false); // does not block use of the main app
+        GTk.configureDialog(this, 0.8F, 0.35F, () -> eventConsumer.onSourceEvent(Conns.this, EventType.HIDE_REQUEST, null));
+        setAlwaysOnTop(true);
+        setModalityType(ModalityType.APPLICATION_MODAL);
         this.eventConsumer = eventConsumer;
         store = new Store<>(STORE_FILE_NAME, Conn.class) {
             @Override
@@ -99,25 +100,6 @@ public class Conns extends JDialog implements EventProducer<Conns.EventType>, Cl
         contentPane.setLayout(new BorderLayout());
         contentPane.add(tableScrollPanel, BorderLayout.CENTER);
         contentPane.add(buttons, BorderLayout.SOUTH);
-        Dimension frameDim = frameDimension();
-        Dimension dimension = new Dimension(
-                (int) (frameDim.width * 0.8),
-                (int) (frameDim.height * 0.35));
-        Dimension location = frameLocation(dimension);
-        setPreferredSize(dimension);
-        setSize(dimension);
-        setLocation(location.width, location.height);
-        setVisible(false);
-        setAlwaysOnTop(true);
-        setModalityType(ModalityType.APPLICATION_MODAL);
-        setDefaultCloseOperation(WindowConstants.HIDE_ON_CLOSE);
-        addWindowListener(new WindowAdapter() {
-            @Override
-            public void windowClosing(WindowEvent we) {
-                eventConsumer.onSourceEvent(
-                        Conns.this, EventType.HIDE_REQUEST, null);
-            }
-        });
     }
 
     public Conn getSelectedConn() {

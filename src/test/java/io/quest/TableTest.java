@@ -75,8 +75,8 @@ public class TableTest {
     public void test_empty_table_no_key() {
         try (Table table = new Table(null)) {
             assertThat(table.getUniqueId(), nullValue());
-            assertThat(table.getColNames(), nullValue());
-            assertThat(table.getColTypes(), nullValue());
+            assertThat(table.getColumnNames(), nullValue());
+            assertThat(table.getColumnTypes(), nullValue());
             assertThat(table.size(), is(0));
         }
     }
@@ -84,13 +84,13 @@ public class TableTest {
     @Test
     public void test_extractColumnMetadata() throws SQLException {
         try (Table table = new Table(null)) {
-            table.setColMetadata(rs);
-            assertThat(table.getColNames(), is(expectedColNames));
-            assertThat(table.getColTypes(), is(expectedColTypes));
+            table.setColumnMetadata(rs);
+            assertThat(table.getColumnNames(), is(expectedColNames));
+            assertThat(table.getColumnTypes(), is(expectedColTypes));
             assertThat(table.size(), is(0));
             table.close();
-            assertThat(table.getColNames(), nullValue());
-            assertThat(table.getColTypes(), nullValue());
+            assertThat(table.getColumnNames(), nullValue());
+            assertThat(table.getColumnTypes(), nullValue());
         }
     }
 
@@ -98,10 +98,10 @@ public class TableTest {
     public void test_addRow() throws SQLException {
         int rowKey = 0;
         try (Table table = new Table(null)) {
-            table.setColMetadata(rs);
+            table.setColumnMetadata(rs);
             table.addRow(rowKey, rs);
-            assertThat(table.getColNames(), is(expectedColNames));
-            assertThat(table.getColTypes(), is(expectedColTypes));
+            assertThat(table.getColumnNames(), is(expectedColNames));
+            assertThat(table.getColumnTypes(), is(expectedColTypes));
             assertThat(table.size(), is(1));
             assertThat(table.getRow(0), Matchers.is(new Row(rowKey, expectedColValues)));
         }

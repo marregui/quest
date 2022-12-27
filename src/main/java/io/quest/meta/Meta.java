@@ -29,8 +29,6 @@ import io.questdb.std.str.Path;
 import javax.swing.*;
 import javax.swing.tree.TreePath;
 import java.awt.*;
-import java.awt.event.WindowAdapter;
-import java.awt.event.WindowEvent;
 import java.io.*;
 import java.util.function.Consumer;
 
@@ -50,24 +48,11 @@ public class Meta extends JDialog implements EventProducer<Meta.EventType>, Clos
     private int rootLen;
     private String partitionFolderName;
 
-    public Meta(Frame owner, EventConsumer<Meta, Object> eventConsumer) {
-        super(owner, "Metadata Files");
-        setModalityType(ModalityType.MODELESS);
-        setAlwaysOnTop(false);
-        setDefaultCloseOperation(WindowConstants.HIDE_ON_CLOSE);
-        Dimension dimension = GTk.frameDimension(0.78F, 0.66F);
-        setSize(dimension);
-        setPreferredSize(dimension);
-        Dimension location = GTk.frameLocation(dimension);
-        setLocation(location.width, location.height);
-        addWindowListener(new WindowAdapter() {
-            @Override
-            public void windowClosing(WindowEvent we) {
-                eventConsumer.onSourceEvent(Meta.this, Meta.EventType.HIDE_REQUEST, null);
-            }
-        });
+    public Meta(Frame owner, String title, EventConsumer<Meta, Object> eventConsumer) {
+        super(owner, title);
+        GTk.configureDialog(this, 0.78F, 0.66F, () -> eventConsumer.onSourceEvent(Meta.this, Meta.EventType.HIDE_REQUEST, null));
         treeView = new FolderView(this::onRootSet, this::onSelectedFile);
-        treeView.setPreferredSize(new Dimension(dimension.width / 4, 0));
+        treeView.setPreferredSize(new Dimension(getSize().width / 4, 0));
         Container contentPane = getContentPane();
         contentPane.setLayout(new BorderLayout());
         JSplitPane splitPane = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT, true, treeView, display);

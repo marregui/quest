@@ -23,7 +23,7 @@ import io.quest.executor.Table;
 import io.quest.GTk;
 
 // Resolves {@link java.sql.Types} to their text representation, column width and rendering color
-final class SQLType {
+public final class SQLType {
     private static final Color BLUE_GREENISH_COLOR = new Color(0, 112, 112); // blue-greenish
     private static final Color OLIVE_COLOR = new Color(140, 140, 0); // olive
     private static final Color CYAN_DULL_COLOR = new Color(0, 168, 188); // cyan dull
@@ -32,7 +32,23 @@ final class SQLType {
         throw new IllegalStateException("not meant to me instantiated");
     }
 
-    static String resolveName(int sqlType) {
+    public static boolean isNumeric(int sqlType) {
+        return switch (sqlType) {
+            case Types.TINYINT,
+                    Types.SMALLINT,
+                    Types.INTEGER,
+                    Types.BIGINT,
+                    Types.REAL,
+                    Types.DOUBLE,
+                    Types.DATE,
+                    Types.TIMESTAMP,
+                    Types.TIMESTAMP_WITH_TIMEZONE,
+                    Types.TIME -> true;
+            default -> false;
+        };
+    }
+
+    public static String resolveName(int sqlType) {
         return switch (sqlType) {
             case Types.OTHER -> "OBJECT";
             case Types.BOOLEAN -> "BOOLEAN";
@@ -63,7 +79,7 @@ final class SQLType {
     }
 
     static int resolveColWidth(Table table, int colIdx) {
-        int sqlType = table.getColTypes()[colIdx];
+        int sqlType = table.getColumnTypes()[colIdx];
         final int width;
         switch (sqlType) {
             case Types.BIT, Types.BOOLEAN, Types.CHAR, Types.ROWID, Types.SMALLINT -> width = 100;
@@ -83,7 +99,7 @@ final class SQLType {
             }
             default -> width = 150;
         }
-        String colName = table.getColNames()[colIdx];
+        String colName = table.getColumnNames()[colIdx];
         String typeName = resolveName(sqlType);
         return Math.max(width, 20 * (colName.length() + typeName.length()));
     }

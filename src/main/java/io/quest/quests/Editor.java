@@ -160,7 +160,7 @@ public class Editor extends JPanel {
                 textPane.setText(getText().replaceAll(findRegex, replaceWith));
                 return highlighter.handleTextChanged();
             } catch (PatternSyntaxException err) {
-                JOptionPane.showMessageDialog(null, String.format("Not a valid filter: %s", err.getMessage()));
+                JOptionPane.showMessageDialog(this, String.format("Not a valid filter: %s", err.getMessage()));
             }
         }
         return 0;

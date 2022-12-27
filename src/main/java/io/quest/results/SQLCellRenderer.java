@@ -45,7 +45,7 @@ class SQLCellRenderer extends CellRenderer {
         Table sqlTable = tableSupplier.get();
         if (sqlTable != null && !isSelected && rowIdx > -1 && rowIdx < table.getModel().getRowCount()) {
             if (colIdx > -1) {
-                int[] columnTypes = sqlTable.getColTypes();
+                int[] columnTypes = sqlTable.getColumnTypes();
                 if (columnTypes != null) {
                     setForeground(SQLType.resolveColor(columnTypes[colIdx]));
                 }
