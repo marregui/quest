@@ -52,6 +52,7 @@ public final class GTk {
             \s
             ctrl^.            run QuestDB in the background
             ctrl^m            open metadata files explorer
+            ctrl^j            open plot on results, if two numeric columns
             ctrl^t            open connection assigner/editor
             ctrl^o            open assigned connection
             ctrl^h            open documentation in a browser tab

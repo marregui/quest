@@ -130,7 +130,7 @@ public final class Quest {
         menu.addSeparator();
         menu.add(menuItem(toggleMeta, Icon.META, "Meta Explorer", KeyEvent.VK_M, this::onToggleMeta));
         menu.addSeparator();
-        menu.add(menuItem(togglePlot, Icon.PLOT, "Plot", KeyEvent.VK_P, this::onTogglePlot));
+        menu.add(menuItem(togglePlot, Icon.PLOT, "Plot", KeyEvent.VK_J, this::onTogglePlot));
         menu.addSeparator();
         menu.add(connsMenu);
         menu.add(commandsMenu);
