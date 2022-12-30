@@ -17,6 +17,7 @@
 package io.quest.results;
 
 import java.awt.Color;
+import java.sql.Timestamp;
 import java.sql.Types;
 
 import io.quest.executor.Table;
@@ -45,6 +46,16 @@ public final class SQLType {
                     Types.TIMESTAMP_WITH_TIMEZONE,
                     Types.TIME -> true;
             default -> false;
+        };
+    }
+
+    public static double getNumericValue(Object o, int sqlType) {
+        return switch (sqlType) {
+            case Types.INTEGER -> (int) o;
+            case Types.BIGINT -> (long) o;
+            case Types.REAL, Types.DOUBLE -> (double) o;
+            case Types.TIMESTAMP, Types.TIMESTAMP_WITH_TIMEZONE -> ((Timestamp) o).getTime();
+            default -> Double.NaN;
         };
     }
 

@@ -18,6 +18,7 @@ package io.quest.plot;
 
 
 import io.quest.results.SQLPagedTableModel;
+import io.quest.results.SQLType;
 
 import java.awt.*;
 
@@ -37,8 +38,9 @@ public class TableColumn implements Column {
         double tMin = Double.MAX_VALUE;
         double tMax = Double.MIN_VALUE;
         for (int i = 0; i < table.getRowCount(); i++) {
-            tMin = Math.min(tMin, (double) table.getValueAt(i, colIndex));
-            tMax = Math.max(tMax, (double) table.getValueAt(i, colIndex));
+            double val = get(i);
+            tMin = Math.min(tMin, val);
+            tMax = Math.max(tMax, val);
         }
         this.min = tMin;
         this.max = tMax;
@@ -66,7 +68,7 @@ public class TableColumn implements Column {
 
     @Override
     public double get(int i) {
-        return (double) table.getValueAt(i, colIndex);
+        return SQLType.getNumericValue(table.getValueAt(i, colIndex), table.getColumnType(colIndex));
     }
 
     @Override
