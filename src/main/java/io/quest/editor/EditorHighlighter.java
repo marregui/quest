@@ -14,9 +14,11 @@
  * Copyright (c) 2019 - 2023, Miguel Arregui a.k.a. marregui
  */
 
-package io.quest.quests;
+package io.quest.editor;
 
 import io.quest.GTk;
+import io.questdb.griffin.FunctionFactory;
+import io.questdb.griffin.engine.functions.catalogue.Constants;
 
 import javax.swing.*;
 import javax.swing.text.*;
@@ -24,58 +26,101 @@ import java.awt.*;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.io.StringWriter;
-import java.util.Objects;
-import java.util.WeakHashMap;
+import java.lang.reflect.Field;
+import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.regex.PatternSyntaxException;
 
 public class EditorHighlighter extends DocumentFilter {
+
     public static final String EVENT_TYPE = "style change";
-    protected static final int PATTERN_FLAGS = Pattern.CASE_INSENSITIVE | Pattern.UNICODE_CASE;
+    public static final int PATTERN_FLAGS = Pattern.CASE_INSENSITIVE | Pattern.UNICODE_CASE;
     protected static final AttributeSet HIGHLIGHT_COMMENT = styleForegroundColor(
             GTk.EDITOR_LINENO_COLOR.getRed(),
             GTk.EDITOR_LINENO_COLOR.getGreen(),
             GTk.EDITOR_LINENO_COLOR.getBlue()); // gray
+    protected static final AttributeSet HIGHLIGHT_FUNCTION = styleForegroundColor(
+            GTk.EDITOR_FONT_COLOR.brighter().getRed(),
+            GTk.EDITOR_FONT_COLOR.darker().getGreen(),
+            GTk.EDITOR_FONT_COLOR.brighter().getBlue()); // orange
     protected static final AttributeSet HIGHLIGHT_NORMAL = styleForegroundColor(
             GTk.EDITOR_FONT_COLOR.getRed(),
             GTk.EDITOR_FONT_COLOR.getGreen(),
             GTk.EDITOR_FONT_COLOR.getBlue()); // terminal green
     protected static final AttributeSet HIGHLIGHT_KEYWORD = styleForegroundColor(
-            GTk.QUEST_APP_COLOR.getRed(),
-            GTk.QUEST_APP_COLOR.getGreen(),
-            GTk.QUEST_APP_COLOR.getBlue()); // red
-    private static final String NON_KEYWORDS = "|;|,|\\.|\\(|\\)";
+            GTk.QUEST_APP_FOREGROUND_COLOR.getRed(),
+            GTk.QUEST_APP_FOREGROUND_COLOR.getGreen(),
+            GTk.QUEST_APP_FOREGROUND_COLOR.getBlue()); // red
+    protected static final AttributeSet HIGHLIGHT_STATIC_KEYWORD = styleForegroundColor(
+            Color.WHITE.getRed(),
+            Color.WHITE.getGreen(),
+            Color.WHITE.getBlue()); // white
     private static final Pattern COMMENT_PATTERN = Pattern.compile("--[^\n]*\n", PATTERN_FLAGS);
-    private static final Pattern KEYWORDS_PATTERN = Pattern.compile(
-            // src/main/python/keywords.py
-            "\\bindex\\b|\\bday\\b|\\bdouble\\b|\\bas\\b|\\blt\\b|\\block\\b|"
-                    + "\\bexcept\\b|\\bisolation\\b|\\bgrant\\b|\\bdrop\\b|\\bintersect\\b|"
-                    + "\\bcopy\\b|\\bnot\\b|\\bover\\b|\\bwith\\b|\\bdate\\b|\\brepair\\b|"
-                    + "\\bright\\b|\\bnocache\\b|\\bbackup\\b|\\bouter\\b|\\bif\\b|\\bshow\\b|"
-                    + "\\bby\\b|\\bfrom\\b|\\btransaction\\b|\\blevel\\b|\\bselect\\b|\\bbyte\\b|"
-                    + "\\bmonth\\b|\\bjoin\\b|\\basc\\b|\\binto\\b|\\bnan\\b|\\bcolumns\\b|"
-                    + "\\breferences\\b|\\btable\\b|\\bhour\\b|\\bcast\\b|\\bsample\\b|\\bdistinct\\b|"
-                    + "\\btruncate\\b|\\basof\\b|\\bpartition\\b|\\ball\\b|\\bdefault\\b|"
-                    + "\\bon\\b|\\bdelete\\b|\\bforeign\\b|\\belse\\b|\\bin\\b|\\bcreate\\b|"
-                    + "\\bheader\\b|\\balter\\b|\\bto\\b|\\bleft\\b|\\bvalues\\b|\\bquestdb\\b|"
-                    + "\\bcache\\b|\\bbetween\\b|\\bnatural\\b|\\bdesc\\b|\\bonly\\b|\\bbinary\\b|"
-                    + "\\bnone\\b|\\bcross\\b|\\bunion\\b|\\bupdate\\b|\\bcolumn\\b|\\brename\\b|"
-                    + "\\bthen\\b|\\bwhere\\b|\\badd\\b|\\blong\\b|\\bgeohash\\b|\\bboolean\\b|"
-                    + "\\bint\\b|\\btables\\b|\\bwhen\\b|\\bgroup\\b|\\bnull\\b|\\bshort\\b|"
-                    + "\\bkey\\b|\\binner\\b|\\btype\\b|\\bexists\\b|\\bfloat\\b|\\bunlock\\b|"
-                    + "\\bchar\\b|\\bsymbol\\b|\\border\\b|\\bwriter\\b|\\bstring\\b|\\bcase\\b|"
-                    + "\\blatest\\b|\\bsplice\\b|\\bdatabase\\b|\\bor\\b|\\bcapacity\\b|\\band\\b|"
-                    + "\\bend\\b|\\bfill\\b|\\bprimary\\b|\\binsert\\b|\\bsystem\\b|\\blong256\\b|"
-                    + "\\blimit\\b|\\btimestamp\\b" + NON_KEYWORDS,
-            PATTERN_FLAGS);
+    private static final Pattern STATIC_PATTERN = Pattern.compile("\\+|\\-|\\*|/|%|:|;|&|\\||~|!|\\^|=|>|<|\\.|,|\\\\|\\(|\\)|\\[|\\]|\\{|\\}|'|\"", PATTERN_FLAGS);
+
+    private static final Pattern KEYWORDS_PATTERN;
+    private static final Pattern FUNCTION_NAMES_PATTERN;
     private static final String ERROR_HEADER = "==========  ERROR  ==========\n";
     private static final Pattern ERROR_HEADER_PATTERN = Pattern.compile(ERROR_HEADER);
     private static final AttributeSet HIGHLIGHT_FIND_MATCH = styleForegroundColor(
-            GTk.SELECT_FONT_COLOR.getRed(),
-            GTk.SELECT_FONT_COLOR.getGreen(),
-            GTk.SELECT_FONT_COLOR.getBlue());
+            GTk.EDITOR_SELECT_FONT_COLOR.getRed(),
+            GTk.EDITOR_SELECT_FONT_COLOR.getGreen(),
+            GTk.EDITOR_SELECT_FONT_COLOR.getBlue());
     private static final AttributeSet HIGHLIGHT_ERROR = styleForegroundColor(255, 55, 5); // bright red
+
+    static {
+        // load function names
+        Set<String> skipSet = Set.of(
+                "&", "|", "^", "~", "[]",
+                "!=", "!~", "%", "*", "+",
+                "-", ".", "/", "<", "<=",
+                "<>", "<>all", "=", ">", ">=");
+        Set<String> names = new TreeSet<>();
+        for (FunctionFactory factory : ServiceLoader.load(FunctionFactory.class, FunctionFactory.class.getClassLoader())) {
+            if (factory.getClass().getName().contains("test")) {
+                continue;
+            }
+            String signature = factory.getSignature();
+            String name = signature.substring(0, signature.indexOf('('));
+            if (skipSet.contains(name)) {
+                continue;
+            }
+            names.add(name);
+            // Add != counterparts to equality function factories
+            if (factory.isBoolean()) {
+                switch (name) {
+                    case "=" -> {
+                        names.add("!=");
+                        names.add("<>");
+                    }
+                    case "<" -> {
+                        names.add("<=");
+                        names.add(">=");
+                        names.add(">");
+                    }
+                }
+            }
+        }
+        FUNCTION_NAMES_PATTERN = Pattern.compile(preCompileKeywords(names, true), PATTERN_FLAGS);
+
+        // load keyword names
+        names.clear();
+        try {
+            Field field = Constants.class.getDeclaredField("KEYWORDS");
+            field.setAccessible(true);
+            for (CharSequence keyword : (CharSequence[]) field.get(null)) {
+                names.add((String) keyword);
+            }
+            names.add("size");
+            names.add("txn");
+            names.add("cv");
+            KEYWORDS_PATTERN = Pattern.compile(preCompileKeywords(names, false), PATTERN_FLAGS);
+        } catch (NoSuchFieldException | IllegalAccessException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
     protected final StyledDocument styledDocument;
     private final StringBuilder errorBuilder;
     private final int errorHeaderLen;
@@ -106,6 +151,35 @@ public class EditorHighlighter extends DocumentFilter {
         return sc.addAttribute(sc.getEmptySet(), StyleConstants.Foreground, new Color(r, g, b));
     }
 
+    protected static String preCompileKeywords(Set<String> keywords) {
+        return preCompileKeywords(keywords, false);
+
+    }
+
+    protected static String preCompileKeywords(Set<String> keywords, boolean isFunction) {
+        if (keywords.isEmpty()) {
+            throw new IllegalArgumentException("keywords cannot be empty");
+        }
+        // | Boundary Construct | Description             |
+        // | ================== | ======================= |
+        // |       ^            | The beginning of a line |
+        // |       $            | The end of a line       |
+        // |       \\b          | A word boundary         |
+        // |       \\B          | A non-word boundary     |
+        // https://docs.oracle.com/javase/tutorial/essential/regex/bounds.html
+        StringBuilder sb = new StringBuilder();
+        for (String key : keywords) {
+            sb.append("\\b").append(key);
+            if (!isFunction) {
+                sb.append("\\b");
+            }
+            sb.append(isFunction ? "\\(" : "\\b");
+            sb.append("|");
+        }
+        sb.setLength(sb.length() - 1); // remove last "|"
+        return sb.toString();
+    }
+
     @Override
     public void insertString(FilterBypass fb, int offset, String text, AttributeSet attributeSet) {
         try {
@@ -115,15 +189,6 @@ public class EditorHighlighter extends DocumentFilter {
             // do nothing
         }
     }
-
-
-    // | Boundary Construct | Description             |
-    // | ================== | ======================= |
-    // |       ^            | The beginning of a line |
-    // |       $            | The end of a line       |
-    // |       \\b          | A word boundary         |
-    // |       \\B          | A non-word boundary     |
-    // https://docs.oracle.com/javase/tutorial/essential/regex/bounds.html
 
     @Override
     public void remove(FilterBypass fb, int offset, int length) {
@@ -187,11 +252,21 @@ public class EditorHighlighter extends DocumentFilter {
     }
 
     protected void handleTextChanged(String txt) {
-        applyStyle(KEYWORDS_PATTERN.matcher(txt), HIGHLIGHT_KEYWORD, false);
-        applyStyle(COMMENT_PATTERN.matcher(txt), HIGHLIGHT_COMMENT, true);
+        applyStyle(FUNCTION_NAMES_PATTERN.matcher(txt), HIGHLIGHT_FUNCTION);
+        applyStyleReplacing(STATIC_PATTERN.matcher(txt), HIGHLIGHT_STATIC_KEYWORD);
+        applyStyleReplacing(KEYWORDS_PATTERN.matcher(txt), HIGHLIGHT_KEYWORD);
+        applyStyleReplacing(COMMENT_PATTERN.matcher(txt), HIGHLIGHT_COMMENT);
     }
 
-    protected int applyStyle(Matcher matcher, AttributeSet style, boolean replace) {
+    protected void applyStyle(Matcher matcher, AttributeSet style) {
+        applyStyle(matcher, style, false);
+    }
+
+    protected int applyStyleReplacing(Matcher matcher, AttributeSet style) {
+        return applyStyle(matcher, style, true);
+    }
+
+    private int applyStyle(Matcher matcher, AttributeSet style, boolean replace) {
         int matchCount = 0;
         while (matcher.find()) {
             styledDocument.setCharacterAttributes(
@@ -220,7 +295,7 @@ public class EditorHighlighter extends DocumentFilter {
                 }
             }
             return replaceWith == null ?
-                    applyStyle(find.matcher(txt), HIGHLIGHT_FIND_MATCH, true)
+                    applyStyleReplacing(find.matcher(txt), HIGHLIGHT_FIND_MATCH)
                     :
                     replaceAllWith(find.matcher(txt), replaceWith);
         }

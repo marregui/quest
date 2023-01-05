@@ -14,7 +14,7 @@
  * Copyright (c) 2019 - 2023, Miguel Arregui a.k.a. marregui
  */
 
-package io.quest.meta;
+package io.quest.metadata;
 
 import com.sun.nio.file.SensitivityWatchEventModifier;
 import io.quest.GTk;
@@ -36,6 +36,7 @@ public class FolderChangeObserver implements EventProducer<FolderChangeObserver.
     private static final Log LOG = LogFactory.getLog(FolderChangeObserver.class);
 
     private static final WatchEvent.Kind<?>[] EOI = new WatchEvent.Kind<?>[]{
+            StandardWatchEventKinds.ENTRY_CREATE,
             StandardWatchEventKinds.ENTRY_CREATE,
             StandardWatchEventKinds.ENTRY_DELETE,
             StandardWatchEventKinds.ENTRY_MODIFY

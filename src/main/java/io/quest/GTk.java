@@ -16,7 +16,7 @@
 
 package io.quest;
 
-import io.quest.executor.Table;
+import io.quest.sql.Table;
 import io.questdb.log.Log;
 import io.questdb.log.LogFactory;
 
@@ -94,18 +94,18 @@ public final class GTk {
             ctrl+^s          increase font size
             ctrl+shift^s     decrease font size
             """;
-    public static final String QUEST_APP_NAME = "quest";
+    public static final String QUEST_APP_NAME = "Q.U.E.S.T";
     public static final String MAIN_FONT_NAME = "Arial"; // excluding commands' TextPane, which is Monospaced
-    public static final Color QUEST_APP_COLOR = new Color(200, 50, 90);
+    public static final Color QUEST_APP_FOREGROUND_COLOR = new Color(200, 50, 90);
     public static final Color QUEST_APP_BACKGROUND_COLOR = Color.BLACK;
     public static final Color EDITOR_FONT_COLOR = new Color(95, 235, 150);
     public static final Color EDITOR_LINENO_COLOR = Color.LIGHT_GRAY.darker().darker();
+    public static final Color EDITOR_SELECT_FONT_COLOR = new Color(250, 255, 116);
     public static final Color PLOT_BORDER_COLOR = new Color(153, 153, 153);
-    public static final Color SELECT_FONT_COLOR = new Color(250, 255, 116);
     public static final int EDITOR_DEFAULT_FONT_SIZE = 15;
     public static final int EDITOR_MIN_FONT_SIZE = 11;
     public static final int EDITOR_MAX_FONT_SIZE = 21;
-    public static final int META_EXPLORER_FONT_SIZE = 14;
+    public static final int METADATA_EXPLORER_FONT_SIZE = 14;
     public static final Font MENU_FONT = new Font(MAIN_FONT_NAME, Font.BOLD, 14);
     public static final int CMD_DOWN_MASK = isMac() ? InputEvent.META_DOWN_MASK : InputEvent.CTRL_DOWN_MASK;
     public static final int CMD_SHIFT_DOWN_MASK = CMD_DOWN_MASK | InputEvent.SHIFT_DOWN_MASK;
@@ -532,8 +532,13 @@ public final class GTk {
         META("Meta.png"),
         META_FILE("MetaFile.png"),
         META_UNKNOWN("MetaUnknown.png"),
-        META_FOLDER("MetaFolder.png"), RESULTS("Results.png"),
-        RESULTS_NEXT("ResultsNext.png", "Next"), RESULTS_PREV("ResultsPrev.png", "Prev"),
+        META_FOLDER("MetaFolder.png"),
+        RESULTS("Results.png"),
+        RESULTS_NEXT("ResultsNext.png", "Next"),
+        RESULTS_PREV("ResultsPrev.png", "Prev"),
+        FILE("File.png"),
+        FOLDER("Folder.png"),
+        ROOT_FOLDER("RootFolder.png"),
         ROCKET("Rocket.png");
 
         private static final Map<String, ImageIcon> ICON_MAP = new HashMap<>();

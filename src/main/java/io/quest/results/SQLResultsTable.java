@@ -36,10 +36,11 @@ import javax.swing.table.TableColumn;
 import javax.swing.table.TableColumnModel;
 
 import io.quest.GTk;
-import io.quest.executor.SQLExecutionResponse;
-import io.quest.executor.Table;
+import io.quest.sql.SQLExecutionResponse;
+import io.quest.sql.SQLType;
+import io.quest.sql.Table;
 import io.quest.InfiniteSpinner;
-import io.quest.quests.Editor;
+import io.quest.editor.Editor;
 
 
 public class SQLResultsTable extends JPanel implements Closeable {
@@ -71,7 +72,7 @@ public class SQLResultsTable extends JPanel implements Closeable {
         table.setColumnSelectionAllowed(true);
         table.setCellSelectionEnabled(true);
         table.setRowHeight(TABLE_ROW_HEIGHT);
-        table.setGridColor(GTk.QUEST_APP_COLOR.darker().darker().darker());
+        table.setGridColor(GTk.QUEST_APP_FOREGROUND_COLOR.darker().darker().darker());
         table.setFont(GTk.TABLE_CELL_FONT);
         table.setDefaultRenderer(String.class, new SQLCellRenderer(results::get));
         table.setSelectionMode(ListSelectionModel.MULTIPLE_INTERVAL_SELECTION);

@@ -22,8 +22,9 @@ import java.util.function.Supplier;
 
 import javax.swing.table.AbstractTableModel;
 
-import io.quest.executor.SQLExecutor;
-import io.quest.executor.Table;
+import io.quest.sql.SQLExecutor;
+import io.quest.sql.SQLType;
+import io.quest.sql.Table;
 
 
 /**

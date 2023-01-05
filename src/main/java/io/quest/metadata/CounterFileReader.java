@@ -14,7 +14,7 @@
  * Copyright (c) 2019 - 2023, Miguel Arregui a.k.a. marregui
  */
 
-package io.quest.meta;
+package io.quest.metadata;
 
 import io.questdb.cairo.TableUtils;
 import io.questdb.std.*;
@@ -22,14 +22,14 @@ import io.questdb.std.str.Path;
 
 import java.io.Closeable;
 
-public class CounterReader implements Closeable {
+public class CounterFileReader implements Closeable {
 
     private final FilesFacade ff;
 
     private long uniqueIdFd = -1;
     private long uniqueIdMem = 0;
 
-    public CounterReader(FilesFacade ff) {
+    public CounterFileReader(FilesFacade ff) {
         this.ff = ff;
     }
 

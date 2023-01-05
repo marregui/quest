@@ -1,4 +1,4 @@
-package io.quest.meta;
+package io.quest.metadata;
 
 import io.questdb.cairo.TableUtils;
 

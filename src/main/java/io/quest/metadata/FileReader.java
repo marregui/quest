@@ -14,7 +14,7 @@
  * Copyright (c) 2019 - 2023, Miguel Arregui a.k.a. marregui
  */
 
-package io.quest.meta;
+package io.quest.metadata;
 
 import java.io.File;
 import java.io.FileNotFoundException;

@@ -74,7 +74,7 @@ class ConnsTableModel extends AbstractTableModel implements Closeable {
         JTable table = new JTable(tableModel);
         table.setAutoCreateRowSorter(false);
         table.setRowHeight(ROW_HEIGHT);
-        table.setGridColor(GTk.QUEST_APP_COLOR.darker().darker().darker());
+        table.setGridColor(GTk.QUEST_APP_FOREGROUND_COLOR.darker().darker().darker());
         table.setFont(GTk.TABLE_CELL_FONT);
         table.setDefaultRenderer(String.class, new CellRenderer());
         table.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
@@ -221,6 +221,24 @@ class ConnsTableModel extends AbstractTableModel implements Closeable {
                     updated.close();
                 }
             }
+        }
+    }
+
+    private static class PasswordCellRenderer extends CellRenderer {
+        private static final String PASSWORD = "*********";
+
+        @Override
+        public Component getTableCellRendererComponent(
+                JTable table,
+                Object value,
+                boolean isSelected,
+                boolean hasFocus,
+                int rowIdx,
+                int colIdx
+        ) {
+            super.getTableCellRendererComponent(table, value, isSelected, hasFocus, rowIdx, colIdx);
+            setValue(PASSWORD);
+            return this;
         }
     }
 }

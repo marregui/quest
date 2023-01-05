@@ -14,7 +14,7 @@
  * Copyright (c) 2019 - 2023, Miguel Arregui a.k.a. marregui
  */
 
-package io.quest.executor;
+package io.quest.sql;
 
 import io.quest.store.UniqueId;
 

@@ -14,7 +14,7 @@
  * Copyright (c) 2019 - 2023, Miguel Arregui a.k.a. marregui
  */
 
-package io.quest.quests;
+package io.quest.editor;
 
 import java.awt.*;
 import java.awt.event.ActionEvent;
@@ -59,7 +59,7 @@ public class Editor extends JPanel {
         textPane.setFont(GTk.EDITOR_DEFAULT_FONT);
         textPane.setMargin(createInsets(GTk.EDITOR_DEFAULT_FONT));
         textPane.setBackground(GTk.QUEST_APP_BACKGROUND_COLOR);
-        textPane.setCaretColor(GTk.SELECT_FONT_COLOR);
+        textPane.setCaretColor(GTk.EDITOR_SELECT_FONT_COLOR);
         textPane.setCaretPosition(0);
         if (hasLineNumbers) {
             textPane.setEditorKit(new StyledEditorKit() {

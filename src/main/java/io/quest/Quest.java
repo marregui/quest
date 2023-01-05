@@ -25,21 +25,21 @@ import java.util.function.Consumer;
 import javax.swing.*;
 
 import io.quest.conns.Conn;
-import io.quest.executor.SQLExecutor;
-import io.quest.executor.SQLExecutionRequest;
-import io.quest.executor.SQLExecutionResponse;
-import io.quest.meta.Meta;
+import io.quest.sql.SQLExecutor;
+import io.quest.sql.SQLExecutionRequest;
+import io.quest.sql.SQLExecutionResponse;
+import io.quest.metadata.Metadata;
 import io.quest.plot.Plot;
 import io.quest.plot.TableColumn;
 import io.quest.results.SQLPagedTableModel;
-import io.quest.results.SQLType;
+import io.quest.sql.SQLType;
 import io.quest.store.Store;
 import io.questdb.ServerMain;
 import io.questdb.log.Log;
 import io.questdb.log.LogFactory;
 import io.questdb.std.Misc;
 
-import io.quest.quests.QuestsPanel;
+import io.quest.editor.QuestsEditor;
 import io.quest.conns.Conns;
 import io.quest.results.SQLResultsTable;
 
@@ -51,11 +51,11 @@ public final class Quest {
     private static final Log LOG = LogFactory.getLog(Quest.class);
 
     private final JFrame frame;
-    private final QuestsPanel commands;
+    private final QuestsEditor commands;
     private final Conns conns;
     private final SQLResultsTable results;
     private final SQLExecutor executor;
-    private final Meta meta;
+    private final Metadata meta;
     private final Plot plot;
     private final JMenuItem toggleConns;
     private final JMenuItem togglePlot;
@@ -69,10 +69,10 @@ public final class Quest {
         frame.setIconImage(Icon.QUEST.icon().getImage());
         int dividerHeight = (int) (frame.getHeight() * 0.6);
         executor = new SQLExecutor();
-        meta = new Meta(frame, "Metadata Files", this::dispatchEvent);
+        meta = new Metadata(frame, "Metadata Files", this::dispatchEvent);
         plot = new Plot(frame, "Plot", this::dispatchEvent);
         conns = new Conns(frame, this::dispatchEvent);
-        commands = new QuestsPanel(this::dispatchEvent);
+        commands = new QuestsEditor(this::dispatchEvent);
         commands.setPreferredSize(new Dimension(0, dividerHeight));
         results = new SQLResultsTable(frame.getWidth(), dividerHeight);
         JSplitPane splitPane = new JSplitPane(JSplitPane.VERTICAL_SPLIT, true, commands, results);
@@ -185,7 +185,7 @@ public final class Quest {
             }
             plot.setDataSet(
                     new TableColumn("x", table, 1, Color.WHITE),
-                    new TableColumn("y", table, 2, GTk.SELECT_FONT_COLOR)
+                    new TableColumn("y", table, 2, GTk.EDITOR_SELECT_FONT_COLOR)
             );
             plot.setVisible(true);
             togglePlot.setText("Close Plot");
@@ -222,20 +222,20 @@ public final class Quest {
     }
 
     private void dispatchEvent(EventProducer<?> source, Enum<?> event, Object data) {
-        if (source instanceof QuestsPanel) {
+        if (source instanceof QuestsEditor) {
             GTk.invokeLater(() -> onCommandEvent(EventProducer.eventType(event), (SQLExecutionRequest) data));
         } else if (source instanceof SQLExecutor) {
             GTk.invokeLater(() -> onSQLExecutorEvent(EventProducer.eventType(event), (SQLExecutionResponse) data));
         } else if (source instanceof Conns) {
             GTk.invokeLater(() -> onConnsEvent(EventProducer.eventType(event), data));
-        } else if (source instanceof Meta) {
+        } else if (source instanceof Metadata) {
             GTk.invokeLater(() -> onMetaEvent(EventProducer.eventType(event)));
         } else if (source instanceof Plot) {
             GTk.invokeLater(() -> onPlotEvent(EventProducer.eventType(event)));
         }
     }
 
-    private void onCommandEvent(QuestsPanel.EventType event, SQLExecutionRequest req) {
+    private void onCommandEvent(QuestsEditor.EventType event, SQLExecutionRequest req) {
         switch (event) {
             case COMMAND_AVAILABLE -> {
                 Conn conn = commands.getConnection();
@@ -266,8 +266,8 @@ public final class Quest {
         }
     }
 
-    private void onMetaEvent(Meta.EventType event) {
-        if (event == Meta.EventType.HIDE_REQUEST) {
+    private void onMetaEvent(Metadata.EventType event) {
+        if (event == Metadata.EventType.HIDE_REQUEST) {
             onToggleMeta(null);
         }
     }

@@ -21,7 +21,8 @@ import java.util.function.Supplier;
 
 import javax.swing.JTable;
 
-import io.quest.executor.Table;
+import io.quest.sql.SQLType;
+import io.quest.sql.Table;
 import io.quest.CellRenderer;
 
 

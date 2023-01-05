@@ -35,6 +35,6 @@ public interface Column {
     String name();
 
     default Color color() {
-        return GTk.QUEST_APP_COLOR;
+        return GTk.QUEST_APP_FOREGROUND_COLOR;
     }
 }

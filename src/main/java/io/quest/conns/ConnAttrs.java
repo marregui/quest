@@ -19,7 +19,7 @@ package io.quest.conns;
 import java.util.Properties;
 
 import io.quest.GTk;
-import io.quest.executor.SQLExecutor;
+import io.quest.sql.SQLExecutor;
 import io.quest.store.StoreEntry;
 import io.quest.store.UniqueId;
 

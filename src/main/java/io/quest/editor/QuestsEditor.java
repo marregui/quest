@@ -14,7 +14,7 @@
  * Copyright (c) 2019 - 2023, Miguel Arregui a.k.a. marregui
  */
 
-package io.quest.quests;
+package io.quest.editor;
 
 import java.awt.*;
 import java.awt.event.*;
@@ -32,7 +32,7 @@ import javax.swing.undo.UndoManager;
 import io.quest.EventConsumer;
 import io.quest.EventProducer;
 import io.quest.conns.Conn;
-import io.quest.executor.SQLExecutionRequest;
+import io.quest.sql.SQLExecutionRequest;
 import io.quest.GTk;
 import io.quest.conns.Conns;
 import io.quest.store.Store;
@@ -45,11 +45,11 @@ import static io.quest.GTk.flowPanel;
 import static io.quest.GTk.gap;
 import static io.quest.GTk.label;
 
-public class QuestsPanel extends Editor implements EventProducer<QuestsPanel.EventType>, Closeable {
+public class QuestsEditor extends Editor implements EventProducer<QuestsEditor.EventType>, Closeable {
 
     private static final int COMPONENT_HEIGHT = 33;
     private static final String STORE_FILE_NAME = "default-notebook.json";
-    private final EventConsumer<QuestsPanel, SQLExecutionRequest> eventConsumer;
+    private final EventConsumer<QuestsEditor, SQLExecutionRequest> eventConsumer;
     private final JComboBox<String> questEntryNames;
     private final List<UndoManager> undoManagers;
     private final JLabel questLabel;
@@ -63,7 +63,7 @@ public class QuestsPanel extends Editor implements EventProducer<QuestsPanel.Eve
     private SQLExecutionRequest lastRequest;
     private Content content;
 
-    public QuestsPanel(EventConsumer<QuestsPanel, SQLExecutionRequest> eventConsumer) {
+    public QuestsEditor(EventConsumer<QuestsEditor, SQLExecutionRequest> eventConsumer) {
         super();
         this.eventConsumer = eventConsumer;
         undoManagers = new ArrayList<>(5);
@@ -80,7 +80,7 @@ public class QuestsPanel extends Editor implements EventProducer<QuestsPanel.Eve
             public Component getListCellRendererComponent(JList list, Object value, int index, boolean isSelected, boolean cellHasFocus) {
                 super.getListCellRendererComponent(list, value, index, isSelected, cellHasFocus);
                 if (isSelected) {
-                    setBackground(GTk.SELECT_FONT_COLOR);
+                    setBackground(GTk.EDITOR_SELECT_FONT_COLOR);
                     setForeground(GTk.QUEST_APP_BACKGROUND_COLOR);
                 } else {
                     setBackground(GTk.QUEST_APP_BACKGROUND_COLOR);
@@ -98,7 +98,7 @@ public class QuestsPanel extends Editor implements EventProducer<QuestsPanel.Eve
                 questEntryNames,
                 gap(12),
                 connLabel = label(Icon.NO_ICON, null, e -> eventConsumer.onSourceEvent(
-                        QuestsPanel.this,
+                        QuestsEditor.this,
                         EventType.CONNECTION_STATUS_CLICKED,
                         null)));
         questLabel.setForeground(Color.WHITE);
@@ -401,7 +401,7 @@ public class QuestsPanel extends Editor implements EventProducer<QuestsPanel.Eve
         boolean isConnected = conn != null && conn.isOpen();
         String connKey = conn != null ? conn.getUniqueId() : "None set";
         connLabel.setText(String.format("on %s", connKey));
-        connLabel.setForeground(isConnected ? GTk.EDITOR_FONT_COLOR : GTk.QUEST_APP_COLOR);
+        connLabel.setForeground(isConnected ? GTk.EDITOR_FONT_COLOR : GTk.QUEST_APP_FOREGROUND_COLOR);
     }
 
     private JMenu createQuestsMenu() {

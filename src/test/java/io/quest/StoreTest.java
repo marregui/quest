@@ -27,7 +27,7 @@ import io.quest.store.StoreEntry;
 import org.hamcrest.Matchers;
 import org.junit.jupiter.api.Test;
 
-import static io.quest.quests.QuestsPanel.Content;
+import static io.quest.editor.QuestsEditor.Content;
 
 public class StoreTest {
 

@@ -14,7 +14,7 @@
  * Copyright (c) 2019 - 2023, Miguel Arregui a.k.a. marregui
  */
 
-package io.quest.meta;
+package io.quest.metadata;
 
 import io.quest.GTk;
 import io.questdb.std.Files;
@@ -57,7 +57,7 @@ class FolderView extends JPanel implements Closeable {
                 setOpaque(true);
                 setFont(GTk.MENU_FONT);
                 if (leaf && selected) {
-                    setBackground(GTk.SELECT_FONT_COLOR);
+                    setBackground(GTk.EDITOR_SELECT_FONT_COLOR);
                     setForeground(GTk.QUEST_APP_BACKGROUND_COLOR);
                 } else {
                     setBackground(GTk.QUEST_APP_BACKGROUND_COLOR);
@@ -205,7 +205,7 @@ class FolderView extends JPanel implements Closeable {
         JCheckBox checkBox = new JCheckBox(type.name(), type.isDefaultChecked());
         checkBox.setFont(GTk.MENU_FONT);
         checkBox.setBackground(GTk.QUEST_APP_BACKGROUND_COLOR);
-        checkBox.setForeground(GTk.QUEST_APP_COLOR);
+        checkBox.setForeground(GTk.QUEST_APP_FOREGROUND_COLOR);
         checkBox.addActionListener(e -> {
             if (checkBox.isSelected()) {
                 visibleFileTypes.add(type);

@@ -14,7 +14,7 @@
  * Copyright (c) 2019 - 2023, Miguel Arregui a.k.a. marregui
  */
 
-package io.quest.quests;
+package io.quest.editor;
 
 import io.quest.EventConsumer;
 import io.quest.EventProducer;

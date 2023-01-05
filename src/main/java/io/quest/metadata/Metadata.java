@@ -14,7 +14,7 @@
  * Copyright (c) 2019 - 2023, Miguel Arregui a.k.a. marregui
  */
 
-package io.quest.meta;
+package io.quest.metadata;
 
 import io.quest.EventConsumer;
 import io.quest.EventProducer;
@@ -32,25 +32,25 @@ import java.awt.*;
 import java.io.*;
 import java.util.function.Consumer;
 
-public class Meta extends JDialog implements EventProducer<Meta.EventType>, Closeable {
+public class Metadata extends JDialog implements EventProducer<Metadata.EventType>, Closeable {
 
     private final CairoConfiguration configuration = new DefaultCairoConfiguration(Store.ROOT_PATH.getAbsolutePath());
     private final FilesFacade ff = configuration.getFilesFacade();
     private final TxReader txReader = new TxReader(ff);
-    private final CounterReader counterReader = new CounterReader(ff);
+    private final CounterFileReader counterReader = new CounterFileReader(ff);
     private final TableReaderMetadata metaReader = new TableReaderMetadata(configuration);
     private final ColumnVersionReader cvReader = new ColumnVersionReader();
     private final FileReader fileReader = new FileReader();
     private final Path selectedPath = new Path();
     private final Path auxPath = new Path();
-    private final MetaDisplay display = new MetaDisplay();
+    private final Display display = new Display();
     private final FolderView treeView;
     private int rootLen;
     private String partitionFolderName;
 
-    public Meta(Frame owner, String title, EventConsumer<Meta, Object> eventConsumer) {
+    public Metadata(Frame owner, String title, EventConsumer<Metadata, Object> eventConsumer) {
         super(owner, title);
-        GTk.configureDialog(this, 0.78F, 0.66F, () -> eventConsumer.onSourceEvent(Meta.this, Meta.EventType.HIDE_REQUEST, null));
+        GTk.configureDialog(this, 0.78F, 0.66F, () -> eventConsumer.onSourceEvent(Metadata.this, Metadata.EventType.HIDE_REQUEST, null));
         treeView = new FolderView(this::onRootSet, this::onSelectedFile);
         treeView.setPreferredSize(new Dimension(getSize().width / 4, 0));
         Container contentPane = getContentPane();

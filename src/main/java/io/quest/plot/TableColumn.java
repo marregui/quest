@@ -18,7 +18,7 @@ package io.quest.plot;
 
 
 import io.quest.results.SQLPagedTableModel;
-import io.quest.results.SQLType;
+import io.quest.sql.SQLType;
 
 import java.awt.*;
 

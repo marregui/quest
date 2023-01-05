@@ -14,13 +14,12 @@
  * Copyright (c) 2019 - 2023, Miguel Arregui a.k.a. marregui
  */
 
-package io.quest.results;
+package io.quest.sql;
 
 import java.awt.Color;
 import java.sql.Timestamp;
 import java.sql.Types;
 
-import io.quest.executor.Table;
 import io.quest.GTk;
 
 // Resolves {@link java.sql.Types} to their text representation, column width and rendering color
@@ -89,7 +88,7 @@ public final class SQLType {
         };
     }
 
-    static int resolveColWidth(Table table, int colIdx) {
+    public static int resolveColWidth(Table table, int colIdx) {
         int sqlType = table.getColumnTypes()[colIdx];
         final int width;
         switch (sqlType) {
@@ -115,14 +114,14 @@ public final class SQLType {
         return Math.max(width, 20 * (colName.length() + typeName.length()));
     }
 
-    static Color resolveColor(int sqlType) {
+    public static Color resolveColor(int sqlType) {
         return switch (sqlType) {
             case Types.OTHER -> Color.ORANGE;
             case Types.BOOLEAN -> BLUE_GREENISH_COLOR;
             case Types.TINYINT, Types.SMALLINT, Types.INTEGER, Types.BIGINT -> OLIVE_COLOR;
             case Types.REAL, Types.DOUBLE -> Color.GREEN;
             case Types.TIMESTAMP, Types.TIMESTAMP_WITH_TIMEZONE -> CYAN_DULL_COLOR;
-            case Types.VARCHAR -> GTk.QUEST_APP_COLOR;
+            case Types.VARCHAR -> GTk.QUEST_APP_FOREGROUND_COLOR;
             default -> Color.MAGENTA;
         };
     }
