@@ -70,7 +70,7 @@ public class QuestsEditor extends Editor implements EventProducer<QuestsEditor.E
         questEntryNames = new JComboBox<>();
         questEntryNames.setFont(GTk.TABLE_CELL_FONT);
         questEntryNames.setBackground(GTk.QUEST_APP_BACKGROUND_COLOR);
-        questEntryNames.setForeground(GTk.EDITOR_FONT_COLOR);
+        questEntryNames.setForeground(GTk.EDITOR_MENU_FONT_COLOR);
         questEntryNames.setEditable(false);
         questEntryNames.setPreferredSize(new Dimension(490, COMPONENT_HEIGHT));
         questEntryNames.addActionListener(this::onChangeQuest);
@@ -84,10 +84,10 @@ public class QuestsEditor extends Editor implements EventProducer<QuestsEditor.E
                     setForeground(GTk.QUEST_APP_BACKGROUND_COLOR);
                 } else {
                     setBackground(GTk.QUEST_APP_BACKGROUND_COLOR);
-                    setForeground(GTk.EDITOR_FONT_COLOR);
+                    setForeground(GTk.EDITOR_MENU_FONT_COLOR);
                 }
                 list.setSelectionBackground(GTk.QUEST_APP_BACKGROUND_COLOR);
-                list.setSelectionForeground(GTk.EDITOR_FONT_COLOR);
+                list.setSelectionForeground(GTk.EDITOR_MENU_FONT_COLOR);
                 return this;
             }
         });

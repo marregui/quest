@@ -37,7 +37,7 @@ public class CellRenderer extends DefaultTableCellRenderer {
                 setForeground(GTk.QUEST_APP_BACKGROUND_COLOR);
             } else {
                 setBackground(GTk.QUEST_APP_BACKGROUND_COLOR);
-                setForeground(rowIdx % 2 == 0 ? GTk.EDITOR_FONT_COLOR : GTk.QUEST_APP_FOREGROUND_COLOR);
+                setForeground(rowIdx % 2 == 0 ? GTk.EDITOR_MENU_FONT_COLOR : GTk.QUEST_APP_FOREGROUND_COLOR);
             }
             return this;
         }

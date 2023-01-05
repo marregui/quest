@@ -41,9 +41,9 @@ public class EditorHighlighter extends DocumentFilter {
             GTk.EDITOR_LINENO_COLOR.getGreen(),
             GTk.EDITOR_LINENO_COLOR.getBlue()); // gray
     protected static final AttributeSet HIGHLIGHT_FUNCTION = styleForegroundColor(
-            GTk.EDITOR_FONT_COLOR.brighter().getRed(),
+            GTk.EDITOR_FONT_COLOR.darker().getRed(),
             GTk.EDITOR_FONT_COLOR.darker().getGreen(),
-            GTk.EDITOR_FONT_COLOR.brighter().getBlue()); // orange
+            GTk.EDITOR_FONT_COLOR.darker().getBlue()); // orange
     protected static final AttributeSet HIGHLIGHT_NORMAL = styleForegroundColor(
             GTk.EDITOR_FONT_COLOR.getRed(),
             GTk.EDITOR_FONT_COLOR.getGreen(),
@@ -52,7 +52,7 @@ public class EditorHighlighter extends DocumentFilter {
             GTk.QUEST_APP_FOREGROUND_COLOR.getRed(),
             GTk.QUEST_APP_FOREGROUND_COLOR.getGreen(),
             GTk.QUEST_APP_FOREGROUND_COLOR.getBlue()); // red
-    protected static final AttributeSet HIGHLIGHT_STATIC_KEYWORD = styleForegroundColor(
+    protected static final AttributeSet HIGHLIGHT_STATIC = styleForegroundColor(
             Color.WHITE.getRed(),
             Color.WHITE.getGreen(),
             Color.WHITE.getBlue()); // white
@@ -253,7 +253,7 @@ public class EditorHighlighter extends DocumentFilter {
 
     protected void handleTextChanged(String txt) {
         applyStyle(FUNCTION_NAMES_PATTERN.matcher(txt), HIGHLIGHT_FUNCTION);
-        applyStyleReplacing(STATIC_PATTERN.matcher(txt), HIGHLIGHT_STATIC_KEYWORD);
+        applyStyleReplacing(STATIC_PATTERN.matcher(txt), HIGHLIGHT_STATIC);
         applyStyleReplacing(KEYWORDS_PATTERN.matcher(txt), HIGHLIGHT_KEYWORD);
         applyStyleReplacing(COMMENT_PATTERN.matcher(txt), HIGHLIGHT_COMMENT);
     }

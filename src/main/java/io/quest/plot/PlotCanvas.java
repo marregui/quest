@@ -142,7 +142,7 @@ public class PlotCanvas extends JPanel {
             }
 
             // Draw title and ranges
-            g2.setColor(GTk.EDITOR_FONT_COLOR);
+            g2.setColor(GTk.EDITOR_MENU_FONT_COLOR);
             g2.drawString(String.format("%s x:[%s, %s], y:[%s, %s]", title != null ? title : "", Axis.fmtX(minX), Axis.fmtX(maxX), Axis.fmtY(minY), Axis.fmtY(maxY)), 0, Math.round(INSET_BOTTOM * 3 / 4.0F));
 
             // Scale the coordinate system to match plot coordinates

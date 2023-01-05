@@ -95,10 +95,12 @@ public final class GTk {
             ctrl+shift^s     decrease font size
             """;
     public static final String QUEST_APP_NAME = "Q.U.E.S.T";
-    public static final String MAIN_FONT_NAME = "Arial"; // excluding commands' TextPane, which is Monospaced
-    public static final Color QUEST_APP_FOREGROUND_COLOR = new Color(200, 50, 90);
+    public static final String MAIN_FONT_NAME = "Monospaced"; // excluding commands' TextPane, which is Monospaced
+    public static final Color QUEST_APP_FOREGROUND_COLOR = new Color(200, 20, 60);
     public static final Color QUEST_APP_BACKGROUND_COLOR = Color.BLACK;
-    public static final Color EDITOR_FONT_COLOR = new Color(95, 235, 150);
+    //    public static final Color EDITOR_FONT_COLOR = new Color(50, 210, 80);
+    public static final Color EDITOR_FONT_COLOR = new Color(180, 255, 210);
+    public static final Color EDITOR_MENU_FONT_COLOR = new Color(15, 205, 150);
     public static final Color EDITOR_LINENO_COLOR = Color.LIGHT_GRAY.darker().darker();
     public static final Color EDITOR_SELECT_FONT_COLOR = new Color(250, 255, 116);
     public static final Color PLOT_BORDER_COLOR = new Color(153, 153, 153);
