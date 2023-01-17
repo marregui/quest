@@ -35,6 +35,6 @@ public interface Column {
     String name();
 
     default Color color() {
-        return GTk.QUEST_APP_FOREGROUND_COLOR;
+        return GTk.EDITOR_KEYWORD_FOREGROUND_COLOR;
     }
 }

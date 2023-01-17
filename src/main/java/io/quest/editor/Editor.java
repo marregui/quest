@@ -59,7 +59,7 @@ public class Editor extends JPanel {
         textPane.setFont(GTk.EDITOR_DEFAULT_FONT);
         textPane.setMargin(createInsets(GTk.EDITOR_DEFAULT_FONT));
         textPane.setBackground(GTk.QUEST_APP_BACKGROUND_COLOR);
-        textPane.setCaretColor(GTk.EDITOR_SELECT_FONT_COLOR);
+        textPane.setCaretColor(GTk.EDITOR_MATCH_FOREGROUND_COLOR);
         textPane.setCaretPosition(0);
         if (hasLineNumbers) {
             textPane.setEditorKit(new StyledEditorKit() {

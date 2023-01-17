@@ -72,7 +72,7 @@ public class SQLResultsTable extends JPanel implements Closeable {
         table.setColumnSelectionAllowed(true);
         table.setCellSelectionEnabled(true);
         table.setRowHeight(TABLE_ROW_HEIGHT);
-        table.setGridColor(GTk.QUEST_APP_FOREGROUND_COLOR.darker().darker().darker());
+        table.setGridColor(GTk.EDITOR_KEYWORD_FOREGROUND_COLOR.darker().darker().darker());
         table.setFont(GTk.TABLE_CELL_FONT);
         table.setDefaultRenderer(String.class, new SQLCellRenderer(results::get));
         table.setSelectionMode(ListSelectionModel.MULTIPLE_INTERVAL_SELECTION);

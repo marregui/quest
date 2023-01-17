@@ -74,7 +74,7 @@ class ConnsTableModel extends AbstractTableModel implements Closeable {
         JTable table = new JTable(tableModel);
         table.setAutoCreateRowSorter(false);
         table.setRowHeight(ROW_HEIGHT);
-        table.setGridColor(GTk.QUEST_APP_FOREGROUND_COLOR.darker().darker().darker());
+        table.setGridColor(GTk.EDITOR_KEYWORD_FOREGROUND_COLOR.darker().darker().darker());
         table.setFont(GTk.TABLE_CELL_FONT);
         table.setDefaultRenderer(String.class, new CellRenderer());
         table.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);

@@ -17,6 +17,7 @@
 package io.quest.editor;
 
 import io.quest.GTk;
+import io.questdb.cairo.ColumnType;
 import io.questdb.griffin.FunctionFactory;
 import io.questdb.griffin.engine.functions.catalogue.Constants;
 
@@ -36,58 +37,67 @@ public class EditorHighlighter extends DocumentFilter {
 
     public static final String EVENT_TYPE = "style change";
     public static final int PATTERN_FLAGS = Pattern.CASE_INSENSITIVE | Pattern.UNICODE_CASE;
-    protected static final AttributeSet HIGHLIGHT_COMMENT = styleForegroundColor(
-            GTk.EDITOR_LINENO_COLOR.getRed(),
-            GTk.EDITOR_LINENO_COLOR.getGreen(),
-            GTk.EDITOR_LINENO_COLOR.getBlue()); // gray
-    protected static final AttributeSet HIGHLIGHT_FUNCTION = styleForegroundColor(
-            GTk.EDITOR_FONT_COLOR.darker().getRed(),
-            GTk.EDITOR_FONT_COLOR.darker().getGreen(),
-            GTk.EDITOR_FONT_COLOR.darker().getBlue()); // orange
-    protected static final AttributeSet HIGHLIGHT_NORMAL = styleForegroundColor(
-            GTk.EDITOR_FONT_COLOR.getRed(),
-            GTk.EDITOR_FONT_COLOR.getGreen(),
-            GTk.EDITOR_FONT_COLOR.getBlue()); // terminal green
-    protected static final AttributeSet HIGHLIGHT_KEYWORD = styleForegroundColor(
-            GTk.QUEST_APP_FOREGROUND_COLOR.getRed(),
-            GTk.QUEST_APP_FOREGROUND_COLOR.getGreen(),
-            GTk.QUEST_APP_FOREGROUND_COLOR.getBlue()); // red
     protected static final AttributeSet HIGHLIGHT_STATIC = styleForegroundColor(
             Color.WHITE.getRed(),
             Color.WHITE.getGreen(),
-            Color.WHITE.getBlue()); // white
+            Color.WHITE.getBlue());
+    protected static final AttributeSet HIGHLIGHT_COMMENT = styleForegroundColor(
+            GTk.EDITOR_LINENO_COLOR.getRed(),
+            GTk.EDITOR_LINENO_COLOR.getGreen(),
+            GTk.EDITOR_LINENO_COLOR.getBlue());
+    protected static final AttributeSet HIGHLIGHT_FUNCTION = styleForegroundColor(
+            GTk.EDITOR_FUNCTION_FOREGROUND_COLOR.darker().getRed(),
+            GTk.EDITOR_FUNCTION_FOREGROUND_COLOR.darker().getGreen(),
+            GTk.EDITOR_FUNCTION_FOREGROUND_COLOR.darker().getBlue());
+    protected static final AttributeSet HIGHLIGHT_KEYWORD = styleForegroundColor(
+            GTk.EDITOR_KEYWORD_FOREGROUND_COLOR.getRed(),
+            GTk.EDITOR_KEYWORD_FOREGROUND_COLOR.getGreen(),
+            GTk.EDITOR_KEYWORD_FOREGROUND_COLOR.getBlue());
+    protected static final AttributeSet HIGHLIGHT_TYPE = styleForegroundColor(
+            GTk.EDITOR_TYPE_FOREGROUND_COLOR.getRed(),
+            GTk.EDITOR_TYPE_FOREGROUND_COLOR.getGreen(),
+            GTk.EDITOR_TYPE_FOREGROUND_COLOR.getBlue());
+    protected static final AttributeSet HIGHLIGHT_NORMAL = styleForegroundColor(
+            GTk.EDITOR_NORMAL_FOREGROUND_COLOR.getRed(),
+            GTk.EDITOR_NORMAL_FOREGROUND_COLOR.getGreen(),
+            GTk.EDITOR_NORMAL_FOREGROUND_COLOR.getBlue());
+    private static final AttributeSet HIGHLIGHT_FIND_MATCH = styleForegroundColor(
+            GTk.EDITOR_MATCH_FOREGROUND_COLOR.getRed(),
+            GTk.EDITOR_MATCH_FOREGROUND_COLOR.getGreen(),
+            GTk.EDITOR_MATCH_FOREGROUND_COLOR.getBlue());
+    private static final AttributeSet HIGHLIGHT_ERROR = styleForegroundColor(
+            GTk.EDITOR_ERROR_FOREGROUND_COLOR.getRed(),
+            GTk.EDITOR_ERROR_FOREGROUND_COLOR.getGreen(),
+            GTk.EDITOR_ERROR_FOREGROUND_COLOR.getBlue());
     private static final Pattern COMMENT_PATTERN = Pattern.compile("--[^\n]*\n", PATTERN_FLAGS);
     private static final Pattern STATIC_PATTERN = Pattern.compile("\\+|\\-|\\*|/|%|:|;|&|\\||~|!|\\^|=|>|<|\\.|,|\\\\|\\(|\\)|\\[|\\]|\\{|\\}|'|\"", PATTERN_FLAGS);
-
     private static final Pattern KEYWORDS_PATTERN;
+    private static final Pattern TYPES_PATTERN;
     private static final Pattern FUNCTION_NAMES_PATTERN;
     private static final String ERROR_HEADER = "==========  ERROR  ==========\n";
     private static final Pattern ERROR_HEADER_PATTERN = Pattern.compile(ERROR_HEADER);
-    private static final AttributeSet HIGHLIGHT_FIND_MATCH = styleForegroundColor(
-            GTk.EDITOR_SELECT_FONT_COLOR.getRed(),
-            GTk.EDITOR_SELECT_FONT_COLOR.getGreen(),
-            GTk.EDITOR_SELECT_FONT_COLOR.getBlue());
-    private static final AttributeSet HIGHLIGHT_ERROR = styleForegroundColor(255, 55, 5); // bright red
 
     static {
-        // load function names
-        Set<String> skipSet = Set.of(
+        // static
+        final Set<String> staticSet = Set.of(
                 "&", "|", "^", "~", "[]",
                 "!=", "!~", "%", "*", "+",
                 "-", ".", "/", "<", "<=",
                 "<>", "<>all", "=", ">", ">=");
-        Set<String> names = new TreeSet<>();
+
+        // function names
+        final Set<String> names = new TreeSet<>();
         for (FunctionFactory factory : ServiceLoader.load(FunctionFactory.class, FunctionFactory.class.getClassLoader())) {
             if (factory.getClass().getName().contains("test")) {
                 continue;
             }
             String signature = factory.getSignature();
             String name = signature.substring(0, signature.indexOf('('));
-            if (skipSet.contains(name)) {
+            if (staticSet.contains(name)) {
                 continue;
             }
             names.add(name);
-            // Add != counterparts to equality function factories
+            // add != counterparts to equality function factories
             if (factory.isBoolean()) {
                 switch (name) {
                     case "=" -> {
@@ -104,7 +114,7 @@ public class EditorHighlighter extends DocumentFilter {
         }
         FUNCTION_NAMES_PATTERN = Pattern.compile(preCompileKeywords(names, true), PATTERN_FLAGS);
 
-        // load keyword names
+        // keywords
         names.clear();
         try {
             Field field = Constants.class.getDeclaredField("KEYWORDS");
@@ -119,6 +129,17 @@ public class EditorHighlighter extends DocumentFilter {
         } catch (NoSuchFieldException | IllegalAccessException e) {
             throw new RuntimeException(e);
         }
+
+        // types
+        names.clear();
+        final Set<String> skipSet = Set.of("unknown", "regclass", "regprocedure", "VARARG", "text[]", "CURSOR", "RECORD", "PARAMETER");
+        for (int type = 1; type < ColumnType.MAX; type++) {
+            String name = ColumnType.nameOf(type);
+            if (!skipSet.contains(name)) {
+                names.add(name.toLowerCase());
+            }
+        }
+        TYPES_PATTERN = Pattern.compile(preCompileKeywords(names, false), PATTERN_FLAGS);
     }
 
     protected final StyledDocument styledDocument;
@@ -255,6 +276,7 @@ public class EditorHighlighter extends DocumentFilter {
         applyStyle(FUNCTION_NAMES_PATTERN.matcher(txt), HIGHLIGHT_FUNCTION);
         applyStyleReplacing(STATIC_PATTERN.matcher(txt), HIGHLIGHT_STATIC);
         applyStyleReplacing(KEYWORDS_PATTERN.matcher(txt), HIGHLIGHT_KEYWORD);
+        applyStyleReplacing(TYPES_PATTERN.matcher(txt), HIGHLIGHT_TYPE);
         applyStyleReplacing(COMMENT_PATTERN.matcher(txt), HIGHLIGHT_COMMENT);
     }
 

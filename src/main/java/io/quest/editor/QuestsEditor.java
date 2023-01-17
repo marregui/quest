@@ -70,7 +70,7 @@ public class QuestsEditor extends Editor implements EventProducer<QuestsEditor.E
         questEntryNames = new JComboBox<>();
         questEntryNames.setFont(GTk.TABLE_CELL_FONT);
         questEntryNames.setBackground(GTk.QUEST_APP_BACKGROUND_COLOR);
-        questEntryNames.setForeground(GTk.EDITOR_MENU_FONT_COLOR);
+        questEntryNames.setForeground(GTk.EDITOR_MENU_FOREGROUND_COLOR);
         questEntryNames.setEditable(false);
         questEntryNames.setPreferredSize(new Dimension(490, COMPONENT_HEIGHT));
         questEntryNames.addActionListener(this::onChangeQuest);
@@ -80,14 +80,14 @@ public class QuestsEditor extends Editor implements EventProducer<QuestsEditor.E
             public Component getListCellRendererComponent(JList list, Object value, int index, boolean isSelected, boolean cellHasFocus) {
                 super.getListCellRendererComponent(list, value, index, isSelected, cellHasFocus);
                 if (isSelected) {
-                    setBackground(GTk.EDITOR_SELECT_FONT_COLOR);
+                    setBackground(GTk.EDITOR_MATCH_FOREGROUND_COLOR);
                     setForeground(GTk.QUEST_APP_BACKGROUND_COLOR);
                 } else {
                     setBackground(GTk.QUEST_APP_BACKGROUND_COLOR);
-                    setForeground(GTk.EDITOR_MENU_FONT_COLOR);
+                    setForeground(GTk.EDITOR_MENU_FOREGROUND_COLOR);
                 }
                 list.setSelectionBackground(GTk.QUEST_APP_BACKGROUND_COLOR);
-                list.setSelectionForeground(GTk.EDITOR_MENU_FONT_COLOR);
+                list.setSelectionForeground(GTk.EDITOR_MENU_FOREGROUND_COLOR);
                 return this;
             }
         });
@@ -401,7 +401,7 @@ public class QuestsEditor extends Editor implements EventProducer<QuestsEditor.E
         boolean isConnected = conn != null && conn.isOpen();
         String connKey = conn != null ? conn.getUniqueId() : "None set";
         connLabel.setText(String.format("on %s", connKey));
-        connLabel.setForeground(isConnected ? GTk.EDITOR_FONT_COLOR : GTk.QUEST_APP_FOREGROUND_COLOR);
+        connLabel.setForeground(isConnected ? GTk.EDITOR_MENU_FOREGROUND_COLOR : GTk.EDITOR_ERROR_FOREGROUND_COLOR);
     }
 
     private JMenu createQuestsMenu() {

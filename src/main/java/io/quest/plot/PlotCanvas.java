@@ -68,7 +68,7 @@ public class PlotCanvas extends JPanel {
         // Fill background and draw border around plot area.
         g2.setColor(GTk.QUEST_APP_BACKGROUND_COLOR);
         g2.fillRect(0, 0, width, height);
-        g2.setColor(GTk.PLOT_BORDER_COLOR);
+        g2.setColor(GTk.EDITOR_PLOT_BORDER_COLOR);
         g2.drawRect(PLOT_INSETS.left, PLOT_INSETS.top, plotWidth, plotHeight);
 
         // draw curve
@@ -119,7 +119,7 @@ public class PlotCanvas extends JPanel {
             }
             for (int i = 0, n = x.size(); i < n; i++) {
                 int pos = x.position(i);
-                g2.setColor(GTk.PLOT_BORDER_COLOR);
+                g2.setColor(GTk.EDITOR_PLOT_BORDER_COLOR);
                 g2.drawLine(pos, 0, pos, Axis.TICK_LENGTH);
                 g2.drawString(x.label(i), pos - x.width(i) / 2, verticalPos);
                 g2.setColor(GTk.EDITOR_LINENO_COLOR);
@@ -129,7 +129,7 @@ public class PlotCanvas extends JPanel {
             }
             for (int i = 0, n = y.size(); i < n; i++) {
                 int pos = y.position(i);
-                g2.setColor(GTk.PLOT_BORDER_COLOR);
+                g2.setColor(GTk.EDITOR_PLOT_BORDER_COLOR);
                 g2.drawLine(0, pos, -Axis.TICK_LENGTH, pos);
                 g2.drawString(y.label(i), -(y.width(i) + Axis.TICK_LENGTH + 2), pos + y.getHeight(i) / 2 - 2);
                 if (i == 0 || i == n - 1 || y.isZero(i)) {
@@ -142,7 +142,7 @@ public class PlotCanvas extends JPanel {
             }
 
             // Draw title and ranges
-            g2.setColor(GTk.EDITOR_MENU_FONT_COLOR);
+            g2.setColor(GTk.EDITOR_MENU_FOREGROUND_COLOR);
             g2.drawString(String.format("%s x:[%s, %s], y:[%s, %s]", title != null ? title : "", Axis.fmtX(minX), Axis.fmtX(maxX), Axis.fmtY(minY), Axis.fmtY(maxY)), 0, Math.round(INSET_BOTTOM * 3 / 4.0F));
 
             // Scale the coordinate system to match plot coordinates

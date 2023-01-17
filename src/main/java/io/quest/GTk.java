@@ -95,15 +95,17 @@ public final class GTk {
             ctrl+shift^s     decrease font size
             """;
     public static final String QUEST_APP_NAME = "Q.U.E.S.T";
-    public static final String MAIN_FONT_NAME = "Monospaced"; // excluding commands' TextPane, which is Monospaced
-    public static final Color QUEST_APP_FOREGROUND_COLOR = new Color(200, 20, 60);
-    public static final Color QUEST_APP_BACKGROUND_COLOR = Color.BLACK;
-    //    public static final Color EDITOR_FONT_COLOR = new Color(50, 210, 80);
-    public static final Color EDITOR_FONT_COLOR = new Color(180, 255, 210);
-    public static final Color EDITOR_MENU_FONT_COLOR = new Color(15, 205, 150);
+    public static final String MAIN_FONT_NAME = "Monospaced";
+    public static final Color QUEST_APP_BACKGROUND_COLOR = new Color(0, 0, 0);
+    public static final Color EDITOR_ERROR_FOREGROUND_COLOR = new Color(255, 55, 5);
+    public static final Color EDITOR_MENU_FOREGROUND_COLOR = new Color(15, 205, 150);
+    public static final Color EDITOR_NORMAL_FOREGROUND_COLOR = new Color(180, 255, 210);
+    public static final Color EDITOR_KEYWORD_FOREGROUND_COLOR = new Color(15, 255, 150);
+    public static final Color EDITOR_FUNCTION_FOREGROUND_COLOR = new Color(0, 255, 4, 92);
+    public static final Color EDITOR_TYPE_FOREGROUND_COLOR = new Color(243, 156, 18);
     public static final Color EDITOR_LINENO_COLOR = Color.LIGHT_GRAY.darker().darker();
-    public static final Color EDITOR_SELECT_FONT_COLOR = new Color(250, 255, 116);
-    public static final Color PLOT_BORDER_COLOR = new Color(153, 153, 153);
+    public static final Color EDITOR_MATCH_FOREGROUND_COLOR = new Color(250, 255, 116);
+    public static final Color EDITOR_PLOT_BORDER_COLOR = new Color(153, 153, 153);
     public static final int EDITOR_DEFAULT_FONT_SIZE = 15;
     public static final int EDITOR_MIN_FONT_SIZE = 11;
     public static final int EDITOR_MAX_FONT_SIZE = 21;

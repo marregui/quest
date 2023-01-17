@@ -57,11 +57,11 @@ class FolderView extends JPanel implements Closeable {
                 setOpaque(true);
                 setFont(GTk.MENU_FONT);
                 if (leaf && selected) {
-                    setBackground(GTk.EDITOR_SELECT_FONT_COLOR);
+                    setBackground(GTk.EDITOR_MATCH_FOREGROUND_COLOR);
                     setForeground(GTk.QUEST_APP_BACKGROUND_COLOR);
                 } else {
                     setBackground(GTk.QUEST_APP_BACKGROUND_COLOR);
-                    setForeground(GTk.EDITOR_FONT_COLOR);
+                    setForeground(GTk.EDITOR_NORMAL_FOREGROUND_COLOR);
                 }
                 String text = value.toString();
                 if (leaf && !text.endsWith("" + Files.SEPARATOR)) {
@@ -205,7 +205,7 @@ class FolderView extends JPanel implements Closeable {
         JCheckBox checkBox = new JCheckBox(type.name(), type.isDefaultChecked());
         checkBox.setFont(GTk.MENU_FONT);
         checkBox.setBackground(GTk.QUEST_APP_BACKGROUND_COLOR);
-        checkBox.setForeground(GTk.QUEST_APP_FOREGROUND_COLOR);
+        checkBox.setForeground(GTk.EDITOR_KEYWORD_FOREGROUND_COLOR);
         checkBox.addActionListener(e -> {
             if (checkBox.isSelected()) {
                 visibleFileTypes.add(type);

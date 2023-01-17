@@ -32,7 +32,7 @@ public final class SQLType {
         throw new IllegalStateException("not meant to me instantiated");
     }
 
-    public static boolean isNumeric(int sqlType) {
+    public static boolean isNotNumeric(int sqlType) {
         return switch (sqlType) {
             case Types.TINYINT,
                     Types.SMALLINT,
@@ -43,8 +43,8 @@ public final class SQLType {
                     Types.DATE,
                     Types.TIMESTAMP,
                     Types.TIMESTAMP_WITH_TIMEZONE,
-                    Types.TIME -> true;
-            default -> false;
+                    Types.TIME -> false;
+            default -> true;
         };
     }
 
@@ -121,7 +121,7 @@ public final class SQLType {
             case Types.TINYINT, Types.SMALLINT, Types.INTEGER, Types.BIGINT -> OLIVE_COLOR;
             case Types.REAL, Types.DOUBLE -> Color.GREEN;
             case Types.TIMESTAMP, Types.TIMESTAMP_WITH_TIMEZONE -> CYAN_DULL_COLOR;
-            case Types.VARCHAR -> GTk.QUEST_APP_FOREGROUND_COLOR;
+            case Types.VARCHAR -> GTk.EDITOR_KEYWORD_FOREGROUND_COLOR;
             default -> Color.MAGENTA;
         };
     }

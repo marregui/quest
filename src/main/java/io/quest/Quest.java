@@ -175,17 +175,17 @@ public final class Quest {
                 GTk.showErrorDialog(frame, "Select only two columns");
                 return;
             }
-            if (!SQLType.isNumeric(table.getColumnType(1))) {
+            if (SQLType.isNotNumeric(table.getColumnType(1))) {
                 GTk.showErrorDialog(frame, "Column X is not numeric");
                 return;
             }
-            if (!SQLType.isNumeric(table.getColumnType(2))) {
+            if (!SQLType.isNotNumeric(table.getColumnType(2))) {
                 GTk.showErrorDialog(frame, "Column Y is not numeric");
                 return;
             }
             plot.setDataSet(
                     new TableColumn("x", table, 1, Color.WHITE),
-                    new TableColumn("y", table, 2, GTk.EDITOR_SELECT_FONT_COLOR)
+                    new TableColumn("y", table, 2, GTk.EDITOR_MATCH_FOREGROUND_COLOR)
             );
             plot.setVisible(true);
             togglePlot.setText("Close Plot");
