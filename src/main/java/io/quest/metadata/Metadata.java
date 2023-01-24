@@ -180,7 +180,7 @@ public class Metadata extends JDialog implements EventProducer<Metadata.EventTyp
     }
 
     private void displayMeta() {
-        metaReader.load0(selectedPath, ColumnType.VERSION);
+        metaReader.load(selectedPath);
         display.clear();
         display.addLn("tableId: ", metaReader.getTableId());
         display.addLn("structureVersion: ", metaReader.getStructureVersion());
@@ -414,7 +414,7 @@ public class Metadata extends JDialog implements EventProducer<Metadata.EventTyp
     }
 
     private boolean openMetaFile(int levelUpCount) {
-        return openFile(levelUpCount, TableUtils.META_FILE_NAME, p -> metaReader.load0(p, ColumnType.VERSION));
+        return openFile(levelUpCount, TableUtils.META_FILE_NAME, metaReader::load);
     }
 
     private boolean openTxnFile(int levelUpCount) {

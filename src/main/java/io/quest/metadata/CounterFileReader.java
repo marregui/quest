@@ -26,7 +26,7 @@ public class CounterFileReader implements Closeable {
 
     private final FilesFacade ff;
 
-    private long uniqueIdFd = -1;
+    private int uniqueIdFd = -1;
     private long uniqueIdMem = 0;
 
     public CounterFileReader(FilesFacade ff) {
