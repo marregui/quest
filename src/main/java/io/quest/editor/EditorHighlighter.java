@@ -38,38 +38,38 @@ public class EditorHighlighter extends DocumentFilter {
     public static final String EVENT_TYPE = "style change";
     public static final int PATTERN_FLAGS = Pattern.CASE_INSENSITIVE | Pattern.UNICODE_CASE;
     protected static final AttributeSet HIGHLIGHT_STATIC = styleForegroundColor(
-            Color.WHITE.getRed(),
-            Color.WHITE.getGreen(),
-            Color.WHITE.getBlue());
+        Color.WHITE.getRed(),
+        Color.WHITE.getGreen(),
+        Color.WHITE.getBlue());
     protected static final AttributeSet HIGHLIGHT_COMMENT = styleForegroundColor(
-            GTk.EDITOR_LINENO_COLOR.getRed(),
-            GTk.EDITOR_LINENO_COLOR.getGreen(),
-            GTk.EDITOR_LINENO_COLOR.getBlue());
+        GTk.EDITOR_LINENO_COLOR.getRed(),
+        GTk.EDITOR_LINENO_COLOR.getGreen(),
+        GTk.EDITOR_LINENO_COLOR.getBlue());
     protected static final AttributeSet HIGHLIGHT_FUNCTION = styleForegroundColor(
-            GTk.EDITOR_FUNCTION_FOREGROUND_COLOR.darker().getRed(),
-            GTk.EDITOR_FUNCTION_FOREGROUND_COLOR.darker().getGreen(),
-            GTk.EDITOR_FUNCTION_FOREGROUND_COLOR.darker().getBlue());
+        GTk.EDITOR_FUNCTION_FOREGROUND_COLOR.darker().getRed(),
+        GTk.EDITOR_FUNCTION_FOREGROUND_COLOR.darker().getGreen(),
+        GTk.EDITOR_FUNCTION_FOREGROUND_COLOR.darker().getBlue());
     protected static final AttributeSet HIGHLIGHT_KEYWORD = styleForegroundColor(
-            GTk.EDITOR_KEYWORD_FOREGROUND_COLOR.getRed(),
-            GTk.EDITOR_KEYWORD_FOREGROUND_COLOR.getGreen(),
-            GTk.EDITOR_KEYWORD_FOREGROUND_COLOR.getBlue());
+        GTk.EDITOR_KEYWORD_FOREGROUND_COLOR.getRed(),
+        GTk.EDITOR_KEYWORD_FOREGROUND_COLOR.getGreen(),
+        GTk.EDITOR_KEYWORD_FOREGROUND_COLOR.getBlue());
     protected static final AttributeSet HIGHLIGHT_TYPE = styleForegroundColor(
-            GTk.EDITOR_TYPE_FOREGROUND_COLOR.getRed(),
-            GTk.EDITOR_TYPE_FOREGROUND_COLOR.getGreen(),
-            GTk.EDITOR_TYPE_FOREGROUND_COLOR.getBlue());
+        GTk.EDITOR_TYPE_FOREGROUND_COLOR.getRed(),
+        GTk.EDITOR_TYPE_FOREGROUND_COLOR.getGreen(),
+        GTk.EDITOR_TYPE_FOREGROUND_COLOR.getBlue());
     protected static final AttributeSet HIGHLIGHT_NORMAL = styleForegroundColor(
-            GTk.EDITOR_NORMAL_FOREGROUND_COLOR.getRed(),
-            GTk.EDITOR_NORMAL_FOREGROUND_COLOR.getGreen(),
-            GTk.EDITOR_NORMAL_FOREGROUND_COLOR.getBlue());
+        GTk.EDITOR_NORMAL_FOREGROUND_COLOR.getRed(),
+        GTk.EDITOR_NORMAL_FOREGROUND_COLOR.getGreen(),
+        GTk.EDITOR_NORMAL_FOREGROUND_COLOR.getBlue());
     private static final AttributeSet HIGHLIGHT_FIND_MATCH = styleForegroundColor(
-            GTk.EDITOR_MATCH_FOREGROUND_COLOR.getRed(),
-            GTk.EDITOR_MATCH_FOREGROUND_COLOR.getGreen(),
-            GTk.EDITOR_MATCH_FOREGROUND_COLOR.getBlue());
+        GTk.EDITOR_MATCH_FOREGROUND_COLOR.getRed(),
+        GTk.EDITOR_MATCH_FOREGROUND_COLOR.getGreen(),
+        GTk.EDITOR_MATCH_FOREGROUND_COLOR.getBlue());
     private static final AttributeSet HIGHLIGHT_ERROR = styleForegroundColor(
-            GTk.EDITOR_ERROR_FOREGROUND_COLOR.getRed(),
-            GTk.EDITOR_ERROR_FOREGROUND_COLOR.getGreen(),
-            GTk.EDITOR_ERROR_FOREGROUND_COLOR.getBlue());
-    private static final Pattern COMMENT_PATTERN = Pattern.compile("--[^\n]*\n", PATTERN_FLAGS);
+        GTk.EDITOR_ERROR_FOREGROUND_COLOR.getRed(),
+        GTk.EDITOR_ERROR_FOREGROUND_COLOR.getGreen(),
+        GTk.EDITOR_ERROR_FOREGROUND_COLOR.getBlue());
+    private static final Pattern COMMENT_PATTERN = Pattern.compile("--[^\n]*\n?", PATTERN_FLAGS);
     private static final Pattern STATIC_PATTERN = Pattern.compile("\\+|\\-|\\*|/|%|:|;|&|\\||~|!|\\^|=|>|<|\\.|,|\\\\|\\(|\\)|\\[|\\]|\\{|\\}|'|\"", PATTERN_FLAGS);
     private static final Pattern KEYWORDS_PATTERN;
     private static final Pattern TYPES_PATTERN;
@@ -80,10 +80,10 @@ public class EditorHighlighter extends DocumentFilter {
     static {
         // static
         final Set<String> staticSet = Set.of(
-                "&", "|", "^", "~", "[]",
-                "!=", "!~", "%", "*", "+",
-                "-", ".", "/", "<", "<=",
-                "<>", "<>all", "=", ">", ">=");
+            "&", "|", "^", "~", "[]",
+            "!=", "!~", "%", "*", "+",
+            "-", ".", "/", "<", "<=",
+            "<>", "<>all", "=", ">", ">=");
 
         // function names
         final Set<String> names = new TreeSet<>();
@@ -190,12 +190,7 @@ public class EditorHighlighter extends DocumentFilter {
         // https://docs.oracle.com/javase/tutorial/essential/regex/bounds.html
         StringBuilder sb = new StringBuilder();
         for (String key : keywords) {
-            sb.append("\\b").append(key);
-            if (!isFunction) {
-                sb.append("\\b");
-            }
-            sb.append(isFunction ? "\\(" : "\\b");
-            sb.append("|");
+            sb.append("\\b").append(Pattern.quote(key)).append(isFunction ? "\\(" : "\\b").append('|');
         }
         sb.setLength(sb.length() - 1); // remove last "|"
         return sb.toString();
@@ -292,10 +287,10 @@ public class EditorHighlighter extends DocumentFilter {
         int matchCount = 0;
         while (matcher.find()) {
             styledDocument.setCharacterAttributes(
-                    matcher.start(),
-                    matcher.end() - matcher.start(),
-                    style,
-                    replace);
+                matcher.start(),
+                matcher.end() - matcher.start(),
+                style,
+                replace);
             matchCount++;
         }
         return matchCount;
@@ -310,16 +305,16 @@ public class EditorHighlighter extends DocumentFilter {
                     findPatternCache.put(findRegex, find);
                 } catch (PatternSyntaxException err) {
                     JOptionPane.showMessageDialog(
-                            null,
-                            String.format("Not a valid regex: %s", findRegex)
+                        null,
+                        String.format("Not a valid regex: %s", findRegex)
                     );
                     return 0;
                 }
             }
             return replaceWith == null ?
-                    applyStyleReplacing(find.matcher(txt), HIGHLIGHT_FIND_MATCH)
-                    :
-                    replaceAllWith(find.matcher(txt), replaceWith);
+                applyStyleReplacing(find.matcher(txt), HIGHLIGHT_FIND_MATCH)
+                :
+                replaceAllWith(find.matcher(txt), replaceWith);
         }
         return 0;
     }
