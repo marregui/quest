@@ -91,7 +91,6 @@ public class Display extends Editor {
 
     public void addLn(String name, int value) {
         KEYWORDS.add(name);
-        System.out.printf("KEY: %s%n", name);
         sink.put(name).put(value).put(System.lineSeparator());
     }
 
