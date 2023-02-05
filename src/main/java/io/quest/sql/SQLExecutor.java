@@ -37,7 +37,7 @@ import io.questdb.log.LogFactory;
 
 public class SQLExecutor implements EventProducer<SQLExecutor.EventType>, Closeable {
 
-    public static final int MAX_BATCH_SIZE = 20_000;
+    public static final int MAX_BATCH_SIZE = 5000;
     public static final int QUERY_EXECUTION_TIMEOUT_SECS = 30;
     private static final int START_BATCH_SIZE = 100;
     private static final Log LOG = LogFactory.getLog(SQLExecutor.class);
@@ -97,8 +97,8 @@ public class SQLExecutor implements EventProducer<SQLExecutor.EventType>, Closea
         String sourceId = req.getSourceId();
         runningQueries.put(sourceId, executor.submit(() -> executeRequest(req, eventConsumer)));
         LOG.info().$("Execution submitted [reqId=").$(req.getUniqueId())
-                .$(", srcId=").$(sourceId)
-                .I$();
+            .$(", srcId=").$(sourceId)
+            .I$();
     }
 
     public synchronized void cancelExistingRequest(SQLExecutionRequest req) {
@@ -110,8 +110,8 @@ public class SQLExecutor implements EventProducer<SQLExecutor.EventType>, Closea
         if (exec != null && !exec.isDone() && !exec.isCancelled()) {
             exec.cancel(true);
             LOG.info().$("Cancelling [reqId=").$(req.getUniqueId())
-                    .$(", srcId=").$(sourceId)
-                    .I$();
+                .$(", srcId=").$(sourceId)
+                .I$();
         }
     }
 
@@ -125,30 +125,30 @@ public class SQLExecutor implements EventProducer<SQLExecutor.EventType>, Closea
         if (!conn.isValid()) {
             runningQueries.remove(sourceId);
             LOG.info().$("Failed [reqId=").$(req.getUniqueId())
-                    .$(", srcId=").$(sourceId)
-                    .$(", conn=").$(conn)
-                    .I$();
+                .$(", srcId=").$(sourceId)
+                .$(", conn=").$(conn)
+                .I$();
             eventListener.onSourceEvent(
-                    SQLExecutor.this,
-                    EventType.FAILURE,
-                    new SQLExecutionResponse(
-                            req,
-                            table,
-                            elapsedMillis(startNanos),
-                            new RuntimeException(String.format("Connection [%s] is not valid", conn))
-                    ));
+                SQLExecutor.this,
+                EventType.FAILURE,
+                new SQLExecutionResponse(
+                    req,
+                    table,
+                    elapsedMillis(startNanos),
+                    new RuntimeException(String.format("Connection [%s] is not valid", conn))
+                ));
             return;
         }
 
         LOG.info().$("Executing [reqId=").$(req.getUniqueId())
-                .$(", srcId=").$(sourceId)
-                .$(", connId=").$(conn.getUniqueId())
-                .$(", query=").$(query)
-                .I$();
+            .$(", srcId=").$(sourceId)
+            .$(", connId=").$(conn.getUniqueId())
+            .$(", query=").$(query)
+            .I$();
         eventListener.onSourceEvent(
-                SQLExecutor.this,
-                EventType.STARTED,
-                new SQLExecutionResponse(req, table, elapsedMillis(startNanos), 0L, 0L));
+            SQLExecutor.this,
+            EventType.STARTED,
+            new SQLExecutionResponse(req, table, elapsedMillis(startNanos), 0L, 0L));
 
         final long fetchStartNanos;
         final long execMillis;
@@ -160,33 +160,42 @@ public class SQLExecutor implements EventProducer<SQLExecutor.EventType>, Closea
             fetchStartNanos = System.nanoTime();
             execMillis = millis(fetchStartNanos - startNanos);
             if (returnsResults) {
-                for (ResultSet rs = stmt.getResultSet(); rs.next(); ) {
+                ResultSet rs = stmt.getResultSet();
+                if (rs.next()) {
                     final long fetchChkNanos = System.nanoTime();
-                    if (!table.hasColumnMetadata()) {
-                        table.setColumnMetadata(rs);
-                    }
+                    final long totalMs = millis(fetchChkNanos - startNanos);
+                    final long fetchMs = millis(fetchChkNanos - fetchStartNanos);
+                    table.setColumnMetadata(rs);
                     table.addRow(rowIdx++, rs);
-                    if (0 == (rowIdx + 1) % batchSize) {
+                    eventListener.onSourceEvent(
+                        SQLExecutor.this,
+                        EventType.FIRST_ROW_AVAILABLE,
+                        new SQLExecutionResponse(req, table, totalMs, execMillis, fetchMs));
+                }
+                while (rs.next()) {
+                    final long fetchChkNanos = System.nanoTime();
+                    table.addRow(rowIdx++, rs);
+                    if (0 == rowIdx % batchSize) {
                         batchSize = Math.min(batchSize * 2, MAX_BATCH_SIZE);
                         final long totalMs = millis(fetchChkNanos - startNanos);
                         final long fetchMs = millis(fetchChkNanos - fetchStartNanos);
                         eventListener.onSourceEvent(
-                                SQLExecutor.this,
-                                EventType.RESULTS_AVAILABLE,
-                                new SQLExecutionResponse(req, table, totalMs, execMillis, fetchMs));
+                            SQLExecutor.this,
+                            EventType.ROWS_AVAILABLE,
+                            new SQLExecutionResponse(req, table, totalMs, execMillis, fetchMs));
                     }
                 }
             }
         } catch (SQLException fail) {
             runningQueries.remove(sourceId);
             LOG.error().$("Failed [reqId=").$(req.getUniqueId())
-                    .$(", srcId=").$(sourceId)
-                    .$(", e=").$(fail.getMessage())
-                    .I$();
+                .$(", srcId=").$(sourceId)
+                .$(", e=").$(fail.getMessage())
+                .I$();
             eventListener.onSourceEvent(
-                    SQLExecutor.this,
-                    EventType.FAILURE,
-                    new SQLExecutionResponse(req, table, elapsedMillis(startNanos), fail));
+                SQLExecutor.this,
+                EventType.FAILURE,
+                new SQLExecutionResponse(req, table, elapsedMillis(startNanos), fail));
             return;
         }
         runningQueries.remove(sourceId);
@@ -195,23 +204,24 @@ public class SQLExecutor implements EventProducer<SQLExecutor.EventType>, Closea
         final long totalMs = millis(endNanos - startNanos);
         final long fetchMs = millis(endNanos - fetchStartNanos);
         LOG.info().$("Event [name=").$(eventType.name())
-                .$(", reqId=").$(req.getUniqueId())
-                .$(", tableSize=").$(table.size())
-                .$(", totalMs=").$(totalMs)
-                .$(", execMs=").$(execMillis)
-                .$(", fetchMs=").$(fetchMs)
-                .I$();
+            .$(", reqId=").$(req.getUniqueId())
+            .$(", tableSize=").$(table.size())
+            .$(", totalMs=").$(totalMs)
+            .$(", execMs=").$(execMillis)
+            .$(", fetchMs=").$(fetchMs)
+            .I$();
         eventListener.onSourceEvent(
-                SQLExecutor.this,
-                eventType,
-                new SQLExecutionResponse(req, table, totalMs, execMillis, fetchMs));
+            SQLExecutor.this,
+            eventType,
+            new SQLExecutionResponse(req, table, totalMs, execMillis, fetchMs));
     }
 
     public enum EventType {
-        STARTED,            // connection is valid, execution has started
-        RESULTS_AVAILABLE,  // execution is going well so far, partial results have been collected
-        COMPLETED,          // execution went well, all results have been collected
-        CANCELLED,          // execution was cancelled
-        FAILURE             // execution failed
+        STARTED,
+        FIRST_ROW_AVAILABLE,
+        ROWS_AVAILABLE,
+        COMPLETED,
+        CANCELLED,
+        FAILURE
     }
 }

@@ -24,13 +24,7 @@ import java.awt.event.ActionEvent;
 import java.io.Closeable;
 import java.util.concurrent.atomic.AtomicReference;
 
-import javax.swing.SwingConstants;
-import javax.swing.JButton;
-import javax.swing.JLabel;
-import javax.swing.JPanel;
-import javax.swing.JScrollPane;
-import javax.swing.JTable;
-import javax.swing.ListSelectionModel;
+import javax.swing.*;
 import javax.swing.table.JTableHeader;
 import javax.swing.table.TableColumn;
 import javax.swing.table.TableColumnModel;
@@ -109,10 +103,12 @@ public class SQLResultsTable extends JPanel implements Closeable {
         southPanel.setBackground(GTk.QUEST_APP_BACKGROUND_COLOR);
         questPanel = new Editor(false, false);
         tableScrollPanel = new JScrollPane(
-                table,
-                JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED,
-                JScrollPane.HORIZONTAL_SCROLLBAR_AS_NEEDED);
-        tableScrollPanel.getViewport().setBackground(GTk.QUEST_APP_BACKGROUND_COLOR);
+            table,
+            JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED,
+            JScrollPane.HORIZONTAL_SCROLLBAR_AS_NEEDED);
+        JViewport viewport = tableScrollPanel.getViewport();
+        viewport.setBackground(GTk.QUEST_APP_BACKGROUND_COLOR);
+        viewport.setExtentSize(size);
         infiniteSpinner = new InfiniteSpinner();
         infiniteSpinner.setSize(size);
         changeMode(Mode.TABLE);
@@ -131,35 +127,50 @@ public class SQLResultsTable extends JPanel implements Closeable {
     public void updateStats(String eventType, SQLExecutionResponse res) {
         if (res != null) {
             statsLabel.setText(String.format(
-                    "[%s]  Exec: %5d,  Fetch: %5d,  Total: %6d (ms)",
-                    eventType,
-                    res.getExecMillis(),
-                    res.getFetchMillis(),
-                    res.getTotalMillis()));
+                "[%s]  Exec: %5d,  Fetch: %5d,  Total: %6d (ms)",
+                eventType,
+                res.getExecMillis(),
+                res.getFetchMillis(),
+                res.getTotalMillis()));
         } else {
             statsLabel.setText("");
         }
     }
 
-    public void onRowsAdded(SQLExecutionResponse res) {
-        Table table = res.getTable();
-        if (results.compareAndSet(null, table)) {
+    public void onResultsStarted() {
+        infiniteSpinner.start();
+        changeMode(Mode.INFINITE);
+    }
+
+    public void onMetadataAvailable(SQLExecutionResponse res) {
+        if (results.compareAndSet(null, res.getTable())) {
             resetTableHeader();
-        } else if (table.size() > 0) {
-            tableModel.fireTableDataChanged();
         }
-        updateRowNavigationComponents();
+    }
+
+    public void onRowsAvailable(SQLExecutionResponse res) {
+        if (res.getTable().size() > 0) {
+            tableModel.fireTableDataChanged();
+            infiniteSpinner.close();
+            changeMode(Mode.TABLE);
+            updateRowNavigationComponents();
+        }
+    }
+
+    public void onRowsCompleted(SQLExecutionResponse res) {
+        tableModel.fireTableDataChanged(true);
         infiniteSpinner.close();
-        if (table.isSingleRowSingleVarcharColumn()) {
-            questPanel.displayMessage((String) table.getValueAt(0, 0));
+        Table table = res.getTable();
+        int size = table.size();
+        if (table.isSingleRowSingleVarcharColumn() || size == 0) {
+            questPanel.displayMessage(size == 0 ?
+                "OK.\n\nNo results for query:\n" + res.getSqlCommand()
+                :
+                (String) table.getValueAt(0, 0));
             changeMode(Mode.MESSAGE);
         } else {
-            if (table.size() == 0) {
-                questPanel.displayMessage("OK.\n\nNo results for query:\n" + res.getSqlCommand());
-                changeMode(Mode.MESSAGE);
-            } else {
-                changeMode(Mode.TABLE);
-            }
+            changeMode(Mode.TABLE);
+            updateRowNavigationComponents();
         }
     }
 
@@ -170,6 +181,7 @@ public class SQLResultsTable extends JPanel implements Closeable {
             table.close();
         }
         tableModel.fireTableStructureChanged();
+        tableModel.fireTableDataChanged();
         infiniteSpinner.close();
         updateStats(null, null);
         updateRowNavigationComponents();
@@ -189,11 +201,6 @@ public class SQLResultsTable extends JPanel implements Closeable {
     public void displayError(String error) {
         questPanel.displayError(error);
         changeMode(Mode.MESSAGE);
-    }
-
-    public void showInfiniteSpinner() {
-        infiniteSpinner.start();
-        changeMode(Mode.INFINITE);
     }
 
     public void onPrevButton(ActionEvent event) {
@@ -219,30 +226,27 @@ public class SQLResultsTable extends JPanel implements Closeable {
         if (tableSize > 0) {
             start++;
         }
-        rowRangeLabel.setText(String.format(
-                "Rows %d to %d of %-10d", start, end, tableSize));
+        rowRangeLabel.setText(String.format("Rows %d to %d of %-10d", start, end, tableSize));
     }
 
     private void resetTableHeader() {
-        tableModel.refreshTableStructure();
+        tableModel.fireTableStructureChanged();
         JTableHeader header = table.getTableHeader();
         header.setForeground(Color.WHITE);
         header.setBackground(GTk.QUEST_APP_BACKGROUND_COLOR);
         header.setPreferredSize(new Dimension(0, TABLE_HEADER_HEIGHT));
-        Table t = results.get();
-        TableColumnModel tcm = table.getColumnModel();
-        int numCols = tcm.getColumnCount();
-        int tableWidth = 0;
-        for (int colIdx = 0; colIdx < numCols; colIdx++) {
-            TableColumn col = tcm.getColumn(colIdx);
-            int width = SQLType.resolveColWidth(t, colIdx);
-            tableWidth += width;
+        
+        TableColumnModel colModel = table.getColumnModel();
+        Table resultsTable = results.get();
+        int tWidth = 0;
+        for (int i = 0, n = colModel.getColumnCount(); i < n; i++) {
+            int width = SQLType.resolveColWidth(resultsTable, i);
+            tWidth += width;
+            TableColumn col = colModel.getColumn(i);
             col.setMinWidth(width);
             col.setPreferredWidth(width);
         }
-        table.setAutoResizeMode(tableWidth < getWidth() ?
-                JTable.AUTO_RESIZE_ALL_COLUMNS : JTable.AUTO_RESIZE_OFF);
-        tableModel.fireTableDataChanged();
+        table.setAutoResizeMode(tWidth < getWidth() ? JTable.AUTO_RESIZE_ALL_COLUMNS : JTable.AUTO_RESIZE_OFF);
     }
 
     private void changeMode(Mode newMode) {

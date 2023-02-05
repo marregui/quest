@@ -184,8 +184,8 @@ public final class Quest {
                 return;
             }
             plot.setDataSet(
-                    new TableColumn("x", table, 1, Color.WHITE),
-                    new TableColumn("y", table, 2, GTk.EDITOR_MATCH_FOREGROUND_COLOR)
+                new TableColumn("x", table, 1, Color.WHITE),
+                new TableColumn("y", table, 2, GTk.EDITOR_MATCH_FOREGROUND_COLOR)
             );
             plot.setVisible(true);
             togglePlot.setText("Close Plot");
@@ -207,10 +207,10 @@ public final class Quest {
             }
         } else {
             if (JOptionPane.YES_OPTION == JOptionPane.showConfirmDialog(
-                    frame,
-                    "Shutdown QuestDB?",
-                    "Choice",
-                    JOptionPane.YES_NO_OPTION)
+                frame,
+                "Shutdown QuestDB?",
+                "Choice",
+                JOptionPane.YES_NO_OPTION)
             ) {
                 questDb.close();
                 questDb = null;
@@ -222,17 +222,19 @@ public final class Quest {
     }
 
     private void dispatchEvent(EventProducer<?> source, Enum<?> event, Object data) {
-        if (source instanceof QuestsEditor) {
-            GTk.invokeLater(() -> onCommandEvent(EventProducer.eventType(event), (SQLExecutionRequest) data));
-        } else if (source instanceof SQLExecutor) {
-            GTk.invokeLater(() -> onSQLExecutorEvent(EventProducer.eventType(event), (SQLExecutionResponse) data));
-        } else if (source instanceof Conns) {
-            GTk.invokeLater(() -> onConnsEvent(EventProducer.eventType(event), data));
-        } else if (source instanceof Metadata) {
-            GTk.invokeLater(() -> onMetaEvent(EventProducer.eventType(event)));
-        } else if (source instanceof Plot) {
-            GTk.invokeLater(() -> onPlotEvent(EventProducer.eventType(event)));
-        }
+        GTk.invokeLater(() -> {
+            if (source instanceof QuestsEditor) {
+                onCommandEvent(EventProducer.eventType(event), (SQLExecutionRequest) data);
+            } else if (source instanceof SQLExecutor) {
+                onSQLExecutorEvent(EventProducer.eventType(event), (SQLExecutionResponse) data);
+            } else if (source instanceof Conns) {
+                onConnsEvent(EventProducer.eventType(event), data);
+            } else if (source instanceof Metadata) {
+                onMetaEvent(EventProducer.eventType(event));
+            } else if (source instanceof Plot) {
+                onPlotEvent(EventProducer.eventType(event));
+            }
+        });
     }
 
     private void onCommandEvent(QuestsEditor.EventType event, SQLExecutionRequest req) {
@@ -256,8 +258,10 @@ public final class Quest {
     private void onSQLExecutorEvent(SQLExecutor.EventType event, SQLExecutionResponse res) {
         results.updateStats(event.name(), res);
         switch (event) {
-            case STARTED -> results.showInfiniteSpinner();
-            case RESULTS_AVAILABLE, COMPLETED -> results.onRowsAdded(res);
+            case STARTED -> results.onResultsStarted();
+            case FIRST_ROW_AVAILABLE -> results.onMetadataAvailable(res);
+            case ROWS_AVAILABLE -> results.onRowsAvailable(res);
+            case COMPLETED -> results.onRowsCompleted(res);
             case CANCELLED -> results.close();
             case FAILURE -> {
                 results.close();
@@ -305,8 +309,7 @@ public final class Quest {
                     }
                 }
             }
-            case CONNECTION_FAILED ->
-                    results.displayError(String.format("Server is down: %s%n", data));
+            case CONNECTION_FAILED -> results.displayError(String.format("Server is down: %s%n", data));
             case HIDE_REQUEST -> onToggleConns(null);
         }
     }

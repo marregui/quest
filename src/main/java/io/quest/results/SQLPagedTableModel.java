@@ -41,6 +41,7 @@ public class SQLPagedTableModel extends AbstractTableModel {
     private int maxPage;
     private int pageStartOffset;
     private int pageEndOffset;
+    private boolean flushed;
 
     SQLPagedTableModel(Supplier<Table> tableSupplier) {
         this.tableSupplier = Objects.requireNonNull(tableSupplier);
@@ -57,7 +58,7 @@ public class SQLPagedTableModel extends AbstractTableModel {
     void incrPage() {
         if (canIncrPage()) {
             currentPage++;
-            fireTableDataChanged();
+            fireTableDataChanged(true);
         }
     }
 
@@ -68,21 +69,16 @@ public class SQLPagedTableModel extends AbstractTableModel {
         }
     }
 
-    void refreshTableStructure() {
-        super.fireTableStructureChanged();
-    }
-
-    @Override
-    public void fireTableStructureChanged() {
-        super.fireTableStructureChanged();
-        fireTableDataChanged();
-    }
-
     @Override
     public void fireTableDataChanged() {
+        fireTableDataChanged(false);
+    }
+
+    public void fireTableDataChanged(boolean force) {
+        int size = 0;
         Table table = tableSupplier.get();
         if (table != null) {
-            int size = table.size();
+            size = table.size();
             pageStartOffset = PAGE_SIZE * currentPage;
             pageEndOffset = pageStartOffset + Math.min(size - pageStartOffset, PAGE_SIZE);
             maxPage = (size / PAGE_SIZE) - 1;
@@ -95,7 +91,10 @@ public class SQLPagedTableModel extends AbstractTableModel {
             pageStartOffset = 0;
             pageEndOffset = 0;
         }
-        super.fireTableDataChanged();
+        if (force || (!flushed && size > PAGE_SIZE)) {
+            super.fireTableDataChanged();
+            flushed = true;
+        }
     }
 
     public int getPageStartOffset() {
