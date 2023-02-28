@@ -86,7 +86,7 @@ public final class Quest {
         togglePlot = new JMenuItem();
         frame.setJMenuBar(createMenuBar());
         Runtime.getRuntime().addShutdownHook(new Thread(this::close, "shutdown-hook"));
-        LOG.info().$(GTk.BANNER).$();
+        LOG.info().$('\n').$(GTk.BANNER).$('\n').$();
         executor.start();
         conns.start();
         frame.setVisible(true);
