@@ -47,9 +47,9 @@ public final class GTk {
                 |_|
             Copyright (c) 2019 -\s""" + Calendar.getInstance().get(Calendar.YEAR);
     public static final String KEYBOARD_SHORTCUTS = """
-
-            Mac users: ctrl -> command, alt -> option
-            \s
+            
+            (note for Mac keyboard: ctrl, alt -> command, option)
+ 
             ctrl^.            run QuestDB in the background
             ctrl^m            open metadata files explorer
             ctrl^j            open plot on results, if two numeric columns
